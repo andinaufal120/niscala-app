@@ -1,0 +1,291 @@
+# SPEC.md — Niscala mobile app
+
+> **Audience:** coding agents working in this repository.
+> **Scope:** the Flutter Android app only. The backend lives in a separate repository and owns all business rules and the API contract.
+> **Status:** self-contained. Everything an agent needs to know about required app behaviour is in this file. Do not look for requirements elsewhere.
+
+Traceability IDs (`FR-xx`, `NFR-xx`, `UC-xx`, `TBD-x`) are stable keys shared with the project's requirements baseline (v1.1, 11-10-2026) and Jira. Use them in test names, commit messages and PR descriptions.
+
+---
+
+## 1. Product
+
+Niscala ("Kelola Kost Tanpa Ribet") helps boarding-house (kos) owners and managers handle properties, rooms, tenants, rent payments and maintenance complaints in one Android app.
+
+- Rent is paid **outside** the app (cash or bank transfer). The app records, verifies and tracks payment status. It never moves rent money.
+- Two AI features set the product apart. Both are available only when the property owner has an active subscription:
+    1. classification of maintenance complaints (category, urgency, suggested action);
+    2. a natural-language summary of each tenant's payment pattern.
+- An AI failure never blocks saving data.
+- Out of scope for v1.0: in-app rent payment, OAuth providers other than Google, iOS and web apps.
+
+## 2. Boundary of this repository
+
+| The app does                                            | The backend does (not this repo)                                    |
+|---------------------------------------------------------|---------------------------------------------------------------------|
+| Render screens, forms, lists and states                 | Store data, enforce permissions                                     |
+| Validate input before sending (format, required fields) | Re-validate everything; it is the authority                         |
+| Show results the API returns                            | Compute billing dates, due dates, payment-pattern facts, risk flags |
+| Show subscription-gated content as the API reports it   | Decide subscription gating (FR-25, NFR-15)                          |
+| Show AI results or their pending/unavailable state      | Call Gemini, retries, fallback (FR-28)                              |
+| Pick files, share links, display QR codes               | Generate bills (FR-31), invitations, notifications                  |
+
+**Invariant:** the app never re-implements a backend rule. If a screen needs a value the API does not provide, that is a contract gap. Raise it in Plan mode; do not compute it locally.
+
+## 3. Glossary
+
+Markdown docs use the format *Original term (English term)*. Code uses the English **code name** only.
+
+| Term                                                | Code name                 | Meaning                                                                            |
+|-----------------------------------------------------|---------------------------|------------------------------------------------------------------------------------|
+| Niscala                                             | —                         | This product.                                                                      |
+| Properti (Property)                                 | `Property`                | One kos location with rooms, owned by one Owner.                                   |
+| Kamar (Room)                                        | `Room`                    | A rentable unit in a property. Occupancy is Terisi or Kosong.                      |
+| Masa sewa (Lease)                                   | `Lease`                   | A tenant's occupancy of a room: start date, end date, billing cycle, grace period. |
+| Penyewa (Tenant)                                    | `Tenant`                  | User who occupies a room; joins through an invitation link.                        |
+| Pemilik Kost (Owner)                                | `Owner`                   | User who owns one or more properties and holds the subscription.                   |
+| Pengelola Kost (Manager)                            | `Manager`                 | Optional user assigned by an Owner to specific properties.                         |
+| Admin (Admin)                                       | `Admin`                   | Internal user who manages all user accounts.                                       |
+| Manajemen kost (Management)                         | `management` (role group) | Owner and Manager together.                                                        |
+| Undangan (Invitation)                               | `Invitation`              | Lets a Tenant or Manager activate an account.                                      |
+| Laporan keluhan (Complaint)                         | `Complaint`               | Free-text maintenance report from a Tenant.                                        |
+| Klasifikasi AI (AI classification)                  | `ComplaintClassification` | Category, urgency and suggested action for a complaint.                            |
+| Tagihan sewa (Rent bill)                            | `RentBill`                | Rent owed for one billing period. Generated by the backend (FR-31).                |
+| Pembayaran (Payment)                                | `Payment`                 | The payment record attached to a rent bill.                                        |
+| Siklus penagihan (Billing cycle)                    | `BillingCycle`            | Weekly, monthly, 3, 6 or 12 months. Default: monthly from the lease start date.    |
+| Masa tenggang (Grace period)                        | `gracePeriodDays`         | Days after the bill date before a payment is late. Default: 0.                     |
+| Jatuh tempo (Due date)                              | `dueDate`                 | Bill date + grace period. Computed by the backend.                                 |
+| Ringkasan pola pembayaran (Payment-pattern summary) | `PaymentPatternSummary`   | AI-written sentence built from rule-computed payment facts.                        |
+| Langganan (Subscription)                            | `Subscription`            | The Owner's paid plan that unlocks AI features.                                    |
+| Soft delete (Soft delete)                           | —                         | Marked inactive; history is kept.                                                  |
+
+UI copy is in **Indonesian**. Menu and button names in this spec are given as *Indonesian (English)*. The English is for understanding only and must not appear in the UI.
+
+## 4. Roles and permissions
+
+`✓` allowed · `A` only on properties assigned to the Manager · `—` not allowed
+
+| Capability                                                   | Tenant | Owner | Manager | Admin |
+|--------------------------------------------------------------|:------:|:-----:|:-------:|:-----:|
+| View own room, lease, payments, complaints, notifications    |   ✓   |   —   |    —    |   —   |
+| Submit complaint, upload transfer receipt                    |   ✓   |   —   |    —    |   —   |
+| Add / delete property                                        |   —    |  ✓   |    —    |   —   |
+| View / edit property                                         |   —    |  ✓   |    A    |   —   |
+| Add / view / edit / delete room                              |   —    |  ✓   |    A    |   —   |
+| Add / view / edit / delete tenant                            |   —    |  ✓   |    A    |   —   |
+| Verify/reject receipts, record cash, change payment status   |   —    |  ✓   |    A    |   —   |
+| Occupancy dashboard, complaint list, change complaint status |   —    |  ✓   |    A    |   —   |
+| Payment status of all tenants, payment-pattern view          |   —    |  ✓   |    A    |   —   |
+| Add / view / edit / delete managers                          |   —    |  ✓   |    —    |   —   |
+| Choose and pay for a subscription                            |   —    |  ✓   |    —    |   —   |
+| View / edit / delete any user account                        |   —    |   —   |    —    |  ✓   |
+
+Each role sees only the menus it is allowed to use. The backend enforces permissions; the app hides what a role cannot do.
+
+## 5. Status vocabularies
+
+Show statuses with the same label, colour and icon on every screen.
+
+| Entity                           | Statuses — Indonesian label (English, `codeName`)                                                                                                                                                                     |
+|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Room occupancy                   | Terisi (Occupied, `occupied`) · Kosong (Vacant, `vacant`)                                                                                                                                                             |
+| Payment                          | Belum Bayar (Unpaid, `unpaid`) · Menunggu Verifikasi (Awaiting verification, `awaitingVerification`) · Lunas (Paid, `paid`) · Ditolak (Rejected, `rejected`)                                                          |
+| Payment method                   | Transfer (Bank transfer, `transfer`) · Tunai (Cash, `cash`)                                                                                                                                                           |
+| Complaint                        | Baru (New, `new_`) · Menunggu Klasifikasi (Awaiting classification, `awaitingClassification`) · Belum Diklasifikasi (Not classified, `notClassified`) · Diproses (In progress, `inProgress`) · Selesai (Done, `done`) |
+| Tenant account                   | Belum Diaktifkan (Not activated, `notActivated`) · Aktif (Active, `active`)                                                                                                                                           |
+| Manager account                  | Belum Terkirim (Invitation not sent, `invitationNotSent`) · Belum Diaktivasi (Not activated, `notActivated`) · Aktif (Active, `active`)                                                                               |
+| User account (Admin view)        | Aktif (Active, `active`) · Nonaktif (Inactive, `inactive`)                                                                                                                                                            |
+| Subscription order / transaction | Menunggu Pembayaran (Awaiting payment, `awaitingPayment`) · Berhasil (Succeeded, `succeeded`) · Gagal (Failed, `failed`) · Kedaluwarsa (Expired, `expired`)                                                           |
+
+Complaint meaning: *Menunggu Klasifikasi* = AI was attempted and failed or timed out. *Belum Diklasifikasi* = the Owner had no active subscription when the complaint was saved, so AI was skipped.
+
+## 6. Cross-cutting UI rules
+
+These apply to every use case below. Use cases do not repeat them.
+
+1. **Expired session** → go to the login screen.
+2. **Validation errors** state the cause next to the field (for example "Nomor telepon tidak valid"), never a generic message.
+3. **Destructive actions** (delete property, room, tenant, manager, account) always ask for confirmation. Cancelling returns to the previous detail screen with nothing changed.
+4. **Conflict** ("already changed by another user") → show a message and reload the current detail or list.
+5. **Server or network failure** → show an error message. Nothing is saved, and the user can retry.
+6. **Empty lists** show an explanatory empty state, not a blank screen.
+7. **Subscription-gated content** (AI classification, payment-pattern summary) is replaced by a note that it needs an active subscription. The rest of the screen still works.
+8. **AI unavailable** never blocks a flow. Show the pending or unavailable state and continue.
+9. **Accessibility:** WCAG 2.2 Level A (NFR-14).
+10. **Transport:** HTTPS only (NFR-08).
+
+## 7. Account access
+
+Login and sign-up are preconditions, not use cases. All use cases assume a valid session. The account identifier is **email**.
+
+- **Owner** signs up and logs in with Google or a local password (FR-20).
+- **Tenant** activates through an invitation link shared by management. During activation the tenant completes whatever data management left empty, including email, then chooses Google or a local password (FR-01).
+- **Manager** activates through an invitation sent to their email by the Owner, with Google or a local password (FR-26).
+- **Profile menu (FR-30):** a Google-only user can add a local password. A password user can link Google, but only after logging in with the password. The app never links accounts automatically by matching email.
+- **Local password rules (NFR-11, NIST SP 800-63B Rev. 3, AAL1).** These apply only to accounts with a local password:
+    - minimum 8 characters, and at least 64 accepted;
+    - no composition rules and no forced periodic change;
+    - a show-password toggle while typing;
+    - the backend checks passwords against common/breached lists and rate-limits failed logins. The app shows those errors as returned.
+
+## 8. Use cases
+
+Format: actor · entry point · flow · outcomes. Menu names are *Indonesian (English)*.
+
+### 8.1 Tenant (Penyewa)
+
+**UC-01 View room and lease** (FR-02) · Tenant · *Kamar Saya (My Room)*
+Shows room number, facilities, lease start and end dates. If there is no room or lease → message to contact management.
+
+**UC-02 Submit maintenance complaint** (FR-03, FR-04, FR-25, FR-28) · Tenant with an active lease · *Laporan Keluhan → Buat Laporan (Complaints → New)*
+Free-text description → submit → confirmation. An empty or too-short description gets a field error (minimum length: see §10). After saving, the complaint is *Baru* and carries one of: a classification, *Menunggu Klasifikasi*, or *Belum Diklasifikasi*. The app shows the confirmation as soon as the save succeeds; it does not wait for the AI.
+
+**UC-03 View complaint status and history** (FR-05) · Tenant · *Laporan Keluhan (Complaints)*
+List of own complaints with status. Detail shows category and urgency if classified. Empty state if none.
+
+**UC-04 View rent payment history and status** (FR-06) · Tenant with an active lease · *Pembayaran (Payments)*
+List of bills/payments with status (§5), period, amount and due date.
+
+**UC-05 Upload transfer receipt** (FR-07) · Tenant · from a current-period payment that is *Belum Bayar* or *Ditolak* → *Unggah Bukti (Upload receipt)*
+Pick an image or document from device storage or the gallery → submit. Invalid format or size gets a field error (limits: see §10). On success the status becomes *Menunggu Verifikasi*.
+
+**UC-06 View notifications** (FR-08) · Tenant · *Notifikasi (Notifications)*
+In-app list only, newest first, unread ones marked. Two types: due-date reminder and payment-status change. Opening one marks it read and shows type, period and status, with a path to UC-04. Empty state if none.
+
+### 8.2 Management (Pemilik Kost and Pengelola Kost)
+
+Managers see only their assigned properties. The selected property becomes the **active management context** for the property-scoped menus.
+
+**UC-07 Verify or reject receipt** (FR-08, FR-09) · *Pembayaran → Menunggu Verifikasi (Payments → Awaiting verification)*
+List of payments awaiting verification → detail with tenant, room, period, amount and receipt image (with a reload option if the image fails to load).
+- *Verifikasi (Verify)* → *Lunas*.
+- *Tolak (Reject)* → a rejection reason is required → *Ditolak*, and the tenant can upload again.
+  The tenant is notified. If the notification fails, the status change still stands.
+
+**UC-08 Record cash payment** (FR-08, FR-10) · *Pembayaran → Catat Pembayaran Tunai (Payments → Record cash)*
+Pick a tenant with an unpaid bill (*Belum Bayar* or *Ditolak*) → pick the period → enter the date received → confirm the cash was received → *Lunas*, method *Tunai*. An invalid date gets a field error. Only management can start this flow.
+
+**UC-09 Change payment status manually** (FR-08, FR-11) · *Pembayaran → [payment] → Ubah Status (Change status)*
+Choose *Belum Bayar*, *Lunas* or *Ditolak* and enter a **required** reason. Choosing the current status or leaving the reason empty gets a field error.
+
+**UC-10 Add property** (FR-12, FR-21) · **Owner only** · *Properti → Tambah Properti (Properties → Add)*
+Fields: name and address, both required. The name must be unique within the Owner's account (the error comes from the API).
+
+**UC-11 View properties** (FR-12, FR-21) · *Properti (Properties)*
+List with room count and assigned managers. Selecting one shows its detail and sets it as the active context. With access to exactly one property, skip the list and open its detail directly.
+
+**UC-12 Edit property** (FR-12) · *Properti → [property] → Ubah Properti (Edit)*
+Form pre-filled with name and address.
+
+**UC-13 Delete property** (FR-12) · **Owner only** · *Properti → [property] → Hapus Properti (Delete)*
+Rejected if the property has an active lease. On success the property's rooms and manager assignments are removed too.
+
+**UC-14 Add room** (FR-12) · *[property] → Kamar → Tambah Kamar (Rooms → Add)*
+Fields: room number, rent rate, facilities. The room number must be unique within the property.
+
+**UC-15 View rooms** (FR-12) · *[property] → Kamar (Rooms)*
+List with number, rate and occupancy. Detail adds facilities, plus the tenant and lease if occupied.
+
+**UC-16 Edit room** (FR-12) · *[room] → Ubah Kamar (Edit)* · same fields and rules as UC-14.
+
+**UC-17 Delete room** (FR-12) · *[room] → Hapus Kamar (Delete)* · rejected if the room has an active lease.
+
+**UC-18 Add tenant** (FR-13) · *[property] → Penyewa → Tambah Penyewa (Tenants → Add)*
+Required fields: room (vacant rooms only), name, phone number. Optional fields: other personal data, lease dates, billing cycle (§3, default monthly), grace period (default 0).
+On save, the room becomes *Terisi* and an **invitation link** is shown. The link can be shared via WhatsApp or shown as a QR code. If link creation fails, the tenant is still saved, and the link can be regenerated in UC-20.
+
+**UC-19 View tenants** (FR-13) · *[property] → Penyewa (Tenants)*
+List with room, lease and account status. Detail shows personal data, room, lease and activation status.
+
+**UC-20 Edit tenant** (FR-13) · *[tenant] → Ubah Data Penyewa (Edit)*
+Editable: name, phone, other data, lease dates, billing cycle, grace period. The lease end date must not be before the start date. Tell the user that a billing-cycle change applies **from the next bill onward**.
+Alternative: *Buat Ulang Tautan Undangan (Regenerate invitation link)* for an unused or expired invitation. It creates a new link, invalidates the old one and shows the new one for sharing. If regeneration fails, the old link stays valid.
+
+**UC-21 Delete tenant** (FR-13) · *[tenant] → Hapus Penyewa (Delete)*
+Soft delete: the lease ends, account access is revoked and the room becomes *Kosong*. Payment and complaint history is kept.
+
+**UC-22 Occupancy dashboard** (FR-14) · *Dashboard*
+Per property: occupied count, vacant count, occupancy percentage and each room's status. With several properties, show a summary of all of them first, then per-property detail. All figures come from the API.
+
+**UC-23 Complaint list with AI classification** (FR-15, FR-25) · *Laporan Keluhan (Complaints)*
+Complaints across accessible properties, sorted by urgency, then time. Shows category, urgency and suggested action when available. Unclassified complaints show their status instead. Without an active subscription, hide classification results and show the subscription note.
+
+**UC-24 Change complaint status** (FR-16) · *[complaint] → Ubah Status (Change status)*
+Choose *Diproses* or *Selesai*, with an optional handling note. Not available once a complaint is *Selesai*.
+
+**UC-25 Payment status of all tenants** (FR-17) · *Pembayaran (Payments)*
+Pick a property and a period (default: current) → list of tenants with room, amount and status. Selecting a tenant shows their payment history.
+
+**UC-26 Payment-pattern summary** (FR-18, FR-19, FR-25, FR-28) · *Pembayaran → Risiko Pembayaran (Payments → Payment risk)*
+Every tenant is listed with:
+- rule-computed facts (for example average days paid relative to the due date, and late frequency);
+- an at-risk flag;
+- the stored AI summary, or "belum tersedia" (not yet available).
+  Without an active subscription, show facts and flags only, plus the subscription note. Opening this screen never triggers AI generation; summaries are regenerated by the backend when a payment status changes.
+
+### 8.3 Owner only (Pemilik Kost)
+
+**UC-27 Add manager** (FR-22) · *Pengelola Kost → Tambah Pengelola (Managers → Add)*
+Fields: name, email, and at least one property. The email must not be registered already. An invitation is emailed. If sending fails, the account is saved as *Belum Terkirim* and can be resent in UC-29.
+
+**UC-28 View managers** (FR-22) · *Pengelola Kost (Managers)*
+List with name, email, assigned properties and account status. The empty state includes the *Tambah Pengelola* button.
+
+**UC-29 Edit manager** (FR-22) · *[manager] → Ubah (Edit)*
+Change name, email or assigned properties, with at least one property. Access to properties that were removed is revoked. Alternative: *Kirim Ulang Undangan (Resend invitation)* for accounts that are not yet active.
+
+**UC-30 Delete manager** (FR-22) · *[manager] → Hapus (Delete)*
+Soft delete: assignments are revoked and active sessions end. The manager's action history is kept.
+
+**UC-31 Choose subscription plan** (FR-23, FR-25) · *Langganan (Subscription)*
+Shows the current status and the available plans (features, price). With an active plan, also show the end date and offer renewal or a plan change. Pick a plan → order summary → confirm → order *Menunggu Pembayaran* → UC-32.
+
+**UC-32 Pay for subscription** (FR-24, FR-25, FR-27) · from a pending order → *Bayar (Pay)*
+Opens the payment gateway page (provider: TBD-3). Results:
+- *Berhasil* → subscription active, with confirmation;
+- *Gagal* or *Kedaluwarsa* → offer to pay again;
+- still pending → stays *Menunggu Pembayaran* and can be re-checked from *Langganan*.
+  If the gateway is unreachable, show an error; no transaction is created.
+
+### 8.4 Admin
+
+**UC-33 View user accounts** (FR-29) · *Akun Pengguna (User accounts)*
+List with name, email, role and status. Search by email, filter by role, open a detail view. Shows "not found" when the search or filter matches nothing.
+
+**UC-34 Edit user account** (FR-29) · *[account] → Ubah (Edit)*
+Change name, email (must be unique) and status (*Aktif*/*Nonaktif*). Deactivating an account ends its sessions.
+
+**UC-35 Delete user account** (FR-29) · *[account] → Hapus (Delete)*
+Soft delete that ends sessions. Rejected, with the reason shown, if the account is an Owner with a property that has an active lease.
+
+## 9. API contract
+
+The backend repository owns the contract. Its OpenAPI document is the source; the app consumes a **Dart client generated from it** and committed to this repo. Regenerate the client to pick up contract changes, and never hand-edit generated code.
+
+Until the generated client exists, the only endpoint is:
+
+| Method | Path      | Purpose                                                   | Used by                                                   |
+|--------|-----------|-----------------------------------------------------------|-----------------------------------------------------------|
+| `GET`  | `/health` | Confirms the API is up and its database connection works. | Walking skeleton (NKMA-6): the app displays the response. |
+
+The response shape of `/health` is decided in NKMA-19 (see §10).
+
+## 10. Undecided — do not implement by assumption
+
+When work touches one of these items, stop and raise it in Plan mode.
+
+| ID    | Item                                                                                                                             | Affects             |
+|-------|----------------------------------------------------------------------------------------------------------------------------------|---------------------|
+| TBD-2 | Minimum Android version (minSdk). Closed by NKMA-24.                                                                             | Build config        |
+| TBD-3 | Payment gateway provider, and how its page opens (webview vs. external browser).                                                 | UC-32               |
+| U-1   | `/health` response shape.                                                                                                        | §9, NKMA-22         |
+| U-2   | Receipt upload: allowed file formats and maximum size.                                                                           | UC-05               |
+| U-3   | Complaint description minimum length.                                                                                            | UC-02               |
+| U-4   | Invitation link handling: how a link opens the app (Android App Links / deep link) and what happens if the app is not installed. | UC-18, UC-20, FR-01 |
+| U-5   | Date display format in the UI.                                                                                                   | All dates           |
+
+## 11. Changelog
+
+| Date       | Change                                                                 | Decided in |
+|------------|------------------------------------------------------------------------|------------|
+| 12-10-2026 | Initial version, derived from requirements baseline v1.1 (11-10-2026). | NKMA-14    |
