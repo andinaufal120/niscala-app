@@ -4,7 +4,7 @@
 > **Scope:** the Flutter Android app only. The backend lives in a separate repository and owns all business rules and the API contract.
 > **Status:** self-contained. Everything an agent needs to know about required app behaviour is in this file. Do not look for requirements elsewhere.
 
-Traceability IDs (`FR-xx`, `NFR-xx`, `UC-xx`, `TBD-x`) are stable keys shared with the project's requirements baseline (v1.1, 11-10-2026) and Jira. Use them in test names, commit messages and PR descriptions.
+Traceability IDs (`FR-xx`, `NFR-xx`, `UC-xx`, `TBD-x`) are stable keys shared with the project's requirements baseline (v1.1, 11-10-2026) and Jira. Use them in commit messages and PR descriptions, never in source code or test names.
 
 ---
 
@@ -268,7 +268,7 @@ Until the generated client exists, the only endpoint is:
 |--------|-----------|-----------------------------------------------------------|-----------------------------------------------------------|
 | `GET`  | `/health` | Confirms the API is up and its database connection works. | Walking skeleton (NKMA-6): the app displays the response. |
 
-The response shape of `/health` is decided in NKMA-19 (see §10).
+The response shape of `/health` is undecided (see U-1 in §10).
 
 ## 10. Undecided — do not implement by assumption
 
@@ -276,7 +276,7 @@ When work touches one of these items, stop and raise it in Plan mode.
 
 | ID    | Item                                                                                                                             | Affects             |
 |-------|----------------------------------------------------------------------------------------------------------------------------------|---------------------|
-| TBD-2 | Minimum Android version (minSdk). Closed by NKMA-24.                                                                             | Build config        |
+| TBD-2 | Minimum Android version (minSdk). Tracked in NKMA-24.                                                                            | Build config        |
 | TBD-3 | Payment gateway provider, and how its page opens (webview vs. external browser).                                                 | UC-32               |
 | U-1   | `/health` response shape.                                                                                                        | §9, NKMA-22         |
 | U-2   | Receipt upload: allowed file formats and maximum size.                                                                           | UC-05               |
@@ -289,3 +289,4 @@ When work touches one of these items, stop and raise it in Plan mode.
 | Date       | Change                                                                 | Decided in |
 |------------|------------------------------------------------------------------------|------------|
 | 12-10-2026 | Initial version, derived from requirements baseline v1.1 (11-10-2026). | NKMA-14    |
+| 13-10-2026 | Traceability IDs kept out of source and test names; TBD-2 marked open (NKMA-24); `/health` shape points to U-1. | NKMA-14 |
