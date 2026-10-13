@@ -1,21 +1,113 @@
 # niscala
 
-Flutter app (Dart SDK ^3.13, Flutter stable). Currently Android-only — there is no `ios/`, `web/`, or desktop platform folder.
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when, they appear in all capitals, as shown here.
+
+Flutter app (Dart SDK ^3.13, Flutter stable). Currently Android-only: there is no `ios/`, `web/`, or desktop platform folder.
+
+This repo is the **mobile client only**. The backend (FastAPI) lives in a separate repository and owns all business rules and the API contract. See "Boundaries" below.
 
 ## Commands
 
-- `flutter pub get` — install dependencies
-- `flutter analyze` — static analysis (lints from `flutter_lints`, see `analysis_options.yaml`)
-- `flutter test` — run all tests; `flutter test test/<file>_test.dart` for one file
-- `dart format .` — format code
-- `flutter run` — run on a connected device/emulator
+- `flutter pub get`: install dependencies
+- `flutter analyze`: static analysis (lints from `flutter_lints`, see `analysis_options.yaml`)
+- `flutter test`: run all tests; `flutter test test/<file>_test.dart` for one file
+- `dart format .`: format code
+- `flutter run`: run on a connected device/emulator
 
 ## Workflow
 
-- Before calling a change done, `flutter analyze` must report no issues and `flutter test` must pass.
+- Before a change is called done, `flutter analyze` MUST report no issues and `flutter test` MUST pass.
 - Edited `.dart` files are auto-formatted by a hook in `.claude/settings.json`.
-- Don't edit generated or build output: `build/`, `.dart_tool/`, `pubspec.lock` (change `pubspec.yaml` and run `flutter pub get` instead).
+- Agents MUST NOT edit generated or build output: `build/`, `.dart_tool/`, `pubspec.lock`. Change `pubspec.yaml` and run `flutter pub get` instead.
+- Test-Driven Development: tests for a use case MUST be written or updated before implementing it, by two separate subagents defined in `.claude/agents/`:
+  1. `test-writer` writes an exhaustive set of tests from `docs/SPEC.md` and the approved plan. It MUST NOT write implementation code. Its output is committed on its own.
+  2. `implementer` then writes the code to make those tests pass. It MUST NOT modify the tests. If a test looks wrong, it MUST stop and report the conflict instead.
+
+  Hooks in `.claude/hooks/` limit `test-writer` to editing `test/`, block `implementer` from editing `test/`, and restrict both to a short list of Bash commands.
+- Source files (code, tests, OpenAPI documents, manifests, config, etc.) SHOULD NOT contain transient information, such as roadmap notes, Jira keys, or references to Markdown docs and their IDs or sections (e.g. `UC-05`, `FR-13`, `docs/SPEC.md` §10). That context belongs in commits, PRs, and the docs themselves.
+  - Doc comments and test names SHOULD describe behavior and contract: inputs, outputs, side effects, errors, and non-obvious reasons that stay true as long as the code does. Glossary code names (`Tenant`, `Lease`) are fine.
+  - Rule of thumb: if it would go stale when a Jira issue closes or a doc is renumbered, it doesn't belong in source.
+
+## Principles
+
+- Agents SHOULD do the simplest thing that satisfies the request. If something extra seems needed, agents MUST ask first instead of adding it.
+- The database enforces structural integrity only: NOT NULL, UNIQUE, foreign keys, simple value ranges, and enum-style CHECKs.
+- **Clarity:** clarity is better than cleverness.
+- **Separation:** separate policy from mechanism.
+- **Simplicity:** design for simplicity; add complexity only where you must.
+- **Transparency:** design for visibility to make inspection and debugging easier.
+- **Robustness:** robustness is the child of transparency and simplicity.
+- **Representation:** fold knowledge into data, so program logic can be stupid and robust.
+- **Silence:** when a program has nothing surprising to say, it should say nothing.
+- **Repair:** repair what you can, but when you must fail, fail noisily and as soon as possible.
+- **Optimization:** prototype before polishing. Get it working before you optimize it.
+- Make common mistakes hard, and make rare mistakes recoverable.
+
+These principles SHOULD guide every design decision. Deviating from one requires a stated reason.
+
+## Git
+
+Jira automation links work by the issue key (`NKMA-xx`). When the work has a Jira issue, the key MUST appear wherever the rules below require it. When it doesn't, the key MUST be left out; agents MUST NOT invent one.
+
+- **Never work on `main`.** Before the first edit, agents MUST create a branch from an up-to-date `main` or switch to the task's existing branch. Agents MUST NOT commit or push to `main`; changes reach it only through a PR.
+- **Atomic commits:** each commit MUST contain one logical change and MUST leave the app building with `flutter analyze` clean and `flutter test` passing. Exception: the test-only commit from `test-writer` MAY fail `flutter analyze` and `flutter test`, as long as every failure comes from the not-yet-implemented code. The PR's final commit MUST pass both. Unrelated changes (e.g. a refactor and a feature, or formatting of untouched files) MUST NOT share a commit.
+- **Atomic PRs:** each PR MUST cover one Jira issue or concern. If a task grows to cover something unrelated, it MUST be split into a separate branch and PR.
+- **Branch:** MUST be named `<type>/<KEY>-<short-kebab-description>`, e.g. `feat/NKMA-14-set-up-claude-code`. Without an issue: `<type>/<short-kebab-description>`.
+- **Commit:** MUST follow [Conventional Commits](https://www.conventionalcommits.org/), with the key in a `Refs:` footer:
+
+  ```
+  <type>[optional scope]: <description>
+
+  [optional body]
+
+  Refs: NKMA-14
+  ```
+
+- **PR title:** MUST use the same format as a commit subject, with the key appended: `feat: set up Claude Code (NKMA-14)`.
+- **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. Breaking changes MUST be marked with `!` after the type/scope and a `BREAKING CHANGE:` footer.
+
+## Project docs
+
+- `docs/SPEC.md`: what the app has to do: glossary, roles, statuses, use cases (UC-xx), open decisions. Agents MUST read the relevant section before planning any feature. Together with `docs/ACCESSIBILITY.md`, it is the only source of requirements; agents MUST NOT look for requirements anywhere else.
+- `docs/ACCESSIBILITY.md`: accessibility rules and how they are verified. Agents MUST read it before planning, implementing or reviewing any UI change.
+- `ARCHITECTURE.md`: how the app is built, up to the API boundary. *(Not written yet.)*
+- `README.md`: for humans. It MUST NOT be treated as a source of requirements.
+- `REVIEW.md`: what code review flags and at what severity. See "Code review" below.
+
+## Keeping docs accurate
+
+Agents maintain the project docs (`docs/SPEC.md`, `docs/ACCESSIBILITY.md`, `ARCHITECTURE.md`, `README.md`, `CLAUDE.md`, `REVIEW.md`). Every change to them MUST be decided in Plan mode. Docs MUST be kept in sync with the code in the same PR, not in a follow-up.
+
+- When a task changes what a doc describes, the plan MUST include the exact edits to that doc. They MUST be applied only after the plan is approved, in the same change as the code.
+- If code and a doc disagree during implementation, or a doc is silent on something needed: agents MUST stop. Agents MUST NOT guess, and MUST NOT edit the doc to match the code. They MUST return to Plan mode and describe the conflict.
+
+`README.md` is exempt from Plan mode: agents MAY fix or update it directly, but the change MUST still be in the same PR as the code it describes.
+
+`docs/SPEC.md` and `docs/ACCESSIBILITY.md` have extra rules:
+
+- An item listed under `docs/SPEC.md` §10 "Undecided" MUST NOT be implemented by assumption. It MUST be raised in Plan mode.
+- Every edit to `docs/SPEC.md` or `docs/ACCESSIBILITY.md` MUST add a row to that file's changelog, naming the Jira issue (`NKMA-xx`) where it was decided.
+
+## Vocabulary
+
+- **Code:** identifiers MUST be English only, using the "Code name" column of the `docs/SPEC.md` glossary and status tables (`Tenant`, `Lease`, `PaymentStatus.awaitingVerification`).
+- **Writing:** em-dashes (—) MUST NOT be used in docs written for humans (`README.md`), code comments, commits, or PRs. Docs written for agents (`CLAUDE.md`, `REVIEW.md`, `docs/SPEC.md`, `docs/ACCESSIBILITY.md`, `ARCHITECTURE.md`, `.claude/agents/`) MAY use them.
+- **Markdown docs:** domain terms MUST use the format *Original term (English term)*, e.g. *Penyewa (Tenant)*.
+- **UI copy:** MUST be Indonesian. English glossary terms MUST NOT appear in the UI.
+- **Commits, PRs and issue references:** MUST be in English, and SHOULD cite IDs (`UC-05`, `FR-13`, `NKMA-22`) where relevant.
+
+## Boundaries
+
+- The app renders what the API returns. It MUST NOT re-implement backend rules: billing and due dates, payment-pattern facts, risk flags, subscription gating, AI calls. If a screen needs a value the API doesn't provide, that is a contract gap and MUST be raised in Plan mode.
+- The API contract belongs to the backend repo. The app uses a Dart client generated from the backend's OpenAPI document. The client MUST be regenerated, never hand-edited.
+- `ARCHITECTURE.md` stops at how the app talks to the backend. Backend internals MUST NOT be documented in this repo.
 
 ## CI
 
 `.github/workflows/` runs Claude Code PR review (`claude-code-review.yml`) and `@claude` mentions (`claude.yml`).
+
+## Code review
+
+- When reviewing code, agents MUST follow `REVIEW.md`, including its severity definitions and nit cap.
+- A review only reports findings. The reviewer MUST NOT edit code, push, or apply fixes unless explicitly told to (e.g. `/code-review --fix`).
+- When explicitly asked to act on review findings, agents MAY decline a Nit, and MUST NOT add complexity only to satisfy one.
