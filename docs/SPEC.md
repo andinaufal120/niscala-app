@@ -2,7 +2,7 @@
 
 > **Audience:** coding agents working in this repository.
 > **Scope:** the Flutter Android app only. The backend lives in a separate repository and owns all business rules and the API contract.
-> **Status:** self-contained. Everything an agent needs to know about required app behaviour is in this file. Do not look for requirements elsewhere.
+> **Status:** self-contained, together with `docs/ACCESSIBILITY.md`. Everything an agent needs to know about required app behaviour is in these two files. Do not look for requirements elsewhere.
 
 Traceability IDs (`FR-xx`, `NFR-xx`, `UC-xx`, `TBD-x`) are stable keys shared with the project's requirements baseline (v1.1, 11-10-2026) and Jira. Use them in commit messages and PR descriptions, never in source code or test names.
 
@@ -111,7 +111,7 @@ These apply to every use case below. Use cases do not repeat them.
 6. **Empty lists** show an explanatory empty state, not a blank screen.
 7. **Subscription-gated content** (AI classification, payment-pattern summary) is replaced by a note that it needs an active subscription. The rest of the screen still works.
 8. **AI unavailable** never blocks a flow. Show the pending or unavailable state and continue.
-9. **Accessibility:** WCAG 2.2 Level A (NFR-14).
+9. **Accessibility:** WCAG 2.2 Level A (NFR-14), plus the project rules in `docs/ACCESSIBILITY.md`, which defines how both apply and how they are verified.
 10. **Transport:** HTTPS only (NFR-08).
 
 ## 7. Account access
@@ -290,3 +290,4 @@ When work touches one of these items, stop and raise it in Plan mode.
 |------------|-----------------------------------------------------------------------------------------------------------------|------------|
 | 12-10-2026 | Initial version, derived from requirements baseline v1.1 (11-10-2026).                                          | NKMA-14    |
 | 13-10-2026 | Traceability IDs kept out of source and test names; TBD-2 marked open (NKMA-24); `/health` shape points to U-1. | NKMA-14    |
+| 13-10-2026 | Accessibility requirements live in `docs/ACCESSIBILITY.md`; §6 rule 9 points to it.                             | NKMA-14    |
