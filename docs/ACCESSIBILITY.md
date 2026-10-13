@@ -151,7 +151,7 @@ If a feature introduces any of these (for example a video tutorial in in-app hel
 
 ## 5. Changelog
 
-| Date       | Change                                                                                                      | Decided in |
-|------------|-------------------------------------------------------------------------------------------------------------|------------|
-| 13-10-2026 | Initial version: Level A plus project rules for 1.4.3, 1.4.4, 2.5.8 and 3.3.8; automated verification only. | NKMA-14    |
-| 13-10-2026 | Google sign-in rule scoped to login and activation; §3.3 adds clipped text, focus return and assistive-tech checks; test helper disposes semantics on failure; receipt label no longer assumes a date format. | NKMA-14 |
+| Date       | Change                                                                                                                                                                                                        | Decided in |
+|------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| 13-10-2026 | Initial version: Level A plus project rules for 1.4.3, 1.4.4, 2.5.8 and 3.3.8; automated verification only.                                                                                                   | NKMA-14    |
+| 13-10-2026 | Google sign-in rule scoped to login and activation; §3.3 adds clipped text, focus return and assistive-tech checks; test helper disposes semantics on failure; receipt label no longer assumes a date format. | NKMA-14    |
