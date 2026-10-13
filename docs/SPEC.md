@@ -286,7 +286,7 @@ When work touches one of these items, stop and raise it in Plan mode.
 
 ## 11. Changelog
 
-| Date       | Change                                                                 | Decided in |
-|------------|------------------------------------------------------------------------|------------|
-| 12-10-2026 | Initial version, derived from requirements baseline v1.1 (11-10-2026). | NKMA-14    |
-| 13-10-2026 | Traceability IDs kept out of source and test names; TBD-2 marked open (NKMA-24); `/health` shape points to U-1. | NKMA-14 |
+| Date       | Change                                                                                                          | Decided in |
+|------------|-----------------------------------------------------------------------------------------------------------------|------------|
+| 12-10-2026 | Initial version, derived from requirements baseline v1.1 (11-10-2026).                                          | NKMA-14    |
+| 13-10-2026 | Traceability IDs kept out of source and test names; TBD-2 marked open (NKMA-24); `/health` shape points to U-1. | NKMA-14    |
