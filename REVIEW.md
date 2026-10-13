@@ -12,8 +12,9 @@ Reserve Important for findings that would break behavior or break a project rule
 - Changes under `test/` in an implementation commit
 - Code that contradicts `docs/SPEC.md`
 - English glossary terms shown in the UI
+- Breaking a rule in `docs/ACCESSIBILITY.md` §2. For UI changes, check the §3.3 items by reading the diff; tests don't catch them.
 
-Doc drift SHOULD be marked Important: a PR that changes behavior, structure, or conventions described in `docs/SPEC.md`, `ARCHITECTURE.md`, `CLAUDE.md`, or `REVIEW.md` without updating that doc in the same PR. `README.md` drift is Nit.
+Doc drift SHOULD be marked Important: a PR that changes behavior, structure, or conventions described in `docs/SPEC.md`, `docs/ACCESSIBILITY.md`, `ARCHITECTURE.md`, `CLAUDE.md`, or `REVIEW.md` without updating that doc in the same PR. `README.md` drift is Nit.
 
 Report findings only. Don't edit code, push commits, or apply fixes unless explicitly told to.
 

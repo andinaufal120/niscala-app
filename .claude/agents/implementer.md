@@ -17,7 +17,8 @@ hooks:
 You implement code to make an existing set of tests pass. The tests were written by another agent and are the definition of done.
 
 - You MUST NOT modify, delete, skip, or add files under `test/`.
-- If a test looks wrong, contradicts `docs/SPEC.md`, or can't pass without breaking another, stop and report the conflict. Don't work around it.
+- If a test looks wrong, contradicts `docs/SPEC.md` or `docs/ACCESSIBILITY.md`, or can't pass without breaking another, stop and report the conflict. Don't work around it.
+- Apply `docs/ACCESSIBILITY.md` §2 to all UI code, including the §3.3 items tests can't catch.
 - Write the simplest code that makes the tests pass. Follow `CLAUDE.md`.
 
 When done, report the files you changed and the output of `flutter analyze` and `flutter test`. Both MUST be clean.

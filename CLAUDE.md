@@ -68,29 +68,30 @@ Jira automation links work by the issue key (`NKMA-xx`). When the work has a Jir
 
 ## Project docs
 
-- `docs/SPEC.md`: what the app has to do: glossary, roles, statuses, use cases (UC-xx), open decisions. Agents MUST read the relevant section before planning any feature. It is self-contained; agents MUST NOT look for requirements anywhere else.
+- `docs/SPEC.md`: what the app has to do: glossary, roles, statuses, use cases (UC-xx), open decisions. Agents MUST read the relevant section before planning any feature. Together with `docs/ACCESSIBILITY.md`, it is the only source of requirements; agents MUST NOT look for requirements anywhere else.
+- `docs/ACCESSIBILITY.md`: accessibility rules and how they are verified. Agents MUST read it before planning, implementing or reviewing any UI change.
 - `ARCHITECTURE.md`: how the app is built, up to the API boundary. *(Not written yet.)*
 - `README.md`: for humans. It MUST NOT be treated as a source of requirements.
 - `REVIEW.md`: what code review flags and at what severity. See "Code review" below.
 
 ## Keeping docs accurate
 
-Agents maintain the project docs (`docs/SPEC.md`, `ARCHITECTURE.md`, `README.md`, `CLAUDE.md`, `REVIEW.md`). Every change to them MUST be decided in Plan mode. Docs MUST be kept in sync with the code in the same PR, not in a follow-up.
+Agents maintain the project docs (`docs/SPEC.md`, `docs/ACCESSIBILITY.md`, `ARCHITECTURE.md`, `README.md`, `CLAUDE.md`, `REVIEW.md`). Every change to them MUST be decided in Plan mode. Docs MUST be kept in sync with the code in the same PR, not in a follow-up.
 
 - When a task changes what a doc describes, the plan MUST include the exact edits to that doc. They MUST be applied only after the plan is approved, in the same change as the code.
 - If code and a doc disagree during implementation, or a doc is silent on something needed: agents MUST stop. Agents MUST NOT guess, and MUST NOT edit the doc to match the code. They MUST return to Plan mode and describe the conflict.
 
 `README.md` is exempt from Plan mode: agents MAY fix or update it directly, but the change MUST still be in the same PR as the code it describes.
 
-`docs/SPEC.md` has two extra rules:
+`docs/SPEC.md` and `docs/ACCESSIBILITY.md` have extra rules:
 
 - An item listed under `docs/SPEC.md` §10 "Undecided" MUST NOT be implemented by assumption. It MUST be raised in Plan mode.
-- Every edit MUST add a row to the `docs/SPEC.md` changelog, naming the Jira issue (`NKMA-xx`) where it was decided.
+- Every edit to `docs/SPEC.md` or `docs/ACCESSIBILITY.md` MUST add a row to that file's changelog, naming the Jira issue (`NKMA-xx`) where it was decided.
 
 ## Vocabulary
 
 - **Code:** identifiers MUST be English only, using the "Code name" column of the `docs/SPEC.md` glossary and status tables (`Tenant`, `Lease`, `PaymentStatus.awaitingVerification`).
-- **Writing:** em-dashes (—) MUST NOT be used in docs written for humans (`README.md`), code comments, commits, or PRs. Docs written for agents (`CLAUDE.md`, `REVIEW.md`, `docs/SPEC.md`, `ARCHITECTURE.md`, `.claude/agents/`) MAY use them.
+- **Writing:** em-dashes (—) MUST NOT be used in docs written for humans (`README.md`), code comments, commits, or PRs. Docs written for agents (`CLAUDE.md`, `REVIEW.md`, `docs/SPEC.md`, `docs/ACCESSIBILITY.md`, `ARCHITECTURE.md`, `.claude/agents/`) MAY use them.
 - **Markdown docs:** domain terms MUST use the format *Original term (English term)*, e.g. *Penyewa (Tenant)*.
 - **UI copy:** MUST be Indonesian. English glossary terms MUST NOT appear in the UI.
 - **Commits, PRs and issue references:** MUST be in English, and SHOULD cite IDs (`UC-05`, `FR-13`, `NKMA-22`) where relevant.
