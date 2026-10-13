@@ -25,7 +25,7 @@ Each rule cites the WCAG success criterion (SC) it comes from. "N/A" criteria ar
 | SC                           | Rule                                                                                                                                                                                                             |
 |------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 1.1.1 Non-text Content       | Every meaningful icon, image and icon-only button has an Indonesian `semanticLabel` / `tooltip`. Decorative images use `excludeFromSemantics: true`.                                                             |
-| 1.1.1                        | A receipt image (UC-05, UC-07) is labelled with what it is, e.g. `"Bukti transfer, Budi, Oktober 2026"`.                                                                                                         |
+| 1.1.1                        | A receipt image (UC-05, UC-07) is labelled with what it is, e.g. `"Bukti transfer, Budi, <periode>"`. The period's display format follows `docs/SPEC.md` U-5.                                                     |
 | 1.1.1                        | An invitation QR code (UC-18, UC-20) is never the only way to get the link: the same screen offers the link as text and as a share action.                                                                       |
 | 4.1.2 Name, Role, Value      | Use standard Material widgets where possible; they expose name, role and state. A custom tappable widget is wrapped in `Semantics(button: true, label: ...)`, and toggles/checkboxes expose `checked`/`toggled`. |
 | 2.5.3 Label in Name          | If a control shows visible text, its spoken label starts with that text. Don't override `"Simpan"` with an unrelated label like `"Kirim formulir"`.                                                              |
@@ -79,7 +79,7 @@ Applies to sign-up, login, invitation activation and the profile menu's password
 | 3.3.8                                                | Wrap each credential form in an `AutofillGroup`. Email fields use `AutofillHints.email`; login password fields use `AutofillHints.password`; new-password fields use `AutofillHints.newPassword`. |
 | 3.3.8                                                | Every password field has a show-password toggle (also NFR-11), and the toggle has an Indonesian label (`"Tampilkan kata sandi"` / `"Sembunyikan kata sandi"`).                                    |
 | 3.3.8                                                | No puzzle-style CAPTCHA or "retype the code" check. If the backend rate-limits login, show the message it returns; don't add a challenge in the app.                                              |
-| 3.3.8                                                | Google sign-in stays available on every screen where a local password is accepted.                                                                                                                |
+| 3.3.8                                                | Google sign-in stays available on the login and invitation-activation screens.                                                                                                                    |
 
 ## 3. Verification
 
@@ -104,10 +104,10 @@ Put the checks in one shared test helper so every screen runs exactly the same c
 ```dart
 Future<void> expectMeetsA11yGuidelines(WidgetTester tester) async {
   final handle = tester.ensureSemantics();
+  addTearDown(handle.dispose);
   await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
   await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
   await expectLater(tester, meetsGuideline(textContrastGuideline));
-  handle.dispose();
 }
 
 Future<void> pumpAtLargeText(WidgetTester tester, Widget screen) async {
@@ -133,6 +133,10 @@ These rules have no automated check. Apply them while implementing and check the
 - Gesture-only actions without a tap alternative. — 2.5.1
 - Important messages that disappear on their own. — 2.2.1
 - Text over images or gradients (`textContrastGuideline` does not measure these). — 1.4.3
+- Text that is clipped, cut off by `maxLines`, or ellipsized at 200 % text scale (only overflow errors fail a test). — 1.4.4
+- Focus returning to the control that opened a dialog. — 2.4.3
+- Operation with TalkBack, Switch Access or an external keyboard. — 2.1.1, 2.1.2
+- TalkBack reading labels with an Indonesian voice. — 3.1.1
 
 ## 4. Not applicable in v1.0
 
@@ -150,3 +154,4 @@ If a feature introduces any of these (for example a video tutorial in in-app hel
 | Date       | Change                                                                                                      | Decided in |
 |------------|-------------------------------------------------------------------------------------------------------------|------------|
 | 13-10-2026 | Initial version: Level A plus project rules for 1.4.3, 1.4.4, 2.5.8 and 3.3.8; automated verification only. | NKMA-14    |
+| 13-10-2026 | Google sign-in rule scoped to login and activation; §3.3 adds clipped text, focus return and assistive-tech checks; test helper disposes semantics on failure; receipt label no longer assumes a date format. | NKMA-14 |
