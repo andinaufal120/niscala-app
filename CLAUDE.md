@@ -88,6 +88,14 @@ Agents maintain the project docs (`docs/SPEC.md`, `docs/ACCESSIBILITY.md`, `ARCH
 - An item listed under `docs/SPEC.md` §10 "Undecided" MUST NOT be implemented by assumption. It MUST be raised in Plan mode.
 - Every edit to `docs/SPEC.md` or `docs/ACCESSIBILITY.md` MUST add a row to that file's changelog, naming the Jira issue (`NKMA-xx`) where it was decided.
 
+### Shared sections
+
+`docs/SPEC.md` here and `docs/SPEC.md` in `andinaufal120/niscala-api` share some content. Each shared block sits between `<!-- shared:begin -->` and `<!-- shared:end -->` markers, under a visible *Shared with niscala-api* note.
+
+- Shared blocks MUST be identical in both repos.
+- A change to a shared block MUST be made in both repos, in one PR per repo that link to each other and name the same Jira issue. Both SPEC changelogs get a row.
+- If the two copies disagree, agents MUST stop and raise it in Plan mode. They MUST NOT pick one copy as correct.
+
 ## Vocabulary
 
 - **Code:** identifiers MUST be English only, using the "Code name" column of the `docs/SPEC.md` glossary and status tables (`Tenant`, `Lease`, `PaymentStatus.awaitingVerification`).
@@ -99,7 +107,7 @@ Agents maintain the project docs (`docs/SPEC.md`, `docs/ACCESSIBILITY.md`, `ARCH
 ## Boundaries
 
 - The app renders what the API returns. It MUST NOT re-implement backend rules: billing and due dates, payment-pattern facts, risk flags, subscription gating, AI calls. If a screen needs a value the API doesn't provide, that is a contract gap and MUST be raised in Plan mode.
-- The API contract belongs to the backend repo. The app uses a Dart client generated from the backend's OpenAPI document. The client MUST be regenerated, never hand-edited.
+- The API contract belongs to the backend repo, `andinaufal120/niscala-api`. The app uses a Dart client generated from the backend's OpenAPI document. The client MUST be regenerated, never hand-edited.
 - `ARCHITECTURE.md` stops at how the app talks to the backend. Backend internals MUST NOT be documented in this repo.
 
 ## CI

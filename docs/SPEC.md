@@ -1,15 +1,20 @@
 # SPEC.md — Niscala mobile app
 
 > **Audience:** coding agents working in this repository.
-> **Scope:** the Flutter Android app only. The backend lives in a separate repository and owns all business rules and the API contract.
+> **Scope:** the Flutter Android app only. The backend lives in a separate repository (`andinaufal120/niscala-api`) and owns all business rules and the API contract.
 > **Status:** self-contained, together with `docs/ACCESSIBILITY.md`. Everything an agent needs to know about required app behaviour is in these two files. Do not look for requirements elsewhere.
 
-Traceability IDs (`FR-xx`, `NFR-xx`, `UC-xx`, `TBD-x`) are stable keys shared with the project's requirements baseline (v1.1, 11-10-2026) and Jira. Use them in commit messages and PR descriptions, never in source code or test names.
+Traceability IDs (`FR-xx`, `NFR-xx`, `UC-xx`, `TBD-x`, `U-x`) are stable keys shared with the project's requirements baseline (v1.1, 11-10-2026), the backend repository and Jira. Use them in commit messages and PR descriptions, never in source code or test names.
+
+Blocks between `<!-- shared:begin -->` and `<!-- shared:end -->` are identical in the backend repository's `docs/SPEC.md`. Change them in both repositories together (see `CLAUDE.md`, "Shared sections").
 
 ---
 
 ## 1. Product
 
+*Shared with niscala-api.*
+
+<!-- shared:begin -->
 Niscala ("Kelola Kost Tanpa Ribet") helps boarding-house (kos) owners and managers handle properties, rooms, tenants, rent payments and maintenance complaints in one Android app.
 
 - Rent is paid **outside** the app (cash or bank transfer). The app records, verifies and tracks payment status. It never moves rent money.
@@ -18,6 +23,7 @@ Niscala ("Kelola Kost Tanpa Ribet") helps boarding-house (kos) owners and manage
     2. a natural-language summary of each tenant's payment pattern.
 - An AI failure never blocks saving data.
 - Out of scope for v1.0: in-app rent payment, OAuth providers other than Google, iOS and web apps.
+<!-- shared:end -->
 
 ## 2. Boundary of this repository
 
@@ -34,6 +40,9 @@ Niscala ("Kelola Kost Tanpa Ribet") helps boarding-house (kos) owners and manage
 
 ## 3. Glossary
 
+*Shared with niscala-api.*
+
+<!-- shared:begin -->
 Markdown docs use the format *Original term (English term)*. Code uses the English **code name** only.
 
 | Term                                                | Code name                 | Meaning                                                                            |
@@ -58,11 +67,15 @@ Markdown docs use the format *Original term (English term)*. Code uses the Engli
 | Ringkasan pola pembayaran (Payment-pattern summary) | `PaymentPatternSummary`   | AI-written sentence built from rule-computed payment facts.                        |
 | Langganan (Subscription)                            | `Subscription`            | The Owner's paid plan that unlocks AI features.                                    |
 | Soft delete (Soft delete)                           | —                         | Marked inactive; history is kept.                                                  |
+<!-- shared:end -->
 
 UI copy is in **Indonesian**. Menu and button names in this spec are given as *Indonesian (English)*. The English is for understanding only and must not appear in the UI.
 
 ## 4. Roles and permissions
 
+*Shared with niscala-api.*
+
+<!-- shared:begin -->
 `✓` allowed · `A` only on properties assigned to the Manager · `—` not allowed
 
 | Capability                                                   | Tenant | Owner | Manager | Admin |
@@ -81,11 +94,15 @@ UI copy is in **Indonesian**. Menu and button names in this spec are given as *I
 | View / edit / delete any user account                        |   —    |   —   |    —    |  ✓   |
 
 Each role sees only the menus it is allowed to use. The backend enforces permissions; the app hides what a role cannot do.
+<!-- shared:end -->
 
 ## 5. Status vocabularies
 
 Show statuses with the same label, colour and icon on every screen.
 
+*Shared with niscala-api.*
+
+<!-- shared:begin -->
 | Entity                           | Statuses — Indonesian label (English, `codeName`)                                                                                                                                                                     |
 |----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Room occupancy                   | Terisi (Occupied, `occupied`) · Kosong (Vacant, `vacant`)                                                                                                                                                             |
@@ -98,6 +115,7 @@ Show statuses with the same label, colour and icon on every screen.
 | Subscription order / transaction | Menunggu Pembayaran (Awaiting payment, `awaitingPayment`) · Berhasil (Succeeded, `succeeded`) · Gagal (Failed, `failed`) · Kedaluwarsa (Expired, `expired`)                                                           |
 
 Complaint meaning: *Menunggu Klasifikasi* = AI was attempted and failed or timed out. *Belum Diklasifikasi* = the Owner had no active subscription when the complaint was saved, so AI was skipped.
+<!-- shared:end -->
 
 ## 6. Cross-cutting UI rules
 
@@ -116,6 +134,9 @@ These apply to every use case below. Use cases do not repeat them.
 
 ## 7. Account access
 
+*Shared with niscala-api.*
+
+<!-- shared:begin -->
 Login and sign-up are preconditions, not use cases. All use cases assume a valid session. The account identifier is **email**.
 
 - **Owner** signs up and logs in with Google or a local password (FR-20).
@@ -127,6 +148,7 @@ Login and sign-up are preconditions, not use cases. All use cases assume a valid
     - no composition rules and no forced periodic change;
     - a show-password toggle while typing;
     - the backend checks passwords against common/breached lists and rate-limits failed logins. The app shows those errors as returned.
+<!-- shared:end -->
 
 ## 8. Use cases
 
@@ -260,7 +282,7 @@ Soft delete that ends sessions. Rejected, with the reason shown, if the account 
 
 ## 9. API contract
 
-The backend repository owns the contract. Its OpenAPI document is the source; the app consumes a **Dart client generated from it** and committed to this repo. Regenerate the client to pick up contract changes, and never hand-edit generated code.
+The backend repository (`andinaufal120/niscala-api`) owns the contract. Its OpenAPI document is the source; the app consumes a **Dart client generated from it** and committed to this repo. Regenerate the client to pick up contract changes, and never hand-edit generated code.
 
 Until the generated client exists, the only endpoint is:
 
@@ -272,7 +294,7 @@ The response shape of `/health` is undecided (see U-1 in §10).
 
 ## 10. Undecided — do not implement by assumption
 
-When work touches one of these items, stop and raise it in Plan mode.
+When work touches one of these items, stop and raise it in Plan mode. Items that also affect the backend are listed in its `docs/SPEC.md` §10 with the same ID.
 
 | ID    | Item                                                                                                                             | Affects             |
 |-------|----------------------------------------------------------------------------------------------------------------------------------|---------------------|
@@ -283,6 +305,8 @@ When work touches one of these items, stop and raise it in Plan mode.
 | U-3   | Complaint description minimum length.                                                                                            | UC-02               |
 | U-4   | Invitation link handling: how a link opens the app (Android App Links / deep link) and what happens if the app is not installed. | UC-18, UC-20, FR-01 |
 | U-5   | Date display format in the UI.                                                                                                   | All dates           |
+| U-9   | User-facing API messages: language (the UI is Indonesian and some errors are shown as returned) and whether errors carry codes.  | §6, §7              |
+| U-10  | Wire formats: enum values, JSON field casing, and date/time format.                                                              | §3, §5, §9          |
 
 ## 11. Changelog
 
@@ -291,3 +315,4 @@ When work touches one of these items, stop and raise it in Plan mode.
 | 12-10-2026 | Initial version, derived from requirements baseline v1.1 (11-10-2026).                                          | NKMA-14    |
 | 13-10-2026 | Traceability IDs kept out of source and test names; TBD-2 marked open (NKMA-24); `/health` shape points to U-1. | NKMA-14    |
 | 13-10-2026 | Accessibility requirements live in `docs/ACCESSIBILITY.md`; §6 rule 9 points to it.                             | NKMA-14    |
+| 15-10-2026 | Backend repository named; §1, §3, §4, §5 and §7 blocks shared with it; U-9 and U-10 added.                      | NKMA-14    |
