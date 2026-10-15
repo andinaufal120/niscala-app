@@ -11,10 +11,10 @@ Reserve Important for findings that would break behavior or break a project rule
 - Hand-edits to the generated API client
 - Changes under `test/` in an implementation commit
 - Code that contradicts `docs/SPEC.md`
-- English glossary terms shown in the UI
+- English glossary terms, or an API error message, shown in the UI
 - Breaking a rule in `docs/ACCESSIBILITY.md` §2. For UI changes, check the §3.3 items by reading the diff; tests don't catch them.
 
-Doc drift SHOULD be marked Important: a PR that changes behavior, structure, or conventions described in `docs/SPEC.md`, `docs/ACCESSIBILITY.md`, `ARCHITECTURE.md`, `CLAUDE.md`, or `REVIEW.md` without updating that doc in the same PR. `README.md` drift is Nit.
+Doc drift SHOULD be marked Important: a PR that changes behavior, structure, or conventions described in `docs/SPEC.md`, `docs/ACCESSIBILITY.md`, `ARCHITECTURE.md`, `CLAUDE.md`, or `REVIEW.md` without updating that doc in the same PR. A change to a shared block in `docs/SPEC.md` without a linked PR making the same change in `andinaufal120/niscala-api` is also Important. `README.md` drift is Nit.
 
 Report findings only. Don't edit code, push commits, or apply fixes unless explicitly told to.
 
