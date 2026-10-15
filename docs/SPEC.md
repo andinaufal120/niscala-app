@@ -122,7 +122,7 @@ Complaint meaning: *Menunggu Klasifikasi* = AI was attempted and failed or timed
 These apply to every use case below. Use cases do not repeat them.
 
 1. **Expired session** → go to the login screen.
-2. **Validation errors** state the cause next to the field (for example "Nomor telepon tidak valid"), never a generic message.
+2. **Validation errors** state the cause next to the field (for example "Nomor telepon tidak valid"), never a generic message. The text is Indonesian, mapped from the error code the API returns; the API's English message is never shown. An unknown code shows a generic Indonesian message (for example "Terjadi kesalahan. Coba lagi."); this is the only case where a generic message is allowed.
 3. **Destructive actions** (delete property, room, tenant, manager, account) always ask for confirmation. Cancelling returns to the previous detail screen with nothing changed.
 4. **Conflict** ("already changed by another user") → show a message and reload the current detail or list.
 5. **Server or network failure** → show an error message. Nothing is saved, and the user can retry.
@@ -147,7 +147,7 @@ Login and sign-up are preconditions, not use cases. All use cases assume a valid
     - minimum 8 characters, and at least 64 accepted;
     - no composition rules and no forced periodic change;
     - a show-password toggle while typing;
-    - the backend checks passwords against common/breached lists and rate-limits failed logins. The app shows those errors as returned.
+    - the backend checks passwords against common/breached lists and rate-limits failed logins. The app shows those errors in Indonesian, mapped from the error code the API returns.
 <!-- shared:end -->
 
 ## 8. Use cases
@@ -305,7 +305,7 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | U-3   | Complaint description minimum length.                                                                                            | UC-02               |
 | U-4   | Invitation link handling: how a link opens the app (Android App Links / deep link) and what happens if the app is not installed. | UC-18, UC-20, FR-01 |
 | U-5   | Date display format in the UI.                                                                                                   | All dates           |
-| U-9   | User-facing API messages: language (the UI is Indonesian and some errors are shown as returned) and whether errors carry codes.  | §6, §7              |
+| U-9   | Error response shape and the list of error codes.                                                                                | §6, §7              |
 | U-10  | Wire formats: enum values, JSON field casing, and date/time format.                                                              | §3, §5, §9          |
 
 ## 11. Changelog
@@ -316,3 +316,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 13-10-2026 | Traceability IDs kept out of source and test names; TBD-2 marked open (NKMA-24); `/health` shape points to U-1. | NKMA-14    |
 | 13-10-2026 | Accessibility requirements live in `docs/ACCESSIBILITY.md`; §6 rule 9 points to it.                             | NKMA-14    |
 | 15-10-2026 | Backend repository named; §1, §3, §4, §5 and §7 blocks shared with it; U-9 and U-10 added.                      | NKMA-14    |
+| 15-10-2026 | U-9 partly decided: API messages are English with error codes; the app maps codes to Indonesian.                | NKMA-14    |

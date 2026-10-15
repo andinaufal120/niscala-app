@@ -101,7 +101,7 @@ Agents maintain the project docs (`docs/SPEC.md`, `docs/ACCESSIBILITY.md`, `ARCH
 - **Code:** identifiers MUST be English only, using the "Code name" column of the `docs/SPEC.md` glossary and status tables (`Tenant`, `Lease`, `PaymentStatus.awaitingVerification`).
 - **Writing:** em-dashes (—) MUST NOT be used in docs written for humans (`README.md`), code comments, commits, or PRs. Docs written for agents (`CLAUDE.md`, `REVIEW.md`, `docs/SPEC.md`, `docs/ACCESSIBILITY.md`, `ARCHITECTURE.md`, `.claude/agents/`) MAY use them.
 - **Markdown docs:** domain terms MUST use the format *Original term (English term)*, e.g. *Penyewa (Tenant)*.
-- **UI copy:** MUST be Indonesian. English glossary terms MUST NOT appear in the UI.
+- **UI copy:** MUST be Indonesian. English glossary terms MUST NOT appear in the UI. The API's English error messages MUST NOT be shown; the UI shows Indonesian text mapped from the error code.
 - **Commits, PRs and issue references:** MUST be in English, and SHOULD cite IDs (`UC-05`, `FR-13`, `NKMA-22`) where relevant.
 
 ## Boundaries
