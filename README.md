@@ -1,17 +1,31 @@
 # niscala
 
-A new Flutter project.
+Niscala ("Kelola Kost Tanpa Ribet") is an Android app that helps boarding-house (kos) owners and managers handle properties, rooms, tenants, rent payments and maintenance complaints.
 
-## Getting Started
+This repository holds the Flutter app. It renders what the API returns; the backend, which owns the business rules and the API contract, lives in [niscala-api](https://github.com/andinaufal120/niscala-api).
 
-This project is a starting point for a Flutter application.
+## Requirements
 
-A few resources to get you started if this is your first Flutter project:
+- Flutter (stable channel), Dart SDK ^3.13
+- An Android device or emulator
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Development
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```sh
+flutter pub get    # install dependencies
+flutter analyze    # static analysis
+flutter test       # run tests
+dart format .      # format
+flutter run        # run on a connected device or emulator
+```
+
+## Docs
+
+- `docs/SPEC.md`: what the app has to do
+- `docs/ACCESSIBILITY.md`: accessibility rules and how they are tested
+- `CLAUDE.md`: conventions for coding agents (and a good summary for people)
+- `REVIEW.md`: what code review checks
+
+## License
+
+[MIT](LICENSE)
