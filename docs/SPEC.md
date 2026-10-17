@@ -354,7 +354,7 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | TBD-3 | Payment gateway provider, and how its page opens (webview vs. external browser).                                                 | UC-32               |
 | U-1   | `/health` response shape.                                                                                                        | §9, NKMA-22         |
 | U-3   | Complaint description minimum length.                                                                                            | UC-02               |
-| U-4   | Invitation link handling: how a link opens the app (Android App Links / deep link) and what happens if the app is not installed. | UC-18, UC-20, FR-01 |
+| U-4   | Invitation and password-reset link handling: how a link opens the app (Android App Links / deep link) and what happens if the app is not installed. | UC-18, UC-20, FR-01, NFR-11 |
 | U-5   | Date display format in the UI.                                                                                                   | All dates           |
 | U-9   | Error response shape and the list of error codes.                                                                                | §6, §7              |
 | U-10  | Wire formats: enum values, JSON field casing, and date/time format. Decided: complaint status *Baru* is `"new"`.                 | §3, §5, §9          |
@@ -372,3 +372,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 15-10-2026 | U-9 partly decided: API messages are English with error codes; the app maps codes to Indonesian.                | NKMA-14    |
 | 16-10-2026 | SRS v1.1 revision: Owner-only property writes and per-property bank account; room base rate, dimensions, facilities; rent per lease; complaint status split from classification state, one-step flow, urgency values, handling note, manual classification (UC-36); receipt JPG/PNG up to 5 MB; sessions (UC-37, UC-38); password blocklist; navigation and *Akun*, list defaults, AI disclaimer, money format. U-2 decided; U-10 narrowed; U-16, U-21, U-22 added. | NKMA-96 |
 | 17-10-2026 | U-21 decided: rent is per billing cycle; base rate pre-fills monthly leases only. Billing cycle values added to §5. Activation requires 2 to 4 emergency contacts (§7). UC-18 and UC-20 name occupation and emergency contacts. | NKMA-8 |
+| 17-10-2026 | Backend decided invitation expiry (U-13) and token format (U-14); neither row is in this file. U-4 extended to password-reset links. No shared block changed. | NKMA-15 |
