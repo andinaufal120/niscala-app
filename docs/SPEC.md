@@ -55,6 +55,7 @@ Markdown docs use the format *Original term (English term)*. Code uses the Engli
 | Pemilik Kost (Owner)                                | `Owner`                   | User who owns one or more properties and holds the subscription.                   |
 | Pengelola Kost (Manager)                            | `Manager`                 | Optional user assigned by an Owner to specific properties.                         |
 | Admin (Admin)                                       | `Admin`                   | Internal user who manages all user accounts.                                       |
+| Akun pengguna (User account)                        | `UserAccount`             | Any user's login identity: name, email, role and status. Admins manage all of them. |
 | Manajemen kost (Management)                         | `management` (role group) | Owner and Manager together.                                                        |
 | Rekening bank (Bank account)                        | `BankAccount`             | Optional per-property account for rent transfers: bank name, account number, account holder name. |
 | Tarif dasar (Base rate)                             | `baseRate`                | A room's monthly price. Only pre-fills the rent of a new monthly lease.            |
@@ -126,12 +127,14 @@ Show statuses with the same label, colour and icon on every screen.
 | Complaint urgency                | Rendah (Low, `low`) · Sedang (Medium, `medium`) · Tinggi (High, `high`) |
 | Tenant account                   | Belum Diaktifkan (Not activated, `notActivated`) · Aktif (Active, `active`)                                                                                                                                           |
 | Manager account                  | Belum Diaktifkan (Not activated, `notActivated`) · Aktif (Active, `active`)                                                                                                                                           |
-| User account (Admin view)        | Aktif (Active, `active`) · Nonaktif (Inactive, `inactive`)                                                                                                                                                            |
+| User account (Admin view)        | Aktif (Active, `active`) · Nonaktif (Suspended, `inactive`) · Dihapus (Deleted, `deleted`)                                                                                                                            |
 | Subscription order / transaction | Menunggu Pembayaran (Awaiting payment, `awaitingPayment`) · Berhasil (Succeeded, `succeeded`) · Gagal (Failed, `failed`) · Kedaluwarsa (Expired, `expired`)                                                           |
 
 Complaint status moves forward one step at a time: *Baru* → *Diproses* → *Selesai*. Nothing changes after *Selesai*.
 
 Classification state is separate from status. *Menunggu Klasifikasi* = AI was attempted and failed or timed out. *Belum Diklasifikasi* = the Owner had no active subscription when the complaint was saved, so AI was skipped. A classified complaint has neither.
+
+A *Nonaktif* account is suspended: it cannot log in and can be reactivated. A *Dihapus* account is soft-deleted, hidden from the default account list, and can never be reactivated. *Dihapus* is shown, never set, through the edit endpoint.
 
 `new_` is only the Dart identifier, because `new` is reserved in Dart. The wire value is `"new"`.
 <!-- shared:end -->
@@ -380,3 +383,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 17-10-2026 | Login method values (Google, Kata sandi) added to the §5 shared block. | NKMA-15 |
 | 17-10-2026 | Manager account statuses in §5 reduced to *Belum Diaktifkan* and *Aktif*; §7 Manager bullet now says the Owner shares the invitation link, the Manager enters their own email, and an existing Manager account can accept it. | NKMA-7 |
 | 17-10-2026 | `Notification` and `NotificationSettings` added to the §3 shared glossary; §4 shared table moves viewing own notifications out of the Tenant-only row and adds a row for viewing own notifications and changing own notification settings (Tenant, Owner, Manager). U-12 decided in the backend (row not in this file). | NKMA-63 |
+| 17-10-2026 | `UserAccount` added to the §3 shared glossary. §5 user account statuses now Aktif, Nonaktif (suspended, reversible) and Dihapus (soft-deleted, never reactivated), with a paragraph explaining them. | NKMA-18 |
