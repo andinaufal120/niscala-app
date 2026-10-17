@@ -57,8 +57,8 @@ Markdown docs use the format *Original term (English term)*. Code uses the Engli
 | Admin (Admin)                                       | `Admin`                   | Internal user who manages all user accounts.                                       |
 | Manajemen kost (Management)                         | `management` (role group) | Owner and Manager together.                                                        |
 | Rekening bank (Bank account)                        | `BankAccount`             | Optional per-property account for rent transfers: bank name, account number, account holder name. |
-| Tarif dasar (Base rate)                             | `baseRate`                | A room's monthly price. Only pre-fills a new lease's rent.                         |
-| Tarif sewa (Rent)                                   | `rent`                    | The rent of one lease. A change applies from the next bill onward.                 |
+| Tarif dasar (Base rate)                             | `baseRate`                | A room's monthly price. Only pre-fills the rent of a new monthly lease.            |
+| Tarif sewa (Rent)                                   | `rent`                    | The amount of one bill of a lease, per billing cycle. A change applies from the next bill onward. |
 | Ukuran kamar (Room dimensions)                      | `lengthM`, `widthM`       | Optional, in metres. Area is length × width, for display only, never stored.       |
 | Fasilitas (Facilities)                              | `facilities`              | Free-form tags on a room, normalized on save.                                      |
 | Undangan (Invitation)                               | `Invitation`              | Lets a Tenant or Manager activate an account.                                      |
@@ -116,6 +116,7 @@ Show statuses with the same label, colour and icon on every screen.
 | Room occupancy                   | Terisi (Occupied, `occupied`) · Kosong (Vacant, `vacant`)                                                                                                                                                             |
 | Payment                          | Belum Bayar (Unpaid, `unpaid`) · Menunggu Verifikasi (Awaiting verification, `awaitingVerification`) · Lunas (Paid, `paid`) · Ditolak (Rejected, `rejected`)                                                          |
 | Payment method                   | Transfer (Bank transfer, `transfer`) · Tunai (Cash, `cash`)                                                                                                                                                           |
+| Billing cycle                    | Mingguan (Weekly, `weekly`) · Bulanan (Monthly, `monthly`) · 3 Bulan (Quarterly, `quarterly`) · 6 Bulan (Semiannual, `semiannual`) · 12 Bulan (Annual, `annual`) |
 | Complaint                        | Baru (New, `new_`) · Diproses (In progress, `inProgress`) · Selesai (Done, `done`) |
 | Complaint classification         | Menunggu Klasifikasi (Awaiting classification, `awaitingClassification`) · Belum Diklasifikasi (Not classified, `notClassified`) |
 | Complaint urgency                | Rendah (Low, `low`) · Sedang (Medium, `medium`) · Tinggi (High, `high`) |
@@ -168,7 +169,7 @@ Bottom navigation:
 Login and sign-up are preconditions, not use cases. All use cases assume a valid session. The account identifier is **email**.
 
 - **Owner** signs up and logs in with Google or a local password (FR-20).
-- **Tenant** activates through an invitation link shared by management. During activation the tenant completes whatever data management left empty, including email, then chooses Google or a local password (FR-01).
+- **Tenant** activates through an invitation link shared by management. During activation the tenant completes whatever data management left empty, including email and at least 2 emergency contacts if management gave none, then chooses Google or a local password (FR-01).
 - **Manager** activates through an invitation sent to their email by the Owner, with Google or a local password (FR-26).
 - **Profile menu (FR-30):** a Google-only user can add a local password. A password user can link Google, but only after logging in with the password. The app never links accounts automatically by matching email.
 - **Local password rules (NFR-11, NIST SP 800-63B Rev. 3, AAL1).** These apply only to accounts with a local password:
@@ -252,14 +253,14 @@ List with number, base rate and occupancy; default filter *Semua (All)*. Detail 
 **UC-17 Delete room** (FR-12) · *[room] → Hapus Kamar (Delete)* · rejected if the room has an active lease.
 
 **UC-18 Add tenant** (FR-13) · *[property] → Penyewa → Tambah Penyewa (Tenants → Add)*
-Required fields: room (vacant rooms only), name, phone number. Optional fields: other personal data, lease dates, billing cycle (§3, default monthly), grace period (default 0), rent (pre-filled with the room's base rate, editable).
+Required fields: room (vacant rooms only), name, phone number. Optional fields: occupation, emergency contacts (2 to 4, or none for the tenant to complete during activation), lease dates, billing cycle (§3, default monthly), grace period (default 0), rent (per billing cycle; pre-filled with the room's base rate for a monthly lease, editable).
 On save, the room becomes *Terisi* and an **invitation link** is shown. The link can be shared via WhatsApp or shown as a QR code. If link creation fails, the tenant is still saved, and the link can be regenerated in UC-20.
 
 **UC-19 View tenants** (FR-13) · *[property] → Penyewa (Tenants)*
 List with room, lease and account status. Detail shows personal data, room, lease and activation status.
 
 **UC-20 Edit tenant** (FR-13) · *[tenant] → Ubah Data Penyewa (Edit)*
-Editable: name, phone, other data, lease dates, rent, billing cycle, grace period. The lease end date must not be before the start date. Tell the user that a rent or billing-cycle change applies **from the next bill onward**.
+Editable: name, phone, occupation, emergency contacts, lease dates, rent, billing cycle, grace period. The lease end date must not be before the start date. Tell the user that a rent or billing-cycle change applies **from the next bill onward**.
 Alternative: *Buat Ulang Tautan Undangan (Regenerate invitation link)* for an unused or expired invitation. It creates a new link, invalidates the old one and shows the new one for sharing. If regeneration fails, the old link stays valid.
 
 **UC-21 Delete tenant** (FR-13) · *[tenant] → Hapus Penyewa (Delete)*
@@ -358,7 +359,6 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | U-9   | Error response shape and the list of error codes.                                                                                | §6, §7              |
 | U-10  | Wire formats: enum values, JSON field casing, and date/time format. Decided: complaint status *Baru* is `"new"`.                 | §3, §5, §9          |
 | U-16  | Complaint category list (the prototype list is placeholder data).                                                                | UC-02, UC-23, UC-36 |
-| U-21  | Lease rent unit when the billing cycle is not monthly (weekly, 3, 6, 12 months).                                                 | UC-18, UC-20        |
 | U-22  | Content of the Manager's restricted dashboard.                                                                                   | UC-22               |
 
 ## 11. Changelog
@@ -371,3 +371,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 15-10-2026 | Backend repository named; §1, §3, §4, §5 and §7 blocks shared with it; U-9 and U-10 added.                      | NKMA-14    |
 | 15-10-2026 | U-9 partly decided: API messages are English with error codes; the app maps codes to Indonesian.                | NKMA-14    |
 | 16-10-2026 | SRS v1.1 revision: Owner-only property writes and per-property bank account; room base rate, dimensions, facilities; rent per lease; complaint status split from classification state, one-step flow, urgency values, handling note, manual classification (UC-36); receipt JPG/PNG up to 5 MB; sessions (UC-37, UC-38); password blocklist; navigation and *Akun*, list defaults, AI disclaimer, money format. U-2 decided; U-10 narrowed; U-16, U-21, U-22 added. | NKMA-96 |
+| 17-10-2026 | U-21 decided: rent is per billing cycle; base rate pre-fills monthly leases only. Billing cycle values added to §5. Activation requires 2 to 4 emergency contacts (§7). UC-18 and UC-20 name occupation and emergency contacts. | NKMA-8 |
