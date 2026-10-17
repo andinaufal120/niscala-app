@@ -196,7 +196,7 @@ Login and sign-up are preconditions, not use cases. All use cases assume a valid
     - a user may be logged in on several devices at once;
     - a user can list their sessions and end the session of one other device or of all other devices (UC-37);
     - after a password change, the user is offered to log out all other devices (UC-38);
-    - every session ends at most 30 days after the last authentication, regardless of activity (NIST SP 800-63B Rev. 3, AAL1);
+    - a session ends after 90 days without use, and at most 1 year after the last authentication regardless of activity; refreshing restarts the 90 days but never the 1 year (longer than the 30-day reauthentication that NIST SP 800-63B Rev. 3, AAL1 recommends, so that tenants who open the app only around due dates are not logged out between visits);
     - a session ended by the user or by Admin stops working within 15 minutes at most.
 <!-- shared:end -->
 
@@ -393,3 +393,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 17-10-2026 | `Notification` and `NotificationSettings` added to the §3 shared glossary; §4 shared table moves viewing own notifications out of the Tenant-only row and adds a row for viewing own notifications and changing own notification settings (Tenant, Owner, Manager). U-12 decided in the backend (row not in this file). | NKMA-63 |
 | 17-10-2026 | `UserAccount` added to the §3 shared glossary. §5 user account statuses now Aktif, Nonaktif (suspended, reversible) and Dihapus (soft-deleted, never reactivated), with a paragraph explaining them. | NKMA-18 |
 | 17-10-2026 | Subscription plans Gratis, Basic and Pro with Google Play Billing: §1 bullets updated; `SubscriptionPlan` and `SubscriptionOrder` added to §3 and `Subscription` reworded; §5 adds Subscription, Subscription plan and Subscription billing period vocabularies and the Google Play order status mapping. TBD-3 rewritten; U-11 decided in the backend (row not in this file). | NKMA-17 |
+| 18-10-2026 | Session lifetime relaxed: a session ends after 90 days without use or 1 year after the last authentication, instead of a fixed 30 days, so that users are not forced to log in about once a month. | NKMA-15 |
