@@ -73,6 +73,8 @@ Markdown docs use the format *Original term (English term)*. Code uses the Engli
 | Ringkasan pola pembayaran (Payment-pattern summary) | `PaymentPatternSummary`   | AI-written sentence built from rule-computed payment facts.                        |
 | Langganan (Subscription)                            | `Subscription`            | The Owner's paid plan that unlocks AI features.                                    |
 | Sesi (Session)                                      | `Session`                 | One logged-in device of a user.                                                    |
+| Notifikasi (Notification)                           | `Notification`            | In-app message about an event: bill, payment, complaint or account. Kept even when its push is off. |
+| Pengaturan notifikasi (Notification settings)       | `NotificationSettings`    | Per-user push on/off switch per notification category.                             |
 | Soft delete (Soft delete)                           | —                         | Marked inactive; history is kept.                                                  |
 <!-- shared:end -->
 
@@ -87,7 +89,7 @@ UI copy is in **Indonesian**. Menu and button names in this spec are given as *I
 
 | Capability                                                   | Tenant | Owner | Manager | Admin |
 |--------------------------------------------------------------|:------:|:-----:|:-------:|:-----:|
-| View own room, lease, payments, complaints, notifications    |   ✓   |   —   |    —    |   —   |
+| View own room, lease, payments, complaints                   |   ✓   |   —   |    —    |   —   |
 | Submit complaint, upload transfer receipt                    |   ✓   |   —   |    —    |   —   |
 | Add / edit / delete property                                 |   —    |  ✓   |    —    |   —   |
 | View property                                                |   —    |  ✓   |    A    |   —   |
@@ -100,6 +102,7 @@ UI copy is in **Indonesian**. Menu and button names in this spec are given as *I
 | Choose and pay for a subscription                            |   —    |  ✓   |    —    |   —   |
 | View / edit / delete any user account                        |   —    |   —   |    —    |  ✓   |
 | View / end own sessions, change own password                 |   ✓   |  ✓   |    ✓    |  ✓   |
+| View own notifications, change own notification settings     |   ✓   |  ✓   |    ✓    |   —   |
 
 Each role sees only the menus it is allowed to use. The backend enforces permissions; the app hides what a role cannot do.
 <!-- shared:end -->
@@ -376,3 +379,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 17-10-2026 | Backend decided invitation expiry (U-13) and token format (U-14); neither row is in this file. U-4 extended to password-reset links. No shared block changed. | NKMA-15 |
 | 17-10-2026 | Login method values (Google, Kata sandi) added to the §5 shared block. | NKMA-15 |
 | 17-10-2026 | Manager account statuses in §5 reduced to *Belum Diaktifkan* and *Aktif*; §7 Manager bullet now says the Owner shares the invitation link, the Manager enters their own email, and an existing Manager account can accept it. | NKMA-7 |
+| 17-10-2026 | `Notification` and `NotificationSettings` added to the §3 shared glossary; §4 shared table moves viewing own notifications out of the Tenant-only row and adds a row for viewing own notifications and changing own notification settings (Tenant, Owner, Manager). U-12 decided in the backend (row not in this file). | NKMA-63 |
