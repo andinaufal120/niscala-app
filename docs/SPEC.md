@@ -122,7 +122,7 @@ Show statuses with the same label, colour and icon on every screen.
 | Complaint classification         | Menunggu Klasifikasi (Awaiting classification, `awaitingClassification`) · Belum Diklasifikasi (Not classified, `notClassified`) |
 | Complaint urgency                | Rendah (Low, `low`) · Sedang (Medium, `medium`) · Tinggi (High, `high`) |
 | Tenant account                   | Belum Diaktifkan (Not activated, `notActivated`) · Aktif (Active, `active`)                                                                                                                                           |
-| Manager account                  | Belum Terkirim (Invitation not sent, `invitationNotSent`) · Belum Diaktivasi (Not activated, `notActivated`) · Aktif (Active, `active`)                                                                               |
+| Manager account                  | Belum Diaktifkan (Not activated, `notActivated`) · Aktif (Active, `active`)                                                                                                                                           |
 | User account (Admin view)        | Aktif (Active, `active`) · Nonaktif (Inactive, `inactive`)                                                                                                                                                            |
 | Subscription order / transaction | Menunggu Pembayaran (Awaiting payment, `awaitingPayment`) · Berhasil (Succeeded, `succeeded`) · Gagal (Failed, `failed`) · Kedaluwarsa (Expired, `expired`)                                                           |
 
@@ -171,7 +171,7 @@ Login and sign-up are preconditions, not use cases. All use cases assume a valid
 
 - **Owner** signs up and logs in with Google or a local password (FR-20).
 - **Tenant** activates through an invitation link shared by management. During activation the tenant completes whatever data management left empty, including email and at least 2 emergency contacts if management gave none, then chooses Google or a local password (FR-01).
-- **Manager** activates through an invitation sent to their email by the Owner, with Google or a local password (FR-26).
+- **Manager** activates through an invitation link shared by the Owner, enters their own email, and chooses Google or a local password; a person who already has a Manager account can accept the link with that account (FR-26).
 - **Profile menu (FR-30):** a Google-only user can add a local password. A password user can link Google, but only after logging in with the password. The app never links accounts automatically by matching email.
 - **Local password rules (NFR-11, NIST SP 800-63B Rev. 3, AAL1).** These apply only to accounts with a local password:
     - minimum 8 characters, and at least 64 accepted;
@@ -375,3 +375,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 17-10-2026 | U-21 decided: rent is per billing cycle; base rate pre-fills monthly leases only. Billing cycle values added to §5. Activation requires 2 to 4 emergency contacts (§7). UC-18 and UC-20 name occupation and emergency contacts. | NKMA-8 |
 | 17-10-2026 | Backend decided invitation expiry (U-13) and token format (U-14); neither row is in this file. U-4 extended to password-reset links. No shared block changed. | NKMA-15 |
 | 17-10-2026 | Login method values (Google, Kata sandi) added to the §5 shared block. | NKMA-15 |
+| 17-10-2026 | Manager account statuses in §5 reduced to *Belum Diaktifkan* and *Aktif*; §7 Manager bullet now says the Owner shares the invitation link, the Manager enters their own email, and an existing Manager account can accept it. | NKMA-7 |
