@@ -71,7 +71,7 @@ Jira automation links work by the issue key (`NKMA-xx`). When the work has a Jir
 
 - `docs/SPEC.md`: what the app has to do: glossary, roles, statuses, use cases (UC-xx), open decisions. Agents MUST read the relevant section before planning any feature. Together with `docs/ACCESSIBILITY.md`, it is the only source of requirements; agents MUST NOT look for requirements anywhere else.
 - `docs/ACCESSIBILITY.md`: accessibility rules and how they are verified. Agents MUST read it before planning, implementing or reviewing any UI change.
-- `ARCHITECTURE.md`: how the app is built, up to the API boundary. *(Not written yet.)*
+- `ARCHITECTURE.md`: how the app is built, up to the API boundary.
 - `README.md`: for humans. It MUST NOT be treated as a source of requirements.
 - `REVIEW.md`: what code review flags and at what severity. See "Code review" below.
 
