@@ -125,7 +125,10 @@ class _ComplaintRow extends StatelessWidget {
                   if (complaint.classificationWithheld)
                     const Text(_withheld)
                   else if (classification != null) ...[
-                    Chip(label: Text(classification.category)),
+                    Text(
+                      classification.category,
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
                     ComplaintBadge.urgency(classification.urgency),
                   ] else if (state != null)
                     ComplaintBadge.classification(state),

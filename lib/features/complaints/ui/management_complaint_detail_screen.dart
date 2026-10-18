@@ -48,12 +48,12 @@ class ManagementComplaintDetailScreen extends ConsumerWidget {
           message: errorMessageFor(error),
           onRetry: () => ref.invalidate(complaintDetailProvider(complaintId)),
         ),
-        data: (c) => _details(context, c),
+        data: (c) => _details(context, ref, c),
       ),
     );
   }
 
-  Widget _details(BuildContext context, Complaint c) {
+  Widget _details(BuildContext context, WidgetRef ref, Complaint c) {
     final theme = Theme.of(context);
     final classification = c.classification;
     final state = c.classificationState;
@@ -88,6 +88,14 @@ class ManagementComplaintDetailScreen extends ConsumerWidget {
                 ComplaintBadge.classification(state),
                 const SizedBox(height: 8),
                 Text(_stateExplanation(state)),
+                if (state == ComplaintClassificationState.classifying) ...[
+                  const SizedBox(height: 8),
+                  FilledButton.tonal(
+                    onPressed: () =>
+                        ref.invalidate(complaintDetailProvider(complaintId)),
+                    child: const Text('Segarkan'),
+                  ),
+                ],
               ],
             ),
           formGap,
@@ -132,11 +140,10 @@ class _ClassificationDetails extends StatelessWidget {
           Text(suggestedAction),
         ],
         const SizedBox(height: 8),
-        const Text(_aiDisclaimer),
-        if (classifiedBy != null) ...[
-          const SizedBox(height: 8),
+        if (classifiedBy == null)
+          const Text(_aiDisclaimer)
+        else
           Text('Diklasifikasi oleh $classifiedBy'),
-        ],
       ],
     );
   }

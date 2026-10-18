@@ -125,8 +125,10 @@ class _ClassificationDetails extends StatelessWidget {
         const SizedBox(height: 8),
         Text('Urgensi', style: labelStyle),
         ComplaintBadge.urgency(classification.urgency),
-        const SizedBox(height: 8),
-        const Text(_aiDisclaimer),
+        if (classification.classifiedByName == null) ...[
+          const SizedBox(height: 8),
+          const Text(_aiDisclaimer),
+        ],
       ],
     );
   }
