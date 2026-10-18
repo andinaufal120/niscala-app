@@ -86,11 +86,21 @@ class InvitationQrScreen extends ConsumerWidget {
               ),
             ),
             formGap,
-            SelectableText(url),
-            const SizedBox(height: 8),
-            Text(
-              'Berlaku hingga ${formatDate(invitation.expiresAt)} · '
-              'sekali pakai',
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SelectableText(url),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Berlaku hingga ${formatDate(invitation.expiresAt)} · '
+                      'sekali pakai',
+                    ),
+                  ],
+                ),
+              ),
             ),
             formGap,
             FilledButton(
