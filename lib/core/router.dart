@@ -10,6 +10,11 @@ import 'package:niscala/features/auth/ui/activation_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/register_owner_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
+import 'package:niscala/features/complaints/ui/complaint_form_screen.dart';
+import 'package:niscala/features/complaints/ui/management_complaint_detail_screen.dart';
+import 'package:niscala/features/complaints/ui/management_complaint_list_screen.dart';
+import 'package:niscala/features/complaints/ui/tenant_complaint_detail_screen.dart';
+import 'package:niscala/features/complaints/ui/tenant_complaint_list_screen.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
@@ -30,6 +35,8 @@ const _admin = '/admin';
 const _managementHome = '/beranda';
 const _tenantHome = '/penyewa/beranda';
 const _propertyRoot = '/properti';
+const _managementComplaints = '/keluhan';
+const _tenantComplaints = '/penyewa/keluhan';
 
 const _signedOutRoutes = {_signIn, '/daftar', '/aktivasi'};
 const _managementRoutes = {_managementHome, '/keluhan', '/pembayaran', '/akun'};
@@ -40,9 +47,9 @@ const _tenantRoutes = {
   '/penyewa/akun',
 };
 
-/// Property screens: the list, one property and its add and edit forms.
-bool _isPropertyRoute(String location) =>
-    location == _propertyRoot || location.startsWith('$_propertyRoot/');
+/// [root] itself or any location below it.
+bool _isUnder(String location, String root) =>
+    location == root || location.startsWith('$root/');
 
 /// Where [location] must be redirected for the session, or null to stay.
 String? redirectFor(SessionState session, String location) {
@@ -55,13 +62,18 @@ String? redirectFor(SessionState session, String location) {
       return location == _verifyEmail ? null : _verifyEmail;
     case SignedIn(:final role):
       if (role == UserRole.tenant) {
-        return _tenantRoutes.contains(location) ? null : _tenantHome;
+        final allowed =
+            _tenantRoutes.contains(location) ||
+            _isUnder(location, _tenantComplaints);
+        return allowed ? null : _tenantHome;
       }
       if (role == UserRole.admin) {
         return location == _admin ? null : _admin;
       }
       final allowed =
-          _managementRoutes.contains(location) || _isPropertyRoute(location);
+          _managementRoutes.contains(location) ||
+          _isUnder(location, _propertyRoot) ||
+          _isUnder(location, _managementComplaints);
       return allowed ? null : _managementHome;
   }
 }
@@ -78,6 +90,18 @@ StatefulShellBranch _branch(String path, Widget screen) => StatefulShellBranch(
 
 NavigationDestination _tab(String label, IconData icon) =>
     NavigationDestination(icon: Icon(icon), label: label);
+
+/// A tab whose list screen has child routes. The children sit under the list,
+/// so the tab stays selected and Kembali returns to the list.
+StatefulShellBranch _nestedBranch(
+  String path,
+  Widget screen,
+  List<RouteBase> routes,
+) => StatefulShellBranch(
+  routes: [
+    GoRoute(path: path, builder: (context, state) => screen, routes: routes),
+  ],
+);
 
 /// The rooms of a property: the list, the add form, and one room with its edit
 /// form. The add route comes before `:roomId` so it is not read as a room id.
@@ -225,7 +249,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
         branches: [
           _branch(_managementHome, const PlaceholderScreen(title: 'Beranda')),
-          _branch('/keluhan', const PlaceholderScreen(title: 'Keluhan')),
+          _nestedBranch(
+            _managementComplaints,
+            const ManagementComplaintListScreen(),
+            [
+              GoRoute(
+                path: ':complaintId',
+                builder: (context, state) => ManagementComplaintDetailScreen(
+                  complaintId: state.pathParameters['complaintId']!,
+                ),
+              ),
+            ],
+          ),
           _branch('/pembayaran', const PlaceholderScreen(title: 'Pembayaran')),
           _propertiesBranch(),
           _branch('/akun', const AccountScreen()),
@@ -243,10 +278,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
         branches: [
           _branch(_tenantHome, const PlaceholderScreen(title: 'Beranda')),
-          _branch(
-            '/penyewa/keluhan',
-            const PlaceholderScreen(title: 'Keluhan'),
-          ),
+          _nestedBranch(_tenantComplaints, const TenantComplaintListScreen(), [
+            // The form route comes before `:complaintId`, as for rooms.
+            GoRoute(
+              path: 'baru',
+              builder: (context, state) => const ComplaintFormScreen(),
+            ),
+            GoRoute(
+              path: ':complaintId',
+              builder: (context, state) => TenantComplaintDetailScreen(
+                complaintId: state.pathParameters['complaintId']!,
+                submitted: state.uri.queryParameters['terkirim'] == '1',
+              ),
+            ),
+          ]),
           _branch(
             '/penyewa/pembayaran',
             const PlaceholderScreen(title: 'Pembayaran'),
