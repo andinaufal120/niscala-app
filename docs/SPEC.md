@@ -18,9 +18,10 @@ Blocks between `<!-- shared:begin -->` and `<!-- shared:end -->` are identical i
 Niscala ("Kelola Kost Tanpa Ribet") helps boarding-house (kos) owners and managers handle properties, rooms, tenants, rent payments and maintenance complaints in one Android app.
 
 - Rent is paid **outside** the app (cash or bank transfer). The app records, verifies and tracks payment status. It never moves rent money.
-- Two AI features set the product apart. Both are available only when the property owner has an active subscription:
+- Two AI features set the product apart. Both are available only when the property owner has an active paid subscription (plan Basic or Pro):
     1. classification of maintenance complaints (category, urgency, suggested action);
     2. a natural-language summary of each tenant's payment pattern.
+- Owners choose a plan: Gratis (1 property, 15 rooms, no AI), Basic (3 properties, unlimited rooms, AI) or Pro (unlimited properties, everything in Basic). Subscriptions are bought and renewed through Google Play Billing in the app; the backend verifies the purchase with Google.
 - An AI failure never blocks saving data.
 - Out of scope for v1.0: in-app rent payment, OAuth providers other than Google, iOS and web apps.
 <!-- shared:end -->
@@ -72,7 +73,9 @@ Markdown docs use the format *Original term (English term)*. Code uses the Engli
 | Masa tenggang (Grace period)                        | `gracePeriodDays`         | Days after the bill date before a payment is late. Default: 0.                     |
 | Jatuh tempo (Due date)                              | `dueDate`                 | Bill date + grace period. Computed by the backend.                                 |
 | Ringkasan pola pembayaran (Payment-pattern summary) | `PaymentPatternSummary`   | AI-written sentence built from rule-computed payment facts.                        |
-| Langganan (Subscription)                            | `Subscription`            | The Owner's paid plan that unlocks AI features.                                    |
+| Langganan (Subscription)                            | `Subscription`            | The Owner's paid plan that unlocks AI features and raises the property limit.     |
+| Paket (Subscription plan)                           | `SubscriptionPlan`        | Gratis (`free`), Basic (`basic`) or Pro (`pro`): property and room limits, AI availability and prices. |
+| Pesanan langganan (Subscription order)              | `SubscriptionOrder`       | One attempt to buy a paid plan through Google Play; tracks the purchase until it succeeds, fails or expires. |
 | Sesi (Session)                                      | `Session`                 | One logged-in device of a user.                                                    |
 | Notifikasi (Notification)                           | `Notification`            | In-app message about an event: bill, payment, complaint or account. Kept even when its push is off. |
 | Pengaturan notifikasi (Notification settings)       | `NotificationSettings`    | Per-user push on/off switch per notification category.                             |
@@ -129,10 +132,15 @@ Show statuses with the same label, colour and icon on every screen.
 | Manager account                  | Belum Diaktifkan (Not activated, `notActivated`) · Aktif (Active, `active`)                                                                                                                                           |
 | User account (Admin view)        | Aktif (Active, `active`) · Nonaktif (Suspended, `inactive`) · Dihapus (Deleted, `deleted`)                                                                                                                            |
 | Subscription order / transaction | Menunggu Pembayaran (Awaiting payment, `awaitingPayment`) · Berhasil (Succeeded, `succeeded`) · Gagal (Failed, `failed`) · Kedaluwarsa (Expired, `expired`)                                                           |
+| Subscription                     | Gratis (Free, `free`) · Aktif (Active, `active`) |
+| Subscription plan                | Gratis (Free, `free`) · Basic (Basic, `basic`) · Pro (Pro, `pro`) |
+| Subscription billing period      | Bulanan (Monthly, `monthly`) · Tahunan (Yearly, `yearly`) |
 
 Complaint status moves forward one step at a time: *Baru* → *Diproses* → *Selesai*. Nothing changes after *Selesai*.
 
 Classification state is separate from status. *Menunggu Klasifikasi* = AI was attempted and failed or timed out. *Belum Diklasifikasi* = the Owner had no active subscription when the complaint was saved, so AI was skipped. A classified complaint has neither.
+
+Order status maps to Google Play like this: the order starts as *Menunggu Pembayaran*; a verified purchase in state purchased makes it *Berhasil*; a purchase Google reports as pending (for example pay at a convenience store) keeps it *Menunggu Pembayaran*; a purchase Google reports as failed or canceled makes it *Gagal*; an order whose purchase never completes within its time limit becomes *Kedaluwarsa*. Subscription *Gratis* means no paid period is running; *Aktif* means a paid period is running.
 
 A *Nonaktif* account is suspended: it cannot log in and can be reactivated. A *Dihapus* account is soft-deleted, hidden from the default account list, and can never be reactivated. *Dihapus* is shown, never set, through the edit endpoint.
 
@@ -358,7 +366,7 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | ID    | Item                                                                                                                             | Affects             |
 |-------|----------------------------------------------------------------------------------------------------------------------------------|---------------------|
 | TBD-2 | Minimum Android version (minSdk). Tracked in NKMA-24.                                                                            | Build config        |
-| TBD-3 | Payment gateway provider, and how its page opens (webview vs. external browser).                                                 | UC-32               |
+| TBD-3 | Google Play server-side integration: how the backend learns of renewals, cancellations, expiry and refunds (real-time developer notifications endpoint, its authentication, scheduled reconciliation), service account, test environment. | UC-31, UC-32 |
 | U-1   | `/health` response shape.                                                                                                        | §9, NKMA-22         |
 | U-3   | Complaint description minimum length.                                                                                            | UC-02               |
 | U-4   | Invitation and password-reset link handling: how a link opens the app (Android App Links / deep link) and what happens if the app is not installed. | UC-18, UC-20, FR-01, NFR-11 |
@@ -384,3 +392,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 17-10-2026 | Manager account statuses in §5 reduced to *Belum Diaktifkan* and *Aktif*; §7 Manager bullet now says the Owner shares the invitation link, the Manager enters their own email, and an existing Manager account can accept it. | NKMA-7 |
 | 17-10-2026 | `Notification` and `NotificationSettings` added to the §3 shared glossary; §4 shared table moves viewing own notifications out of the Tenant-only row and adds a row for viewing own notifications and changing own notification settings (Tenant, Owner, Manager). U-12 decided in the backend (row not in this file). | NKMA-63 |
 | 17-10-2026 | `UserAccount` added to the §3 shared glossary. §5 user account statuses now Aktif, Nonaktif (suspended, reversible) and Dihapus (soft-deleted, never reactivated), with a paragraph explaining them. | NKMA-18 |
+| 17-10-2026 | Subscription plans Gratis, Basic and Pro with Google Play Billing: §1 bullets updated; `SubscriptionPlan` and `SubscriptionOrder` added to §3 and `Subscription` reworded; §5 adds Subscription, Subscription plan and Subscription billing period vocabularies and the Google Play order status mapping. TBD-3 rewritten; U-11 decided in the backend (row not in this file). | NKMA-17 |
