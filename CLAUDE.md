@@ -13,12 +13,13 @@ This repo is the **mobile client only**. The backend (FastAPI) lives in a separa
 - `flutter test`: run all tests; `flutter test test/<file>_test.dart` for one file
 - `dart format .`: format code
 - `flutter run`: run on a connected device/emulator
+- `tool/generate_api_client.sh <niscala-api-ref>`: export the OpenAPI document from a local `niscala-api` checkout and regenerate the Dart client
 
 ## Workflow
 
 - Before a change is called done, `flutter analyze` MUST report no issues and `flutter test` MUST pass.
 - Edited `.dart` files are auto-formatted by a hook in `.claude/settings.json`.
-- Agents MUST NOT edit generated or build output: `build/`, `.dart_tool/`, `pubspec.lock`. Change `pubspec.yaml` and run `flutter pub get` instead.
+- Agents MUST NOT edit generated or build output: `build/`, `.dart_tool/`, `pubspec.lock`, `api/openapi.json`, `packages/niscala_api/`. Change `pubspec.yaml` and run `flutter pub get` instead; run `tool/generate_api_client.sh` to refresh the API files.
 - Test-Driven Development: tests for a use case MUST be written or updated before implementing it, by two separate subagents defined in `.claude/agents/`:
   1. `test-writer` writes an exhaustive set of tests from `docs/SPEC.md` and the approved plan. It MUST NOT write implementation code. Its output is committed on its own.
   2. `implementer` then writes the code to make those tests pass. It MUST NOT modify the tests. If a test looks wrong, it MUST stop and report the conflict instead.

@@ -164,6 +164,7 @@ These apply to every use case below. Use cases do not repeat them.
 11. **AI output** always shows a short disclaimer.
 12. **Lists:** filter chips sit in the page body, not the header. Default filters are given per use case.
 13. **Money** is shown as "Rp800.000", with no space between "Rp" and the number.
+14. **Dates** are shown as day, abbreviated Indonesian month and year, for example "18 Okt 2026".
 
 ## 6a. Navigation
 
@@ -200,6 +201,8 @@ Login and sign-up are preconditions, not use cases. All use cases assume a valid
     - a session ended by the user or by Admin stops working within 15 minutes at most.
 <!-- shared:end -->
 
+Until U-4 is decided, the login screen offers *Aktifkan dengan tautan undangan (Activate with invitation link)*: the user pastes the link, the app takes its last path segment as the token, shows the invitation preview and activates with a local password. A local-password account confirms its email with a 6-digit code before using other features.
+
 ## 8. Use cases
 
 Format: actor · entry point · flow · outcomes. Menu names are *Indonesian (English)*.
@@ -210,7 +213,7 @@ Format: actor · entry point · flow · outcomes. Menu names are *Indonesian (En
 Shows room number, property address, lease start and end dates, rent, room dimensions and facilities. If there is no room or lease → message to contact management.
 
 **UC-02 Submit maintenance complaint** (FR-03, FR-04, FR-25, FR-28) · Tenant with an active lease · *Keluhan (Complaints)* tab → complaint list → new complaint
-Free-text description → submit → confirmation. An empty or too-short description gets a field error (minimum length: see §10). After saving, the complaint is *Baru* and its classification state is one of: classified, *Menunggu Klasifikasi*, or *Belum Diklasifikasi*. The app shows the confirmation as soon as the save succeeds; it does not wait for the AI.
+Free-text description → submit → confirmation. An empty or too-short description gets a field error (at least 10 characters after trimming). After saving, the complaint is *Baru* and its classification state is one of: classified, *Menunggu Klasifikasi*, or *Belum Diklasifikasi*. The app shows the confirmation as soon as the save succeeds; it does not wait for the AI.
 
 **UC-03 View complaint status and history** (FR-05) · Tenant · *Keluhan (Complaints)* tab
 List of own complaints, opening on the *Aktif (Active)* filter (*Baru* and *Diproses*). Each shows its status and marks complaints still *Menunggu Klasifikasi* or *Belum Diklasifikasi*. Detail shows category and urgency if classified, and the handling note of each status change. Empty state if none.
@@ -242,13 +245,13 @@ Pick a tenant with an unpaid bill (*Belum Bayar* or *Ditolak*) → pick the peri
 Choose *Belum Bayar*, *Lunas* or *Ditolak* and enter a **required** reason. Choosing the current status or leaving the reason empty gets a field error.
 
 **UC-10 Add property** (FR-12, FR-21) · **Owner only** · *Properti → Tambah Properti (Properties → Add)*
-Fields: name and address, both required, and an optional bank account (bank name, account number, account holder name). The name must be unique within the Owner's account (the error comes from the API).
+Fields: name and address, both required, and an optional bank account (bank name, account number, account holder name). The name must be unique within the Owner's account (the error comes from the API). Adding past the plan's property limit is rejected (`PROPERTY_LIMIT_REACHED`); the app shows the Indonesian message.
 
 **UC-11 View properties** (FR-12, FR-21) · *Properti (Properties)*
 List with room count and assigned managers. Selecting one shows its detail (name, address, bank account if set, room count, assigned Manager) and sets it as the active context. A Manager can view but not edit or delete. With access to exactly one property, skip the list and open its detail directly.
 
 **UC-12 Edit property** (FR-12) · **Owner only** · *Properti → [property] → Ubah Properti (Edit)*
-Form pre-filled with name, address and bank account.
+Form pre-filled with name, address and bank account. Changing the bank account needs a recent re-authentication: on `REAUTHENTICATION_REQUIRED` the app asks for the password, re-authenticates and retries the save. Properties with `editable` false show no edit action.
 
 **UC-13 Delete property** (FR-12) · **Owner only** · *Properti → [property] → Hapus Properti (Delete)*
 Rejected if the property has an active lease. On success the property's rooms and manager assignments are removed too.
@@ -256,9 +259,11 @@ Rejected if the property has an active lease. On success the property's rooms an
 **UC-14 Add room** (FR-12) · *[property] → Kamar → Tambah Kamar (Rooms → Add)*
 Fields:
 - room number: required, unique within the property;
-- base rate: required, per month;
+- base rate: required, per month, greater than 0;
 - length and width in metres: optional, each 0 < x ≤ 20 with at most 2 decimals, a comma decimal accepted ("3,5"); both or neither, otherwise a field error;
 - facilities: free-form tags, at most 30 characters per tag and 15 tags per room, with suggestions from the API (tags the same Owner has used before). The API normalizes tags on save.
+
+Adding past the plan's room limit is rejected (`ROOM_LIMIT_REACHED`). Rooms with `editable` false (UC-15 to UC-17) show no edit action.
 
 **UC-15 View rooms** (FR-12) · *[property] → Kamar (Rooms)*
 List with number, base rate and occupancy; default filter *Semua (All)*. Detail adds dimensions with the area (length × width, computed for display only), facilities, plus the tenant, lease dates and that lease's rent if occupied.
@@ -268,7 +273,8 @@ List with number, base rate and occupancy; default filter *Semua (All)*. Detail 
 **UC-17 Delete room** (FR-12) · *[room] → Hapus Kamar (Delete)* · rejected if the room has an active lease.
 
 **UC-18 Add tenant** (FR-13) · *[property] → Penyewa → Tambah Penyewa (Tenants → Add)*
-Required fields: room (vacant rooms only), name, phone number. Optional fields: occupation, emergency contacts (2 to 4, or none for the tenant to complete during activation), lease dates, billing cycle (§3, default monthly), grace period (default 0), rent (per billing cycle; pre-filled with the room's base rate for a monthly lease, editable).
+Required fields: room (vacant rooms only), name, phone number. Optional fields: occupation, emergency contacts (2 to 4, or none for the tenant to complete during activation), lease dates, billing cycle (§3, default monthly), grace period (default 0), rent (per billing cycle; pre-filled with the room's base rate for a monthly lease, editable; required for other cycles).
+Phone number: an Indonesian mobile number (`08` or `628` followed by 8 to 11 digits, spaces and dashes ignored). Exactly 1 emergency contact is a field error. Email is not entered here.
 On save, the room becomes *Terisi* and an **invitation link** is shown. The link can be shared via WhatsApp or shown as a QR code. If link creation fails, the tenant is still saved, and the link can be regenerated in UC-20.
 
 **UC-19 View tenants** (FR-13) · *[property] → Penyewa (Tenants)*
@@ -351,11 +357,19 @@ Fields: current password, new password with a strength meter, confirm new passwo
 
 The backend repository (`andinaufal120/niscala-api`) owns the contract. Its OpenAPI document is the source; the app consumes a **Dart client generated from it** and committed to this repo. Regenerate the client to pick up contract changes, and never hand-edit generated code.
 
-Until the generated client exists, the only endpoint is:
+Conventions, as the backend defines them:
 
-| Method | Path      | Purpose                                                   | Used by                                                   |
-|--------|-----------|-----------------------------------------------------------|-----------------------------------------------------------|
-| `GET`  | `/health` | Confirms the API is up and its database connection works. | Walking skeleton (NKMA-6): the app displays the response. |
+- Field names are the glossary code names (§3) in camelCase.
+- Enum values are the §5 code names, except *Baru*, whose value is `new`.
+- Dates are `YYYY-MM-DD`; timestamps are ISO 8601 in UTC with `Z`.
+- Money is an integer number of rupiah.
+- IDs are UUID strings.
+- A list response is an object with an `items` array.
+- An edit is a `PUT` of the full resource.
+- Authentication is an HTTP bearer scheme (`bearerAuth`, a JWT access token). The app refreshes the token once when the API answers `ACCESS_TOKEN_INVALID`, and goes to the login screen when the refresh fails.
+- Errors are `{code, field, message}` (§6 rule 2).
+
+Endpoints: see the backend's OpenAPI document. The app keeps its copy in `api/openapi.json` and regenerates the Dart client with `tool/generate_api_client.sh`.
 
 The response shape of `/health` is undecided (see U-1 in §10).
 
@@ -368,11 +382,8 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | TBD-2 | Minimum Android version (minSdk). Tracked in NKMA-24.                                                                            | Build config        |
 | TBD-3 | Google Play server-side integration: how the backend learns of renewals, cancellations, expiry and refunds (real-time developer notifications endpoint, its authentication, scheduled reconciliation), service account, test environment. | UC-31, UC-32 |
 | U-1   | `/health` response shape.                                                                                                        | §9, NKMA-22         |
-| U-3   | Complaint description minimum length.                                                                                            | UC-02               |
 | U-4   | Invitation and password-reset link handling: how a link opens the app (Android App Links / deep link) and what happens if the app is not installed. | UC-18, UC-20, FR-01, NFR-11 |
-| U-5   | Date display format in the UI.                                                                                                   | All dates           |
-| U-9   | Error response shape and the list of error codes.                                                                                | §6, §7              |
-| U-10  | Wire formats: enum values, JSON field casing, and date/time format. Decided: complaint status *Baru* is `"new"`.                 | §3, §5, §9          |
+| U-9   | The complete list of error codes, and declaring them in the OpenAPI document.                                                    | §6, §7              |
 | U-16  | Complaint category list (the prototype list is placeholder data).                                                                | UC-02, UC-23, UC-36 |
 | U-22  | Content of the Manager's restricted dashboard.                                                                                   | UC-22               |
 
@@ -395,3 +406,6 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 17-10-2026 | Subscription plans Gratis, Basic and Pro with Google Play Billing: §1 bullets updated; `SubscriptionPlan` and `SubscriptionOrder` added to §3 and `Subscription` reworded; §5 adds Subscription, Subscription plan and Subscription billing period vocabularies and the Google Play order status mapping. TBD-3 rewritten; U-11 decided in the backend (row not in this file). | NKMA-17 |
 | 18-10-2026 | Session lifetime relaxed: a session ends after 90 days without use or 1 year after the last authentication, instead of a fixed 30 days, so that users are not forced to log in about once a month. | NKMA-15 |
 | 18-10-2026 | New complaint classification state *Sedang Diklasifikasi* (`classifying`) in the §5 shared block: the backend saves a complaint first and classifies it afterwards (decided in niscala-api, which also decided U-8 for complaint classification). The app's own use-case text (UC-02, UC-03) still has to be reworded when the screens are built. | NKMA-64 |
+| 18-10-2026 | UC-02 minimum length decided (10 characters); plan-limit, re-authentication and `editable` rules added to UC-10, UC-12, UC-14 to UC-17; UC-18 phone, emergency contact and rent rules; §9 conventions replace the `/health` table; U-3 and U-10 removed, U-9 narrowed. Synced with the backend contract. | NKMA-16, NKMA-7, NKMA-8, NKMA-19 |
+| 18-10-2026 | U-5 decided: dates are shown as day, abbreviated Indonesian month and year (§6 rule 14). | NKMA-8 |
+| 18-10-2026 | Interim invitation activation: the user pastes the invitation link into the login screen, until U-4 is decided (§7). | NKMA-15 |
