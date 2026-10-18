@@ -210,8 +210,9 @@ void main() {
 
       await fillAndSubmit(tester, password: 'x7Kqx7Kq');
 
-      expect(fieldError(tester, _password), isNull);
       expect(auth.registrations, hasLength(1));
+      expect(auth.registrations.single.password, 'x7Kqx7Kq');
+      expect(find.text('Kata sandi minimal 8 karakter.'), findsNothing);
     });
 
     testWidgets('accepts a password of exactly 128 characters', (tester) async {
