@@ -6,6 +6,9 @@ import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/core/shell/app_shell.dart';
 import 'package:niscala/core/widgets/loading_screen.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
+import 'package:niscala/features/auth/ui/login_screen.dart';
+import 'package:niscala/features/auth/ui/register_owner_screen.dart';
+import 'package:niscala/features/auth/ui/verify_email_screen.dart';
 import 'package:niscala_api/api.dart';
 
 const _loading = '/memuat';
@@ -49,10 +52,11 @@ String? redirectFor(SessionState session, String location) {
   }
 }
 
-GoRoute _placeholder(String path, String title) => GoRoute(
-  path: path,
-  builder: (context, state) => PlaceholderScreen(title: title),
-);
+GoRoute _screen(String path, Widget screen) =>
+    GoRoute(path: path, builder: (context, state) => screen);
+
+GoRoute _placeholder(String path, String title) =>
+    _screen(path, PlaceholderScreen(title: title));
 
 StatefulShellBranch _branch(String path, Widget screen) => StatefulShellBranch(
   routes: [GoRoute(path: path, builder: (context, state) => screen)],
@@ -77,10 +81,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: _loading,
         builder: (context, state) => const LoadingScreen(),
       ),
-      _placeholder(_signIn, 'Masuk'),
-      _placeholder('/daftar', 'Daftar'),
+      _screen(_signIn, const LoginScreen()),
+      _screen('/daftar', const RegisterOwnerScreen()),
       _placeholder('/aktivasi', 'Aktivasi Akun'),
-      _placeholder(_verifyEmail, 'Verifikasi Email'),
+      _screen(_verifyEmail, const VerifyEmailScreen()),
       _placeholder(_admin, 'Admin'),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => AppShell(
