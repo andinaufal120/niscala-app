@@ -8,6 +8,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/auth/data/invitation_repository.dart';
+import 'package:niscala/features/complaints/data/complaint_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
 import 'package:niscala/features/tenants/data/invitation_sharing.dart';
@@ -804,6 +805,137 @@ class FakeInvitationRepository implements InvitationRepository {
   }
 }
 
+/// A [ComplaintClassification] with sensible defaults. Without
+/// [classifiedByName] it is an AI result.
+ComplaintClassification makeComplaintClassification({
+  String category = 'Pipa dan air',
+  ComplaintUrgency urgency = ComplaintUrgency.medium,
+  String? suggestedAction = 'Panggil tukang ledeng.',
+  String? classifiedByName,
+}) => ComplaintClassification(
+  category: category,
+  urgency: urgency,
+  suggestedAction: suggestedAction,
+  classifiedByName: classifiedByName,
+);
+
+/// A [Complaint] with sensible defaults: new, from Budi Santoso in room 08 of
+/// Kos Melati, sent 18 Okt 2026 at 12:00 UTC.
+///
+/// It has no classification and no classification state unless given.
+Complaint makeComplaint({
+  String id = 'c1',
+  String description = 'Keran air di kamar mandi bocor sejak kemarin.',
+  ComplaintStatus status = ComplaintStatus.new_,
+  ComplaintClassification? classification,
+  ComplaintClassificationState? classificationState,
+  bool classificationWithheld = false,
+  DateTime? createdAt,
+  String tenantName = 'Budi Santoso',
+  String roomNumber = '08',
+  String propertyName = 'Kos Melati',
+  List<ComplaintStatusChange> statusChanges = const [],
+}) => Complaint(
+  id: id,
+  description: description,
+  status: status,
+  classification: classification,
+  classificationState: classificationState,
+  classificationWithheld: classificationWithheld,
+  createdAt: createdAt ?? DateTime.utc(2026, 10, 18, 12),
+  hasPhoto: false,
+  property: PropertyRef(id: 'p1', name: propertyName),
+  room: RoomRef(id: 'r1', number: roomNumber),
+  statusChanges: statusChanges,
+  tenantName: tenantName,
+);
+
+/// A [ComplaintRepository] that keeps the complaints in memory and records its
+/// calls.
+///
+/// [list] returns summaries of [complaints] in their order; [get] returns the
+/// complaint with the id or fails with `COMPLAINT_NOT_FOUND`. [submit] saves a
+/// new complaint (status new, classification state `classifying`, or
+/// [submitState] when set) only when the call succeeds, and appends it to
+/// [complaints]. Script failures and gates per method with the `*Script`
+/// fields. Every call is also appended to [calls] in order, as `list`,
+/// `get:<id>` or `submit`.
+class FakeComplaintRepository implements ComplaintRepository {
+  FakeComplaintRepository({List<Complaint>? complaints})
+    : complaints = complaints ?? [];
+
+  final List<Complaint> complaints;
+
+  final calls = <String>[];
+  final submitted = <String>[];
+
+  final listScript = CallScript();
+  final getScript = CallScript();
+  final submitScript = CallScript();
+
+  /// The classification state of a complaint saved by [submit]. Null means
+  /// classified: [submitClassification] is returned instead.
+  ComplaintClassificationState? submitState =
+      ComplaintClassificationState.classifying;
+  ComplaintClassification? submitClassification;
+
+  var _nextId = 1;
+
+  int get listCalls => calls.where((c) => c == 'list').length;
+  int get getCalls => calls.where((c) => c.startsWith('get:')).length;
+  int get submitCalls => calls.where((c) => c == 'submit').length;
+
+  @override
+  Future<List<ComplaintSummary>> list() async {
+    calls.add('list');
+    final failure = await listScript.next();
+    if (failure != null) throw failure;
+    return [
+      for (final c in complaints)
+        ComplaintSummary(
+          id: c.id,
+          description: c.description,
+          status: c.status,
+          classification: c.classification,
+          classificationState: c.classificationState,
+          classificationWithheld: c.classificationWithheld,
+          createdAt: c.createdAt,
+          hasPhoto: c.hasPhoto,
+          property: c.property,
+          room: c.room,
+          tenantName: c.tenantName,
+        ),
+    ];
+  }
+
+  @override
+  Future<Complaint> get(String complaintId) async {
+    calls.add('get:$complaintId');
+    final failure = await getScript.next();
+    if (failure != null) throw failure;
+    return complaints.firstWhere(
+      (c) => c.id == complaintId,
+      orElse: () => throw const ApiFailure(code: 'COMPLAINT_NOT_FOUND'),
+    );
+  }
+
+  @override
+  Future<Complaint> submit(String description) async {
+    calls.add('submit');
+    submitted.add(description);
+    final failure = await submitScript.next();
+    if (failure != null) throw failure;
+    final complaint = makeComplaint(
+      id: 'new-${_nextId++}',
+      description: description,
+      classification: submitState == null ? submitClassification : null,
+      classificationState: submitState,
+    );
+    complaints.add(complaint);
+    return complaint;
+  }
+}
+
 /// The whole app with a fake session store and no network.
 ///
 /// Without [invitationSharer] sharing does nothing.
@@ -816,6 +948,7 @@ Widget buildTestApp({
   PropertyRepository? properties,
   RoomRepository? rooms,
   TenantRepository? tenants,
+  ComplaintRepository? complaints,
   Future<void> Function(String text)? invitationSharer,
 }) {
   return ProviderScope(
@@ -832,6 +965,9 @@ Widget buildTestApp({
       roomRepositoryProvider.overrideWithValue(rooms ?? FakeRoomRepository()),
       tenantRepositoryProvider.overrideWithValue(
         tenants ?? FakeTenantRepository(),
+      ),
+      complaintRepositoryProvider.overrideWithValue(
+        complaints ?? FakeComplaintRepository(),
       ),
       invitationSharerProvider.overrideWithValue(
         invitationSharer ?? (text) async {},
