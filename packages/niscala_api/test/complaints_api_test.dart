@@ -37,7 +37,7 @@ void main() {
 
     // Create Complaint
     //
-    // Submit a complaint as the calling tenant.
+    // Submit a complaint as the calling tenant.  The complaint is saved before it is classified in the background.
     //
     //Future<Complaint> createComplaint(ComplaintInput complaintInput) async
     test('test createComplaint', () async {

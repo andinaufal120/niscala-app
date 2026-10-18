@@ -23,11 +23,13 @@ class ComplaintClassificationState {
 
   String toJson() => value;
 
+  static const classifying = ComplaintClassificationState._(r'classifying');
   static const awaitingClassification = ComplaintClassificationState._(r'awaitingClassification');
   static const notClassified = ComplaintClassificationState._(r'notClassified');
 
   /// List of all possible values in this [enum][ComplaintClassificationState].
   static const values = <ComplaintClassificationState>[
+    classifying,
     awaitingClassification,
     notClassified,
   ];
@@ -68,6 +70,7 @@ class ComplaintClassificationStateTypeTransformer {
   ComplaintClassificationState? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
+        case r'classifying': return ComplaintClassificationState.classifying;
         case r'awaitingClassification': return ComplaintClassificationState.awaitingClassification;
         case r'notClassified': return ComplaintClassificationState.notClassified;
         default:
