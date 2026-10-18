@@ -126,7 +126,7 @@ Show statuses with the same label, colour and icon on every screen.
 | Login method                     | Google (Google, `google`) · Kata sandi (Password, `password`)                                                                                                                                                         |
 | Billing cycle                    | Mingguan (Weekly, `weekly`) · Bulanan (Monthly, `monthly`) · 3 Bulan (Quarterly, `quarterly`) · 6 Bulan (Semiannual, `semiannual`) · 12 Bulan (Annual, `annual`) |
 | Complaint                        | Baru (New, `new_`) · Diproses (In progress, `inProgress`) · Selesai (Done, `done`) |
-| Complaint classification         | Menunggu Klasifikasi (Awaiting classification, `awaitingClassification`) · Belum Diklasifikasi (Not classified, `notClassified`) |
+| Complaint classification         | Sedang Diklasifikasi (Classifying, `classifying`) · Menunggu Klasifikasi (Awaiting classification, `awaitingClassification`) · Belum Diklasifikasi (Not classified, `notClassified`) |
 | Complaint urgency                | Rendah (Low, `low`) · Sedang (Medium, `medium`) · Tinggi (High, `high`) |
 | Tenant account                   | Belum Diaktifkan (Not activated, `notActivated`) · Aktif (Active, `active`)                                                                                                                                           |
 | Manager account                  | Belum Diaktifkan (Not activated, `notActivated`) · Aktif (Active, `active`)                                                                                                                                           |
@@ -138,7 +138,7 @@ Show statuses with the same label, colour and icon on every screen.
 
 Complaint status moves forward one step at a time: *Baru* → *Diproses* → *Selesai*. Nothing changes after *Selesai*.
 
-Classification state is separate from status. *Menunggu Klasifikasi* = AI was attempted and failed or timed out. *Belum Diklasifikasi* = the Owner had no active subscription when the complaint was saved, so AI was skipped. A classified complaint has neither.
+Classification state is separate from status. *Sedang Diklasifikasi* = the complaint is saved and the AI is still working on it; it ends as a classification or as *Menunggu Klasifikasi*. *Menunggu Klasifikasi* = AI was attempted and failed or timed out. *Belum Diklasifikasi* = the Owner had no active subscription when the complaint was saved, so AI was skipped. A classified complaint has neither.
 
 Order status maps to Google Play like this: the order starts as *Menunggu Pembayaran*; a verified purchase in state purchased makes it *Berhasil*; a purchase Google reports as pending (for example pay at a convenience store) keeps it *Menunggu Pembayaran*; a purchase Google reports as failed or canceled makes it *Gagal*; an order whose purchase never completes within its time limit becomes *Kedaluwarsa*. Subscription *Gratis* means no paid period is running; *Aktif* means a paid period is running.
 
@@ -394,3 +394,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 17-10-2026 | `UserAccount` added to the §3 shared glossary. §5 user account statuses now Aktif, Nonaktif (suspended, reversible) and Dihapus (soft-deleted, never reactivated), with a paragraph explaining them. | NKMA-18 |
 | 17-10-2026 | Subscription plans Gratis, Basic and Pro with Google Play Billing: §1 bullets updated; `SubscriptionPlan` and `SubscriptionOrder` added to §3 and `Subscription` reworded; §5 adds Subscription, Subscription plan and Subscription billing period vocabularies and the Google Play order status mapping. TBD-3 rewritten; U-11 decided in the backend (row not in this file). | NKMA-17 |
 | 18-10-2026 | Session lifetime relaxed: a session ends after 90 days without use or 1 year after the last authentication, instead of a fixed 30 days, so that users are not forced to log in about once a month. | NKMA-15 |
+| 18-10-2026 | New complaint classification state *Sedang Diklasifikasi* (`classifying`) in the §5 shared block: the backend saves a complaint first and classifies it afterwards (decided in niscala-api, which also decided U-8 for complaint classification). The app's own use-case text (UC-02, UC-03) still has to be reworded when the screens are built. | NKMA-64 |
