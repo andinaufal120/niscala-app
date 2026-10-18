@@ -6,6 +6,7 @@ import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/core/shell/app_shell.dart';
 import 'package:niscala/core/widgets/loading_screen.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
+import 'package:niscala/features/auth/ui/activation_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/register_owner_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
@@ -208,7 +209,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       _screen(_signIn, const LoginScreen()),
       _screen('/daftar', const RegisterOwnerScreen()),
-      _placeholder('/aktivasi', 'Aktivasi Akun'),
+      _screen('/aktivasi', const ActivationScreen()),
       _screen(_verifyEmail, const VerifyEmailScreen()),
       _placeholder(_admin, 'Admin'),
       StatefulShellRoute.indexedStack(

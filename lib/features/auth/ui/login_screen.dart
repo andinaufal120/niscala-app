@@ -115,6 +115,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ],
         ),
+        formGap,
+        const Text(
+          'Penyewa dan pengelola kost mengaktifkan akun lewat tautan undangan '
+          'dari pemilik kost.',
+          textAlign: TextAlign.center,
+        ),
+        TextButton(
+          onPressed: () => context.go('/aktivasi'),
+          child: const Text('Aktifkan dengan tautan undangan'),
+        ),
       ],
     );
   }
