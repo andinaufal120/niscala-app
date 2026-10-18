@@ -35,6 +35,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # Generated from the backend's OpenAPI document by tool/generate_api_client.sh.
+  niscala_api:
+    path: packages/niscala_api
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

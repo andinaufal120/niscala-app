@@ -1,0 +1,28 @@
+//
+// AUTO-GENERATED FILE, DO NOT MODIFY!
+//
+// @dart=2.18
+
+// ignore_for_file: unused_element, unused_import
+// ignore_for_file: always_put_required_named_parameters_first
+// ignore_for_file: constant_identifier_names
+// ignore_for_file: lines_longer_than_80_chars
+
+import 'package:niscala_api/api.dart';
+import 'package:test/test.dart';
+
+// tests for NotificationSettingsInput
+void main() {
+  // final instance = NotificationSettingsInput();
+
+  group('test NotificationSettingsInput', () {
+    // Exactly the categories of the caller's role, each once.
+    // List<NotificationSettingItem> items (default value: const [])
+    test('to test the property `items`', () async {
+      // TODO
+    });
+
+
+  });
+
+}
