@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart' hide testWidgets;
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/error_view.dart';
@@ -13,6 +13,12 @@ import 'package:niscala_api/api.dart';
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
 import 'room_ui_helpers.dart';
+
+/// Every test of this file reads semantics labels.
+void testWidgets(
+  String description,
+  Future<void> Function(WidgetTester tester) body,
+) => testWidgetsWithSemantics(description, body);
 
 const _number = 'Nomor kamar (wajib)';
 const _rate = 'Tarif dasar per bulan (wajib)';
@@ -55,7 +61,6 @@ Future<void> _pumpAdd(
   bool settle = true,
   bool largeText = false,
 }) async {
-  useSemantics(tester);
   await pumpRoomApp(
     tester,
     repo,
@@ -72,7 +77,6 @@ Future<void> _pumpEdit(
   bool settle = true,
   bool largeText = false,
 }) async {
-  useSemantics(tester);
   await pumpRoomApp(
     tester,
     repo,
@@ -106,7 +110,15 @@ Future<void> _fill(
 
 Future<void> _addTag(WidgetTester tester, String tag) async {
   await type(tester, _facility, tag);
-  await tapVisible(tester, buttonLabelled('Tambah'));
+  await _tapInView(tester, buttonLabelled('Tambah'));
+}
+
+/// Scrolls [finder] clear of the app bar, then taps it.
+Future<void> _tapInView(WidgetTester tester, Finder finder) async {
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+  await tester.tap(finder);
+  await tester.pumpAndSettle();
 }
 
 /// The remove button of the chosen tag, exactly one when it is chosen.
@@ -1507,7 +1519,7 @@ void main() {
       },
       'the add form with chosen facilities': (tester, large) async {
         await _pumpAdd(tester, _repo(), largeText: large);
-        await tapVisible(tester, find.text('wifi'));
+        await _tapInView(tester, find.text('wifi'));
         await _addTag(tester, 'kamar mandi dalam');
       },
       'the add form with filtered suggestions': (tester, large) async {
@@ -1570,6 +1582,8 @@ void main() {
         final repo = _repo()..createScript.gate = Completer<void>();
         await _pumpAdd(tester, repo, largeText: large);
         await _fill(tester);
+        await tester.ensureVisible(find.text('Simpan Kamar'));
+        await tester.pump();
         await tapAndPump(tester, find.text('Simpan Kamar'));
       },
       'the edit form': (tester, large) =>
@@ -1582,6 +1596,8 @@ void main() {
       'the edit form in flight': (tester, large) async {
         final repo = _repo()..updateScript.gate = Completer<void>();
         await _pumpEdit(tester, repo, largeText: large);
+        await tester.ensureVisible(find.text('Simpan Perubahan'));
+        await tester.pump();
         await tapAndPump(tester, find.text('Simpan Perubahan'));
       },
       'the edit form with a banner': (tester, large) async {

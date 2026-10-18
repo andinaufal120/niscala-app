@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart'
+    as flutter_test
+    show testWidgets;
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala_api/api.dart';
 
@@ -119,11 +122,19 @@ Finder filterChip(String label) => find.ancestor(
 Finder inAppBar(String text) =>
     find.descendant(of: find.byType(AppBar), matching: find.text(text));
 
-/// Turns semantics on for the rest of the test.
-void useSemantics(WidgetTester tester) {
+/// A widget test with semantics on for its whole body. The handle is released
+/// before the test ends, as flutter_test requires.
+void testWidgetsWithSemantics(
+  String description,
+  Future<void> Function(WidgetTester tester) body,
+) => flutter_test.testWidgets(description, (tester) async {
   final handle = tester.ensureSemantics();
-  addTearDown(handle.dispose);
-}
+  try {
+    await body(tester);
+  } finally {
+    handle.dispose();
+  }
+});
 
 /// Expects the chip [label] to expose [selected] to assistive technology.
 void expectChipSelected(

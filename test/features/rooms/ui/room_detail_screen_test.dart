@@ -165,12 +165,16 @@ void main() {
     testWidgets('the section titles are headers', (tester) async {
       await _openDetail(tester, _repo());
 
-      useSemantics(tester);
-      for (final title in ['Ukuran', 'Fasilitas', 'Penyewa & masa sewa']) {
-        expect(
-          tester.getSemantics(find.text(title)),
-          isSemantics(isHeader: true),
-        );
+      final handle = tester.ensureSemantics();
+      try {
+        for (final title in ['Ukuran', 'Fasilitas', 'Penyewa & masa sewa']) {
+          expect(
+            tester.getSemantics(find.text(title)),
+            isSemantics(isHeader: true),
+          );
+        }
+      } finally {
+        handle.dispose();
       }
     });
   });
