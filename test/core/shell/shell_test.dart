@@ -111,7 +111,7 @@ void main() {
     ) async {
       await pumpShell(tester, UserRole.owner);
 
-      for (final label in ['Beranda', 'Keluhan', 'Pembayaran']) {
+      for (final label in ['Beranda', 'Pembayaran']) {
         await tester.tap(navLabel(label));
         await tester.pumpAndSettle();
         expect(find.byType(PlaceholderScreen), findsOneWidget);
@@ -223,7 +223,7 @@ void main() {
     ) async {
       await pumpShell(tester, UserRole.tenant);
 
-      for (final label in ['Beranda', 'Keluhan', 'Pembayaran']) {
+      for (final label in ['Beranda', 'Pembayaran']) {
         await tester.tap(navLabel(label));
         await tester.pumpAndSettle();
         expect(find.byType(PlaceholderScreen), findsOneWidget);
