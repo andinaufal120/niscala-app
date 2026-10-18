@@ -14,7 +14,7 @@ class ComplaintStatusChange {
   /// Returns a new [ComplaintStatusChange] instance.
   ComplaintStatusChange({
     required this.changedAt,
-    required this.handlingNote,
+    this.handlingNote,
     required this.status,
   });
 
@@ -122,7 +122,6 @@ class ComplaintStatusChange {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'changedAt',
-    'handlingNote',
     'status',
   };
 }

@@ -19,7 +19,7 @@ class InvitationPreview {
     required this.name,
     this.properties = const [],
     required this.role,
-    required this.roomNumber,
+    this.roomNumber,
     required this.status,
   });
 
@@ -165,7 +165,6 @@ class InvitationPreview {
     'name',
     'properties',
     'role',
-    'roomNumber',
     'status',
   };
 }

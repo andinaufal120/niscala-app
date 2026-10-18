@@ -14,9 +14,9 @@ class Payment {
   /// Returns a new [Payment] instance.
   Payment({
     required this.hasReceipt,
-    required this.method,
-    required this.paidOn,
-    required this.rejectionReason,
+    this.method,
+    this.paidOn,
+    this.rejectionReason,
     required this.status,
   });
 
@@ -144,9 +144,6 @@ class Payment {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'hasReceipt',
-    'method',
-    'paidOn',
-    'rejectionReason',
     'status',
   };
 }

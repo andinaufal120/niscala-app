@@ -13,7 +13,7 @@ part of niscala_api;
 class PaymentOverviewItem {
   /// Returns a new [PaymentOverviewItem] instance.
   PaymentOverviewItem({
-    required this.bill,
+    this.bill,
     required this.room,
     required this.tenant,
   });
@@ -121,7 +121,6 @@ class PaymentOverviewItem {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
-    'bill',
     'room',
     'tenant',
   };

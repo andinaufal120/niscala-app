@@ -16,7 +16,7 @@ class TenantInvitation {
     required this.createdAt,
     required this.expired,
     required this.expiresAt,
-    required this.url,
+    this.url,
   });
 
   DateTime createdAt;
@@ -131,7 +131,6 @@ class TenantInvitation {
     'createdAt',
     'expired',
     'expiresAt',
-    'url',
   };
 }
 

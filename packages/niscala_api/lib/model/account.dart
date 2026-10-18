@@ -15,7 +15,7 @@ class Account {
   Account({
     required this.email,
     required this.emailVerified,
-    required this.googleEmail,
+    this.googleEmail,
     required this.hasPassword,
     required this.id,
     required this.name,
@@ -151,7 +151,6 @@ class Account {
   static const requiredKeys = <String>{
     'email',
     'emailVerified',
-    'googleEmail',
     'hasPassword',
     'id',
     'name',

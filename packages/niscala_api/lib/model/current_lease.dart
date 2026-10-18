@@ -13,9 +13,9 @@ part of niscala_api;
 class CurrentLease {
   /// Returns a new [CurrentLease] instance.
   CurrentLease({
-    required this.endDate,
+    this.endDate,
     required this.room,
-    required this.startDate,
+    this.startDate,
   });
 
   DateTime? endDate;
@@ -125,9 +125,7 @@ class CurrentLease {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
-    'endDate',
     'room',
-    'startDate',
   };
 }
 

@@ -14,13 +14,13 @@ class Tenant {
   /// Returns a new [Tenant] instance.
   Tenant({
     required this.accountStatus,
-    required this.email,
+    this.email,
     this.emergencyContacts = const [],
     required this.id,
-    required this.invitation,
+    this.invitation,
     required this.lease,
     required this.name,
-    required this.occupation,
+    this.occupation,
     required this.phone,
     required this.room,
   });
@@ -180,13 +180,10 @@ class Tenant {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'accountStatus',
-    'email',
     'emergencyContacts',
     'id',
-    'invitation',
     'lease',
     'name',
-    'occupation',
     'phone',
     'room',
   };

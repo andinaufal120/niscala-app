@@ -16,8 +16,8 @@ class InvitationAcceptancePreview {
     required this.accountEmail,
     required this.accountName,
     required this.accountRole,
-    required this.activeLease,
-    required this.blocker,
+    this.activeLease,
+    this.blocker,
     required this.canAccept,
     required this.invitation,
   });
@@ -157,8 +157,6 @@ class InvitationAcceptancePreview {
     'accountEmail',
     'accountName',
     'accountRole',
-    'activeLease',
-    'blocker',
     'canAccept',
     'invitation',
   };

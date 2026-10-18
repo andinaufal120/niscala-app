@@ -19,7 +19,7 @@ class PaymentPattern {
     required this.countedBillCount,
     required this.onTimeCount,
     required this.room,
-    required this.summary,
+    this.summary,
     required this.summaryWithheld,
     required this.tenant,
   });
@@ -177,7 +177,6 @@ class PaymentPattern {
     'countedBillCount',
     'onTimeCount',
     'room',
-    'summary',
     'summaryWithheld',
     'tenant',
   };

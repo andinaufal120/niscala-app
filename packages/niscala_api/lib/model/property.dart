@@ -14,7 +14,7 @@ class Property {
   /// Returns a new [Property] instance.
   Property({
     required this.address,
-    required this.bankAccount,
+    this.bankAccount,
     required this.editable,
     required this.id,
     this.managers = const [],
@@ -165,7 +165,6 @@ class Property {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'address',
-    'bankAccount',
     'editable',
     'id',
     'managers',

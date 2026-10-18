@@ -13,7 +13,7 @@ part of niscala_api;
 class CurrentLeaseResult {
   /// Returns a new [CurrentLeaseResult] instance.
   CurrentLeaseResult({
-    required this.lease,
+    this.lease,
   });
 
   CurrentLease? lease;
@@ -107,7 +107,6 @@ class CurrentLeaseResult {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
-    'lease',
   };
 }
 

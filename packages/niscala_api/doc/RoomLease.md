@@ -8,9 +8,9 @@ import 'package:niscala_api/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**endDate** | [**DateTime**](DateTime.md) |  | 
+**endDate** | [**DateTime**](DateTime.md) |  | [optional] 
 **rent** | **int** | In rupiah. | 
-**startDate** | [**DateTime**](DateTime.md) |  | 
+**startDate** | [**DateTime**](DateTime.md) |  | [optional] 
 **tenantId** | **String** |  | 
 **tenantName** | **String** |  | 
 **tenantPhone** | **String** |  | 

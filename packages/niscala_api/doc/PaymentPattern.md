@@ -14,7 +14,7 @@ Name | Type | Description | Notes
 **countedBillCount** | **int** |  | 
 **onTimeCount** | **int** |  | 
 **room** | [**RoomRef**](RoomRef.md) |  | 
-**summary** | **String** |  | 
+**summary** | **String** |  | [optional] 
 **summaryWithheld** | **bool** | True when a summary exists but is withheld for lack of a subscription. | 
 **tenant** | [**TenantRef**](TenantRef.md) |  | 
 

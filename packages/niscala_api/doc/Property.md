@@ -9,7 +9,7 @@ import 'package:niscala_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **address** | **String** |  | 
-**bankAccount** | [**BankAccount**](BankAccount.md) |  | 
+**bankAccount** | [**BankAccount**](BankAccount.md) |  | [optional] 
 **editable** | **bool** | False while the property is view-only. | 
 **id** | **String** |  | 
 **managers** | [**List<ManagerRef>**](ManagerRef.md) |  | [default to const []]

@@ -16,8 +16,8 @@ class TenantSummary {
     required this.accountStatus,
     required this.billingCycle,
     required this.id,
-    required this.invitationExpiresAt,
-    required this.leaseEndDate,
+    this.invitationExpiresAt,
+    this.leaseEndDate,
     required this.name,
     required this.room,
   });
@@ -156,8 +156,6 @@ class TenantSummary {
     'accountStatus',
     'billingCycle',
     'id',
-    'invitationExpiresAt',
-    'leaseEndDate',
     'name',
     'room',
   };

@@ -14,9 +14,9 @@ class Manager {
   /// Returns a new [Manager] instance.
   Manager({
     required this.accountStatus,
-    required this.email,
+    this.email,
     required this.id,
-    required this.invitation,
+    this.invitation,
     required this.name,
     required this.phone,
     this.properties = const [],
@@ -155,9 +155,7 @@ class Manager {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'accountStatus',
-    'email',
     'id',
-    'invitation',
     'name',
     'phone',
     'properties',

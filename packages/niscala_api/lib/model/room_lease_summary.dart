@@ -13,7 +13,7 @@ part of niscala_api;
 class RoomLeaseSummary {
   /// Returns a new [RoomLeaseSummary] instance.
   RoomLeaseSummary({
-    required this.endDate,
+    this.endDate,
     required this.tenantName,
   });
 
@@ -114,7 +114,6 @@ class RoomLeaseSummary {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
-    'endDate',
     'tenantName',
   };
 }

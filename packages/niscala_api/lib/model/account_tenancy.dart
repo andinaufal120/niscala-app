@@ -13,7 +13,7 @@ part of niscala_api;
 class AccountTenancy {
   /// Returns a new [AccountTenancy] instance.
   AccountTenancy({
-    required this.leaseEndDate,
+    this.leaseEndDate,
     required this.propertyName,
     required this.roomNumber,
   });
@@ -121,7 +121,6 @@ class AccountTenancy {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
-    'leaseEndDate',
     'propertyName',
     'roomNumber',
   };

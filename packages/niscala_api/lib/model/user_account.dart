@@ -16,16 +16,16 @@ class UserAccount {
     required this.activeLeaseCount,
     required this.email,
     required this.id,
-    required this.lastLoginAt,
+    this.lastLoginAt,
     this.loginMethods = const [],
     required this.name,
-    required this.pendingEmail,
-    required this.pendingEmailExpiresAt,
+    this.pendingEmail,
+    this.pendingEmailExpiresAt,
     this.properties = const [],
     required this.registeredAt,
     required this.role,
     required this.status,
-    required this.tenancy,
+    this.tenancy,
   });
 
   /// Owner: across owned properties. Tenant: 0 or 1. Otherwise 0.
@@ -211,16 +211,12 @@ class UserAccount {
     'activeLeaseCount',
     'email',
     'id',
-    'lastLoginAt',
     'loginMethods',
     'name',
-    'pendingEmail',
-    'pendingEmailExpiresAt',
     'properties',
     'registeredAt',
     'role',
     'status',
-    'tenancy',
   };
 }
 

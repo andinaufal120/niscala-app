@@ -16,11 +16,11 @@ class NotificationRentBill {
     required this.amount,
     required this.daysOverdue,
     required this.dueDate,
-    required this.paymentMethod,
+    this.paymentMethod,
     required this.paymentStatus,
     required this.periodEnd,
     required this.periodStart,
-    required this.reason,
+    this.reason,
     required this.rentBillId,
   });
 
@@ -175,11 +175,9 @@ class NotificationRentBill {
     'amount',
     'daysOverdue',
     'dueDate',
-    'paymentMethod',
     'paymentStatus',
     'periodEnd',
     'periodStart',
-    'reason',
     'rentBillId',
   };
 }
