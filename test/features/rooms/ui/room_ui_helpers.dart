@@ -18,11 +18,13 @@ export '../../properties/ui/property_ui_helpers.dart';
 ///
 /// With [settle] false only a few frames are pumped, so a held `gate` keeps
 /// the screen in its loading state. With [largeText] the display is 360 x 640
-/// dp at text scale 2.0 and the test fails on any overflow.
+/// dp at text scale 2.0 and the test fails on any overflow. [tenants] is
+/// behind the tenant screens the room screens link to.
 Future<void> pumpRoomApp(
   WidgetTester tester,
   FakeRoomRepository rooms, {
   FakePropertyRepository? properties,
+  FakeTenantRepository? tenants,
   UserRole role = UserRole.owner,
   String path = '/properti/p1/kamar',
   bool settle = true,
@@ -32,6 +34,7 @@ Future<void> pumpRoomApp(
     store: InMemorySessionStore(storedSession(role: role)),
     properties: properties ?? propertiesWithMelati(),
     rooms: rooms,
+    tenants: tenants,
   );
   if (largeText) {
     await pumpAtLargeText(tester, app);
