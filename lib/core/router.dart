@@ -15,6 +15,11 @@ import 'package:niscala/features/properties/ui/property_list_screen.dart';
 import 'package:niscala/features/rooms/ui/room_detail_screen.dart';
 import 'package:niscala/features/rooms/ui/room_form_screen.dart';
 import 'package:niscala/features/rooms/ui/room_list_screen.dart';
+import 'package:niscala/features/tenants/ui/invitation_qr_screen.dart';
+import 'package:niscala/features/tenants/ui/invitation_share_screen.dart';
+import 'package:niscala/features/tenants/ui/tenant_detail_screen.dart';
+import 'package:niscala/features/tenants/ui/tenant_form_screen.dart';
+import 'package:niscala/features/tenants/ui/tenant_list_screen.dart';
 import 'package:niscala_api/api.dart';
 
 const _loading = '/memuat';
@@ -106,8 +111,54 @@ List<RouteBase> _roomRoutes() => [
   ),
 ];
 
-/// The Properti tab. The detail, form and room routes are children of the list,
-/// so the tab stays selected and Kembali returns to the list.
+/// The tenants of a property: the list, the add form, one tenant, and the
+/// invitation screens of that tenant. The add route comes before `:tenantId`,
+/// as for rooms.
+List<RouteBase> _tenantScreenRoutes() => [
+  GoRoute(
+    path: 'penyewa',
+    builder: (context, state) =>
+        TenantListScreen(propertyId: state.pathParameters['propertyId']!),
+    routes: [
+      GoRoute(
+        path: 'tambah',
+        builder: (context, state) => TenantFormScreen(
+          propertyId: state.pathParameters['propertyId']!,
+          preselectedRoomId: state.uri.queryParameters['kamar'],
+        ),
+      ),
+      GoRoute(
+        path: ':tenantId',
+        builder: (context, state) => TenantDetailScreen(
+          propertyId: state.pathParameters['propertyId']!,
+          tenantId: state.pathParameters['tenantId']!,
+        ),
+        routes: [
+          GoRoute(
+            path: 'undangan',
+            builder: (context, state) => InvitationShareScreen(
+              propertyId: state.pathParameters['propertyId']!,
+              tenantId: state.pathParameters['tenantId']!,
+              isNew: state.uri.queryParameters['baru'] == '1',
+            ),
+            routes: [
+              GoRoute(
+                path: 'qr',
+                builder: (context, state) => InvitationQrScreen(
+                  propertyId: state.pathParameters['propertyId']!,
+                  tenantId: state.pathParameters['tenantId']!,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  ),
+];
+
+/// The Properti tab. The detail, form, room and tenant routes are children of
+/// the list, so the tab stays selected and Kembali returns to the list.
 StatefulShellBranch _propertiesBranch() => StatefulShellBranch(
   routes: [
     GoRoute(
@@ -131,6 +182,7 @@ StatefulShellBranch _propertiesBranch() => StatefulShellBranch(
               ),
             ),
             ..._roomRoutes(),
+            ..._tenantScreenRoutes(),
           ],
         ),
       ],

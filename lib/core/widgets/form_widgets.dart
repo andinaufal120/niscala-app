@@ -46,7 +46,8 @@ class FormMessage extends StatelessWidget {
   }
 }
 
-/// A filled button that is disabled and shows progress while [busy].
+/// A filled button that is disabled and shows progress while [busy]. A null
+/// [onPressed] disables it without progress.
 class BusyButton extends StatelessWidget {
   const BusyButton({
     super.key,
@@ -57,7 +58,7 @@ class BusyButton extends StatelessWidget {
 
   final String label;
   final bool busy;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
