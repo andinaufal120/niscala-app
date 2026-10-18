@@ -213,10 +213,10 @@ Format: actor · entry point · flow · outcomes. Menu names are *Indonesian (En
 Shows room number, property address, lease start and end dates, rent, room dimensions and facilities. If there is no room or lease → message to contact management.
 
 **UC-02 Submit maintenance complaint** (FR-03, FR-04, FR-25, FR-28) · Tenant with an active lease · *Keluhan (Complaints)* tab → complaint list → new complaint
-Free-text description → submit → confirmation. An empty or too-short description gets a field error (at least 10 characters after trimming). After saving, the complaint is *Baru* and its classification state is one of: classified, *Menunggu Klasifikasi*, or *Belum Diklasifikasi*. The app shows the confirmation as soon as the save succeeds; it does not wait for the AI.
+Free-text description → submit → confirmation. An empty or too-short description gets a field error (at least 10 characters after trimming). After saving, the complaint is *Baru* and its classification state is one of: classified, *Sedang Diklasifikasi* (the AI has not finished yet), *Menunggu Klasifikasi*, or *Belum Diklasifikasi*. The app shows the confirmation as soon as the save succeeds; it does not wait for the AI.
 
 **UC-03 View complaint status and history** (FR-05) · Tenant · *Keluhan (Complaints)* tab
-List of own complaints, opening on the *Aktif (Active)* filter (*Baru* and *Diproses*). Each shows its status and marks complaints still *Menunggu Klasifikasi* or *Belum Diklasifikasi*. Detail shows category and urgency if classified, and the handling note of each status change. Empty state if none.
+List of own complaints, opening on the *Aktif (Active)* filter (*Baru* and *Diproses*). Each shows its status and marks complaints still *Sedang Diklasifikasi*, *Menunggu Klasifikasi* or *Belum Diklasifikasi*. Detail shows category and urgency if classified, and the handling note of each status change. Empty state if none.
 
 **UC-04 View rent payment history and status** (FR-06) · Tenant with an active lease · *Pembayaran (Payments)* tab
 List of bills/payments with status (§5), period, amount and due date. Filters: *Tagihan aktif (Active bill)*, the default, and *Riwayat (History)*. A rejected payment shows the reason management entered.
@@ -410,3 +410,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 18-10-2026 | U-5 decided: dates are shown as day, abbreviated Indonesian month and year (§6 rule 14). | NKMA-8 |
 | 18-10-2026 | Interim invitation activation: the user pastes the invitation link into the login screen, until U-4 is decided (§7). | NKMA-15 |
 | 18-10-2026 | UC-11 single-property shortcut applies to a Manager only, so an Owner on a plan with one property can still add a property after upgrading. | NKMA-37 |
+| 18-10-2026 | UC-02 and UC-03 list the new classification state *Sedang Diklasifikasi*, completing the sync of niscala-app#16. | NKMA-64 |
