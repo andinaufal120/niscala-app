@@ -8,6 +8,7 @@ import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
 import 'package:niscala/features/rooms/ui/room_list_screen.dart';
+import 'package:niscala/features/tenants/ui/tenant_list_screen.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
@@ -404,6 +405,75 @@ void main() {
         FakePropertyRepository(properties: [_melati()]),
       );
       await tapVisible(tester, find.text('Kelola Kamar'));
+
+      await pressBack(tester);
+
+      expect(currentPath(tester), '/properti/p1');
+      expect(find.byType(PropertyDetailScreen), findsOneWidget);
+    });
+  });
+
+  group('tenant management', () {
+    for (final role in [UserRole.owner, UserRole.manager]) {
+      testWidgets('a $role sees Kelola Penyewa with its explanation', (
+        tester,
+      ) async {
+        await _openDetail(
+          tester,
+          FakePropertyRepository(properties: [_melati()]),
+          role: role,
+        );
+
+        expect(find.text('Kelola Penyewa'), findsOneWidget);
+        expect(
+          find.text('Daftarkan penyewa, atur masa sewa dan tagihan'),
+          findsOneWidget,
+        );
+        expectTargetSize(tester, 'Kelola Penyewa');
+      });
+
+      testWidgets('Kelola Penyewa opens the tenant list for a $role', (
+        tester,
+      ) async {
+        await _openDetail(
+          tester,
+          FakePropertyRepository(properties: [_melati()]),
+          role: role,
+        );
+
+        await tapVisible(tester, find.text('Kelola Penyewa'));
+
+        expect(currentPath(tester), '/properti/p1/penyewa');
+        expect(find.byType(TenantListScreen), findsOneWidget);
+        expect(
+          tester
+              .widget<TenantListScreen>(find.byType(TenantListScreen))
+              .propertyId,
+          'p1',
+        );
+      });
+
+      testWidgets('Kelola Penyewa stays for a $role on a view-only property', (
+        tester,
+      ) async {
+        await _openDetail(
+          tester,
+          FakePropertyRepository(properties: [_melati(editable: false)]),
+          role: role,
+        );
+
+        expect(find.text('Kelola Penyewa'), findsOneWidget);
+      });
+    }
+
+    testWidgets('Kembali on the tenant list returns to the property detail', (
+      tester,
+    ) async {
+      await _openDetail(
+        tester,
+        FakePropertyRepository(properties: [_melati()]),
+      );
+      await tapVisible(tester, find.text('Kelola Penyewa'));
 
       await pressBack(tester);
 

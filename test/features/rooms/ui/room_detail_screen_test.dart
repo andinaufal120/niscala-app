@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
@@ -7,6 +8,8 @@ import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/features/rooms/ui/room_detail_screen.dart';
 import 'package:niscala/features/rooms/ui/room_form_screen.dart';
 import 'package:niscala/features/rooms/ui/room_list_screen.dart';
+import 'package:niscala/features/tenants/ui/tenant_detail_screen.dart';
+import 'package:niscala/features/tenants/ui/tenant_form_screen.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
@@ -609,6 +612,124 @@ void main() {
       await _confirmDelete(tester);
 
       expect(repo.deleted, ['r1']);
+    });
+  });
+
+  group('tenant links', () {
+    Room occupiedBy(String tenantId, {bool editable = true}) => makeRoom(
+      id: 'r1',
+      number: '08',
+      lease: makeRoomLease(tenantId: tenantId, tenantName: 'Rina Putri'),
+      editable: editable,
+    );
+
+    FakeTenantRepository tenantsOf(String tenantId) => FakeTenantRepository(
+      tenants: [makeTenant(id: tenantId, name: 'Rina Putri')],
+    );
+
+    for (final role in [UserRole.owner, UserRole.manager]) {
+      testWidgets('an occupied room links a $role to the tenant detail', (
+        tester,
+      ) async {
+        await pumpRoomApp(
+          tester,
+          _repo(occupiedBy('t9')),
+          tenants: tenantsOf('t9'),
+          role: role,
+          path: '/properti/p1/kamar/r1',
+        );
+
+        expect(find.text('Lihat rincian penyewa'), findsOneWidget);
+        expectTargetSize(tester, 'Lihat rincian penyewa');
+
+        await tapVisible(tester, find.text('Lihat rincian penyewa'));
+
+        expect(currentPath(tester), '/properti/p1/penyewa/t9');
+        final detail = tester.widget<TenantDetailScreen>(
+          find.byType(TenantDetailScreen),
+        );
+        expect(detail.propertyId, 'p1');
+        expect(detail.tenantId, 't9');
+        expect(find.text('Rina Putri'), findsOneWidget);
+      });
+
+      testWidgets('a vacant room offers a $role to add a tenant', (
+        tester,
+      ) async {
+        await pumpRoomApp(
+          tester,
+          _repo(_vacant()),
+          role: role,
+          path: '/properti/p1/kamar/r1',
+        );
+
+        expect(find.text('Tambah Penyewa'), findsOneWidget);
+        expectTargetSize(tester, 'Tambah Penyewa');
+
+        await tapVisible(tester, find.text('Tambah Penyewa'));
+
+        expect(currentPath(tester), '/properti/p1/penyewa/tambah');
+        final form = tester.widget<TenantFormScreen>(
+          find.byType(TenantFormScreen),
+        );
+        expect(form.propertyId, 'p1');
+        expect(form.preselectedRoomId, 'r1');
+      });
+    }
+
+    testWidgets('the add form opened from a vacant room has it chosen', (
+      tester,
+    ) async {
+      await pumpRoomApp(
+        tester,
+        _repo(_vacant()),
+        path: '/properti/p1/kamar/r1',
+      );
+
+      await tapVisible(tester, find.text('Tambah Penyewa'));
+
+      final dropdown = tester.widget<DropdownButton<String>>(
+        find.byType(DropdownButton<String>),
+      );
+      expect(dropdown.value, 'r1');
+    });
+
+    testWidgets('an occupied room offers no Tambah Penyewa', (tester) async {
+      await _openDetail(tester, _repo());
+
+      expect(find.text('Tambah Penyewa'), findsNothing);
+    });
+
+    testWidgets('a vacant room offers no tenant detail link', (tester) async {
+      await _openDetail(tester, _repo(_vacant()));
+
+      expect(find.text('Lihat rincian penyewa'), findsNothing);
+    });
+
+    testWidgets('a view-only vacant room offers no Tambah Penyewa', (
+      tester,
+    ) async {
+      await _openDetail(tester, _repo(_vacant(editable: false)));
+
+      expect(find.text('Tambah Penyewa'), findsNothing);
+      expect(find.text('Lihat rincian penyewa'), findsNothing);
+    });
+
+    testWidgets('a view-only occupied room still links to its tenant', (
+      tester,
+    ) async {
+      await _openDetail(tester, _repo(_occupied(editable: false)));
+
+      expect(find.text('Lihat rincian penyewa'), findsOneWidget);
+      expect(find.text('Tambah Penyewa'), findsNothing);
+    });
+
+    testWidgets('no link shows after the room failed to load', (tester) async {
+      final repo = _repo()..getScript.always = const ApiFailure.network();
+      await _openDetail(tester, repo);
+
+      expect(find.text('Lihat rincian penyewa'), findsNothing);
+      expect(find.text('Tambah Penyewa'), findsNothing);
     });
   });
 
