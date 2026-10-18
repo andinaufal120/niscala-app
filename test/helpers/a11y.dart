@@ -5,10 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 /// targets, 48 x 48 dp targets and text contrast.
 Future<void> expectMeetsA11yGuidelines(WidgetTester tester) async {
   final handle = tester.ensureSemantics();
-  addTearDown(handle.dispose);
-  await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-  await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
-  await expectLater(tester, meetsGuideline(textContrastGuideline));
+  try {
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(textContrastGuideline));
+  } finally {
+    handle.dispose();
+  }
 }
 
 /// Pumps [screen] on a 360 x 640 dp display at text scale 2.0. A RenderFlex

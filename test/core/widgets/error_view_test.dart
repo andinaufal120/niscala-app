@@ -34,7 +34,7 @@ void main() {
   testWidgets('retry button is at least 48 by 48 dp', (tester) async {
     await tester.pumpWidget(screen());
 
-    final size = tester.getSize(find.byType(ButtonStyleButton));
+    final size = tester.getSize(anyButton());
     expect(size.width, greaterThanOrEqualTo(48));
     expect(size.height, greaterThanOrEqualTo(48));
   });

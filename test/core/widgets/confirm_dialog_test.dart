@@ -96,10 +96,7 @@ void main() {
 
     for (final label in ['Batal', 'Hapus']) {
       final size = tester.getSize(
-        find.ancestor(
-          of: find.text(label),
-          matching: find.byType(ButtonStyleButton),
-        ),
+        find.ancestor(of: find.text(label), matching: anyButton()),
       );
       expect(size.width, greaterThanOrEqualTo(48));
       expect(size.height, greaterThanOrEqualTo(48));

@@ -25,13 +25,15 @@ void main() {
   testWidgets('shows no button without an action', (tester) async {
     await tester.pumpWidget(screen());
 
-    expect(find.byType(ButtonStyleButton), findsNothing);
+    expect(find.text('Belum ada properti'), findsOneWidget);
+    expect(anyButton(), findsNothing);
   });
 
   testWidgets('shows no button when only the label is given', (tester) async {
     await tester.pumpWidget(screen(actionLabel: 'Tambah properti'));
 
-    expect(find.byType(ButtonStyleButton), findsNothing);
+    expect(find.text('Belum ada properti'), findsOneWidget);
+    expect(anyButton(), findsNothing);
     expect(find.text('Tambah properti'), findsNothing);
   });
 
@@ -40,7 +42,8 @@ void main() {
   ) async {
     await tester.pumpWidget(screen(onAction: () {}));
 
-    expect(find.byType(ButtonStyleButton), findsNothing);
+    expect(find.text('Belum ada properti'), findsOneWidget);
+    expect(anyButton(), findsNothing);
   });
 
   testWidgets('shows a button that runs the action', (tester) async {
@@ -49,6 +52,7 @@ void main() {
       screen(actionLabel: 'Tambah properti', onAction: () => taps++),
     );
 
+    expect(anyButton(), findsOneWidget);
     await tester.tap(find.text('Tambah properti'));
 
     expect(taps, 1);
@@ -59,7 +63,7 @@ void main() {
       screen(actionLabel: 'Tambah properti', onAction: () {}),
     );
 
-    final size = tester.getSize(find.byType(ButtonStyleButton));
+    final size = tester.getSize(anyButton());
     expect(size.width, greaterThanOrEqualTo(48));
     expect(size.height, greaterThanOrEqualTo(48));
   });

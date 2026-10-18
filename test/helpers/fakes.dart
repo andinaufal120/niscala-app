@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/app.dart';
 import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/core/session/session_controller.dart';
@@ -100,6 +101,10 @@ Widget buildTestApp({
     child: const NiscalaApp(),
   );
 }
+
+/// Matches any Material button (the base type is abstract, so `byType` cannot).
+Finder anyButton() =>
+    find.byWidgetPredicate((widget) => widget is ButtonStyleButton);
 
 /// Wraps [child] in a themed [MaterialApp] without any provider.
 Widget themedApp(Widget child) => MaterialApp(theme: buildTheme(), home: child);

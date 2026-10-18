@@ -328,10 +328,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final size = tester.getSize(
-        find.ancestor(
-          of: find.text('Keluar'),
-          matching: find.byType(ButtonStyleButton),
-        ),
+        find.ancestor(of: find.text('Keluar'), matching: anyButton()),
       );
       expect(size.width, greaterThanOrEqualTo(48));
       expect(size.height, greaterThanOrEqualTo(48));

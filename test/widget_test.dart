@@ -28,13 +28,16 @@ void main() {
     tester,
   ) async {
     final handle = tester.ensureSemantics();
-    addTearDown(handle.dispose);
     await tester.pumpWidget(buildTestApp(store: NeverReadySessionStore()));
     await tester.pump();
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    expect(find.bySemanticsLabel('Memuat'), findsAtLeastNWidgets(1));
-    expect(find.byType(NavigationBar), findsNothing);
+    try {
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.bySemanticsLabel('Memuat'), findsAtLeastNWidgets(1));
+      expect(find.byType(NavigationBar), findsNothing);
+    } finally {
+      handle.dispose();
+    }
   });
 
   for (final role in [UserRole.owner, UserRole.manager]) {

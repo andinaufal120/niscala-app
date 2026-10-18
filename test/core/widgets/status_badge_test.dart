@@ -70,7 +70,6 @@ void main() {
     tester,
   ) async {
     final handle = tester.ensureSemantics();
-    addTearDown(handle.dispose);
     await tester.pumpWidget(
       themedApp(
         const Scaffold(
@@ -83,9 +82,13 @@ void main() {
       ),
     );
 
-    final node = tester.getSemantics(find.byType(StatusBadge));
-    expect(node.label, 'Menunggu verifikasi');
-    expect(node.childrenCount, 0);
+    try {
+      final node = tester.getSemantics(find.byType(StatusBadge));
+      expect(node.label, 'Menunggu verifikasi');
+      expect(node.childrenCount, 0);
+    } finally {
+      handle.dispose();
+    }
   });
 
   testWidgets('text contrast is at least 4.5 to 1 for every tone', (
