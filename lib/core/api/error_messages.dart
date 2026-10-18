@@ -37,6 +37,7 @@ const _messages = {
   'ROOM_NOT_FOUND': 'Kamar tidak ditemukan.',
   'ROOM_NOT_VACANT': 'Kamar sudah terisi.',
   'TENANT_NOT_FOUND': 'Penyewa tidak ditemukan.',
+  'INVITATION_NOT_FOUND': 'Undangan tidak ditemukan. Periksa tautan Anda.',
   'FORBIDDEN': 'Anda tidak memiliki akses untuk tindakan ini.',
   'ACCESS_TOKEN_INVALID': _sessionEnded,
   'REFRESH_TOKEN_INVALID': _sessionEnded,

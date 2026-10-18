@@ -4,9 +4,8 @@
 String? invitationTokenFromLink(String input) {
   final text = input.trim();
   if (text.isEmpty) return null;
-  final segments = Uri.tryParse(text)?.pathSegments ?? const <String>[];
-  final candidates = segments.isEmpty ? [text] : segments;
-  final token = candidates.lastWhere(
+  final segments = Uri.tryParse(text)?.pathSegments ?? [text];
+  final token = segments.lastWhere(
     (segment) => segment.isNotEmpty,
     orElse: () => '',
   );
