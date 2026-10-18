@@ -32,6 +32,8 @@ const _messages = {
   'ROOM_LIMIT_REACHED': 'Batas jumlah kamar pada paket Anda sudah tercapai.',
   'ROOM_READ_ONLY':
       'Kamar ini hanya bisa dilihat karena paket Anda diturunkan.',
+  'ROOM_HAS_ACTIVE_LEASE': 'Kamar ini masih memiliki masa sewa aktif. Akhiri masa sewa terlebih dahulu.',
+  'PROPERTY_HAS_ACTIVE_LEASE': 'Masih ada masa sewa aktif di properti ini. Akhiri semua masa sewa terlebih dahulu.',
   'ROOM_NOT_FOUND': 'Kamar tidak ditemukan.',
   'ROOM_NOT_VACANT': 'Kamar sudah terisi.',
   'TENANT_NOT_FOUND': 'Penyewa tidak ditemukan.',

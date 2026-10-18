@@ -12,6 +12,9 @@ import 'package:niscala/features/auth/ui/verify_email_screen.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
+import 'package:niscala/features/rooms/ui/room_detail_screen.dart';
+import 'package:niscala/features/rooms/ui/room_form_screen.dart';
+import 'package:niscala/features/rooms/ui/room_list_screen.dart';
 import 'package:niscala_api/api.dart';
 
 const _loading = '/memuat';
@@ -70,8 +73,41 @@ StatefulShellBranch _branch(String path, Widget screen) => StatefulShellBranch(
 NavigationDestination _tab(String label, IconData icon) =>
     NavigationDestination(icon: Icon(icon), label: label);
 
-/// The Properti tab. The detail and form routes are children of the list, so
-/// the tab stays selected and Kembali returns to the list.
+/// The rooms of a property: the list, the add form, and one room with its edit
+/// form. The add route comes before `:roomId` so it is not read as a room id.
+List<RouteBase> _roomRoutes() => [
+  GoRoute(
+    path: 'kamar',
+    builder: (context, state) =>
+        RoomListScreen(propertyId: state.pathParameters['propertyId']!),
+    routes: [
+      GoRoute(
+        path: 'tambah',
+        builder: (context, state) =>
+            RoomFormScreen(propertyId: state.pathParameters['propertyId']!),
+      ),
+      GoRoute(
+        path: ':roomId',
+        builder: (context, state) => RoomDetailScreen(
+          propertyId: state.pathParameters['propertyId']!,
+          roomId: state.pathParameters['roomId']!,
+        ),
+        routes: [
+          GoRoute(
+            path: 'ubah',
+            builder: (context, state) => RoomFormScreen(
+              propertyId: state.pathParameters['propertyId']!,
+              roomId: state.pathParameters['roomId'],
+            ),
+          ),
+        ],
+      ),
+    ],
+  ),
+];
+
+/// The Properti tab. The detail, form and room routes are children of the list,
+/// so the tab stays selected and Kembali returns to the list.
 StatefulShellBranch _propertiesBranch() => StatefulShellBranch(
   routes: [
     GoRoute(
@@ -94,6 +130,7 @@ StatefulShellBranch _propertiesBranch() => StatefulShellBranch(
                 propertyId: state.pathParameters['propertyId'],
               ),
             ),
+            ..._roomRoutes(),
           ],
         ),
       ],
