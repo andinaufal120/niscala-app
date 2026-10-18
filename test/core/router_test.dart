@@ -142,6 +142,10 @@ void main() {
       '/properti/tambah',
       '/properti/p1',
       '/properti/p1/ubah',
+      '/properti/p1/kamar',
+      '/properti/p1/kamar/tambah',
+      '/properti/p1/kamar/r1',
+      '/properti/p1/kamar/r1/ubah',
     ];
 
     for (final role in [UserRole.owner, UserRole.manager]) {

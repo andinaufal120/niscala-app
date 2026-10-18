@@ -7,6 +7,7 @@ import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
+import 'package:niscala/features/rooms/ui/room_list_screen.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
@@ -347,6 +348,70 @@ void main() {
     );
   });
 
+  group('room management', () {
+    for (final role in [UserRole.owner, UserRole.manager]) {
+      testWidgets('a $role sees Kelola Kamar with its explanation', (
+        tester,
+      ) async {
+        await _openDetail(
+          tester,
+          FakePropertyRepository(properties: [_melati()]),
+          role: role,
+        );
+
+        expect(find.text('Kelola Kamar'), findsOneWidget);
+        expect(find.text('Tambah, ubah, atau hapus kamar'), findsOneWidget);
+        expectTargetSize(tester, 'Kelola Kamar');
+      });
+
+      testWidgets('Kelola Kamar opens the room list for a $role', (
+        tester,
+      ) async {
+        await _openDetail(
+          tester,
+          FakePropertyRepository(properties: [_melati()]),
+          role: role,
+        );
+
+        await tapVisible(tester, find.text('Kelola Kamar'));
+
+        expect(currentPath(tester), '/properti/p1/kamar');
+        expect(find.byType(RoomListScreen), findsOneWidget);
+        expect(
+          tester.widget<RoomListScreen>(find.byType(RoomListScreen)).propertyId,
+          'p1',
+        );
+      });
+
+      testWidgets('Kelola Kamar stays for a $role on a view-only property', (
+        tester,
+      ) async {
+        await _openDetail(
+          tester,
+          FakePropertyRepository(properties: [_melati(editable: false)]),
+          role: role,
+        );
+
+        expect(find.text('Kelola Kamar'), findsOneWidget);
+      });
+    }
+
+    testWidgets('Kembali on the room list returns to the property detail', (
+      tester,
+    ) async {
+      await _openDetail(
+        tester,
+        FakePropertyRepository(properties: [_melati()]),
+      );
+      await tapVisible(tester, find.text('Kelola Kamar'));
+
+      await pressBack(tester);
+
+      expect(currentPath(tester), '/properti/p1');
+      expect(find.byType(PropertyDetailScreen), findsOneWidget);
+    });
+  });
+
   group('delete', () {
     testWidgets('asks for confirmation with the property name', (tester) async {
       final repo = FakePropertyRepository(properties: [_melati()]);
@@ -490,6 +555,31 @@ void main() {
 
       expect(find.text('Properti belum bisa dihapus'), findsOneWidget);
       expect(find.text('Terjadi kesalahan. Coba lagi.'), findsOneWidget);
+    });
+
+    testWidgets('an active lease explains that the leases must end first', (
+      tester,
+    ) async {
+      final repo = FakePropertyRepository(properties: [_melati()])
+        ..deleteScript.always = const ApiFailure(
+          code: 'PROPERTY_HAS_ACTIVE_LEASE',
+        );
+      await _openDetail(tester, repo);
+      await _askToDelete(tester);
+
+      await tester.tap(find.text('Hapus'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Properti belum bisa dihapus'), findsOneWidget);
+      expect(
+        find.text(
+          'Masih ada masa sewa aktif di properti ini. Akhiri semua masa sewa '
+          'terlebih dahulu.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Mengerti'), findsOneWidget);
+      expect(repo.properties, hasLength(1));
     });
 
     testWidgets('Mengerti closes the dialog and keeps the detail', (

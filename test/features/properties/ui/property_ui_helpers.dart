@@ -9,7 +9,8 @@ import '../../auth/ui/auth_ui_helpers.dart';
 export '../../auth/ui/auth_ui_helpers.dart';
 
 /// Shows the app signed in as [role] and opens [path] on top of the home
-/// route, with [repo] behind the property screens.
+/// route, with [repo] behind the property screens and [rooms] behind the room
+/// screens.
 ///
 /// With [settle] false only a few frames are pumped, so a held `gate` keeps
 /// the screen in its loading state. With [largeText] the display is 360 x 640
@@ -21,10 +22,12 @@ Future<void> pumpPropertyApp(
   String path = '/properti',
   bool settle = true,
   bool largeText = false,
+  FakeRoomRepository? rooms,
 }) async {
   final app = buildTestApp(
     store: InMemorySessionStore(storedSession(role: role)),
     properties: repo,
+    rooms: rooms,
   );
   if (largeText) {
     await pumpAtLargeText(tester, app);
