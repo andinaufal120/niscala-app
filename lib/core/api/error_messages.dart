@@ -1,3 +1,5 @@
+import 'package:niscala/core/api/api_failure.dart';
+
 const _fallback = 'Terjadi kesalahan. Coba lagi.';
 
 const _sessionEnded = 'Sesi Anda telah berakhir. Silakan masuk lagi.';
@@ -42,3 +44,8 @@ const _messages = {
 /// validation failures (which are shown next to their field), get a generic
 /// message.
 String errorMessage(String code) => _messages[code] ?? _fallback;
+
+/// The Indonesian message for an error caught by a screen. Anything other
+/// than an [ApiFailure] gets the generic message.
+String errorMessageFor(Object error) =>
+    errorMessage(error is ApiFailure ? error.code : 'UNKNOWN');

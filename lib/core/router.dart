@@ -9,6 +9,9 @@ import 'package:niscala/core/widgets/placeholder_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/register_owner_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
+import 'package:niscala/features/properties/ui/property_detail_screen.dart';
+import 'package:niscala/features/properties/ui/property_form_screen.dart';
+import 'package:niscala/features/properties/ui/property_list_screen.dart';
 import 'package:niscala_api/api.dart';
 
 const _loading = '/memuat';
@@ -17,21 +20,20 @@ const _verifyEmail = '/verifikasi-email';
 const _admin = '/admin';
 const _managementHome = '/beranda';
 const _tenantHome = '/penyewa/beranda';
+const _propertyRoot = '/properti';
 
 const _signedOutRoutes = {_signIn, '/daftar', '/aktivasi'};
-const _managementRoutes = {
-  _managementHome,
-  '/keluhan',
-  '/pembayaran',
-  '/properti',
-  '/akun',
-};
+const _managementRoutes = {_managementHome, '/keluhan', '/pembayaran', '/akun'};
 const _tenantRoutes = {
   _tenantHome,
   '/penyewa/keluhan',
   '/penyewa/pembayaran',
   '/penyewa/akun',
 };
+
+/// Property screens: the list, one property and its add and edit forms.
+bool _isPropertyRoute(String location) =>
+    location == _propertyRoot || location.startsWith('$_propertyRoot/');
 
 /// Where [location] must be redirected for the session, or null to stay.
 String? redirectFor(SessionState session, String location) {
@@ -43,12 +45,15 @@ String? redirectFor(SessionState session, String location) {
     case SignedIn(emailVerified: false):
       return location == _verifyEmail ? null : _verifyEmail;
     case SignedIn(:final role):
-      final (home, allowed) = role == UserRole.tenant
-          ? (_tenantHome, _tenantRoutes)
-          : role == UserRole.admin
-          ? (_admin, const {_admin})
-          : (_managementHome, _managementRoutes);
-      return allowed.contains(location) ? null : home;
+      if (role == UserRole.tenant) {
+        return _tenantRoutes.contains(location) ? null : _tenantHome;
+      }
+      if (role == UserRole.admin) {
+        return location == _admin ? null : _admin;
+      }
+      final allowed =
+          _managementRoutes.contains(location) || _isPropertyRoute(location);
+      return allowed ? null : _managementHome;
   }
 }
 
@@ -64,6 +69,37 @@ StatefulShellBranch _branch(String path, Widget screen) => StatefulShellBranch(
 
 NavigationDestination _tab(String label, IconData icon) =>
     NavigationDestination(icon: Icon(icon), label: label);
+
+/// The Properti tab. The detail and form routes are children of the list, so
+/// the tab stays selected and Kembali returns to the list.
+StatefulShellBranch _propertiesBranch() => StatefulShellBranch(
+  routes: [
+    GoRoute(
+      path: _propertyRoot,
+      builder: (context, state) => const PropertyListScreen(),
+      routes: [
+        GoRoute(
+          path: 'tambah',
+          builder: (context, state) => const PropertyFormScreen(),
+        ),
+        GoRoute(
+          path: ':propertyId',
+          builder: (context, state) => PropertyDetailScreen(
+            propertyId: state.pathParameters['propertyId']!,
+          ),
+          routes: [
+            GoRoute(
+              path: 'ubah',
+              builder: (context, state) => PropertyFormScreen(
+                propertyId: state.pathParameters['propertyId'],
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  ],
+);
 
 final routerProvider = Provider<GoRouter>((ref) {
   final session = ValueNotifier<SessionState>(
@@ -101,7 +137,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           _branch(_managementHome, const PlaceholderScreen(title: 'Beranda')),
           _branch('/keluhan', const PlaceholderScreen(title: 'Keluhan')),
           _branch('/pembayaran', const PlaceholderScreen(title: 'Pembayaran')),
-          _branch('/properti', const PlaceholderScreen(title: 'Properti')),
+          _propertiesBranch(),
           _branch('/akun', const AccountScreen()),
         ],
       ),

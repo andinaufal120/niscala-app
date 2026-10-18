@@ -4,6 +4,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/shell/account_screen.dart';
+import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/auth/ui/auth_widgets.dart';
 
@@ -125,9 +126,9 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
           style: theme.textTheme.bodyLarge,
         ),
         formGap,
-        if (_banner != null) ...[AuthMessage(_banner!), formGap],
+        if (_banner != null) ...[FormMessage(_banner!), formGap],
         if (_resent) ...[
-          const AuthMessage('Kode baru dikirim.', isError: false),
+          const FormMessage('Kode baru dikirim.', isError: false),
           formGap,
         ],
         TextField(
