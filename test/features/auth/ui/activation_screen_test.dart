@@ -1493,6 +1493,7 @@ void main() {
       tester,
     ) async {
       await pumpForm(tester, invitations);
+      await typeInto(tester, _name, '');
       await submit(tester);
 
       expectFieldNode(tester, _name, error: 'Nama wajib diisi.');

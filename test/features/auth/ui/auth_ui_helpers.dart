@@ -10,17 +10,38 @@ import 'package:niscala_api/api.dart';
 import '../../../helpers/fakes.dart';
 import '../../../helpers/fields.dart';
 
-/// The editable field of the labelled field whose label, marker included, is
-/// [label].
-Finder field(String label) => fieldLabeled(label);
+import 'package:niscala/core/widgets/labeled_field.dart';
 
-/// The `TextField` of the labelled field whose label is [label].
+/// The field named [label]: a text field inside a labelled field whose label,
+/// marker included, is [label], or one that still draws [label] inside its
+/// decoration (screens not moved to the labelled field yet).
+Finder field(String label) => find.byElementPredicate((element) {
+  final widget = element.widget;
+  if (widget is! TextField) return false;
+  if (widget.decoration?.labelText == label) return true;
+  var labelled = false;
+  element.visitAncestorElements((ancestor) {
+    final candidate = ancestor.widget;
+    if (candidate is LabeledField && fullLabelOf(candidate) == label) {
+      labelled = true;
+      return false;
+    }
+    return true;
+  });
+  return labelled;
+}, description: 'text field named "$label"');
+
+/// The `TextField` named [label].
 TextField textField(WidgetTester tester, String label) =>
-    labeledTextField(tester, label);
+    tester.widget<TextField>(field(label));
 
-/// The error shown by the field labelled [label].
-String? fieldError(WidgetTester tester, String label) =>
-    labeledFieldError(tester, label);
+/// The error shown by the field named [label].
+String? fieldError(WidgetTester tester, String label) {
+  if (labeledField(label).evaluate().isNotEmpty) {
+    return labeledFieldError(tester, label);
+  }
+  return textField(tester, label).decoration?.errorText;
+}
 
 /// The button that contains the text [label].
 Finder buttonLabelled(String label) =>

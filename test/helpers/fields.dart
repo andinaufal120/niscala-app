@@ -6,7 +6,7 @@ import 'semantics.dart';
 
 /// The text a [LabeledField] shows (and speaks) as its label, with the
 /// "(wajib)" or "(opsional)" marker when it has one.
-String _fullLabel(LabeledField field) => switch (field.required) {
+String fullLabelOf(LabeledField field) => switch (field.required) {
   true => '${field.label} (wajib)',
   false => '${field.label} (opsional)',
   null => field.label,
@@ -15,7 +15,7 @@ String _fullLabel(LabeledField field) => switch (field.required) {
 /// The [LabeledField] whose full label, marker included, is [label], such as
 /// 'Email (wajib)'.
 Finder labeledField(String label) => find.byWidgetPredicate(
-  (widget) => widget is LabeledField && _fullLabel(widget) == label,
+  (widget) => widget is LabeledField && fullLabelOf(widget) == label,
   description: 'LabeledField labelled "$label"',
 );
 
