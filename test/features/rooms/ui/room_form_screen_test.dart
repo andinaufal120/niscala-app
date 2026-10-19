@@ -132,10 +132,22 @@ Future<void> _removeTag(WidgetTester tester, String tag) async {
   await tester.pumpAndSettle();
 }
 
+/// The text drawn before the field: a prefix text, or a `Text` wrapped in the
+/// prefix icon (which Flutter lets us keep out of the semantics tree).
 String _prefix(WidgetTester tester, String label) {
   final decoration = labeledTextField(tester, label).decoration;
   final prefix = decoration?.prefix;
-  return decoration?.prefixText ?? (prefix is Text ? prefix.data ?? '' : '');
+  if (decoration?.prefixText != null) return decoration!.prefixText!;
+  if (prefix is Text) return prefix.data ?? '';
+  var icon = decoration?.prefixIcon;
+  while (icon != null && icon is! Text) {
+    icon = switch (icon) {
+      ExcludeSemantics(:final child) => child,
+      Padding(:final child) => child,
+      _ => null,
+    };
+  }
+  return icon is Text ? icon.data ?? '' : '';
 }
 
 void main() {

@@ -5,6 +5,7 @@ import 'package:niscala/app.dart';
 import 'package:niscala/core/router.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/shell/account_screen.dart';
+import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
@@ -91,7 +92,17 @@ void main() {
 
         expect(currentPath(tester), paths[i]);
         expect(selectedIndex(tester), i);
-        expect(appBarTitle(labels[i]), findsOneWidget);
+        // The property list is a tab root with its own header instead of an
+        // app bar.
+        expect(
+          labels[i] == 'Properti'
+              ? find.descendant(
+                  of: find.byType(ScreenHeader),
+                  matching: find.text('Properti'),
+                )
+              : appBarTitle(labels[i]),
+          findsOneWidget,
+        );
       });
 
       testWidgets('selects ${labels[i]} when the route is ${paths[i]}', (
