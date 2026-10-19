@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
@@ -12,6 +14,7 @@ import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
+import '../../../helpers/fields.dart';
 import 'property_ui_helpers.dart';
 
 const _name = 'Nama properti (wajib)';
@@ -63,7 +66,7 @@ Future<void> _pumpEdit(
 );
 
 String _text(WidgetTester tester, String label) =>
-    textField(tester, label).controller!.text;
+    labeledTextField(tester, label).controller!.text;
 
 Future<void> _submitAdd(WidgetTester tester) =>
     tapVisible(tester, find.text('Simpan Properti'));
@@ -76,14 +79,14 @@ Future<void> _fillRequired(
   String name = 'Kos Baru',
   String address = 'Jl. Baru 5',
 }) async {
-  await type(tester, _name, name);
-  await type(tester, _address, address);
+  await typeInto(tester, _name, name);
+  await typeInto(tester, _address, address);
 }
 
 Future<void> _fillBank(WidgetTester tester) async {
-  await type(tester, _bankName, 'BCA');
-  await type(tester, _accountNumber, '1234567890');
-  await type(tester, _holder, 'Budi Santoso');
+  await typeInto(tester, _bankName, 'BCA');
+  await typeInto(tester, _accountNumber, '1234567890');
+  await typeInto(tester, _holder, 'Budi Santoso');
 }
 
 Finder _dialog() => find.byType(AlertDialog);
@@ -123,7 +126,7 @@ void main() {
         _accountNumber,
         _holder,
       ]) {
-        expect(field(label), findsOneWidget);
+        expect(fieldLabeled(label), findsOneWidget);
         expect(_text(tester, label), isEmpty);
       }
     });
@@ -132,11 +135,11 @@ void main() {
       await _pumpAdd(tester, FakePropertyRepository());
 
       expect(
-        textField(tester, _name).decoration?.hintText,
+        labeledTextField(tester, _name).decoration?.hintText,
         'Contoh: Kos Melati',
       );
       expect(
-        textField(tester, _address).decoration?.hintText,
+        labeledTextField(tester, _address).decoration?.hintText,
         'Jalan, nomor, kelurahan, kota',
       );
     });
@@ -144,7 +147,7 @@ void main() {
     testWidgets('the address field has several lines', (tester) async {
       await _pumpAdd(tester, FakePropertyRepository());
 
-      final lines = textField(tester, _address).maxLines;
+      final lines = labeledTextField(tester, _address).maxLines;
       expect(lines == null || lines > 1, isTrue);
     });
 
@@ -154,7 +157,7 @@ void main() {
       await _pumpAdd(tester, FakePropertyRepository());
 
       expect(
-        textField(tester, _accountNumber).keyboardType,
+        labeledTextField(tester, _accountNumber).keyboardType,
         TextInputType.number,
       );
     });
@@ -187,7 +190,7 @@ void main() {
     testWidgets('Kembali leaves the form without saving', (tester) async {
       final repo = FakePropertyRepository();
       await _pumpAdd(tester, repo);
-      await type(tester, _name, 'Kos Baru');
+      await typeInto(tester, _name, 'Kos Baru');
 
       await pressBack(tester);
 
@@ -203,12 +206,12 @@ void main() {
     ) async {
       final repo = FakePropertyRepository();
       await _pumpAdd(tester, repo);
-      await type(tester, _address, 'Jl. Baru 5');
+      await typeInto(tester, _address, 'Jl. Baru 5');
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _name), 'Nama properti wajib diisi.');
-      expect(fieldError(tester, _address), isNull);
+      expect(labeledFieldError(tester, _name), 'Nama properti wajib diisi.');
+      expect(labeledFieldError(tester, _address), isNull);
       expect(repo.calls, isNot(contains('create')));
     });
 
@@ -217,12 +220,12 @@ void main() {
     ) async {
       final repo = FakePropertyRepository();
       await _pumpAdd(tester, repo);
-      await type(tester, _name, 'Kos Baru');
+      await typeInto(tester, _name, 'Kos Baru');
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _address), 'Alamat wajib diisi.');
-      expect(fieldError(tester, _name), isNull);
+      expect(labeledFieldError(tester, _address), 'Alamat wajib diisi.');
+      expect(labeledFieldError(tester, _name), isNull);
       expect(repo.calls, isNot(contains('create')));
     });
 
@@ -232,8 +235,8 @@ void main() {
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _name), 'Nama properti wajib diisi.');
-      expect(fieldError(tester, _address), 'Alamat wajib diisi.');
+      expect(labeledFieldError(tester, _name), 'Nama properti wajib diisi.');
+      expect(labeledFieldError(tester, _address), 'Alamat wajib diisi.');
       expect(repo.created, isEmpty);
     });
 
@@ -244,7 +247,7 @@ void main() {
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _name), 'Nama properti wajib diisi.');
+      expect(labeledFieldError(tester, _name), 'Nama properti wajib diisi.');
       expect(repo.created, isEmpty);
     });
 
@@ -255,7 +258,7 @@ void main() {
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _address), 'Alamat wajib diisi.');
+      expect(labeledFieldError(tester, _address), 'Alamat wajib diisi.');
       expect(repo.created, isEmpty);
     });
 
@@ -265,13 +268,13 @@ void main() {
       final repo = FakePropertyRepository();
       await _pumpAdd(tester, repo);
       await _fillRequired(tester);
-      await type(tester, _bankName, 'BCA');
+      await typeInto(tester, _bankName, 'BCA');
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _bankName), isNull);
-      expect(fieldError(tester, _accountNumber), _bankRequired);
-      expect(fieldError(tester, _holder), _bankRequired);
+      expect(labeledFieldError(tester, _bankName), isNull);
+      expect(labeledFieldError(tester, _accountNumber), _bankRequired);
+      expect(labeledFieldError(tester, _holder), _bankRequired);
       expect(repo.created, isEmpty);
     });
 
@@ -281,13 +284,13 @@ void main() {
       final repo = FakePropertyRepository();
       await _pumpAdd(tester, repo);
       await _fillRequired(tester);
-      await type(tester, _accountNumber, '1234567890');
+      await typeInto(tester, _accountNumber, '1234567890');
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _bankName), _bankRequired);
-      expect(fieldError(tester, _accountNumber), isNull);
-      expect(fieldError(tester, _holder), _bankRequired);
+      expect(labeledFieldError(tester, _bankName), _bankRequired);
+      expect(labeledFieldError(tester, _accountNumber), isNull);
+      expect(labeledFieldError(tester, _holder), _bankRequired);
       expect(repo.created, isEmpty);
     });
 
@@ -297,13 +300,13 @@ void main() {
       final repo = FakePropertyRepository();
       await _pumpAdd(tester, repo);
       await _fillRequired(tester);
-      await type(tester, _holder, 'Budi Santoso');
+      await typeInto(tester, _holder, 'Budi Santoso');
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _bankName), _bankRequired);
-      expect(fieldError(tester, _accountNumber), _bankRequired);
-      expect(fieldError(tester, _holder), isNull);
+      expect(labeledFieldError(tester, _bankName), _bankRequired);
+      expect(labeledFieldError(tester, _accountNumber), _bankRequired);
+      expect(labeledFieldError(tester, _holder), isNull);
       expect(repo.created, isEmpty);
     });
 
@@ -311,27 +314,27 @@ void main() {
       final repo = FakePropertyRepository();
       await _pumpAdd(tester, repo);
       await _fillRequired(tester);
-      await type(tester, _bankName, 'BCA');
-      await type(tester, _holder, 'Budi Santoso');
+      await typeInto(tester, _bankName, 'BCA');
+      await typeInto(tester, _holder, 'Budi Santoso');
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _bankName), isNull);
-      expect(fieldError(tester, _accountNumber), _bankRequired);
-      expect(fieldError(tester, _holder), isNull);
+      expect(labeledFieldError(tester, _bankName), isNull);
+      expect(labeledFieldError(tester, _accountNumber), _bankRequired);
+      expect(labeledFieldError(tester, _holder), isNull);
     });
 
     testWidgets('bank errors appear together with required field errors', (
       tester,
     ) async {
       await _pumpAdd(tester, FakePropertyRepository());
-      await type(tester, _bankName, 'BCA');
+      await typeInto(tester, _bankName, 'BCA');
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _name), 'Nama properti wajib diisi.');
-      expect(fieldError(tester, _address), 'Alamat wajib diisi.');
-      expect(fieldError(tester, _accountNumber), _bankRequired);
+      expect(labeledFieldError(tester, _name), 'Nama properti wajib diisi.');
+      expect(labeledFieldError(tester, _address), 'Alamat wajib diisi.');
+      expect(labeledFieldError(tester, _accountNumber), _bankRequired);
     });
 
     testWidgets('fixing the errors lets the next submit through', (
@@ -376,9 +379,9 @@ void main() {
       final repo = FakePropertyRepository();
       await _pumpAdd(tester, repo);
       await _fillRequired(tester);
-      await type(tester, _bankName, ' BCA ');
-      await type(tester, _accountNumber, ' 1234567890 ');
-      await type(tester, _holder, ' Budi Santoso ');
+      await typeInto(tester, _bankName, ' BCA ');
+      await typeInto(tester, _accountNumber, ' 1234567890 ');
+      await typeInto(tester, _holder, ' Budi Santoso ');
 
       await _submitAdd(tester);
 
@@ -487,7 +490,7 @@ void main() {
 
         await _submitAdd(tester);
 
-        expect(fieldError(tester, c.label), errorMessage(c.code));
+        expect(labeledFieldError(tester, c.label), errorMessage(c.code));
         expect(find.byType(PropertyFormScreen), findsOneWidget);
         expect(snackBar(errorMessage(c.code)), findsNothing);
       });
@@ -521,8 +524,8 @@ void main() {
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _address), isNull);
-      expect(fieldError(tester, _bankName), isNull);
+      expect(labeledFieldError(tester, _address), isNull);
+      expect(labeledFieldError(tester, _bankName), isNull);
     });
 
     testWidgets('the button works again after a field error', (tester) async {
@@ -535,7 +538,7 @@ void main() {
       await _submitAdd(tester);
       expect(busyButton(), findsNothing);
 
-      await type(tester, _name, 'Kos Lain');
+      await typeInto(tester, _name, 'Kos Lain');
       await _submitAdd(tester);
 
       expect(repo.created, hasLength(2));
@@ -568,8 +571,8 @@ void main() {
         final message = errorMessage(entry.value.code);
         expect(find.text(message), findsOneWidget);
         expect(snackBar(message), findsNothing);
-        expect(fieldError(tester, _name), isNull);
-        expect(fieldError(tester, _address), isNull);
+        expect(labeledFieldError(tester, _name), isNull);
+        expect(labeledFieldError(tester, _address), isNull);
         expect(find.byType(PropertyFormScreen), findsOneWidget);
         expect(_text(tester, _name), 'Kos Baru');
         expect(_text(tester, _address), 'Jl. Baru 5');
@@ -702,7 +705,7 @@ void main() {
       await _pumpEdit(tester, repo, settle: false);
 
       expectLoading(tester);
-      expect(field(_name), findsNothing);
+      expect(fieldLabeled(_name), findsNothing);
     });
 
     testWidgets('shows the failure with a retry when loading fails', (
@@ -714,7 +717,7 @@ void main() {
 
       expect(find.byType(ErrorView), findsAtLeastNWidgets(1));
       expect(find.text(errorMessage('PROPERTY_NOT_FOUND')), findsOneWidget);
-      expect(field(_name), findsNothing);
+      expect(fieldLabeled(_name), findsNothing);
     });
 
     testWidgets('Coba lagi loads the form again', (tester) async {
@@ -734,23 +737,23 @@ void main() {
     testWidgets('validates like the add form', (tester) async {
       final repo = FakePropertyRepository(properties: [_melati()]);
       await _pumpEdit(tester, repo);
-      await type(tester, _name, '');
-      await type(tester, _address, '');
-      await type(tester, _bankName, 'BCA');
+      await typeInto(tester, _name, '');
+      await typeInto(tester, _address, '');
+      await typeInto(tester, _bankName, 'BCA');
 
       await _submitEdit(tester);
 
-      expect(fieldError(tester, _name), 'Nama properti wajib diisi.');
-      expect(fieldError(tester, _address), 'Alamat wajib diisi.');
-      expect(fieldError(tester, _accountNumber), _bankRequired);
-      expect(fieldError(tester, _holder), _bankRequired);
+      expect(labeledFieldError(tester, _name), 'Nama properti wajib diisi.');
+      expect(labeledFieldError(tester, _address), 'Alamat wajib diisi.');
+      expect(labeledFieldError(tester, _accountNumber), _bankRequired);
+      expect(labeledFieldError(tester, _holder), _bankRequired);
       expect(repo.updated, isEmpty);
     });
 
     testWidgets('sends the changed values for the property id', (tester) async {
       final repo = FakePropertyRepository(properties: [_melati()]);
       await _pumpEdit(tester, repo);
-      await type(tester, _name, ' Kos Melati Baru ');
+      await typeInto(tester, _name, ' Kos Melati Baru ');
 
       await _submitEdit(tester);
 
@@ -769,7 +772,7 @@ void main() {
         properties: [_melati(bank: bankAccount)],
       );
       await _pumpEdit(tester, repo);
-      await type(tester, _address, 'Jl. Baru 9');
+      await typeInto(tester, _address, 'Jl. Baru 9');
 
       await _submitEdit(tester);
 
@@ -784,9 +787,9 @@ void main() {
         properties: [_melati(bank: bankAccount)],
       );
       await _pumpEdit(tester, repo);
-      await type(tester, _bankName, '');
-      await type(tester, _accountNumber, '');
-      await type(tester, _holder, '');
+      await typeInto(tester, _bankName, '');
+      await typeInto(tester, _accountNumber, '');
+      await typeInto(tester, _holder, '');
 
       await _submitEdit(tester);
 
@@ -822,8 +825,8 @@ void main() {
     ) async {
       final repo = FakePropertyRepository(properties: [_melati()]);
       await _pumpEdit(tester, repo);
-      await type(tester, _name, 'Kos Melati Baru');
-      await type(tester, _address, 'Jl. Baru 9');
+      await typeInto(tester, _name, 'Kos Melati Baru');
+      await typeInto(tester, _address, 'Jl. Baru 9');
 
       await _submitEdit(tester);
 
@@ -859,7 +862,7 @@ void main() {
     ) async {
       final repo = FakePropertyRepository(properties: [_melati()]);
       await _pumpEdit(tester, repo);
-      await type(tester, _name, 'Kos Melati Baru');
+      await typeInto(tester, _name, 'Kos Melati Baru');
 
       await _submitEdit(tester);
 
@@ -874,11 +877,14 @@ void main() {
           const ApiFailure(code: 'PROPERTY_NAME_TAKEN', field: 'name'),
         );
       await _pumpEdit(tester, repo);
-      await type(tester, _name, 'Kos Mawar');
+      await typeInto(tester, _name, 'Kos Mawar');
 
       await _submitEdit(tester);
 
-      expect(fieldError(tester, _name), errorMessage('PROPERTY_NAME_TAKEN'));
+      expect(
+        labeledFieldError(tester, _name),
+        errorMessage('PROPERTY_NAME_TAKEN'),
+      );
       expect(_text(tester, _name), 'Kos Mawar');
       expect(find.byType(PropertyFormScreen), findsOneWidget);
     });
@@ -902,7 +908,7 @@ void main() {
       final repo = FakePropertyRepository(properties: [_melati()])
         ..updateScript.queue.add(const ApiFailure.network());
       await _pumpEdit(tester, repo);
-      await type(tester, _name, 'Kos Melati Baru');
+      await typeInto(tester, _name, 'Kos Melati Baru');
 
       await _submitEdit(tester);
 
@@ -925,7 +931,7 @@ void main() {
         find.text('Masukkan kata sandi Anda untuk melanjutkan.'),
         findsOneWidget,
       );
-      expect(field(_password), findsOneWidget);
+      expect(fieldLabeled(_password), findsOneWidget);
       expect(_inDialog(find.text('Batal')), findsOneWidget);
       expect(_inDialog(find.text('Lanjutkan')), findsOneWidget);
       expect(repo.reauthentications, isEmpty);
@@ -951,13 +957,13 @@ void main() {
         FakePropertyRepository(properties: [_melati()]),
       );
 
-      final input = textField(tester, _password);
+      final input = labeledTextField(tester, _password);
       expect(input.obscureText, isTrue);
       expect(input.enableInteractiveSelection, isNot(false));
       expect(input.autofillHints, contains(AutofillHints.password));
       expect(
         find.ancestor(
-          of: field(_password),
+          of: fieldLabeled(_password),
           matching: find.byType(AutofillGroup),
         ),
         findsOneWidget,
@@ -974,13 +980,13 @@ void main() {
       await tester.tap(find.text('Tampilkan kata sandi'));
       await tester.pump();
 
-      expect(textField(tester, _password).obscureText, isFalse);
+      expect(labeledTextField(tester, _password).obscureText, isFalse);
       expectShowPasswordCheckbox(tester, checked: true);
 
       await tester.tap(find.text('Tampilkan kata sandi'));
       await tester.pump();
 
-      expect(textField(tester, _password).obscureText, isTrue);
+      expect(labeledTextField(tester, _password).obscureText, isTrue);
     });
 
     testWidgets('Lanjutkan re-authenticates and retries the same update', (
@@ -988,7 +994,7 @@ void main() {
     ) async {
       final repo = FakePropertyRepository(properties: [_melati()]);
       await _openReauthDialog(tester, repo);
-      await type(tester, _password, 'rahasia panjang');
+      await typeInto(tester, _password, 'rahasia panjang');
 
       await tester.tap(find.text('Lanjutkan'));
       await tester.pumpAndSettle();
@@ -1010,7 +1016,7 @@ void main() {
     ) async {
       final repo = FakePropertyRepository(properties: [_melati()]);
       await _openReauthDialog(tester, repo);
-      await type(tester, _password, 'rahasia panjang');
+      await typeInto(tester, _password, 'rahasia panjang');
 
       await tester.tap(find.text('Lanjutkan'));
       await tester.pumpAndSettle();
@@ -1031,7 +1037,7 @@ void main() {
       await tester.tap(find.text('Lanjutkan'));
       await tester.pumpAndSettle();
 
-      expect(fieldError(tester, _password), 'Kata sandi wajib diisi.');
+      expect(labeledFieldError(tester, _password), 'Kata sandi wajib diisi.');
       expect(_dialog(), findsOneWidget);
       expect(repo.reauthentications, isEmpty);
       expect(repo.updated, hasLength(1));
@@ -1049,7 +1055,7 @@ void main() {
         final repo = FakePropertyRepository(properties: [_melati()])
           ..reauthScript.always = ApiFailure(code: entry.value);
         await _openReauthDialog(tester, repo);
-        await type(tester, _password, 'salah');
+        await typeInto(tester, _password, 'salah');
 
         await tester.tap(find.text('Lanjutkan'));
         await tester.pumpAndSettle();
@@ -1067,11 +1073,11 @@ void main() {
       final repo = FakePropertyRepository(properties: [_melati()])
         ..reauthScript.queue.add(const ApiFailure(code: 'PASSWORD_INCORRECT'));
       await _openReauthDialog(tester, repo);
-      await type(tester, _password, 'salah');
+      await typeInto(tester, _password, 'salah');
       await tester.tap(find.text('Lanjutkan'));
       await tester.pumpAndSettle();
 
-      await type(tester, _password, 'benar sekali');
+      await typeInto(tester, _password, 'benar sekali');
       await tester.tap(find.text('Lanjutkan'));
       await tester.pumpAndSettle();
 
@@ -1087,7 +1093,7 @@ void main() {
         final repo = FakePropertyRepository(properties: [_melati()])
           ..reauthScript.always = const ApiFailure.network();
         await _openReauthDialog(tester, repo);
-        await type(tester, _password, 'rahasia panjang');
+        await typeInto(tester, _password, 'rahasia panjang');
 
         await tester.tap(find.text('Lanjutkan'));
         await tester.pumpAndSettle();
@@ -1138,7 +1144,7 @@ void main() {
       final repo = FakePropertyRepository(properties: [_melati()]);
       await _openReauthDialog(tester, repo);
       repo.updateScript.queue.add(const ApiFailure(code: 'PROPERTY_READ_ONLY'));
-      await type(tester, _password, 'rahasia panjang');
+      await typeInto(tester, _password, 'rahasia panjang');
 
       await tester.tap(find.text('Lanjutkan'));
       await tester.pumpAndSettle();
@@ -1160,16 +1166,298 @@ void main() {
           field: 'bankAccount.accountNumber',
         ),
       );
-      await type(tester, _password, 'rahasia panjang');
+      await typeInto(tester, _password, 'rahasia panjang');
 
       await tester.tap(find.text('Lanjutkan'));
       await tester.pumpAndSettle();
 
       expect(_dialog(), findsNothing);
       expect(
-        fieldError(tester, _accountNumber),
+        labeledFieldError(tester, _accountNumber),
         errorMessage('VALIDATION_FAILED'),
       );
+    });
+  });
+
+  group('structure', () {
+    const labels = [_name, _address, _bankName, _accountNumber, _holder];
+
+    testWidgets('wraps every field in a LabeledField with its visible text', (
+      tester,
+    ) async {
+      await _pumpAdd(tester, FakePropertyRepository());
+
+      for (final label in labels) {
+        expect(labeledField(label), findsOneWidget);
+        expect(find.text(label), findsOneWidget);
+      }
+      expect(find.byType(LabeledField), findsNWidgets(labels.length));
+    });
+
+    testWidgets(
+      'marks required fields (wajib) and leaves the bank fields bare',
+      (tester) async {
+        await _pumpAdd(tester, FakePropertyRepository());
+
+        expect(find.text('Nama properti (wajib)'), findsOneWidget);
+        expect(find.text('Alamat (wajib)'), findsOneWidget);
+        expect(find.text('Nama bank'), findsOneWidget);
+        expect(find.text('Nomor rekening'), findsOneWidget);
+        expect(find.text('Nama pemilik rekening'), findsOneWidget);
+        expect(find.textContaining('(wajib)'), findsNWidgets(2));
+      },
+    );
+
+    testWidgets('draws no label inside any field', (tester) async {
+      await _pumpAdd(tester, FakePropertyRepository());
+
+      expectNoDecorationLabels(tester);
+    });
+
+    testWidgets('draws no label inside any field of the edit form', (
+      tester,
+    ) async {
+      await _pumpEdit(
+        tester,
+        FakePropertyRepository(properties: [_melati(bank: bankAccount)]),
+      );
+
+      expect(find.byType(LabeledField), findsNWidgets(labels.length));
+      expectNoDecorationLabels(tester);
+    });
+
+    testWidgets('puts each label above its field', (tester) async {
+      await _pumpAdd(tester, FakePropertyRepository());
+
+      for (final label in labels) {
+        final text = tester.getRect(find.text(label));
+        final input = tester.getRect(fieldLabeled(label));
+        expect(text.bottom, lessThanOrEqualTo(input.top));
+      }
+    });
+
+    testWidgets('reads every field label once, on the field', (tester) async {
+      await _pumpAdd(tester, FakePropertyRepository());
+
+      for (final label in labels) {
+        expectFieldNode(tester, label);
+      }
+    });
+
+    testWidgets('keeps the required field errors on their field nodes', (
+      tester,
+    ) async {
+      await _pumpAdd(tester, FakePropertyRepository());
+
+      await _submitAdd(tester);
+
+      expectFieldNode(tester, _name, error: 'Nama properti wajib diisi.');
+      expectFieldNode(tester, _address, error: 'Alamat wajib diisi.');
+    });
+
+    testWidgets('keeps the bank errors on their field nodes', (tester) async {
+      await _pumpAdd(tester, FakePropertyRepository());
+      await _fillRequired(tester);
+      await typeInto(tester, _bankName, 'BCA');
+
+      await _submitAdd(tester);
+
+      expectFieldNode(tester, _accountNumber, error: _bankRequired);
+      expectFieldNode(tester, _holder, error: _bankRequired);
+    });
+
+    testWidgets('keeps a server field error on its field node', (tester) async {
+      final repo = FakePropertyRepository()
+        ..createScript.queue.add(
+          const ApiFailure(code: 'PROPERTY_NAME_TAKEN', field: 'name'),
+        );
+      await _pumpAdd(tester, repo);
+      await _fillRequired(tester);
+
+      await _submitAdd(tester);
+
+      expectFieldNode(
+        tester,
+        _name,
+        error: errorMessage('PROPERTY_NAME_TAKEN'),
+      );
+    });
+
+    testWidgets('tapping a label focuses its field', (tester) async {
+      await _pumpAdd(tester, FakePropertyRepository());
+
+      await tester.tap(find.text(_address));
+      await tester.pump();
+
+      final editable = tester.widget<EditableText>(
+        find.descendant(
+          of: fieldLabeled(_address),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editable.focusNode.hasFocus, isTrue);
+    });
+
+    testWidgets('the bank group heading stays a header above its fields', (
+      tester,
+    ) async {
+      await _pumpAdd(tester, FakePropertyRepository());
+
+      final heading = tester.getRect(find.text(_bankGroup));
+      expect(
+        heading.bottom,
+        lessThanOrEqualTo(tester.getRect(find.text(_bankName)).top),
+      );
+      expect(
+        heading.top,
+        greaterThanOrEqualTo(tester.getRect(find.text(_address)).bottom),
+      );
+    });
+
+    testWidgets('puts the add button in an ActionFooter', (tester) async {
+      await _pumpAdd(tester, FakePropertyRepository());
+
+      final footer = find.byType(ActionFooter);
+      expect(footer, findsOneWidget);
+      expect(
+        find.descendant(of: footer, matching: find.text('Simpan Properti')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: footer, matching: anyButton()),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('puts the edit button in an ActionFooter', (tester) async {
+      await _pumpEdit(tester, FakePropertyRepository(properties: [_melati()]));
+
+      final footer = find.byType(ActionFooter);
+      expect(footer, findsOneWidget);
+      expect(
+        find.descendant(of: footer, matching: find.text('Simpan Perubahan')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('keeps the busy button inside the ActionFooter', (
+      tester,
+    ) async {
+      final repo = FakePropertyRepository()
+        ..createScript.gate = Completer<void>();
+      await _pumpAdd(tester, repo);
+      await _fillRequired(tester);
+
+      await tapAndPump(tester, find.text('Simpan Properti'));
+
+      expect(
+        find.descendant(
+          of: find.byType(ActionFooter),
+          matching: find.byType(CircularProgressIndicator),
+        ),
+        findsOneWidget,
+      );
+      expectBusy(tester);
+    });
+
+    testWidgets('the footer is not part of the scrolling content', (
+      tester,
+    ) async {
+      await _pumpAdd(tester, FakePropertyRepository());
+
+      expect(
+        find.ancestor(
+          of: find.byType(ActionFooter),
+          matching: find.byType(Scrollable),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('keeps the footer on screen before and after scrolling', (
+      tester,
+    ) async {
+      await _pumpAdd(tester, FakePropertyRepository(), largeText: true);
+      final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+      final before = tester.getRect(find.byType(ActionFooter));
+      expect(before.bottom, closeTo(screen.height, 0.5));
+      expect(before.top, greaterThanOrEqualTo(0));
+      expect(
+        tester.getRect(find.text('Simpan Properti')).bottom,
+        lessThanOrEqualTo(screen.height),
+      );
+
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(find.byType(ActionFooter)), before);
+      expect(find.text('Simpan Properti'), findsOneWidget);
+    });
+
+    testWidgets('keeps the footer on screen on the edit form at large text', (
+      tester,
+    ) async {
+      await _pumpEdit(
+        tester,
+        FakePropertyRepository(properties: [_melati(bank: bankAccount)]),
+        largeText: true,
+      );
+      final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+
+      final footer = tester.getRect(find.byType(ActionFooter));
+      expect(footer.bottom, closeTo(screen.height, 0.5));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('shows no footer while the property is loading', (
+      tester,
+    ) async {
+      final repo = FakePropertyRepository(properties: [_melati()])
+        ..getScript.gate = Completer<void>();
+      await _pumpEdit(tester, repo, settle: false);
+
+      expect(find.byType(ActionFooter), findsNothing);
+    });
+
+    testWidgets('shows no footer when loading the property fails', (
+      tester,
+    ) async {
+      final repo = FakePropertyRepository(properties: [_melati()])
+        ..getScript.always = const ApiFailure.network();
+      await _pumpEdit(tester, repo);
+
+      expect(find.byType(ActionFooter), findsNothing);
+      expect(find.text('Simpan Perubahan'), findsNothing);
+    });
+
+    testWidgets('labels the dialog password field through a LabeledField', (
+      tester,
+    ) async {
+      await _openReauthDialog(
+        tester,
+        FakePropertyRepository(properties: [_melati()]),
+      );
+
+      expect(
+        find.descendant(of: _dialog(), matching: labeledField(_password)),
+        findsOneWidget,
+      );
+      expect(_inDialog(find.text(_password)), findsOneWidget);
+      expectNoDecorationLabels(tester);
+    });
+
+    testWidgets('keeps the dialog password error on the field node', (
+      tester,
+    ) async {
+      await _openReauthDialog(
+        tester,
+        FakePropertyRepository(properties: [_melati()]),
+      );
+
+      await tester.tap(find.text('Lanjutkan'));
+      await tester.pumpAndSettle();
+
+      expectFieldNode(tester, _password, error: 'Kata sandi wajib diisi.');
     });
   });
 
@@ -1179,7 +1467,7 @@ void main() {
           _pumpAdd(tester, FakePropertyRepository(), largeText: large),
       'the add form with field errors': (tester, large) async {
         await _pumpAdd(tester, FakePropertyRepository(), largeText: large);
-        await type(tester, _bankName, 'BCA');
+        await typeInto(tester, _bankName, 'BCA');
         await _submitAdd(tester);
       },
       'the add form with a server field error': (tester, large) async {
@@ -1248,7 +1536,7 @@ void main() {
         await _pumpEdit(tester, repo, largeText: large);
         await _fillBank(tester);
         await _submitEdit(tester);
-        await type(tester, _password, 'salah');
+        await typeInto(tester, _password, 'salah');
         await tester.tap(find.text('Lanjutkan'));
         await tester.pumpAndSettle();
       },
