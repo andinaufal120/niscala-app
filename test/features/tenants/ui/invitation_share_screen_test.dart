@@ -518,6 +518,56 @@ void main() {
     });
   });
 
+  group('structure', () {
+    testWidgets('uses the white detail app bar with the close action', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expectDetailAppBar(tester);
+      expect(appBarTitle('Undangan Penyewa'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.byTooltip('Tutup'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the link, its expiry and the copy action sit in one card', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      final card = find.byType(Card);
+      expect(card, findsOneWidget);
+      expect(
+        find.descendant(of: card, matching: find.byType(SelectableText)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: card,
+          matching: find.text('Berlaku hingga 25 Okt 2026 · sekali pakai'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: card, matching: find.text('Salin')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the link card takes the card look from the theme', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expectCardLook(tester, find.byType(Card));
+    });
+  });
+
   group('accessibility', () {
     final states = <String, Future<void> Function(WidgetTester, bool)>{
       'a new tenant': (tester, large) =>

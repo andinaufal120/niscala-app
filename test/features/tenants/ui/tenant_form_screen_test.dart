@@ -7,7 +7,9 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
 import 'package:niscala/core/router.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/tenants/ui/invitation_share_screen.dart';
 import 'package:niscala/features/tenants/ui/tenant_form_screen.dart';
 import 'package:niscala/features/tenants/ui/tenant_list_screen.dart';
@@ -16,6 +18,7 @@ import 'package:niscala_api/api.dart';
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
 import '../../../helpers/fields.dart';
+import '../../../helpers/semantics.dart';
 import 'tenant_ui_helpers.dart';
 
 const _room = 'Kamar (wajib)';
@@ -83,8 +86,8 @@ Future<void> _fill(
   String phone = '0812-5520-4471',
 }) async {
   if (room != null) await choose(tester, _room, room);
-  await type(tester, _name, name);
-  await type(tester, _phone, phone);
+  await typeInto(tester, _name, name);
+  await typeInto(tester, _phone, phone);
 }
 
 Future<void> _addBlock(WidgetTester tester) =>
@@ -118,10 +121,25 @@ Future<void> _addFilledBlocks(WidgetTester tester, int count) async {
 }
 
 String _text(WidgetTester tester, String label) =>
-    textField(tester, label).controller!.text;
+    labeledTextField(tester, label).controller!.text;
 
-String _prefix(WidgetTester tester, String label) =>
-    textField(tester, label).decoration?.prefixText ?? '';
+/// The text drawn before the field: a prefix text, or a `Text` wrapped in the
+/// prefix icon (which Flutter lets us keep out of the semantics tree).
+String _prefix(WidgetTester tester, String label) {
+  final decoration = labeledTextField(tester, label).decoration;
+  final prefix = decoration?.prefix;
+  if (decoration?.prefixText != null) return decoration!.prefixText!;
+  if (prefix is Text) return prefix.data ?? '';
+  var icon = decoration?.prefixIcon;
+  while (icon != null && icon is! Text) {
+    icon = switch (icon) {
+      ExcludeSemantics(:final child) => child,
+      Padding(:final child) => child,
+      _ => null,
+    };
+  }
+  return icon is Text ? icon.data ?? '' : '';
+}
 
 String? _roomValue(WidgetTester tester) => tester
     .widget<DropdownButton<String>>(find.byType(DropdownButton<String>))
@@ -164,7 +182,7 @@ void _expectHeader(WidgetTester tester, String text) {
 /// error on the others.
 void _expectErrors(WidgetTester tester, Map<String, String> errors) {
   for (final label in [_room, _name, _phone, _end, _rent]) {
-    expect(inputError(tester, label), errors[label], reason: label);
+    expect(labeledFieldError(tester, label), errors[label], reason: label);
   }
 }
 
@@ -199,13 +217,14 @@ void main() {
       await _open(tester, _repo());
 
       for (final label in [_room, _cycle]) {
-        expect(decorated(label), findsOneWidget, reason: label);
+        expect(labeledField(label), findsOneWidget, reason: label);
+        expect(fieldLabeled(label), findsOneWidget, reason: label);
       }
       for (final label in [_name, _phone, _occupation, _start, _end, _rent]) {
-        expect(field(label), findsOneWidget, reason: label);
+        expect(fieldLabeled(label), findsOneWidget, reason: label);
         expect(_text(tester, label), isEmpty, reason: label);
       }
-      expect(field(_grace), findsOneWidget);
+      expect(fieldLabeled(_grace), findsOneWidget);
       expect(_text(tester, _grace), '0');
     });
 
@@ -224,7 +243,22 @@ void main() {
     testWidgets('the phone field states the accepted format', (tester) async {
       await _open(tester, _repo());
 
-      expect(inputHelper(tester, _phone), _phoneHelper);
+      final handle = tester.ensureSemantics();
+      try {
+        expect(
+          announced(tester.getSemantics(fieldLabeled(_phone))),
+          contains(_phoneHelper),
+        );
+      } finally {
+        handle.dispose();
+      }
+      expect(
+        find.descendant(
+          of: labeledField(_phone),
+          matching: find.text(_phoneHelper),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('the contact group explains the 2 to 4 contacts', (
@@ -280,20 +314,26 @@ void main() {
     ) async {
       await _open(tester, _repo());
 
-      await type(tester, _rent, 'a1b2.c3,');
+      await typeInto(tester, _rent, 'a1b2.c3,');
 
       expect(_prefix(tester, _rent), 'Rp');
       expect(_text(tester, _rent), '123');
-      expect(textField(tester, _rent).keyboardType, TextInputType.number);
+      expect(
+        labeledTextField(tester, _rent).keyboardType,
+        TextInputType.number,
+      );
     });
 
     testWidgets('the grace period accepts digits only', (tester) async {
       await _open(tester, _repo());
 
-      await type(tester, _grace, 'a1b2-');
+      await typeInto(tester, _grace, 'a1b2-');
 
       expect(_text(tester, _grace), '12');
-      expect(textField(tester, _grace).keyboardType, TextInputType.number);
+      expect(
+        labeledTextField(tester, _grace).keyboardType,
+        TextInputType.number,
+      );
     });
 
     testWidgets('a manager can use the form', (tester) async {
@@ -420,7 +460,7 @@ void main() {
 
       expectLoading(tester);
       expect(appBarTitle('Tambah Penyewa'), findsOneWidget);
-      expect(field(_name), findsNothing);
+      expect(fieldLabeled(_name), findsNothing);
     });
 
     testWidgets('shows the Indonesian message of a failure and a retry', (
@@ -433,7 +473,7 @@ void main() {
       expect(find.byType(ErrorView), findsOneWidget);
       expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
       expect(find.text('Coba lagi'), findsOneWidget);
-      expect(field(_name), findsNothing);
+      expect(fieldLabeled(_name), findsNothing);
     });
 
     testWidgets('Coba lagi loads the rooms and shows the form', (tester) async {
@@ -446,7 +486,7 @@ void main() {
 
       expect(rooms.listCalls, 2);
       expect(find.byType(ErrorView), findsNothing);
-      expect(field(_name), findsOneWidget);
+      expect(fieldLabeled(_name), findsOneWidget);
     });
   });
 
@@ -523,7 +563,7 @@ void main() {
     testWidgets('a typed rent is kept when the room changes', (tester) async {
       await _open(tester, _repo());
       await choose(tester, _room, 'Kamar 09');
-      await type(tester, _rent, '700000');
+      await typeInto(tester, _rent, '700000');
 
       await choose(tester, _room, 'Kamar 10');
 
@@ -532,7 +572,7 @@ void main() {
 
     testWidgets('a typed rent is kept when the cycle changes', (tester) async {
       await _open(tester, _repo(), query: '?kamar=r2');
-      await type(tester, _rent, '700000');
+      await typeInto(tester, _rent, '700000');
 
       await choose(tester, _cycle, '3 Bulan');
       expect(_text(tester, _rent), '700000');
@@ -543,7 +583,7 @@ void main() {
 
     testWidgets('a rent typed before choosing a room is kept', (tester) async {
       await _open(tester, _repo());
-      await type(tester, _rent, '500000');
+      await typeInto(tester, _rent, '500000');
 
       await choose(tester, _room, 'Kamar 09');
 
@@ -554,7 +594,7 @@ void main() {
       tester,
     ) async {
       await _open(tester, _repo(), query: '?kamar=r2');
-      await type(tester, _rent, '');
+      await typeInto(tester, _rent, '');
 
       await choose(tester, _room, 'Kamar 10');
 
@@ -703,7 +743,7 @@ void main() {
       await _addBlock(tester);
 
       for (final label in contactLabels) {
-        expect(decorated(label), findsNothing, reason: label);
+        expect(labeledField(label), findsOneWidget, reason: label);
         expect(labeledTextField(tester, label).decoration?.labelText, isNull);
       }
     });
@@ -957,7 +997,7 @@ void main() {
       final repo = _repo();
       await _open(tester, repo);
       await _fill(tester, room: null);
-      await type(tester, _rent, '650000');
+      await typeInto(tester, _rent, '650000');
 
       await _submit(tester);
 
@@ -1073,7 +1113,7 @@ void main() {
       final repo = _repo();
       await _open(tester, repo);
       await _fill(tester);
-      await type(tester, _rent, '0');
+      await typeInto(tester, _rent, '0');
 
       await _submit(tester);
 
@@ -1084,7 +1124,7 @@ void main() {
     testWidgets('a rent of only zeros must be more than 0', (tester) async {
       await _open(tester, _repo());
       await _fill(tester);
-      await type(tester, _rent, '000');
+      await typeInto(tester, _rent, '000');
 
       await _submit(tester);
 
@@ -1123,8 +1163,8 @@ void main() {
     ) async {
       await _open(tester, _repo());
       await _fill(tester, name: '', phone: '0812-5520-4471');
-      await type(tester, _occupation, 'Mahasiswa');
-      await type(tester, _grace, '4');
+      await typeInto(tester, _occupation, 'Mahasiswa');
+      await typeInto(tester, _grace, '4');
       await _addFilledBlocks(tester, 2);
 
       await _submit(tester);
@@ -1169,21 +1209,21 @@ void main() {
     testWidgets('the date fields are read-only', (tester) async {
       await _open(tester, _repo());
 
-      expect(textField(tester, _start).readOnly, isTrue);
-      expect(textField(tester, _end).readOnly, isTrue);
+      expect(labeledTextField(tester, _start).readOnly, isTrue);
+      expect(labeledTextField(tester, _end).readOnly, isTrue);
     });
 
     testWidgets('the date fields are at least 48 dp', (tester) async {
       await _open(tester, _repo());
 
-      expectFinderTargetSize(tester, field(_start));
-      expectFinderTargetSize(tester, field(_end));
+      expectFinderTargetSize(tester, fieldLabeled(_start));
+      expectFinderTargetSize(tester, fieldLabeled(_end));
     });
 
     testWidgets('tapping the start date opens a date picker', (tester) async {
       await _open(tester, _repo());
 
-      await tapVisible(tester, field(_start));
+      await tapVisible(tester, fieldLabeled(_start));
 
       expect(find.byType(DatePickerDialog), findsOneWidget);
     });
@@ -1191,7 +1231,7 @@ void main() {
     testWidgets('tapping the end date opens a date picker', (tester) async {
       await _open(tester, _repo());
 
-      await tapVisible(tester, field(_end));
+      await tapVisible(tester, fieldLabeled(_end));
 
       expect(find.byType(DatePickerDialog), findsOneWidget);
     });
@@ -1202,7 +1242,7 @@ void main() {
       final repo = _repo();
       await _open(tester, repo);
 
-      await tapVisible(tester, field(_start));
+      await tapVisible(tester, fieldLabeled(_start));
 
       expect(repo.created, isEmpty);
       _expectErrors(tester, {});
@@ -1346,7 +1386,7 @@ void main() {
       final repo = _repo();
       await _open(tester, repo);
       await _fill(tester, name: '  Rina Putri  ', phone: '  081255204471  ');
-      await type(tester, _occupation, '  Mahasiswa  ');
+      await typeInto(tester, _occupation, '  Mahasiswa  ');
 
       await _submit(tester);
 
@@ -1360,7 +1400,7 @@ void main() {
       final repo = _repo();
       await _open(tester, repo);
       await _fill(tester);
-      await type(tester, _occupation, '   ');
+      await typeInto(tester, _occupation, '   ');
 
       await _submit(tester);
 
@@ -1415,8 +1455,8 @@ void main() {
       await pickDate(tester, _start, 5);
       await pickDate(tester, _end, 20);
       await choose(tester, _cycle, '3 Bulan');
-      await type(tester, _grace, '7');
-      await type(tester, _rent, '1900000');
+      await typeInto(tester, _grace, '7');
+      await typeInto(tester, _rent, '1900000');
 
       await _submit(tester);
 
@@ -1444,7 +1484,7 @@ void main() {
         await _open(tester, repo);
         await _fill(tester);
         await choose(tester, _cycle, entry.key);
-        await type(tester, _rent, '100000');
+        await typeInto(tester, _rent, '100000');
 
         await _submit(tester);
 
@@ -1456,7 +1496,7 @@ void main() {
       final repo = _repo();
       await _open(tester, repo);
       await _fill(tester);
-      await type(tester, _rent, '0750000');
+      await typeInto(tester, _rent, '0750000');
 
       await _submit(tester);
 
@@ -1468,7 +1508,7 @@ void main() {
       final repo = _repo();
       await _open(tester, repo);
       await _fill(tester);
-      await type(tester, _grace, '');
+      await typeInto(tester, _grace, '');
 
       await _submit(tester);
 
@@ -1633,7 +1673,7 @@ void main() {
 
       await _submit(tester);
 
-      expect(inputError(tester, _room), 'Kamar sudah terisi.');
+      expect(labeledFieldError(tester, _room), 'Kamar sudah terisi.');
     });
 
     for (final field in [
@@ -1665,8 +1705,8 @@ void main() {
         );
       await _open(tester, repo);
       await _fill(tester);
-      await type(tester, _occupation, 'Mahasiswa');
-      await type(tester, _grace, '3');
+      await typeInto(tester, _occupation, 'Mahasiswa');
+      await typeInto(tester, _grace, '3');
       await _addFilledBlocks(tester, 2);
       await pickDate(tester, _start, 5);
 
@@ -1693,7 +1733,7 @@ void main() {
       expect(busyButton(), findsNothing);
       expect(isDisabled(tester, _save), isFalse);
 
-      await type(tester, _phone, '081255204471');
+      await typeInto(tester, _phone, '081255204471');
       await _submit(tester);
 
       expect(repo.created, hasLength(2));
@@ -1714,7 +1754,7 @@ void main() {
 
       await _tapFirstSave(tester);
 
-      expect(inputError(tester, _phone), isNull);
+      expect(labeledFieldError(tester, _phone), isNull);
       expectBusy(tester);
     });
 
@@ -1739,7 +1779,7 @@ void main() {
         final repo = _repo()..createScript.queue.add(entry.value);
         await _open(tester, repo);
         await _fill(tester);
-        await type(tester, _occupation, 'Mahasiswa');
+        await typeInto(tester, _occupation, 'Mahasiswa');
 
         await _submit(tester);
 
@@ -1821,6 +1861,170 @@ void main() {
     });
   });
 
+  group('structure', () {
+    const labels = [
+      _room,
+      _name,
+      _phone,
+      _occupation,
+      _start,
+      _end,
+      _cycle,
+      _grace,
+      _rent,
+    ];
+
+    testWidgets('wraps every field in a LabeledField with its visible text', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      for (final label in labels) {
+        expect(labeledField(label), findsOneWidget, reason: label);
+        expect(find.text(label), findsOneWidget, reason: label);
+      }
+      expect(find.byType(LabeledField), findsNWidgets(labels.length));
+    });
+
+    testWidgets('marks five required and five optional labels in text', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expect(find.textContaining('(wajib)'), findsNWidgets(5));
+      expect(find.textContaining('(opsional)'), findsNWidgets(5));
+    });
+
+    testWidgets('draws no label inside any field of the form', (tester) async {
+      await _open(tester, _repo());
+
+      expectNoDecorationLabels(tester);
+    });
+
+    testWidgets(
+      'draws no label inside any field once contacts and errors show',
+      (tester) async {
+        await _open(tester, _repo());
+        await _addFilledBlocks(tester, 2);
+        await _submit(tester);
+
+        expectNoDecorationLabels(tester);
+      },
+    );
+
+    testWidgets('puts each label above its field', (tester) async {
+      await _open(tester, _repo());
+
+      for (final label in labels) {
+        final text = tester.getRect(find.text(label));
+        final input = tester.getRect(fieldLabeled(label));
+        expect(text.bottom, lessThanOrEqualTo(input.top), reason: label);
+      }
+    });
+
+    testWidgets('reads every label once, on its field node', (tester) async {
+      await _open(tester, _repo());
+
+      for (final label in labels) {
+        expectFieldNode(tester, label);
+      }
+    });
+
+    testWidgets('keeps the room and name errors on their field nodes', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      await _submit(tester);
+
+      expectFieldNode(tester, _room, error: 'Pilih kamar.');
+      expectFieldNode(tester, _name, error: 'Nama wajib diisi.');
+    });
+
+    testWidgets('keeps the phone format help on the phone field node', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      final handle = tester.ensureSemantics();
+      try {
+        expect(
+          announced(tester.getSemantics(fieldLabeled(_phone))),
+          contains(_phoneHelper),
+        );
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets('tapping a label focuses its field', (tester) async {
+      await _open(tester, _repo());
+
+      await tester.tap(find.text(_phone));
+      await tester.pump();
+
+      final editable = tester.widget<EditableText>(
+        find.descendant(
+          of: fieldLabeled(_phone),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editable.focusNode.hasFocus, isTrue);
+    });
+
+    testWidgets('puts the save button in a pinned ActionFooter', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expectPinnedFooter(tester, _save);
+    });
+
+    testWidgets('keeps the busy save button inside the ActionFooter', (
+      tester,
+    ) async {
+      final repo = _repo()..createScript.gate = Completer<void>();
+      await _open(tester, repo);
+      await _fill(tester);
+
+      await _tapFirstSave(tester);
+
+      expect(
+        find.descendant(
+          of: find.byType(ActionFooter),
+          matching: find.byType(CircularProgressIndicator),
+        ),
+        findsOneWidget,
+      );
+      expectBusy(tester);
+    });
+
+    testWidgets('keeps the footer on screen after scrolling at large text', (
+      tester,
+    ) async {
+      await _open(tester, _repo(), largeText: true);
+      final before = tester.getRect(find.byType(ActionFooter));
+      expectFooterAtBottom(tester);
+
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(find.byType(ActionFooter)), before);
+      expect(find.text(_save), findsOneWidget);
+    });
+
+    testWidgets('keeps the footer at the bottom at large text with errors', (
+      tester,
+    ) async {
+      await _open(tester, _repo(), largeText: true);
+
+      await _submit(tester);
+
+      expectFooterAtBottom(tester);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
   group('accessibility', () {
     Future<void> submitInFlight(WidgetTester tester) async {
       await tester.ensureVisible(find.text(_save));
@@ -1876,7 +2080,7 @@ void main() {
       'the form with an invalid phone and rent': (tester, large) async {
         await _open(tester, _repo(), largeText: large);
         await _fill(tester, phone: '12345');
-        await type(tester, _rent, '0');
+        await typeInto(tester, _rent, '0');
         await _submit(tester);
       },
       'the form with a contact count error': (tester, large) async {
@@ -1939,11 +2143,11 @@ void main() {
       },
       'the start date picker': (tester, large) async {
         await _open(tester, _repo(), largeText: large);
-        await tapVisible(tester, field(_start));
+        await tapVisible(tester, fieldLabeled(_start));
       },
       'the end date picker': (tester, large) async {
         await _open(tester, _repo(), largeText: large);
-        await tapVisible(tester, field(_end));
+        await tapVisible(tester, fieldLabeled(_end));
       },
       'the room list open': (tester, large) async {
         await _open(tester, _repo(), largeText: large);

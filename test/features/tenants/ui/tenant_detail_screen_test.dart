@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/rooms/ui/room_detail_screen.dart';
 import 'package:niscala/features/tenants/ui/invitation_share_screen.dart';
 import 'package:niscala/features/tenants/ui/tenant_detail_screen.dart';
@@ -483,6 +485,117 @@ void main() {
       expect(find.text('Budi Santoso'), findsOneWidget);
       expect(find.text(_created), findsOneWidget);
       expect(find.text('Bagikan tautan yang ada'), findsOneWidget);
+    });
+  });
+
+  group('structure', () {
+    testWidgets('uses the white detail app bar titled Rincian Penyewa', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expectDetailAppBar(tester);
+      expect(appBarTitle('Rincian Penyewa'), findsOneWidget);
+    });
+
+    testWidgets('the tenant name and contact sit in a section card', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expect(
+        find.ancestor(
+          of: find.text('Budi Santoso'),
+          matching: find.byType(SectionCard),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.ancestor(
+          of: find.text('081255204471 · email belum diisi'),
+          matching: find.byType(SectionCard),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the room, lease and other data sections are section cards', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      for (final title in ['Kamar', 'Masa sewa', 'Data lainnya']) {
+        expectSectionCard(tester, title);
+      }
+    });
+
+    testWidgets('each section card holds its own content', (tester) async {
+      await _open(tester, _repo());
+
+      expect(
+        find.descendant(
+          of: sectionCardOf('Kamar'),
+          matching: find.text('Kamar 08'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: sectionCardOf('Masa sewa'),
+          matching: find.text('Rp750.000 / bulan'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: sectionCardOf('Data lainnya'),
+          matching: find.text('Siti Rahma · Ibu'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: sectionCardOf('Data lainnya'),
+          matching: find.text('Karyawan swasta'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+      'the invitation box and its share action sit in a section card',
+      (tester) async {
+        await _open(tester, _repo());
+
+        expect(
+          find.ancestor(
+            of: find.text(_created),
+            matching: find.byType(SectionCard),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.ancestor(
+            of: find.text('Bagikan tautan yang ada'),
+            matching: find.byType(SectionCard),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('every section card takes the card look from the theme', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expectCardLook(
+        tester,
+        find.descendant(
+          of: find.byType(SectionCard),
+          matching: find.byType(Card),
+        ),
+      );
     });
   });
 

@@ -518,6 +518,39 @@ void main() {
     });
   });
 
+  group('structure', () {
+    testWidgets('uses the white app bar with the title and property name', (
+      tester,
+    ) async {
+      await pumpTenantApp(tester, _repo());
+
+      expectWhiteAppBar(tester);
+      expect(appBarTitle('Penyewa'), findsOneWidget);
+      expect(inAppBar('Kos Melati'), findsOneWidget);
+    });
+
+    testWidgets('shows each tenant row as a card with the theme look', (
+      tester,
+    ) async {
+      await pumpTenantApp(tester, _repo());
+
+      expect(find.byType(Card), findsNWidgets(3));
+      expectCardLook(tester, find.byType(Card));
+    });
+
+    testWidgets('each tenant name sits in a card of its own', (tester) async {
+      await pumpTenantApp(tester, _repo());
+
+      for (final name in ['Budi Santoso', 'Sari Wulandari', 'Dewi Lestari']) {
+        expect(
+          find.ancestor(of: find.text(name), matching: find.byType(Card)),
+          findsOneWidget,
+          reason: name,
+        );
+      }
+    });
+  });
+
   group('accessibility', () {
     final states = <String, FakeTenantRepository Function()>{
       'loaded': _repo,

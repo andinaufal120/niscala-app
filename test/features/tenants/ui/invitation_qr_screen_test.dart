@@ -314,6 +314,43 @@ void main() {
     });
   });
 
+  group('structure', () {
+    testWidgets('uses the white detail app bar titled Kode QR undangan', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expectDetailAppBar(tester);
+      expect(appBarTitle('Kode QR undangan'), findsOneWidget);
+    });
+
+    testWidgets('the link and its expiry sit in one card', (tester) async {
+      await _open(tester, _repo());
+
+      final card = find.byType(Card);
+      expect(card, findsOneWidget);
+      expect(
+        find.descendant(of: card, matching: find.text(_url)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: card,
+          matching: find.text('Berlaku hingga 25 Okt 2026 · sekali pakai'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the link card takes the card look from the theme', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expectCardLook(tester, find.byType(Card));
+    });
+  });
+
   group('accessibility', () {
     final states = <String, Future<void> Function(WidgetTester, bool)>{
       'the loaded code': (tester, large) =>
