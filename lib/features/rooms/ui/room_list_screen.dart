@@ -5,6 +5,7 @@ import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/filter_chip_row.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
@@ -94,10 +95,8 @@ class _RoomListScreenState extends ConsumerState<RoomListScreen> {
                 ),
                 formGap,
               ],
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
+              FilterChipRow(
+                chips: [
                   for (final (label, occupancy) in _filters)
                     ChoiceChip(
                       label: Text(label),

@@ -5,6 +5,7 @@ import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/filter_chip_row.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
@@ -78,10 +79,8 @@ class _TenantComplaintListScreenState
           ListView(
             padding: const EdgeInsets.all(NiscalaSpacing.gutter),
             children: [
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
+              FilterChipRow(
+                chips: [
                   for (final (label, filter) in _filters)
                     ChoiceChip(
                       label: Text(label),

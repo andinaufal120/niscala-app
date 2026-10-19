@@ -5,6 +5,7 @@ import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/filter_chip_row.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/tenants/data/tenant_repository.dart';
@@ -92,10 +93,8 @@ class _TenantListScreenState extends ConsumerState<TenantListScreen> {
                 ),
                 formGap,
               ],
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
+              FilterChipRow(
+                chips: [
                   for (final (label, status) in _filters)
                     ChoiceChip(
                       label: Text(label),
