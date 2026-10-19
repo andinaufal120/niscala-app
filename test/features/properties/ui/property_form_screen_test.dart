@@ -1378,13 +1378,13 @@ void main() {
       tester,
     ) async {
       await _pumpAdd(tester, FakePropertyRepository(), largeText: true);
-      final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+      final barTop = tester.getRect(find.byType(NavigationBar)).top;
       final before = tester.getRect(find.byType(ActionFooter));
-      expect(before.bottom, closeTo(screen.height, 0.5));
+      expect(before.bottom, closeTo(barTop, 0.5));
       expect(before.top, greaterThanOrEqualTo(0));
       expect(
         tester.getRect(find.text('Simpan Properti')).bottom,
-        lessThanOrEqualTo(screen.height),
+        lessThanOrEqualTo(barTop),
       );
 
       await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
@@ -1402,10 +1402,10 @@ void main() {
         FakePropertyRepository(properties: [_melati(bank: bankAccount)]),
         largeText: true,
       );
-      final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+      final barTop = tester.getRect(find.byType(NavigationBar)).top;
 
       final footer = tester.getRect(find.byType(ActionFooter));
-      expect(footer.bottom, closeTo(screen.height, 0.5));
+      expect(footer.bottom, closeTo(barTop, 0.5));
       expect(tester.takeException(), isNull);
     });
 
