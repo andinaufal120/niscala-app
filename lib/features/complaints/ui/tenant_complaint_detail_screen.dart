@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
 import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
 import 'package:niscala_api/api.dart';
@@ -64,7 +66,7 @@ class TenantComplaintDetailScreen extends ConsumerWidget {
     final classification = c.classification;
     final state = c.classificationState;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(NiscalaSpacing.gutter),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -80,25 +82,37 @@ class TenantComplaintDetailScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           Text('Dikirim ${formatDate(c.createdAt.toLocal())}'),
           formGap,
-          Text(c.description, style: theme.textTheme.bodyLarge),
+          SectionCard(
+            child: Text(c.description, style: theme.textTheme.bodyLarge),
+          ),
           formGap,
           if (classification != null)
-            _ClassificationDetails(classification: classification)
-          else if (state != null) ...[
-            const ComplaintSectionHeader('Klasifikasi'),
-            const SizedBox(height: 8),
-            ComplaintBadge.classification(state),
-            const SizedBox(height: 8),
-            Text(_stateExplanation(state)),
-            if (state == ComplaintClassificationState.classifying) ...[
-              const SizedBox(height: 8),
-              FilledButton.tonal(
-                onPressed: () =>
-                    ref.invalidate(complaintDetailProvider(complaintId)),
-                child: const Text('Segarkan'),
+            SectionCard(
+              emphasis: true,
+              title: 'Klasifikasi',
+              child: _ClassificationDetails(classification: classification),
+            )
+          else if (state != null)
+            SectionCard(
+              emphasis: true,
+              title: 'Klasifikasi',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ComplaintBadge.classification(state),
+                  const SizedBox(height: 8),
+                  Text(_stateExplanation(state)),
+                  if (state == ComplaintClassificationState.classifying) ...[
+                    const SizedBox(height: 8),
+                    FilledButton.tonal(
+                      onPressed: () =>
+                          ref.invalidate(complaintDetailProvider(complaintId)),
+                      child: const Text('Segarkan'),
+                    ),
+                  ],
+                ],
               ),
-            ],
-          ],
+            ),
           formGap,
           ComplaintStatusHistory(changes: c.statusChanges),
         ],
@@ -118,8 +132,6 @@ class _ClassificationDetails extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const ComplaintSectionHeader('Klasifikasi'),
-        const SizedBox(height: 8),
         Text('Kategori', style: labelStyle),
         Text(classification.category),
         const SizedBox(height: 8),

@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/tokens.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
 
 const _helper = 'Ceritakan masalahnya, minimal 10 karakter.';
@@ -83,28 +86,40 @@ class _ComplaintFormScreenState extends ConsumerState<ComplaintFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Ajukan Keluhan')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_banner != null) ...[FormMessage(_banner!), formGap],
-            TextField(
-              controller: _description,
-              keyboardType: TextInputType.multiline,
-              textCapitalization: TextCapitalization.sentences,
-              minLines: 4,
-              maxLines: null,
-              decoration: InputDecoration(
-                labelText: 'Deskripsi keluhan (wajib)',
-                helperText: _helper,
-                errorText: _descriptionError,
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(NiscalaSpacing.gutter),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_banner != null) ...[FormMessage(_banner!), formGap],
+                  LabeledField(
+                    label: 'Deskripsi keluhan',
+                    required: true,
+                    helper: _helper,
+                    child: TextField(
+                      controller: _description,
+                      keyboardType: TextInputType.multiline,
+                      textCapitalization: TextCapitalization.sentences,
+                      minLines: 4,
+                      maxLines: null,
+                      decoration: InputDecoration(errorText: _descriptionError),
+                    ),
+                  ),
+                ],
               ),
             ),
-            formGap,
-            BusyButton(label: 'Kirim Keluhan', busy: _busy, onPressed: _submit),
-          ],
-        ),
+          ),
+          ActionFooter(
+            primary: BusyButton(
+              label: 'Kirim Keluhan',
+              busy: _busy,
+              onPressed: _submit,
+            ),
+          ),
+        ],
       ),
     );
   }

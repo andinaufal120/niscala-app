@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:niscala/core/format.dart';
 import 'package:niscala/core/tokens.dart';
+import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/complaints/complaint_labels.dart';
 import 'package:niscala_api/api.dart';
@@ -27,24 +28,8 @@ class ComplaintBadge extends StatelessWidget {
   }
 }
 
-/// A titled block of a complaint screen. The title is a header for assistive
-/// technology.
-class ComplaintSectionHeader extends StatelessWidget {
-  const ComplaintSectionHeader(this.title, {super.key});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      header: true,
-      child: Text(title, style: Theme.of(context).textTheme.titleSmall),
-    );
-  }
-}
-
 /// Each status change as its label and date, with the handling note under it
-/// when the change has one.
+/// when the change has one, in a card titled Riwayat status.
 class ComplaintStatusHistory extends StatelessWidget {
   const ComplaintStatusHistory({super.key, required this.changes});
 
@@ -53,27 +38,28 @@ class ComplaintStatusHistory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const ComplaintSectionHeader('Riwayat status'),
-        const SizedBox(height: 4),
-        for (final change in changes)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${complaintStatusStyles[change.status]!.label} · '
-                  '${formatDate(change.changedAt.toLocal())}',
-                  style: theme.textTheme.labelLarge,
-                ),
-                if (change.handlingNote != null) Text(change.handlingNote!),
-              ],
+    return SectionCard(
+      title: 'Riwayat status',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final change in changes)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${complaintStatusStyles[change.status]!.label} · '
+                    '${formatDate(change.changedAt.toLocal())}',
+                    style: theme.textTheme.labelLarge,
+                  ),
+                  if (change.handlingNote != null) Text(change.handlingNote!),
+                ],
+              ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
