@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/rooms/ui/room_detail_screen.dart';
 import 'package:niscala/features/rooms/ui/room_form_screen.dart';
 import 'package:niscala/features/rooms/ui/room_list_screen.dart';
@@ -730,6 +731,86 @@ void main() {
 
       expect(find.text('Lihat rincian penyewa'), findsNothing);
       expect(find.text('Tambah Penyewa'), findsNothing);
+    });
+  });
+
+  group('structure', () {
+    testWidgets('uses a white detail app bar titled with the room number', (
+      tester,
+    ) async {
+      await _openDetail(tester, _repo());
+
+      expectDetailAppBar(tester);
+      expect(appBarTitle('Kamar 08'), findsOneWidget);
+    });
+
+    testWidgets('an occupied room puts its sections in section cards', (
+      tester,
+    ) async {
+      await _openDetail(tester, _repo());
+
+      for (final title in ['Ukuran', 'Fasilitas', 'Penyewa & masa sewa']) {
+        expectSectionCard(tester, title);
+      }
+      expect(
+        find.descendant(
+          of: sectionCardOf('Ukuran'),
+          matching: find.text('3,5 × 4 m'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: sectionCardOf('Fasilitas'),
+          matching: find.text('kasur'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: sectionCardOf('Penyewa & masa sewa'),
+          matching: find.text('Budi Santoso'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a vacant room puts its size and facilities in section cards', (
+      tester,
+    ) async {
+      await _openDetail(tester, _repo(_vacant()));
+
+      expectSectionCard(tester, 'Ukuran');
+      expectSectionCard(tester, 'Fasilitas');
+      expect(
+        find.descendant(
+          of: sectionCardOf('Ukuran'),
+          matching: find.text('Belum diisi'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: sectionCardOf('Fasilitas'),
+          matching: find.text('Belum ada fasilitas'),
+        ),
+        findsOneWidget,
+      );
+      expect(sectionCardOf('Penyewa & masa sewa'), findsNothing);
+    });
+
+    testWidgets('every section card takes the card look from the theme', (
+      tester,
+    ) async {
+      await _openDetail(tester, _repo());
+
+      expectCardLook(
+        tester,
+        find.descendant(
+          of: find.byType(SectionCard),
+          matching: find.byType(Card),
+        ),
+      );
     });
   });
 

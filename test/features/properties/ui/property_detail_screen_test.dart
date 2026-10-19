@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
@@ -720,6 +722,82 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repo.deleted, ['p1']);
+    });
+  });
+
+  group('structure', () {
+    testWidgets('uses a white detail app bar titled Rincian Properti', (
+      tester,
+    ) async {
+      await _openDetail(
+        tester,
+        FakePropertyRepository(properties: [_melati()]),
+      );
+
+      expectDetailAppBar(tester);
+      expect(appBarTitle('Rincian Properti'), findsOneWidget);
+    });
+
+    testWidgets('puts the managers and the rent account in section cards', (
+      tester,
+    ) async {
+      await _openDetail(
+        tester,
+        FakePropertyRepository(properties: [_melati(bank: bankAccount)]),
+      );
+
+      expectSectionCard(tester, 'Pengelola Kost');
+      expectSectionCard(tester, 'Rekening transfer sewa');
+      expect(
+        find.descendant(
+          of: sectionCardOf('Pengelola Kost'),
+          matching: find.text('2 pengelola'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: sectionCardOf('Rekening transfer sewa'),
+          matching: find.text('BCA · 1234567890'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the rent account card still shows when there is no account', (
+      tester,
+    ) async {
+      await _openDetail(
+        tester,
+        FakePropertyRepository(properties: [_melati()]),
+      );
+
+      expectSectionCard(tester, 'Rekening transfer sewa');
+      expect(
+        find.descendant(
+          of: sectionCardOf('Rekening transfer sewa'),
+          matching: find.text(_noBank),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('every section card takes the card look from the theme', (
+      tester,
+    ) async {
+      await _openDetail(
+        tester,
+        FakePropertyRepository(properties: [_melati(bank: bankAccount)]),
+      );
+
+      expect(find.byType(SectionCard), findsWidgets);
+      expectCardLook(
+        tester,
+        find.descendant(
+          of: find.byType(SectionCard),
+          matching: find.byType(Card),
+        ),
+      );
     });
   });
 

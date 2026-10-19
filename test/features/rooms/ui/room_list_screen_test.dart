@@ -540,6 +540,39 @@ void main() {
     });
   });
 
+  group('structure', () {
+    testWidgets('shows exactly the three filter chips', (tester) async {
+      await pumpRoomApp(tester, _repo());
+
+      expect(
+        find.byWidgetPredicate(
+          (widget) => widget is ChoiceChip || widget is FilterChip,
+        ),
+        findsNWidgets(3),
+      );
+    });
+
+    testWidgets('every filter chip takes its look from the chip theme', (
+      tester,
+    ) async {
+      await pumpRoomApp(tester, _repo());
+
+      for (final label in ['Semua', 'Terisi', 'Kosong']) {
+        expectChipStyledByTheme(tester, label);
+      }
+    });
+
+    testWidgets('the selected chip keeps the chip theme look', (tester) async {
+      await pumpRoomApp(tester, _repo());
+
+      await tester.tap(filterChip('Terisi'));
+      await tester.pumpAndSettle();
+
+      expectChipStyledByTheme(tester, 'Terisi');
+      expectChipStyledByTheme(tester, 'Semua');
+    });
+  });
+
   group('accessibility', () {
     final states = <String, FakeRoomRepository Function()>{
       'loaded': _repo,

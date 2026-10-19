@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart' hide testWidgets;
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/rooms/ui/room_detail_screen.dart';
 import 'package:niscala/features/rooms/ui/room_form_screen.dart';
 import 'package:niscala/features/rooms/ui/room_list_screen.dart';
@@ -12,6 +14,7 @@ import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
+import '../../../helpers/fields.dart';
 import 'room_ui_helpers.dart';
 
 /// Every test of this file reads semantics labels.
@@ -87,7 +90,7 @@ Future<void> _pumpEdit(
 }
 
 String _text(WidgetTester tester, String label) =>
-    textField(tester, label).controller!.text;
+    labeledTextField(tester, label).controller!.text;
 
 Future<void> _submitAdd(WidgetTester tester) =>
     tapVisible(tester, find.text('Simpan Kamar'));
@@ -102,14 +105,14 @@ Future<void> _fill(
   String? length,
   String? width,
 }) async {
-  await type(tester, _number, number);
-  await type(tester, _rate, rate);
-  if (length != null) await type(tester, _length, length);
-  if (width != null) await type(tester, _width, width);
+  await typeInto(tester, _number, number);
+  await typeInto(tester, _rate, rate);
+  if (length != null) await typeInto(tester, _length, length);
+  if (width != null) await typeInto(tester, _width, width);
 }
 
 Future<void> _addTag(WidgetTester tester, String tag) async {
-  await type(tester, _facility, tag);
+  await typeInto(tester, _facility, tag);
   await _tapInView(tester, buttonLabelled('Tambah'));
 }
 
@@ -130,7 +133,7 @@ Future<void> _removeTag(WidgetTester tester, String tag) async {
 }
 
 String _prefix(WidgetTester tester, String label) {
-  final decoration = textField(tester, label).decoration;
+  final decoration = labeledTextField(tester, label).decoration;
   final prefix = decoration?.prefix;
   return decoration?.prefixText ?? (prefix is Text ? prefix.data ?? '' : '');
 }
@@ -150,7 +153,7 @@ void main() {
       await _pumpAdd(tester, _repo());
 
       for (final label in [_number, _rate, _length, _width, _facility]) {
-        expect(field(label), findsOneWidget);
+        expect(fieldLabeled(label), findsOneWidget);
         expect(_text(tester, label), isEmpty);
       }
     });
@@ -158,7 +161,10 @@ void main() {
     testWidgets('the number field shows an example', (tester) async {
       await _pumpAdd(tester, _repo());
 
-      expect(textField(tester, _number).decoration?.hintText, 'Contoh: 08');
+      expect(
+        labeledTextField(tester, _number).decoration?.hintText,
+        'Contoh: 08',
+      );
     });
 
     testWidgets('the rate field has a Rp prefix and the number keyboard', (
@@ -167,13 +173,16 @@ void main() {
       await _pumpAdd(tester, _repo());
 
       expect(_prefix(tester, _rate), 'Rp');
-      expect(textField(tester, _rate).keyboardType, TextInputType.number);
+      expect(
+        labeledTextField(tester, _rate).keyboardType,
+        TextInputType.number,
+      );
     });
 
     testWidgets('the rate field accepts digits only', (tester) async {
       await _pumpAdd(tester, _repo());
 
-      await type(tester, _rate, 'a1b2.c3,');
+      await typeInto(tester, _rate, 'a1b2.c3,');
 
       expect(_text(tester, _rate), '123');
     });
@@ -192,8 +201,8 @@ void main() {
     ) async {
       await _pumpAdd(tester, _repo());
 
-      expect(textField(tester, _length).keyboardType.decimal, isTrue);
-      expect(textField(tester, _width).keyboardType.decimal, isTrue);
+      expect(labeledTextField(tester, _length).keyboardType.decimal, isTrue);
+      expect(labeledTextField(tester, _width).keyboardType.decimal, isTrue);
     });
 
     testWidgets('groups the dimension and facility fields', (tester) async {
@@ -213,7 +222,7 @@ void main() {
     testWidgets('Kembali leaves the form without saving', (tester) async {
       final repo = _repo();
       await _pumpAdd(tester, repo);
-      await type(tester, _number, '10');
+      await typeInto(tester, _number, '10');
 
       await pressBack(tester);
 
@@ -239,12 +248,12 @@ void main() {
     ) async {
       final repo = _repo();
       await _pumpAdd(tester, repo);
-      await type(tester, _rate, '700000');
+      await typeInto(tester, _rate, '700000');
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _number), 'Nomor kamar wajib diisi.');
-      expect(fieldError(tester, _rate), isNull);
+      expect(labeledFieldError(tester, _number), 'Nomor kamar wajib diisi.');
+      expect(labeledFieldError(tester, _rate), isNull);
       expect(repo.created, isEmpty);
     });
 
@@ -255,7 +264,7 @@ void main() {
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _number), 'Nomor kamar wajib diisi.');
+      expect(labeledFieldError(tester, _number), 'Nomor kamar wajib diisi.');
       expect(repo.created, isEmpty);
     });
 
@@ -264,12 +273,12 @@ void main() {
     ) async {
       final repo = _repo();
       await _pumpAdd(tester, repo);
-      await type(tester, _number, '10');
+      await typeInto(tester, _number, '10');
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _rate), 'Tarif sewa wajib diisi.');
-      expect(fieldError(tester, _number), isNull);
+      expect(labeledFieldError(tester, _rate), 'Tarif sewa wajib diisi.');
+      expect(labeledFieldError(tester, _number), isNull);
       expect(repo.created, isEmpty);
     });
 
@@ -280,7 +289,10 @@ void main() {
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _rate), 'Tarif sewa harus lebih dari 0.');
+      expect(
+        labeledFieldError(tester, _rate),
+        'Tarif sewa harus lebih dari 0.',
+      );
       expect(repo.created, isEmpty);
     });
 
@@ -291,7 +303,10 @@ void main() {
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _rate), 'Tarif sewa harus lebih dari 0.');
+      expect(
+        labeledFieldError(tester, _rate),
+        'Tarif sewa harus lebih dari 0.',
+      );
       expect(repo.created, isEmpty);
     });
 
@@ -301,8 +316,8 @@ void main() {
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _number), 'Nomor kamar wajib diisi.');
-      expect(fieldError(tester, _rate), 'Tarif sewa wajib diisi.');
+      expect(labeledFieldError(tester, _number), 'Nomor kamar wajib diisi.');
+      expect(labeledFieldError(tester, _rate), 'Tarif sewa wajib diisi.');
       expect(repo.created, isEmpty);
     });
 
@@ -411,7 +426,7 @@ void main() {
       await _fill(tester, length: '21', width: '4');
       await _submitAdd(tester);
 
-      await type(tester, _length, '3,5');
+      await typeInto(tester, _length, '3,5');
       await _submitAdd(tester);
 
       expect(find.text(_dimensionError), findsNothing);
@@ -437,8 +452,8 @@ void main() {
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _number), 'Nomor kamar wajib diisi.');
-      expect(fieldError(tester, _rate), 'Tarif sewa wajib diisi.');
+      expect(labeledFieldError(tester, _number), 'Nomor kamar wajib diisi.');
+      expect(labeledFieldError(tester, _rate), 'Tarif sewa wajib diisi.');
       expect(find.text(_pairError), findsOneWidget);
     });
   });
@@ -449,7 +464,7 @@ void main() {
 
       expect(find.textContaining('Luas'), findsNothing);
 
-      await type(tester, _length, '3,5');
+      await typeInto(tester, _length, '3,5');
 
       expect(find.textContaining('Luas'), findsNothing);
     });
@@ -459,16 +474,16 @@ void main() {
     ) async {
       await _pumpAdd(tester, _repo());
 
-      await type(tester, _length, '3,5');
-      await type(tester, _width, '4');
+      await typeInto(tester, _length, '3,5');
+      await typeInto(tester, _width, '4');
 
       expect(find.text('Luas: 14 m²'), findsOneWidget);
     });
 
     testWidgets('announces the area as a live region', (tester) async {
       await _pumpAdd(tester, _repo());
-      await type(tester, _length, '3,5');
-      await type(tester, _width, '4');
+      await typeInto(tester, _length, '3,5');
+      await typeInto(tester, _width, '4');
 
       expectLiveRegion(tester, 'Luas: 14 m²');
     });
@@ -476,8 +491,8 @@ void main() {
     testWidgets('shows decimals with a comma', (tester) async {
       await _pumpAdd(tester, _repo());
 
-      await type(tester, _length, '3,5');
-      await type(tester, _width, '4,2');
+      await typeInto(tester, _length, '3,5');
+      await typeInto(tester, _width, '4,2');
 
       expect(find.text('Luas: 14,7 m²'), findsOneWidget);
     });
@@ -485,18 +500,18 @@ void main() {
     testWidgets('rounds the area to two decimals', (tester) async {
       await _pumpAdd(tester, _repo());
 
-      await type(tester, _length, '2,55');
-      await type(tester, _width, '3,33');
+      await typeInto(tester, _length, '2,55');
+      await typeInto(tester, _width, '3,33');
 
       expect(find.text('Luas: 8,49 m²'), findsOneWidget);
     });
 
     testWidgets('updates the area when a value changes', (tester) async {
       await _pumpAdd(tester, _repo());
-      await type(tester, _length, '3,5');
-      await type(tester, _width, '4');
+      await typeInto(tester, _length, '3,5');
+      await typeInto(tester, _width, '4');
 
-      await type(tester, _width, '2');
+      await typeInto(tester, _width, '2');
 
       expect(find.text('Luas: 7 m²'), findsOneWidget);
       expect(find.text('Luas: 14 m²'), findsNothing);
@@ -504,20 +519,20 @@ void main() {
 
     testWidgets('hides the area when a value is not valid', (tester) async {
       await _pumpAdd(tester, _repo());
-      await type(tester, _length, '3,5');
-      await type(tester, _width, '4');
+      await typeInto(tester, _length, '3,5');
+      await typeInto(tester, _width, '4');
 
-      await type(tester, _width, '25');
+      await typeInto(tester, _width, '25');
 
       expect(find.textContaining('Luas'), findsNothing);
     });
 
     testWidgets('hides the area when a value is cleared', (tester) async {
       await _pumpAdd(tester, _repo());
-      await type(tester, _length, '3,5');
-      await type(tester, _width, '4');
+      await typeInto(tester, _length, '3,5');
+      await typeInto(tester, _width, '4');
 
-      await type(tester, _length, '');
+      await typeInto(tester, _length, '');
 
       expect(find.textContaining('Luas'), findsNothing);
     });
@@ -779,7 +794,7 @@ void main() {
     ) async {
       await _pumpAdd(tester, _repo());
 
-      await type(tester, _facility, 'ka');
+      await typeInto(tester, _facility, 'ka');
 
       expect(find.text('kasur'), findsOneWidget);
       expect(find.text('kamar mandi dalam'), findsOneWidget);
@@ -790,7 +805,7 @@ void main() {
     testWidgets('matching ignores case', (tester) async {
       await _pumpAdd(tester, _repo());
 
-      await type(tester, _facility, 'KAS');
+      await typeInto(tester, _facility, 'KAS');
 
       expect(find.text('kasur'), findsOneWidget);
       expect(find.text('kamar mandi dalam'), findsNothing);
@@ -801,7 +816,7 @@ void main() {
     ) async {
       await _pumpAdd(tester, _repo());
 
-      await type(tester, _facility, 'mandi');
+      await typeInto(tester, _facility, 'mandi');
 
       expect(find.text('kamar mandi dalam'), findsOneWidget);
       expect(find.text('kasur'), findsNothing);
@@ -972,9 +987,12 @@ void main() {
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _number), errorMessage('ROOM_NUMBER_TAKEN'));
-      expect(fieldError(tester, _number), 'Nomor kamar sudah dipakai.');
-      expect(fieldError(tester, _rate), isNull);
+      expect(
+        labeledFieldError(tester, _number),
+        errorMessage('ROOM_NUMBER_TAKEN'),
+      );
+      expect(labeledFieldError(tester, _number), 'Nomor kamar sudah dipakai.');
+      expect(labeledFieldError(tester, _rate), isNull);
       expect(find.byType(RoomFormScreen), findsOneWidget);
       expect(snackBar(errorMessage('ROOM_NUMBER_TAKEN')), findsNothing);
     });
@@ -989,8 +1007,11 @@ void main() {
 
       await _submitAdd(tester);
 
-      expect(fieldError(tester, _rate), errorMessage('VALIDATION_FAILED'));
-      expect(fieldError(tester, _number), isNull);
+      expect(
+        labeledFieldError(tester, _rate),
+        errorMessage('VALIDATION_FAILED'),
+      );
+      expect(labeledFieldError(tester, _number), isNull);
     });
 
     for (final field in ['lengthM', 'widthM']) {
@@ -1007,7 +1028,7 @@ void main() {
         await _submitAdd(tester);
 
         expect(find.text(errorMessage('VALIDATION_FAILED')), findsOneWidget);
-        expect(fieldError(tester, _number), isNull);
+        expect(labeledFieldError(tester, _number), isNull);
         expect(find.byType(RoomFormScreen), findsOneWidget);
       });
     }
@@ -1027,7 +1048,7 @@ void main() {
         await _submitAdd(tester);
 
         expect(find.text(errorMessage('VALIDATION_FAILED')), findsOneWidget);
-        expect(fieldError(tester, _number), isNull);
+        expect(labeledFieldError(tester, _number), isNull);
         expect(_chosen('ac'), findsOneWidget);
       });
     }
@@ -1060,7 +1081,7 @@ void main() {
       await _submitAdd(tester);
       expect(busyButton(), findsNothing);
 
-      await type(tester, _number, '11');
+      await typeInto(tester, _number, '11');
       await _submitAdd(tester);
 
       expect(repo.created, hasLength(2));
@@ -1083,7 +1104,7 @@ void main() {
 
       await tapAndPump(tester, find.text('Simpan Kamar'));
 
-      expect(fieldError(tester, _number), isNull);
+      expect(labeledFieldError(tester, _number), isNull);
       expectBusy(tester);
     });
 
@@ -1111,8 +1132,8 @@ void main() {
         final message = errorMessage(entry.value.code);
         expect(find.text(message), findsOneWidget);
         expect(snackBar(message), findsNothing);
-        expect(fieldError(tester, _number), isNull);
-        expect(fieldError(tester, _rate), isNull);
+        expect(labeledFieldError(tester, _number), isNull);
+        expect(labeledFieldError(tester, _rate), isNull);
         expect(find.byType(RoomFormScreen), findsOneWidget);
         expect(_text(tester, _number), '10');
         expect(_text(tester, _rate), '700000');
@@ -1269,7 +1290,7 @@ void main() {
 
       expectLoading(tester);
       expect(appBarTitle('Ubah Kamar'), findsOneWidget);
-      expect(field(_number), findsNothing);
+      expect(fieldLabeled(_number), findsNothing);
     });
 
     testWidgets('shows the failure with a retry when loading fails', (
@@ -1282,7 +1303,7 @@ void main() {
       expect(find.byType(ErrorView), findsAtLeastNWidgets(1));
       expect(find.text(errorMessage('ROOM_NOT_FOUND')), findsOneWidget);
       expect(appBarTitle('Ubah Kamar'), findsOneWidget);
-      expect(field(_number), findsNothing);
+      expect(fieldLabeled(_number), findsNothing);
     });
 
     testWidgets('Coba lagi loads the form again', (tester) async {
@@ -1311,14 +1332,14 @@ void main() {
     testWidgets('validates like the add form', (tester) async {
       final repo = _repo();
       await _pumpEdit(tester, repo);
-      await type(tester, _number, '');
-      await type(tester, _rate, '');
-      await type(tester, _width, '');
+      await typeInto(tester, _number, '');
+      await typeInto(tester, _rate, '');
+      await typeInto(tester, _width, '');
 
       await _submitEdit(tester);
 
-      expect(fieldError(tester, _number), 'Nomor kamar wajib diisi.');
-      expect(fieldError(tester, _rate), 'Tarif sewa wajib diisi.');
+      expect(labeledFieldError(tester, _number), 'Nomor kamar wajib diisi.');
+      expect(labeledFieldError(tester, _rate), 'Tarif sewa wajib diisi.');
       expect(find.text(_pairError), findsOneWidget);
       expect(repo.updated, isEmpty);
     });
@@ -1345,10 +1366,10 @@ void main() {
     testWidgets('sends the changed values', (tester) async {
       final repo = _repo();
       await _pumpEdit(tester, repo);
-      await type(tester, _number, ' 12 ');
-      await type(tester, _rate, '900000');
-      await type(tester, _length, '5,25');
-      await type(tester, _width, '3');
+      await typeInto(tester, _number, ' 12 ');
+      await typeInto(tester, _rate, '900000');
+      await typeInto(tester, _length, '5,25');
+      await typeInto(tester, _width, '3');
       await _removeTag(tester, 'ac');
       await _addTag(tester, 'wifi');
 
@@ -1369,8 +1390,8 @@ void main() {
     testWidgets('clearing both dimensions sends none', (tester) async {
       final repo = _repo();
       await _pumpEdit(tester, repo);
-      await type(tester, _length, '');
-      await type(tester, _width, '');
+      await typeInto(tester, _length, '');
+      await typeInto(tester, _width, '');
 
       await _submitEdit(tester);
 
@@ -1406,8 +1427,8 @@ void main() {
       final repo = _repo();
       await _pumpEdit(tester, repo);
       final loadsBefore = repo.getCalls;
-      await type(tester, _number, '12');
-      await type(tester, _rate, '900000');
+      await typeInto(tester, _number, '12');
+      await typeInto(tester, _rate, '900000');
 
       await _submitEdit(tester);
 
@@ -1433,11 +1454,14 @@ void main() {
           const ApiFailure(code: 'ROOM_NUMBER_TAKEN', field: 'number'),
         );
       await _pumpEdit(tester, repo);
-      await type(tester, _number, '09');
+      await typeInto(tester, _number, '09');
 
       await _submitEdit(tester);
 
-      expect(fieldError(tester, _number), errorMessage('ROOM_NUMBER_TAKEN'));
+      expect(
+        labeledFieldError(tester, _number),
+        errorMessage('ROOM_NUMBER_TAKEN'),
+      );
       expect(_text(tester, _number), '09');
       expect(find.byType(RoomFormScreen), findsOneWidget);
     });
@@ -1475,7 +1499,7 @@ void main() {
     ) async {
       final repo = _repo()..updateScript.queue.add(const ApiFailure.network());
       await _pumpEdit(tester, repo);
-      await type(tester, _number, '12');
+      await typeInto(tester, _number, '12');
 
       await _submitEdit(tester);
 
@@ -1500,6 +1524,152 @@ void main() {
     });
   });
 
+  group('structure', () {
+    const labels = [_number, _rate, _length, _width, _facility];
+
+    testWidgets('wraps every field in a LabeledField with its visible text', (
+      tester,
+    ) async {
+      await _pumpAdd(tester, _repo());
+
+      for (final label in labels) {
+        expect(labeledField(label), findsOneWidget);
+        expect(find.text(label), findsOneWidget);
+      }
+      expect(find.byType(LabeledField), findsNWidgets(labels.length));
+    });
+
+    testWidgets(
+      'marks the required fields (wajib) and leaves the others bare',
+      (tester) async {
+        await _pumpAdd(tester, _repo());
+
+        expect(find.text('Nomor kamar (wajib)'), findsOneWidget);
+        expect(find.text('Tarif dasar per bulan (wajib)'), findsOneWidget);
+        expect(find.text('Panjang (m)'), findsOneWidget);
+        expect(find.text('Lebar (m)'), findsOneWidget);
+        expect(find.text('Tambah fasilitas'), findsOneWidget);
+        expect(find.textContaining('(wajib)'), findsNWidgets(2));
+      },
+    );
+
+    testWidgets('draws no label inside any field of the add form', (
+      tester,
+    ) async {
+      await _pumpAdd(tester, _repo());
+
+      expectNoDecorationLabels(tester);
+    });
+
+    testWidgets('draws no label inside any field of the edit form', (
+      tester,
+    ) async {
+      await _pumpEdit(tester, _repo());
+
+      expect(find.byType(LabeledField), findsNWidgets(labels.length));
+      expectNoDecorationLabels(tester);
+    });
+
+    testWidgets('puts each label above its field', (tester) async {
+      await _pumpAdd(tester, _repo());
+
+      for (final label in labels) {
+        final text = tester.getRect(find.text(label));
+        final input = tester.getRect(fieldLabeled(label));
+        expect(text.bottom, lessThanOrEqualTo(input.top));
+      }
+    });
+
+    testWidgets('reads every field label once, on the field', (tester) async {
+      await _pumpAdd(tester, _repo());
+
+      for (final label in labels) {
+        expectFieldNode(tester, label);
+      }
+    });
+
+    testWidgets('keeps the number error on its field node', (tester) async {
+      await _pumpAdd(tester, _repo());
+
+      await _submitAdd(tester);
+
+      expectFieldNode(tester, _number, error: 'Nomor kamar wajib diisi.');
+    });
+
+    testWidgets('tapping a label focuses its field', (tester) async {
+      await _pumpAdd(tester, _repo());
+
+      await tester.tap(find.text(_width));
+      await tester.pump();
+
+      final editable = tester.widget<EditableText>(
+        find.descendant(
+          of: fieldLabeled(_width),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editable.focusNode.hasFocus, isTrue);
+    });
+
+    testWidgets('puts the add button in a pinned ActionFooter', (tester) async {
+      await _pumpAdd(tester, _repo());
+
+      expectPinnedFooter(tester, 'Simpan Kamar');
+    });
+
+    testWidgets('puts the edit button in a pinned ActionFooter', (
+      tester,
+    ) async {
+      await _pumpEdit(tester, _repo());
+
+      expectPinnedFooter(tester, 'Simpan Perubahan');
+    });
+
+    testWidgets('keeps the busy button inside the ActionFooter', (
+      tester,
+    ) async {
+      final repo = _repo()..createScript.gate = Completer<void>();
+      await _pumpAdd(tester, repo);
+      await _fill(tester);
+
+      await tapAndPump(tester, find.text('Simpan Kamar'));
+
+      expect(
+        find.descendant(
+          of: find.byType(ActionFooter),
+          matching: find.byType(CircularProgressIndicator),
+        ),
+        findsOneWidget,
+      );
+      expectBusy(tester);
+    });
+
+    testWidgets('keeps the footer on screen before and after scrolling', (
+      tester,
+    ) async {
+      await _pumpAdd(tester, _repo(), largeText: true);
+      final before = tester.getRect(find.byType(ActionFooter));
+      expectFooterAtBottom(tester);
+      expect(before.top, greaterThanOrEqualTo(0));
+
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(find.byType(ActionFooter)), before);
+      expect(find.text('Simpan Kamar'), findsOneWidget);
+    });
+
+    testWidgets(
+      'keeps the footer at the bottom on the edit form at large text',
+      (tester) async {
+        await _pumpEdit(tester, _repo(), largeText: true);
+
+        expectFooterAtBottom(tester);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  });
+
   group('accessibility', () {
     final states = <String, Future<void> Function(WidgetTester, bool)>{
       'the empty add form': (tester, large) =>
@@ -1514,8 +1684,8 @@ void main() {
       ),
       'the add form with the area': (tester, large) async {
         await _pumpAdd(tester, _repo(), largeText: large);
-        await type(tester, _length, '3,5');
-        await type(tester, _width, '4');
+        await typeInto(tester, _length, '3,5');
+        await typeInto(tester, _width, '4');
       },
       'the add form with chosen facilities': (tester, large) async {
         await _pumpAdd(tester, _repo(), largeText: large);
@@ -1524,7 +1694,7 @@ void main() {
       },
       'the add form with filtered suggestions': (tester, large) async {
         await _pumpAdd(tester, _repo(), largeText: large);
-        await type(tester, _facility, 'ka');
+        await typeInto(tester, _facility, 'ka');
       },
       'the add form with field errors': (tester, large) async {
         await _pumpAdd(tester, _repo(), largeText: large);

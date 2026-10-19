@@ -5,6 +5,7 @@ import 'package:niscala/app.dart';
 import 'package:niscala/core/router.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
+import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../../helpers/fakes.dart';
@@ -189,6 +190,51 @@ void expectWhiteAppBar(WidgetTester tester) {
         theme.colorScheme.surface,
     NiscalaColors.surface,
   );
+}
+
+/// Expects the detail app bar: white, and not tinted when content scrolls
+/// under it.
+void expectDetailAppBar(WidgetTester tester) {
+  expectWhiteAppBar(tester);
+  final appBar = tester.widget<AppBar>(find.byType(AppBar));
+  final theme = Theme.of(tester.element(find.byType(AppBar)));
+  expect(
+    appBar.scrolledUnderElevation ?? theme.appBarTheme.scrolledUnderElevation,
+    0,
+  );
+}
+
+/// The `SectionCard` whose heading is [title].
+Finder sectionCardOf(String title) =>
+    find.ancestor(of: find.text(title), matching: find.byType(SectionCard));
+
+/// Expects [title] to be the heading of a `SectionCard`, announced as a header.
+void expectSectionCard(WidgetTester tester, String title) {
+  expect(sectionCardOf(title), findsOneWidget);
+  final handle = tester.ensureSemantics();
+  try {
+    expect(tester.getSemantics(find.text(title)), isSemantics(isHeader: true));
+  } finally {
+    handle.dispose();
+  }
+}
+
+/// Expects every `Card` matched by [card] to take the design's look from the
+/// theme: no elevation, a 16 dp radius and a 1 dp divider border.
+void expectCardLook(WidgetTester tester, Finder card) {
+  final count = card.evaluate().length;
+  expect(count, greaterThan(0));
+  for (var i = 0; i < count; i++) {
+    final finder = card.at(i);
+    final widget = tester.widget<Card>(finder);
+    final theme = Theme.of(tester.element(finder)).cardTheme;
+    expect(widget.elevation ?? theme.elevation, 0);
+    final shape = widget.shape ?? theme.shape;
+    expect(shape, isA<RoundedRectangleBorder>());
+    final rounded = shape! as RoundedRectangleBorder;
+    expect(rounded.borderRadius, BorderRadius.circular(16));
+    expect(rounded.side, const BorderSide(color: NiscalaColors.divider));
+  }
 }
 
 /// Shows the sign in screen with [auth] behind it.

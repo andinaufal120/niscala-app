@@ -6,6 +6,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
@@ -42,13 +43,18 @@ List<Property> _two({bool secondEditable = true}) => [
   ),
 ];
 
+/// The title of the tab-root header, which is a [ScreenHeader] and not an app
+/// bar.
+Finder headerTitle(String title) =>
+    find.descendant(of: find.byType(ScreenHeader), matching: find.text(title));
+
 void main() {
   group('header', () {
-    testWidgets('shows the title Properti', (tester) async {
+    testWidgets('shows the title Properti in the tab header', (tester) async {
       await pumpPropertyApp(tester, FakePropertyRepository(properties: _two()));
 
       expect(find.byType(PropertyListScreen), findsOneWidget);
-      expect(appBarTitle('Properti'), findsOneWidget);
+      expect(headerTitle('Properti'), findsOneWidget);
     });
 
     testWidgets('tells an owner the list holds all their properties', (
@@ -345,7 +351,7 @@ void main() {
       );
 
       expect(find.byType(PropertyDetailScreen), findsNothing);
-      expect(appBarTitle('Properti'), findsOneWidget);
+      expect(headerTitle('Properti'), findsOneWidget);
       expect(find.text('Kos Melati'), findsOneWidget);
       expect(find.text('Tambah'), findsOneWidget);
     });
@@ -398,6 +404,165 @@ void main() {
             .widget<PropertyDetailScreen>(find.byType(PropertyDetailScreen))
             .showBack,
         isTrue,
+      );
+    });
+  });
+
+  group('structure', () {
+    testWidgets('is a tab root with a ScreenHeader and no app bar', (
+      tester,
+    ) async {
+      await pumpPropertyApp(tester, FakePropertyRepository(properties: _two()));
+
+      expect(find.byType(ScreenHeader), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(PropertyListScreen),
+          matching: find.byType(AppBar),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('announces the header title as the page heading', (
+      tester,
+    ) async {
+      await pumpPropertyApp(tester, FakePropertyRepository(properties: _two()));
+
+      final handle = tester.ensureSemantics();
+      try {
+        expect(
+          tester.getSemantics(headerTitle('Properti')),
+          isSemantics(isHeader: true),
+        );
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets(
+      'an owner sees Tambah as a filled primary action in the header',
+      (tester) async {
+        await pumpPropertyApp(
+          tester,
+          FakePropertyRepository(properties: _two()),
+        );
+
+        final action = find.descendant(
+          of: find.byType(ScreenHeader),
+          matching: find.text('Tambah'),
+        );
+        expect(action, findsOneWidget);
+        expect(
+          find.ancestor(of: action, matching: find.byType(FilledButton)),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('a manager gets a header with no action button', (
+      tester,
+    ) async {
+      await pumpPropertyApp(
+        tester,
+        FakePropertyRepository(properties: _two()),
+        role: UserRole.manager,
+      );
+
+      expect(find.byType(ScreenHeader), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ScreenHeader),
+          matching: find.byType(ButtonStyleButton),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('every property row is a card holding one property', (
+      tester,
+    ) async {
+      await pumpPropertyApp(tester, FakePropertyRepository(properties: _two()));
+
+      expect(
+        find.descendant(
+          of: find.byType(PropertyListScreen),
+          matching: find.byType(Card),
+        ),
+        findsNWidgets(2),
+      );
+      for (final name in ['Kos Melati', 'Kos Mawar']) {
+        expect(
+          find.ancestor(of: find.text(name), matching: find.byType(Card)),
+          findsOneWidget,
+        );
+      }
+    });
+
+    testWidgets(
+      'each card has a 16 dp radius, a divider border and no shadow',
+      (tester) async {
+        await pumpPropertyApp(
+          tester,
+          FakePropertyRepository(properties: _two()),
+        );
+
+        expectCardLook(
+          tester,
+          find.descendant(
+            of: find.byType(PropertyListScreen),
+            matching: find.byType(Card),
+          ),
+        );
+      },
+    );
+
+    testWidgets('a card holds the whole row of its property', (tester) async {
+      await pumpPropertyApp(tester, FakePropertyRepository(properties: _two()));
+
+      final melati = find.ancestor(
+        of: find.text('Kos Melati'),
+        matching: find.byType(Card),
+      );
+      expect(
+        find.descendant(
+          of: melati,
+          matching: find.text('Jl. Melati 1, Bandung'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: melati, matching: find.text('10 kamar · 4 terisi')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: melati,
+          matching: find.text('Pengelola: Sari, Dewi'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: melati, matching: find.text('Kos Mawar')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('the view-only badge sits inside its property card', (
+      tester,
+    ) async {
+      await pumpPropertyApp(
+        tester,
+        FakePropertyRepository(properties: _two(secondEditable: false)),
+      );
+
+      final mawar = find.ancestor(
+        of: find.text('Kos Mawar'),
+        matching: find.byType(Card),
+      );
+      expect(
+        find.descendant(of: mawar, matching: find.text('Hanya lihat')),
+        findsOneWidget,
       );
     });
   });

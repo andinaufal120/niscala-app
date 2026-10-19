@@ -156,7 +156,37 @@ void expectChipSelected(
   }
 }
 
-/// Expects the chip [label] to be at least 48 dp square.
+/// Expects the filter chip [label] to take its look from the chip theme: no
+/// colour, side, shape or checkmark is set on the chip itself.
+void expectChipStyledByTheme(WidgetTester tester, String label) {
+  final chip = tester.widget<Widget>(filterChip(label));
+  final Map<String, Object?> look;
+  if (chip is ChoiceChip) {
+    look = {
+      'backgroundColor': chip.backgroundColor,
+      'selectedColor': chip.selectedColor,
+      'side': chip.side,
+      'shape': chip.shape,
+      'showCheckmark': chip.showCheckmark,
+    };
+  } else if (chip is FilterChip) {
+    look = {
+      'backgroundColor': chip.backgroundColor,
+      'selectedColor': chip.selectedColor,
+      'side': chip.side,
+      'shape': chip.shape,
+      'showCheckmark': chip.showCheckmark,
+    };
+  } else {
+    fail('"$label" is neither a ChoiceChip nor a FilterChip');
+  }
+  expect({
+    for (final entry in look.entries)
+      if (entry.value != null) entry.key,
+  }, isEmpty);
+}
+
+/// Expects the filter chip [label] to be at least 48 dp square.
 void expectChipTargetSize(WidgetTester tester, String label) {
   final handle = tester.ensureSemantics();
   try {
