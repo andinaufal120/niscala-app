@@ -14,8 +14,16 @@ OutlineInputBorder _outline(Color color, double width) => OutlineInputBorder(
   borderSide: BorderSide(color: color, width: width),
 );
 
-TextStyle _style(double size, FontWeight weight, Color color) =>
-    TextStyle(fontSize: size, fontWeight: weight, color: color);
+const _fontFamily = 'PlusJakartaSans';
+
+/// Component themes replace the text style instead of merging it into the
+/// theme's, so every style names the font itself.
+TextStyle _style(double size, FontWeight weight, Color color) => TextStyle(
+  fontFamily: _fontFamily,
+  fontSize: size,
+  fontWeight: weight,
+  color: color,
+);
 
 /// The app theme. Every colour, type size and radius comes from the tokens;
 /// status badge colours are reached through the [NiscalaTokens] extension.
@@ -69,7 +77,7 @@ ThemeData buildTheme() {
     colorScheme: scheme,
     scaffoldBackgroundColor: NiscalaColors.ground,
     focusColor: NiscalaColors.focus,
-    fontFamily: 'PlusJakartaSans',
+    fontFamily: _fontFamily,
     textTheme: textTheme,
     extensions: const [NiscalaTokens()],
     appBarTheme: AppBarThemeData(
@@ -161,6 +169,7 @@ ThemeData buildTheme() {
       selectedColor: NiscalaColors.primary,
       side: const BorderSide(color: NiscalaColors.controlBorder),
       labelStyle: TextStyle(
+        fontFamily: _fontFamily,
         fontSize: 13,
         fontWeight: FontWeight.w600,
         color: WidgetStateColor.resolveWith(
