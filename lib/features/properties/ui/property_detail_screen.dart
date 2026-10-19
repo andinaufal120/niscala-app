@@ -7,6 +7,7 @@ import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/widgets/confirm_dialog.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
@@ -112,7 +113,7 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
     final bank = p.bankAccount;
     final managers = p.managers.map((m) => m.name).join(', ');
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(NiscalaSpacing.gutter),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -174,30 +175,31 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
           const SizedBox(height: 4),
           const Text('Daftarkan penyewa, atur masa sewa dan tagihan'),
           formGap,
-          Semantics(
-            header: true,
-            child: Text('Pengelola Kost', style: theme.textTheme.titleSmall),
+          SectionCard(
+            title: 'Pengelola Kost',
+            child: p.managers.isEmpty
+                ? const Text('Belum ada pengelola')
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${p.managers.length} pengelola'),
+                      Text(managers),
+                    ],
+                  ),
           ),
-          if (p.managers.isEmpty)
-            const Text('Belum ada pengelola')
-          else ...[
-            Text('${p.managers.length} pengelola'),
-            Text(managers),
-          ],
           formGap,
-          Semantics(
-            header: true,
-            child: Text(
-              'Rekening transfer sewa',
-              style: theme.textTheme.titleSmall,
-            ),
+          SectionCard(
+            title: 'Rekening transfer sewa',
+            child: bank == null
+                ? const Text(_noBank)
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${bank.bankName} · ${bank.accountNumber}'),
+                      Text('a.n. ${bank.accountHolderName}'),
+                    ],
+                  ),
           ),
-          if (bank == null)
-            const Text(_noBank)
-          else ...[
-            Text('${bank.bankName} · ${bank.accountNumber}'),
-            Text('a.n. ${bank.accountHolderName}'),
-          ],
         ],
       ),
     );

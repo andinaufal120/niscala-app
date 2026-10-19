@@ -6,6 +6,7 @@ import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
@@ -59,7 +60,7 @@ class PropertyListScreen extends ConsumerWidget {
         }
         return _listPage(
           ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(NiscalaSpacing.gutter),
             children: [
               Text(
                 isOwner
@@ -67,29 +68,34 @@ class PropertyListScreen extends ConsumerWidget {
                     : 'Properti yang ditugaskan kepada Anda',
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
-              if (isOwner) ...[
-                formGap,
-                FilledButton.icon(
-                  onPressed: () => context.go('/properti/tambah'),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Tambah'),
-                ),
-              ],
               for (final property in items) ...[
                 formGap,
                 _PropertyCard(property: property),
               ],
             ],
           ),
+          action: isOwner
+              ? FilledButton(
+                  onPressed: () => context.go('/properti/tambah'),
+                  child: const Text('Tambah'),
+                )
+              : null,
         );
       },
     );
   }
 }
 
-Scaffold _listPage(Widget body) => Scaffold(
-  appBar: AppBar(title: const Text('Properti')),
-  body: body,
+/// The tab page: the header on top, the state below it. The header has no
+/// app bar, as a tab root does.
+Scaffold _listPage(Widget body, {Widget? action}) => Scaffold(
+  body: Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      ScreenHeader(title: 'Properti', action: action),
+      Expanded(child: body),
+    ],
+  ),
 );
 
 class _PropertyCard extends StatelessWidget {

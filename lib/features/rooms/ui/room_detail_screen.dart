@@ -7,6 +7,7 @@ import 'package:niscala/core/format.dart';
 import 'package:niscala/core/widgets/confirm_dialog.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
@@ -123,7 +124,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
     final length = r.lengthM;
     final width = r.widthM;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(NiscalaSpacing.gutter),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -143,85 +144,99 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
           if (!r.editable) ...[const SizedBox(height: 8), Text(_readOnly)],
           formGap,
           if (lease == null)
-            _RoomSection(
+            SectionCard(
               title: 'Tarif dasar kamar',
-              children: [
-                Text('${formatRupiah(r.baseRate)} / bulan'),
-                const Text('Nilai awal saat mendaftarkan penyewa'),
-              ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${formatRupiah(r.baseRate)} / bulan'),
+                  const Text('Nilai awal saat mendaftarkan penyewa'),
+                ],
+              ),
             )
           else
-            _RoomSection(
+            SectionCard(
               title: 'Tarif sewa · masa sewa ini',
-              children: [
-                Text('${formatRupiah(lease.rent)} / bulan'),
-                Text('Tarif dasar kamar: ${formatRupiah(r.baseRate)} / bulan'),
-              ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${formatRupiah(lease.rent)} / bulan'),
+                  Text(
+                    'Tarif dasar kamar: ${formatRupiah(r.baseRate)} / bulan',
+                  ),
+                ],
+              ),
             ),
           formGap,
-          _RoomSection(
+          SectionCard(
             title: 'Ukuran',
-            children: [
-              if (length != null && width != null) ...[
-                Text(formatDimensions(length, width)),
-                Text('${formatMeasure(length * width)} m²'),
-              ] else
-                const Text('Belum diisi'),
-            ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (length != null && width != null) ...[
+                  Text(formatDimensions(length, width)),
+                  Text('${formatMeasure(length * width)} m²'),
+                ] else
+                  const Text('Belum diisi'),
+              ],
+            ),
           ),
           formGap,
-          _RoomSection(
+          SectionCard(
             title: 'Fasilitas',
-            children: [
-              if (r.facilities.isEmpty)
-                const Text('Belum ada fasilitas')
-              else
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final tag in r.facilities) Chip(label: Text(tag)),
-                  ],
-                ),
-            ],
+            child: r.facilities.isEmpty
+                ? const Text('Belum ada fasilitas')
+                : Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final tag in r.facilities) Chip(label: Text(tag)),
+                    ],
+                  ),
           ),
           formGap,
           if (lease == null)
-            _RoomSection(
+            SectionCard(
               title: 'Kamar kosong',
-              children: [
-                const Text('Belum ada penyewa di kamar ini.'),
-                if (r.editable) ...[
-                  const SizedBox(height: 8),
-                  FilledButton(
-                    onPressed: () => context.go(
-                      '/properti/${widget.propertyId}/penyewa/tambah?kamar=${r.id}',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Belum ada penyewa di kamar ini.'),
+                  if (r.editable) ...[
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: () => context.go(
+                        '/properti/${widget.propertyId}/penyewa/tambah?kamar=${r.id}',
+                      ),
+                      child: const Text('Tambah Penyewa'),
                     ),
-                    child: const Text('Tambah Penyewa'),
-                  ),
+                  ],
                 ],
-              ],
+              ),
             )
           else
-            _RoomSection(
+            SectionCard(
               title: 'Penyewa & masa sewa',
-              children: [
-                Text(lease.tenantName, style: theme.textTheme.titleMedium),
-                Text(lease.tenantPhone),
-                const SizedBox(height: 8),
-                Text('Mulai', style: theme.textTheme.labelLarge),
-                Text(_dateOrDash(lease.startDate)),
-                const SizedBox(height: 8),
-                Text('Berakhir', style: theme.textTheme.labelLarge),
-                Text(_dateOrDash(lease.endDate)),
-                const SizedBox(height: 8),
-                OutlinedButton(
-                  onPressed: () => context.go(
-                    '/properti/${widget.propertyId}/penyewa/${lease.tenantId}',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(lease.tenantName, style: theme.textTheme.titleMedium),
+                  Text(lease.tenantPhone),
+                  const SizedBox(height: 8),
+                  Text('Mulai', style: theme.textTheme.labelLarge),
+                  Text(_dateOrDash(lease.startDate)),
+                  const SizedBox(height: 8),
+                  Text('Berakhir', style: theme.textTheme.labelLarge),
+                  Text(_dateOrDash(lease.endDate)),
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    onPressed: () => context.go(
+                      '/properti/${widget.propertyId}/penyewa/${lease.tenantId}',
+                    ),
+                    child: const Text('Lihat rincian penyewa'),
                   ),
-                  child: const Text('Lihat rincian penyewa'),
-                ),
-              ],
+                ],
+              ),
             ),
           formGap,
           OutlinedButton(
@@ -238,27 +253,3 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
 }
 
 String _dateOrDash(DateTime? date) => date == null ? '-' : formatDate(date);
-
-/// A titled block of the detail screen. The title is a header for assistive
-/// technology.
-class _RoomSection extends StatelessWidget {
-  const _RoomSection({required this.title, required this.children});
-
-  final String title;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Semantics(
-          header: true,
-          child: Text(title, style: Theme.of(context).textTheme.titleSmall),
-        ),
-        const SizedBox(height: 4),
-        ...children,
-      ],
-    );
-  }
-}
