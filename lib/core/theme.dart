@@ -1,58 +1,200 @@
 import 'package:flutter/material.dart';
-
-const _primary = Color(0xFF0E5E52);
-const _ground = Color(0xFFF3F5F4);
-const _text = Color(0xFF15211E);
-const _error = Color(0xFF9A3412);
-const _focus = Color(0xFFF6B44B);
+import 'package:niscala/core/tokens.dart';
 
 const _minimumTarget = Size(48, 48);
 
-/// The app theme. Status badges take their colours from the container pairs
-/// of the colour scheme, so no screen defines colours of its own.
+RoundedRectangleBorder _rounded(double radius, [BorderSide? side]) =>
+    RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(radius),
+      side: side ?? BorderSide.none,
+    );
+
+OutlineInputBorder _outline(Color color, double width) => OutlineInputBorder(
+  borderRadius: BorderRadius.circular(NiscalaRadius.control),
+  borderSide: BorderSide(color: color, width: width),
+);
+
+TextStyle _style(double size, FontWeight weight, Color color) =>
+    TextStyle(fontSize: size, fontWeight: weight, color: color);
+
+/// The app theme. Every colour, type size and radius comes from the tokens;
+/// status badge colours are reached through the [NiscalaTokens] extension.
 ThemeData buildTheme() {
   const scheme = ColorScheme(
     brightness: Brightness.light,
-    primary: _primary,
-    onPrimary: Color(0xFFFFFFFF),
-    primaryContainer: Color(0xFFD6EBE6),
-    onPrimaryContainer: Color(0xFF0A4A40),
-    secondary: Color(0xFF2F4F7F),
-    onSecondary: Color(0xFFFFFFFF),
-    secondaryContainer: Color(0xFFDCE8F5),
-    onSecondaryContainer: Color(0xFF1E3A5F),
-    tertiary: Color(0xFF8A5A00),
-    onTertiary: Color(0xFFFFFFFF),
-    tertiaryContainer: Color(0xFFFCEBCB),
-    onTertiaryContainer: Color(0xFF5C3600),
-    error: _error,
-    onError: Color(0xFFFFFFFF),
-    errorContainer: Color(0xFFF8DDD0),
-    onErrorContainer: Color(0xFF7A2A06),
-    surface: _ground,
-    onSurface: _text,
-    surfaceContainerHighest: Color(0xFFE1E6E4),
+    primary: NiscalaColors.primary,
+    onPrimary: NiscalaColors.surface,
+    primaryContainer: NiscalaColors.primarySoft,
+    onPrimaryContainer: NiscalaColors.primaryStrong,
+    secondary: NiscalaColors.textSecondary,
+    onSecondary: NiscalaColors.surface,
+    secondaryContainer: NiscalaColors.neutralSoft,
+    onSecondaryContainer: NiscalaColors.textSecondary,
+    tertiary: NiscalaColors.onWarningSoft,
+    onTertiary: NiscalaColors.surface,
+    tertiaryContainer: NiscalaColors.warningSoft,
+    onTertiaryContainer: NiscalaColors.onWarningSoft,
+    error: NiscalaColors.danger,
+    onError: NiscalaColors.surface,
+    errorContainer: NiscalaColors.dangerSoft,
+    onErrorContainer: NiscalaColors.onDangerSoft,
+    surface: NiscalaColors.surface,
+    onSurface: NiscalaColors.text,
+    onSurfaceVariant: NiscalaColors.textMuted,
+    outline: NiscalaColors.fieldBorder,
+    outlineVariant: NiscalaColors.divider,
+    surfaceContainerHighest: NiscalaColors.neutralSoft,
   );
+
+  const text = NiscalaColors.text;
+  final textTheme = TextTheme(
+    headlineSmall: _style(22, FontWeight.w800, text),
+    titleLarge: _style(17, FontWeight.w700, text),
+    titleMedium: _style(15, FontWeight.w700, text),
+    titleSmall: _style(14, FontWeight.w700, text),
+    bodyLarge: _style(15, FontWeight.w400, text).copyWith(height: 1.5),
+    bodyMedium: _style(14, FontWeight.w400, text).copyWith(height: 1.5),
+    bodySmall: _style(
+      12,
+      FontWeight.w500,
+      NiscalaColors.textMuted,
+    ).copyWith(height: 1.5),
+    labelLarge: _style(15, FontWeight.w700, text),
+    labelMedium: _style(12, FontWeight.w600, NiscalaColors.textMuted),
+    labelSmall: _style(11, FontWeight.w700, text),
+  );
+
   return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
-    scaffoldBackgroundColor: _ground,
-    focusColor: _focus,
+    scaffoldBackgroundColor: NiscalaColors.ground,
+    focusColor: NiscalaColors.focus,
     fontFamily: 'PlusJakartaSans',
-    inputDecorationTheme: const InputDecorationTheme(
-      border: OutlineInputBorder(),
+    textTheme: textTheme,
+    extensions: const [NiscalaTokens()],
+    appBarTheme: AppBarThemeData(
+      backgroundColor: NiscalaColors.surface,
+      foregroundColor: text,
+      surfaceTintColor: Colors.transparent,
+      scrolledUnderElevation: 0,
+      elevation: 0,
+      centerTitle: false,
+      shape: const Border(bottom: BorderSide(color: NiscalaColors.divider)),
+      titleTextStyle: _style(17, FontWeight.w700, text),
     ),
     filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(minimumSize: _minimumTarget),
+      style: FilledButton.styleFrom(
+        backgroundColor: NiscalaColors.primary,
+        foregroundColor: NiscalaColors.surface,
+        minimumSize: _minimumTarget,
+        shape: _rounded(NiscalaRadius.control),
+        textStyle: _style(15, FontWeight.w700, NiscalaColors.surface),
+      ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(minimumSize: _minimumTarget),
+      style: ElevatedButton.styleFrom(
+        minimumSize: _minimumTarget,
+        shape: _rounded(NiscalaRadius.control),
+      ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(minimumSize: _minimumTarget),
+      style: OutlinedButton.styleFrom(
+        backgroundColor: NiscalaColors.surface,
+        foregroundColor: text,
+        minimumSize: _minimumTarget,
+        side: const BorderSide(color: NiscalaColors.controlBorder),
+        shape: _rounded(NiscalaRadius.control),
+        textStyle: _style(14, FontWeight.w600, text),
+      ),
     ),
     textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(minimumSize: _minimumTarget),
+      style: TextButton.styleFrom(
+        foregroundColor: NiscalaColors.primary,
+        minimumSize: _minimumTarget,
+        textStyle: _style(14, FontWeight.w600, NiscalaColors.primary),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationThemeData(
+      filled: true,
+      fillColor: NiscalaColors.surface,
+      border: _outline(NiscalaColors.fieldBorder, 1),
+      enabledBorder: _outline(NiscalaColors.fieldBorder, 1),
+      focusedBorder: _outline(NiscalaColors.primary, 2),
+      errorBorder: _outline(NiscalaColors.danger, 2),
+      focusedErrorBorder: _outline(NiscalaColors.danger, 2),
+      helperStyle: _style(12, FontWeight.w400, NiscalaColors.textMuted),
+      errorStyle: _style(12, FontWeight.w600, NiscalaColors.danger),
+    ),
+    cardTheme: CardThemeData(
+      color: NiscalaColors.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: _rounded(
+        NiscalaRadius.card,
+        const BorderSide(color: NiscalaColors.divider),
+      ),
+    ),
+    dividerTheme: const DividerThemeData(color: NiscalaColors.divider),
+    dialogTheme: DialogThemeData(
+      backgroundColor: NiscalaColors.surface,
+      surfaceTintColor: Colors.transparent,
+      shape: _rounded(NiscalaRadius.sheet),
+      titleTextStyle: _style(18, FontWeight.w800, text),
+    ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: NiscalaColors.surface,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(NiscalaRadius.sheet),
+        ),
+      ),
+    ),
+    chipTheme: ChipThemeData(
+      shape: const StadiumBorder(),
+      showCheckmark: false,
+      elevation: 0,
+      pressElevation: 0,
+      surfaceTintColor: Colors.transparent,
+      backgroundColor: NiscalaColors.surface,
+      selectedColor: NiscalaColors.primary,
+      side: const BorderSide(color: NiscalaColors.controlBorder),
+      labelStyle: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: WidgetStateColor.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? NiscalaColors.surface
+              : NiscalaColors.textSecondary,
+        ),
+      ),
+    ),
+    checkboxTheme: CheckboxThemeData(
+      shape: _rounded(4),
+      fillColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
+            ? NiscalaColors.primary
+            : null,
+      ),
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: NiscalaColors.surface,
+      surfaceTintColor: Colors.transparent,
+      indicatorColor: Colors.transparent,
+      elevation: 0,
+      labelTextStyle: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.selected)
+            ? _style(11, FontWeight.w700, NiscalaColors.primary)
+            : _style(11, FontWeight.w600, NiscalaColors.textMuted),
+      ),
+      iconTheme: WidgetStateProperty.resolveWith(
+        (states) => IconThemeData(
+          color: states.contains(WidgetState.selected)
+              ? NiscalaColors.primary
+              : NiscalaColors.textMuted,
+        ),
+      ),
     ),
   );
 }

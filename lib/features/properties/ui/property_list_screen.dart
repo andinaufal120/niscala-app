@@ -6,6 +6,7 @@ import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
@@ -122,9 +123,9 @@ class _PropertyCard extends StatelessWidget {
               ),
               if (!property.editable) ...[
                 const SizedBox(height: 4),
-                const StatusBadge(
+                StatusBadge(
                   label: 'Hanya lihat',
-                  tone: StatusTone.neutral,
+                  colors: NiscalaTokens.of(context).readOnly,
                 ),
               ],
             ],

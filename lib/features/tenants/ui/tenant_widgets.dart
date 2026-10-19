@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala_api/api.dart';
 
@@ -33,11 +34,12 @@ class TenantStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = NiscalaTokens.of(context);
     return status == TenantAccountStatus.active
-        ? const StatusBadge(label: 'Aktif', tone: StatusTone.success)
-        : const StatusBadge(
+        ? StatusBadge(label: 'Aktif', colors: tokens.tenantActive)
+        : StatusBadge(
             label: 'Belum Diaktifkan',
-            tone: StatusTone.warning,
+            colors: tokens.tenantNotActivated,
           );
   }
 }
