@@ -133,6 +133,10 @@ void main() {
       expect(border.top, BorderSide.none);
     });
 
+    test('the title sits right next to the back button', () {
+      expect(bar.titleSpacing, 0);
+    });
+
     test('titles are 17 bold, text coloured and left aligned', () {
       expect(bar.titleTextStyle?.fontSize, 17);
       expect(bar.titleTextStyle?.fontWeight, FontWeight.w700);

@@ -7,6 +7,7 @@ import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
+import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
@@ -1312,6 +1313,42 @@ void main() {
         heading.top,
         greaterThanOrEqualTo(tester.getRect(find.text(_address)).bottom),
       );
+    });
+
+    testWidgets('the bank group is not inside any card', (tester) async {
+      await _pumpAdd(tester, FakePropertyRepository());
+
+      for (final text in [_bankGroup, _bankHelper]) {
+        expect(
+          find.ancestor(
+            of: find.text(text),
+            matching: find.byType(SectionCard),
+          ),
+          findsNothing,
+        );
+        expect(
+          find.ancestor(of: find.text(text), matching: find.byType(Card)),
+          findsNothing,
+        );
+      }
+    });
+
+    testWidgets('the bank fields are not inside any card', (tester) async {
+      await _pumpAdd(tester, FakePropertyRepository());
+
+      for (final label in [_bankName, _accountNumber, _holder]) {
+        expect(
+          find.ancestor(
+            of: fieldLabeled(label),
+            matching: find.byType(SectionCard),
+          ),
+          findsNothing,
+        );
+        expect(
+          find.ancestor(of: fieldLabeled(label), matching: find.byType(Card)),
+          findsNothing,
+        );
+      }
     });
 
     testWidgets('puts the add button in an ActionFooter', (tester) async {

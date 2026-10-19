@@ -23,6 +23,15 @@ Finder tabTitle(String title) => const ['Properti', 'Keluhan'].contains(title)
     ? find.descendant(of: find.byType(ScreenHeader), matching: find.text(title))
     : appBarTitle(title);
 
+/// The title of a tenant tab. The tenant Keluhan tab is labelled Keluhan in the
+/// navigation bar, but its header reads Keluhan Saya.
+Finder tenantTabTitle(String title) => title == 'Keluhan'
+    ? find.descendant(
+        of: find.byType(ScreenHeader),
+        matching: find.text('Keluhan Saya'),
+      )
+    : tabTitle(title);
+
 Finder appBarTitle(String title) =>
     find.descendant(of: find.byType(AppBar), matching: find.text(title));
 
@@ -126,6 +135,18 @@ void main() {
       }
     });
 
+    testWidgets('the management Keluhan tab keeps the header Keluhan', (
+      tester,
+    ) async {
+      await pumpShell(tester, UserRole.owner);
+
+      await tester.tap(navLabel('Keluhan'));
+      await tester.pumpAndSettle();
+
+      expect(tabTitle('Keluhan'), findsOneWidget);
+      expect(find.text('Keluhan Saya'), findsNothing);
+    });
+
     testWidgets('shows the property list on the properties tab', (
       tester,
     ) async {
@@ -221,9 +242,34 @@ void main() {
 
         expect(currentPath(tester), paths[i]);
         expect(selectedIndex(tester), i);
-        expect(tabTitle(labels[i]), findsOneWidget);
+        expect(tenantTabTitle(labels[i]), findsOneWidget);
       });
     }
+
+    testWidgets('the Keluhan tab is labelled Keluhan and titled Keluhan Saya', (
+      tester,
+    ) async {
+      await pumpShell(tester, UserRole.tenant);
+
+      await tester.tap(navLabel('Keluhan'));
+      await tester.pumpAndSettle();
+
+      expect(navLabel('Keluhan'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ScreenHeader),
+          matching: find.text('Keluhan Saya'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(ScreenHeader),
+          matching: find.text('Keluhan'),
+        ),
+        findsNothing,
+      );
+    });
 
     testWidgets('shows placeholders for tabs that are not built yet', (
       tester,

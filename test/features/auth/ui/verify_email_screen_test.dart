@@ -616,6 +616,44 @@ void main() {
       expect(button.width, greaterThanOrEqualTo(48));
     });
 
+    testWidgets('puts the resend button at the right edge of the row', (
+      tester,
+    ) async {
+      await pumpVerify(tester, auth);
+
+      final width =
+          tester.view.physicalSize.width / tester.view.devicePixelRatio;
+      final button = tester.getRect(buttonLabelled('Kirim ulang'));
+      expect(button.right, closeTo(width - 20, 1));
+    });
+
+    testWidgets('puts the prompt at the left of the resend row', (
+      tester,
+    ) async {
+      await pumpVerify(tester, auth);
+
+      final prompt = tester.getRect(find.text('Belum menerima kode?'));
+      final button = tester.getRect(buttonLabelled('Kirim ulang'));
+      expect(prompt.left, closeTo(20, 1));
+      expect(prompt.right, lessThanOrEqualTo(button.left));
+      expect(prompt.center.dy, greaterThanOrEqualTo(button.top));
+      expect(prompt.center.dy, lessThanOrEqualTo(button.bottom));
+    });
+
+    testWidgets('puts the spam folder hint below the resend row', (
+      tester,
+    ) async {
+      await pumpVerify(tester, auth);
+
+      final prompt = tester.getRect(find.text('Belum menerima kode?'));
+      final button = tester.getRect(buttonLabelled('Kirim ulang'));
+      final hint = tester.getRect(
+        find.text('Tidak menemukan email? Periksa folder spam.'),
+      );
+      expect(hint.top, greaterThanOrEqualTo(button.bottom - 1));
+      expect(hint.top, greaterThanOrEqualTo(prompt.bottom - 1));
+    });
+
     testWidgets(
       'pins the Verifikasi action in a footer outside any scroll view',
       (tester) async {

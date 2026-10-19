@@ -70,12 +70,29 @@ FakeComplaintRepository _repo([List<Complaint>? complaints]) =>
 
 void main() {
   group('header', () {
-    testWidgets('is titled Keluhan on the tenant Keluhan tab', (tester) async {
+    testWidgets('is titled Keluhan Saya on the tenant Keluhan tab', (
+      tester,
+    ) async {
       await pumpComplaintApp(tester, _repo());
 
       expect(find.byType(TenantComplaintListScreen), findsOneWidget);
-      expect(headerTitle('Keluhan'), findsOneWidget);
+      expect(headerTitle('Keluhan Saya'), findsOneWidget);
+      expect(headerTitle('Keluhan'), findsNothing);
       expect(currentPath(tester), '/penyewa/keluhan');
+    });
+
+    testWidgets('the bottom navigation tab stays labelled Keluhan', (
+      tester,
+    ) async {
+      await pumpComplaintApp(tester, _repo());
+
+      expect(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.text('Keluhan'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('loads the complaints once', (tester) async {
@@ -516,7 +533,7 @@ void main() {
       final handle = tester.ensureSemantics();
       try {
         expect(
-          tester.getSemantics(headerTitle('Keluhan')),
+          tester.getSemantics(headerTitle('Keluhan Saya')),
           isSemantics(isHeader: true),
         );
       } finally {

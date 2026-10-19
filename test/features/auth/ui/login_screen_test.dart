@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
+import 'package:niscala/core/widgets/info_note.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/register_owner_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
@@ -18,6 +19,9 @@ import 'auth_ui_helpers.dart';
 
 const _email = 'Email (wajib)';
 const _password = 'Kata sandi (wajib)';
+const _invitationNote =
+    'Penyewa dan pengelola kost mengaktifkan akun lewat tautan undangan '
+    'dari pemilik kost.';
 
 Future<void> fillAndSubmit(
   WidgetTester tester, {
@@ -544,26 +548,61 @@ void main() {
     ) async {
       await pumpLogin(tester, auth);
 
-      const note =
-          'Penyewa dan pengelola kost mengaktifkan akun lewat tautan undangan '
-          'dari pemilik kost.';
-      expect(find.text(note), findsOneWidget);
+      expect(find.text(_invitationNote), findsOneWidget);
       expect(find.text('Aktifkan dengan tautan undangan'), findsOneWidget);
       final submit = tester.getRect(buttonLabelled('Masuk'));
-      final noteRect = tester.getRect(find.text(note));
+      final noteRect = tester.getRect(find.text(_invitationNote));
       final link = tester.getRect(find.text('Aktifkan dengan tautan undangan'));
       expect(noteRect.top, greaterThanOrEqualTo(submit.bottom));
       expect(link.top, greaterThanOrEqualTo(noteRect.bottom - 1));
     });
 
-    testWidgets('pins the invitation note and link near the bottom', (
+    testWidgets('shows the Daftar row above the invitation note', (
       tester,
     ) async {
       await pumpLogin(tester, auth);
 
+      final submit = tester.getRect(buttonLabelled('Masuk'));
+      final prompt = tester.getRect(find.text('Pemilik kost baru?'));
+      final daftar = tester.getRect(find.text('Daftar'));
+      final noteRect = tester.getRect(find.text(_invitationNote));
       final link = tester.getRect(find.text('Aktifkan dengan tautan undangan'));
-      final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
-      expect(link.bottom, greaterThan(screen.height * 0.9));
+      expect(prompt.top, greaterThanOrEqualTo(submit.bottom));
+      expect(daftar.top, lessThan(prompt.bottom));
+      expect(prompt.top, lessThan(daftar.bottom));
+      expect(prompt.bottom, lessThanOrEqualTo(noteRect.top + 1));
+      expect(noteRect.bottom, lessThanOrEqualTo(link.top + 1));
+    });
+
+    testWidgets(
+      'pins the Daftar row, invitation note and link near the bottom',
+      (tester) async {
+        await pumpLogin(tester, auth);
+
+        final link = tester.getRect(
+          find.text('Aktifkan dengan tautan undangan'),
+        );
+        final prompt = tester.getRect(find.text('Pemilik kost baru?'));
+        final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+        expect(link.bottom, greaterThan(screen.height * 0.9));
+        expect(prompt.top, greaterThan(screen.height * 0.8));
+      },
+    );
+
+    testWidgets('shows the invitation note as plain centred muted text', (
+      tester,
+    ) async {
+      await pumpLogin(tester, auth);
+
+      expect(find.byType(InfoNote), findsNothing);
+      final noteRect = tester.getRect(find.text(_invitationNote));
+      final width =
+          tester.view.physicalSize.width / tester.view.devicePixelRatio;
+      expect(noteRect.center.dx, closeTo(width / 2, 1));
+      final style = DefaultTextStyle.of(
+        tester.element(find.text(_invitationNote)),
+      ).style;
+      expect(style.color, const Color(0xFF50605B));
     });
 
     testWidgets('the activation link opens the activation screen', (

@@ -86,6 +86,19 @@ void main() {
       expect(repo.calls, contains('get:r1'));
     });
 
+    testWidgets(
+      'puts the title within 64 dp of the left edge after the back button',
+      (tester) async {
+        await _openFromList(tester, _repo());
+
+        expect(find.byType(BackButton), findsOneWidget);
+        expect(
+          tester.getTopLeft(appBarTitle('Kamar 08')).dx,
+          lessThanOrEqualTo(64),
+        );
+      },
+    );
+
     testWidgets('still shows the room when the property cannot be loaded', (
       tester,
     ) async {
