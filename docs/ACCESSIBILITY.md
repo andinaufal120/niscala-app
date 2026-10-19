@@ -29,7 +29,7 @@ Each rule cites the WCAG success criterion (SC) it comes from. "N/A" criteria ar
 | 1.1.1                        | An invitation QR code (UC-18, UC-20) is never the only way to get the link: the same screen offers the link as text and as a share action.                                                                       |
 | 4.1.2 Name, Role, Value      | Use standard Material widgets where possible; they expose name, role and state. A custom tappable widget is wrapped in `Semantics(button: true, label: ...)`, and toggles/checkboxes expose `checked`/`toggled`. |
 | 2.5.3 Label in Name          | If a control shows visible text, its spoken label starts with that text. Don't override `"Simpan"` with an unrelated label like `"Kirim formulir"`.                                                              |
-| 1.3.1 Info and Relationships | Screen and section titles use `Semantics(header: true)`. Form fields get their label through `InputDecoration.labelText`, not a separate `Text` placed above the field.                                          |
+| 1.3.1 Info and Relationships | Screen and section titles use `Semantics(header: true)`. Form fields are labelled through the shared `LabeledField` widget: it shows the label above the field, gives the field the same text as its semantic label and excludes the visible label from semantics, so TalkBack reads it once. A bare `Text` placed above a field is never its label. |
 | 1.3.2 Meaningful Sequence    | Reading order matches visual order. Use `MergeSemantics` for list rows so a row reads as one item (e.g. `"Kamar 12, Terisi, Rp 800.000"`).                                                                       |
 
 ### 2.2 Colour, contrast and text size
@@ -104,10 +104,13 @@ Put the checks in one shared test helper so every screen runs exactly the same c
 ```dart
 Future<void> expectMeetsA11yGuidelines(WidgetTester tester) async {
   final handle = tester.ensureSemantics();
-  addTearDown(handle.dispose);
-  await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
-  await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
-  await expectLater(tester, meetsGuideline(textContrastGuideline));
+  try {
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(textContrastGuideline));
+  } finally {
+    handle.dispose(); // addTearDown(handle.dispose) fails on current Flutter
+  }
 }
 
 Future<void> pumpAtLargeText(WidgetTester tester, Widget screen) async {
@@ -156,3 +159,4 @@ If a feature introduces any of these (for example a video tutorial in in-app hel
 | 13-10-2026 | Initial version: Level A plus project rules for 1.4.3, 1.4.4, 2.5.8 and 3.3.8; automated verification only.                                                                                                   | NKMA-14    |
 | 13-10-2026 | Google sign-in rule scoped to login and activation; §3.3 adds clipped text, focus return and assistive-tech checks; test helper disposes semantics on failure; receipt label no longer assumes a date format. | NKMA-14    |
 | 15-10-2026 | 3.3.8: a rate-limit error is shown as the Indonesian message for its error code, not the API's English text.                                                                                                  | NKMA-14    |
+| 19-10-2026 | 1.3.1: field labels sit above the field through the shared labelled-field widget, matching the design; the §3.2 sketch disposes the semantics handle inside the test. | NKMA-13 |
