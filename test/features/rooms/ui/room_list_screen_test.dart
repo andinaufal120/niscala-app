@@ -665,6 +665,8 @@ void main() {
       tester,
     ) async {
       await pumpRoomApp(tester, _repo([occupiedRoom()]), largeText: true);
+      await tester.ensureVisible(filterChip('Kosong'));
+      await tester.pumpAndSettle();
       await tester.tap(filterChip('Kosong'));
       await tester.pumpAndSettle();
 

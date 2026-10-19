@@ -623,6 +623,8 @@ void main() {
       tester,
     ) async {
       await pumpTenantApp(tester, _repo(), largeText: true);
+      await tester.ensureVisible(filterChip('Belum Diaktifkan'));
+      await tester.pumpAndSettle();
       await tester.tap(filterChip('Belum Diaktifkan'));
       await tester.pumpAndSettle();
 
@@ -650,6 +652,8 @@ void main() {
         _repo([makeTenant(accountStatus: TenantAccountStatus.active)]),
         largeText: true,
       );
+      await tester.ensureVisible(filterChip('Belum Diaktifkan'));
+      await tester.pumpAndSettle();
       await tester.tap(filterChip('Belum Diaktifkan'));
       await tester.pumpAndSettle();
 
