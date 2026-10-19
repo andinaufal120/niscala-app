@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/tenants/tenant_format.dart';
 
 const maxEmergencyContacts = 4;
@@ -80,29 +81,32 @@ class EmergencyContactBlock extends StatelessWidget {
             ),
           ],
         ),
-        TextField(
-          controller: draft.name,
-          textCapitalization: TextCapitalization.words,
-          decoration: InputDecoration(
-            labelText: 'Nama kontak (wajib)',
-            errorText: draft.nameError,
+        LabeledField(
+          label: 'Nama kontak',
+          required: true,
+          child: TextField(
+            controller: draft.name,
+            textCapitalization: TextCapitalization.words,
+            decoration: InputDecoration(errorText: draft.nameError),
           ),
         ),
         formGap,
-        TextField(
-          controller: draft.relationship,
-          decoration: InputDecoration(
-            labelText: 'Hubungan (wajib)',
-            errorText: draft.relationshipError,
+        LabeledField(
+          label: 'Hubungan',
+          required: true,
+          child: TextField(
+            controller: draft.relationship,
+            decoration: InputDecoration(errorText: draft.relationshipError),
           ),
         ),
         formGap,
-        TextField(
-          controller: draft.phone,
-          keyboardType: TextInputType.phone,
-          decoration: InputDecoration(
-            labelText: 'Nomor telepon kontak (wajib)',
-            errorText: draft.phoneError,
+        LabeledField(
+          label: 'Nomor telepon kontak',
+          required: true,
+          child: TextField(
+            controller: draft.phone,
+            keyboardType: TextInputType.phone,
+            decoration: InputDecoration(errorText: draft.phoneError),
           ),
         ),
       ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/features/auth/password_strength.dart';
 
 final _emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
@@ -29,11 +30,13 @@ String? confirmPasswordError(String password, String confirmation) =>
     ? 'Konfirmasi tidak sama dengan kata sandi.'
     : null;
 
-/// A scrolling form page. The credential fields share one autofill group.
+/// A form page. The [children] scroll above the [footer], which stays pinned
+/// to the bottom of the screen. The credential fields share one autofill group.
 class AuthPage extends StatelessWidget {
-  const AuthPage({super.key, this.appBar, required this.children});
+  const AuthPage({super.key, this.appBar, this.footer, required this.children});
 
   final PreferredSizeWidget? appBar;
+  final Widget? footer;
   final List<Widget> children;
 
   @override
@@ -41,14 +44,21 @@ class AuthPage extends StatelessWidget {
     return Scaffold(
       appBar: appBar,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: AutofillGroup(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: children,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(NiscalaSpacing.gutter),
+                child: AutofillGroup(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: children,
+                  ),
+                ),
+              ),
             ),
-          ),
+            ?footer,
+          ],
         ),
       ),
     );
