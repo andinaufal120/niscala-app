@@ -5,6 +5,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
 import 'package:niscala/core/widgets/confirm_dialog.dart';
+import 'package:niscala/core/widgets/danger_button.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
@@ -92,6 +93,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
           title: loaded == null ? 'Kamar' : 'Kamar ${loaded.number}',
           propertyName: property?.name,
         ),
+        actionsPadding: const EdgeInsets.only(right: NiscalaSpacing.gutter),
         actions: [
           if (loaded != null && loaded.editable)
             TextButton(
@@ -128,28 +130,24 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              OccupancyBadge(occupancy: r.occupancy),
-              if (!r.editable)
-                StatusBadge(
-                  label: 'Hanya bisa dilihat',
-                  colors: NiscalaTokens.of(context).readOnly,
-                  icon: Icons.visibility_outlined,
-                ),
-            ],
-          ),
-          if (!r.editable) ...[const SizedBox(height: 8), Text(_readOnly)],
-          formGap,
+          if (!r.editable) ...[
+            StatusBadge(
+              label: 'Hanya bisa dilihat',
+              colors: NiscalaTokens.of(context).readOnly,
+              icon: Icons.visibility_outlined,
+            ),
+            const SizedBox(height: NiscalaSpacing.s),
+            const Text(_readOnly),
+            formGap,
+          ],
           if (lease == null)
             SectionCard(
               title: 'Tarif dasar kamar',
+              trailing: OccupancyBadge(occupancy: r.occupancy),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${formatRupiah(r.baseRate)} / bulan'),
+                  _Rent(r.baseRate),
                   const Text('Nilai awal saat mendaftarkan penyewa'),
                 ],
               ),
@@ -157,10 +155,11 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
           else
             SectionCard(
               title: 'Tarif sewa · masa sewa ini',
+              trailing: OccupancyBadge(occupancy: r.occupancy),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${formatRupiah(lease.rent)} / bulan'),
+                  _Rent(lease.rent),
                   Text(
                     'Tarif dasar kamar: ${formatRupiah(r.baseRate)} / bulan',
                   ),
@@ -190,7 +189,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      for (final tag in r.facilities) Chip(label: Text(tag)),
+                      for (final tag in r.facilities) _FacilityPill(tag),
                     ],
                   ),
           ),
@@ -222,31 +221,118 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                 children: [
                   Text(lease.tenantName, style: theme.textTheme.titleMedium),
                   Text(lease.tenantPhone),
-                  const SizedBox(height: 8),
-                  Text('Mulai', style: theme.textTheme.labelLarge),
-                  Text(_dateOrDash(lease.startDate)),
-                  const SizedBox(height: 8),
-                  Text('Berakhir', style: theme.textTheme.labelLarge),
-                  Text(_dateOrDash(lease.endDate)),
-                  const SizedBox(height: 8),
-                  OutlinedButton(
+                  const SizedBox(height: NiscalaSpacing.s),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _LeaseDate(
+                          'Mulai',
+                          _dateOrDash(lease.startDate),
+                        ),
+                      ),
+                      const SizedBox(width: NiscalaSpacing.s),
+                      Expanded(
+                        child: _LeaseDate(
+                          'Berakhir',
+                          _dateOrDash(lease.endDate),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: NiscalaSpacing.s),
+                  const Divider(height: 1),
+                  TextButton(
                     onPressed: () => context.go(
                       '/properti/${widget.propertyId}/penyewa/${lease.tenantId}',
                     ),
-                    child: const Text('Lihat rincian penyewa'),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(child: Text('Lihat rincian penyewa')),
+                        Icon(Icons.chevron_right),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
           formGap,
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: theme.colorScheme.error,
-            ),
+          DangerButton(
+            label: 'Hapus Kamar',
             onPressed: _deleting ? null : () => _askToDelete(r),
-            child: const Text('Hapus Kamar'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A monthly rent: the amount large, the unit small and muted.
+class _Rent extends StatelessWidget {
+  const _Rent(this.amount);
+
+  final int amount;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Text.rich(
+      TextSpan(
+        text: formatRupiah(amount),
+        style: textTheme.headlineSmall,
+        children: [
+          TextSpan(
+            text: ' / bulan',
+            style: textTheme.bodyMedium?.copyWith(
+              color: NiscalaColors.textMuted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A label with a date under it.
+class _LeaseDate extends StatelessWidget {
+  const _LeaseDate(this.label, this.date);
+
+  final String label;
+  final String date;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.labelLarge),
+        Text(date),
+      ],
+    );
+  }
+}
+
+/// One facility on a soft primary pill.
+class _FacilityPill extends StatelessWidget {
+  const _FacilityPill(this.tag);
+
+  final String tag;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: NiscalaColors.primarySoft,
+        borderRadius: BorderRadius.circular(NiscalaRadius.small),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: Text(
+          tag,
+          style: Theme.of(context).textTheme.labelMedium
+              ?.copyWith(color: NiscalaColors.primary),
+        ),
       ),
     );
   }
