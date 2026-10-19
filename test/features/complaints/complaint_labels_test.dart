@@ -1,10 +1,44 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:niscala/core/theme.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/complaints/complaint_labels.dart';
 import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../helpers/fakes.dart';
+
+final _tokens = buildTheme().extension<NiscalaTokens>()!;
+
+final _statusTokens = <ComplaintStatus, BadgeColors Function(NiscalaTokens)>{
+  ComplaintStatus.new_: (t) => t.complaintNew,
+  ComplaintStatus.inProgress: (t) => t.complaintInProgress,
+  ComplaintStatus.done: (t) => t.complaintDone,
+};
+
+final _urgencyTokens = <ComplaintUrgency, BadgeColors Function(NiscalaTokens)>{
+  ComplaintUrgency.low: (t) => t.urgencyLow,
+  ComplaintUrgency.medium: (t) => t.urgencyMedium,
+  ComplaintUrgency.high: (t) => t.urgencyHigh,
+};
+
+final _classificationTokens =
+    <ComplaintClassificationState, BadgeColors Function(NiscalaTokens)>{
+      ComplaintClassificationState.classifying: (t) =>
+          t.classificationClassifying,
+      ComplaintClassificationState.awaitingClassification: (t) =>
+          t.classificationAwaiting,
+      ComplaintClassificationState.notClassified: (t) =>
+          t.classificationNotClassified,
+    };
+
+void _expectColours(WidgetTester tester, BadgeColors expected) {
+  final colors = tester.widget<StatusBadge>(find.byType(StatusBadge)).colors;
+  expect(colors.background, expected.background);
+  expect(colors.foreground, expected.foreground);
+  expect(colors.border, expected.border);
+}
 
 const _statusLabels = {
   ComplaintStatus.new_: 'Baru',
@@ -43,18 +77,6 @@ void main() {
       final labels = complaintStatusStyles.values.map((s) => s.label);
       expect(labels.toSet(), hasLength(ComplaintStatus.values.length));
     });
-
-    test('shows a finished complaint with the success tone', () {
-      expect(
-        complaintStatusStyles[ComplaintStatus.done]!.tone,
-        StatusTone.success,
-      );
-    });
-
-    test('tells the three statuses apart by tone as well as text', () {
-      final tones = complaintStatusStyles.values.map((s) => s.tone);
-      expect(tones.toSet(), hasLength(ComplaintStatus.values.length));
-    });
   });
 
   group('complaint urgency', () {
@@ -74,20 +96,6 @@ void main() {
     test('uses a different label for every urgency', () {
       final labels = complaintUrgencyStyles.values.map((s) => s.label);
       expect(labels.toSet(), hasLength(ComplaintUrgency.values.length));
-    });
-
-    test('shows high urgency with the danger tone', () {
-      expect(
-        complaintUrgencyStyles[ComplaintUrgency.high]!.tone,
-        StatusTone.danger,
-      );
-    });
-
-    test('shows high and low urgency with different tones', () {
-      expect(
-        complaintUrgencyStyles[ComplaintUrgency.high]!.tone,
-        isNot(complaintUrgencyStyles[ComplaintUrgency.low]!.tone),
-      );
     });
   });
 
@@ -120,10 +128,6 @@ void main() {
         await tester.pumpWidget(themedApp(ComplaintBadge.status(entry.key)));
 
         expect(find.text(entry.value), findsOneWidget);
-        expect(
-          tester.widget<StatusBadge>(find.byType(StatusBadge)).tone,
-          complaintStatusStyles[entry.key]!.tone,
-        );
       }
     });
 
@@ -132,10 +136,6 @@ void main() {
         await tester.pumpWidget(themedApp(ComplaintBadge.urgency(entry.key)));
 
         expect(find.text(entry.value), findsOneWidget);
-        expect(
-          tester.widget<StatusBadge>(find.byType(StatusBadge)).tone,
-          complaintUrgencyStyles[entry.key]!.tone,
-        );
       }
     });
 
@@ -148,11 +148,67 @@ void main() {
         );
 
         expect(find.text(entry.value), findsOneWidget);
-        expect(
-          tester.widget<StatusBadge>(find.byType(StatusBadge)).tone,
-          complaintClassificationStyles[entry.key]!.tone,
+      }
+    });
+
+    testWidgets('colours each status from its token', (tester) async {
+      for (final entry in _statusTokens.entries) {
+        await tester.pumpWidget(themedApp(ComplaintBadge.status(entry.key)));
+
+        _expectColours(tester, entry.value(_tokens));
+      }
+    });
+
+    testWidgets('colours each urgency from its token', (tester) async {
+      for (final entry in _urgencyTokens.entries) {
+        await tester.pumpWidget(themedApp(ComplaintBadge.urgency(entry.key)));
+
+        _expectColours(tester, entry.value(_tokens));
+      }
+    });
+
+    testWidgets('colours each classification state from its token', (
+      tester,
+    ) async {
+      for (final entry in _classificationTokens.entries) {
+        await tester.pumpWidget(
+          themedApp(ComplaintBadge.classification(entry.key)),
+        );
+
+        _expectColours(tester, entry.value(_tokens));
+      }
+    });
+
+    testWidgets('tells the three statuses apart by colour as well as text', (
+      tester,
+    ) async {
+      final backgrounds = <Color>{};
+      for (final status in ComplaintStatus.values) {
+        await tester.pumpWidget(themedApp(ComplaintBadge.status(status)));
+        backgrounds.add(
+          tester
+              .widget<StatusBadge>(find.byType(StatusBadge))
+              .colors
+              .background,
         );
       }
+
+      expect(backgrounds, hasLength(ComplaintStatus.values.length));
+    });
+
+    testWidgets('shows high urgency with the strongest colour', (tester) async {
+      await tester.pumpWidget(
+        themedApp(ComplaintBadge.urgency(ComplaintUrgency.high)),
+      );
+
+      final high = tester.widget<StatusBadge>(find.byType(StatusBadge)).colors;
+      await tester.pumpWidget(
+        themedApp(ComplaintBadge.urgency(ComplaintUrgency.low)),
+      );
+      final low = tester.widget<StatusBadge>(find.byType(StatusBadge)).colors;
+
+      expect(high.background, isNot(low.background));
+      expect(high.background, const Color(0xFF9A3412));
     });
 
     testWidgets('speaks its label, so colour never carries the meaning', (
