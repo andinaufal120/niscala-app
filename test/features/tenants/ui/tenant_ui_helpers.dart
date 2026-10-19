@@ -5,6 +5,7 @@ import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
+import '../../../helpers/fields.dart';
 import '../../rooms/ui/room_ui_helpers.dart';
 
 export '../../rooms/ui/room_ui_helpers.dart';
@@ -147,6 +148,37 @@ Future<void> typeAt(
   await tester.enterText(fieldAt(label, index), text);
   await tester.pump();
 }
+
+/// The editable field of the [index]th [LabeledField] labelled [label], for
+/// labels that repeat once per emergency contact block.
+Finder labeledFieldAt(String label, int index) => fieldLabeled(label).at(index);
+
+/// The text of the [index]th [LabeledField] labelled [label].
+String labeledTextAt(WidgetTester tester, String label, [int index = 0]) =>
+    tester.widget<TextField>(labeledFieldAt(label, index)).controller!.text;
+
+/// Types [text] into the [index]th [LabeledField] labelled [label].
+Future<void> typeLabeledAt(
+  WidgetTester tester,
+  String label,
+  int index,
+  String text,
+) async {
+  await tester.enterText(labeledFieldAt(label, index), text);
+  await tester.pump();
+}
+
+/// The `errorText` shown by the [index]th [LabeledField] labelled [label].
+String? labeledInputError(WidgetTester tester, String label, [int index = 0]) =>
+    tester
+        .widget<InputDecorator>(
+          find.descendant(
+            of: labeledField(label).at(index),
+            matching: find.byType(InputDecorator),
+          ),
+        )
+        .decoration
+        .errorText;
 
 /// Opens the dropdown labelled [label] and taps the entry [option].
 Future<void> choose(WidgetTester tester, String label, String option) async {

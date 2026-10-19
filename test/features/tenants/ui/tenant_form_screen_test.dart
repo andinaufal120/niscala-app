@@ -15,6 +15,7 @@ import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
+import '../../../helpers/fields.dart';
 import 'tenant_ui_helpers.dart';
 
 const _room = 'Kamar (wajib)';
@@ -97,9 +98,9 @@ Future<void> _fillBlock(
   String relation = 'Ibu',
   String phone = '081355512345',
 }) async {
-  await typeAt(tester, _contactName, index, name);
-  await typeAt(tester, _contactRelation, index, relation);
-  await typeAt(tester, _contactPhone, index, phone);
+  await typeLabeledAt(tester, _contactName, index, name);
+  await typeLabeledAt(tester, _contactRelation, index, relation);
+  await typeLabeledAt(tester, _contactPhone, index, phone);
 }
 
 /// Adds [count] contact blocks and fills each with distinct valid values.
@@ -246,7 +247,7 @@ void main() {
     testWidgets('starts without contact blocks', (tester) async {
       await _open(tester, _repo());
 
-      expect(field(_contactName), findsNothing);
+      expect(fieldLabeled(_contactName), findsNothing);
       expect(find.text(_addContact), findsOneWidget);
     });
 
@@ -580,8 +581,8 @@ void main() {
       await _addBlock(tester);
 
       for (final label in [_contactName, _contactRelation, _contactPhone]) {
-        expect(field(label), findsOneWidget, reason: label);
-        expect(textAt(tester, label), isEmpty, reason: label);
+        expect(labeledFieldAt(label, 0), findsOneWidget, reason: label);
+        expect(labeledTextAt(tester, label), isEmpty, reason: label);
       }
       expect(find.byTooltip('Hapus kontak darurat 1'), findsOneWidget);
     });
@@ -598,7 +599,7 @@ void main() {
       for (final n in [1, 2, 3]) {
         expect(find.byTooltip('Hapus kontak darurat $n'), findsOneWidget);
       }
-      expect(field(_contactName), findsNWidgets(3));
+      expect(fieldLabeled(_contactName), findsNWidgets(3));
     });
 
     testWidgets('the add button disappears at four blocks', (tester) async {
@@ -610,7 +611,7 @@ void main() {
       expect(find.text(_addContact), findsOneWidget);
       await _addBlock(tester);
 
-      expect(field(_contactName), findsNWidgets(4));
+      expect(fieldLabeled(_contactName), findsNWidgets(4));
       expect(find.text(_addContact), findsNothing);
     });
 
@@ -622,7 +623,7 @@ void main() {
 
       await tapVisible(tester, find.byTooltip('Hapus kontak darurat 4'));
 
-      expect(field(_contactName), findsNWidgets(3));
+      expect(fieldLabeled(_contactName), findsNWidgets(3));
       expect(find.text(_addContact), findsOneWidget);
     });
 
@@ -634,9 +635,9 @@ void main() {
 
       await tapVisible(tester, find.byTooltip('Hapus kontak darurat 1'));
 
-      expect(field(_contactName), findsNWidgets(2));
-      expect(textAt(tester, _contactName, 0), 'Kontak 2');
-      expect(textAt(tester, _contactName, 1), 'Kontak 3');
+      expect(fieldLabeled(_contactName), findsNWidgets(2));
+      expect(labeledTextAt(tester, _contactName, 0), 'Kontak 2');
+      expect(labeledTextAt(tester, _contactName, 1), 'Kontak 3');
       expect(find.byTooltip('Hapus kontak darurat 3'), findsNothing);
       expect(find.byTooltip('Hapus kontak darurat 2'), findsOneWidget);
     });
@@ -677,6 +678,82 @@ void main() {
       await _submit(tester);
 
       expect(repo.created.single.input.emergencyContacts, isEmpty);
+    });
+  });
+
+  group('contact fields', () {
+    const contactLabels = [_contactName, _contactRelation, _contactPhone];
+
+    testWidgets('each contact field is a LabeledField with its marker', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+      await _addFilledBlocks(tester, 2);
+
+      for (final label in contactLabels) {
+        expect(labeledField(label), findsNWidgets(2), reason: label);
+        expect(find.text(label), findsNWidgets(2), reason: label);
+      }
+    });
+
+    testWidgets('no contact field draws its label inside the decoration', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+      await _addBlock(tester);
+
+      for (final label in contactLabels) {
+        expect(decorated(label), findsNothing, reason: label);
+        expect(labeledTextField(tester, label).decoration?.labelText, isNull);
+      }
+    });
+
+    testWidgets('each contact label sits above its field', (tester) async {
+      await _open(tester, _repo());
+      await _addBlock(tester);
+
+      for (final label in contactLabels) {
+        final text = tester.getRect(find.text(label));
+        final input = tester.getRect(labeledFieldAt(label, 0));
+        expect(text.bottom, lessThanOrEqualTo(input.top), reason: label);
+      }
+    });
+
+    testWidgets('each contact label is read once, on its field node', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+      await _addBlock(tester);
+
+      for (final label in contactLabels) {
+        expectFieldNode(tester, label);
+      }
+    });
+
+    testWidgets('a contact error stays on its field node', (tester) async {
+      await _open(tester, _repo());
+      await _fill(tester);
+      await _addBlock(tester);
+
+      await _submit(tester);
+
+      expectFieldNode(tester, _contactName, error: 'Nama kontak wajib diisi.');
+    });
+
+    testWidgets('tapping a contact label focuses its field', (tester) async {
+      await _open(tester, _repo());
+      await _addBlock(tester);
+
+      await tester.tap(find.text(_contactPhone));
+      await tester.pump();
+
+      final editable = tester.widget<EditableText>(
+        find.descendant(
+          of: labeledFieldAt(_contactPhone, 0),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editable.focusNode.hasFocus, isTrue);
     });
   });
 
@@ -770,13 +847,22 @@ void main() {
 
       await _submit(tester);
 
-      expect(inputError(tester, _contactName), 'Nama kontak wajib diisi.');
-      expect(inputError(tester, _contactRelation), 'Hubungan wajib diisi.');
       expect(
-        inputError(tester, _contactPhone),
+        labeledInputError(tester, _contactName),
+        'Nama kontak wajib diisi.',
+      );
+      expect(
+        labeledInputError(tester, _contactRelation),
+        'Hubungan wajib diisi.',
+      );
+      expect(
+        labeledInputError(tester, _contactPhone),
         'Nomor telepon kontak wajib diisi.',
       );
-      expect(inputError(tester, _contactName, 1), 'Nama kontak wajib diisi.');
+      expect(
+        labeledInputError(tester, _contactName, 1),
+        'Nama kontak wajib diisi.',
+      );
       expect(repo.created, isEmpty);
     });
 
@@ -787,14 +873,17 @@ void main() {
       await _open(tester, repo);
       await _fill(tester);
       await _addFilledBlocks(tester, 2);
-      await typeAt(tester, _contactRelation, 1, '');
+      await typeLabeledAt(tester, _contactRelation, 1, '');
 
       await _submit(tester);
 
-      expect(inputError(tester, _contactRelation, 1), 'Hubungan wajib diisi.');
-      expect(inputError(tester, _contactRelation, 0), isNull);
-      expect(inputError(tester, _contactName, 1), isNull);
-      expect(inputError(tester, _contactPhone, 1), isNull);
+      expect(
+        labeledInputError(tester, _contactRelation, 1),
+        'Hubungan wajib diisi.',
+      );
+      expect(labeledInputError(tester, _contactRelation, 0), isNull);
+      expect(labeledInputError(tester, _contactName, 1), isNull);
+      expect(labeledInputError(tester, _contactPhone, 1), isNull);
       expect(repo.created, isEmpty);
     });
 
@@ -803,11 +892,14 @@ void main() {
       await _open(tester, repo);
       await _fill(tester);
       await _addFilledBlocks(tester, 2);
-      await typeAt(tester, _contactName, 0, '   ');
+      await typeLabeledAt(tester, _contactName, 0, '   ');
 
       await _submit(tester);
 
-      expect(inputError(tester, _contactName, 0), 'Nama kontak wajib diisi.');
+      expect(
+        labeledInputError(tester, _contactName, 0),
+        'Nama kontak wajib diisi.',
+      );
       expect(repo.created, isEmpty);
     });
 
@@ -818,12 +910,12 @@ void main() {
       await _open(tester, repo);
       await _fill(tester);
       await _addFilledBlocks(tester, 2);
-      await typeAt(tester, _contactPhone, 1, '12345');
+      await typeLabeledAt(tester, _contactPhone, 1, '12345');
 
       await _submit(tester);
 
-      expect(inputError(tester, _contactPhone, 1), _invalidPhone);
-      expect(inputError(tester, _contactPhone, 0), isNull);
+      expect(labeledInputError(tester, _contactPhone, 1), _invalidPhone);
+      expect(labeledInputError(tester, _contactPhone, 0), isNull);
       expect(repo.created, isEmpty);
     });
 
@@ -834,7 +926,7 @@ void main() {
       await _open(tester, repo);
       await _fill(tester);
       await _addFilledBlocks(tester, 2);
-      await typeAt(tester, _contactPhone, 0, '0813-5551 2345');
+      await typeLabeledAt(tester, _contactPhone, 0, '0813-5551 2345');
 
       await _submit(tester);
 
@@ -1042,7 +1134,7 @@ void main() {
       expect(_text(tester, _occupation), 'Mahasiswa');
       expect(_text(tester, _grace), '4');
       expect(_text(tester, _rent), '650000');
-      expect(textAt(tester, _contactName, 1), 'Kontak 2');
+      expect(labeledTextAt(tester, _contactName, 1), 'Kontak 2');
     });
 
     testWidgets('fixing the errors lets the next submit through', (
@@ -1562,7 +1654,7 @@ void main() {
 
         expect(find.text(errorMessage('VALIDATION_FAILED')), findsOneWidget);
         _expectErrors(tester, {});
-        expect(textAt(tester, _contactName, 0), 'Kontak 1');
+        expect(labeledTextAt(tester, _contactName, 0), 'Kontak 1');
       });
     }
 
@@ -1587,7 +1679,7 @@ void main() {
       expect(_text(tester, _grace), '3');
       expect(_text(tester, _rent), '650000');
       expect(_text(tester, _start), formatDate(_day(5)));
-      expect(textAt(tester, _contactName, 1), 'Kontak 2');
+      expect(labeledTextAt(tester, _contactName, 1), 'Kontak 2');
     });
 
     testWidgets('the button works again after a field error', (tester) async {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/register_owner_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
@@ -11,6 +12,7 @@ import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
+import '../../../helpers/fields.dart';
 import 'auth_ui_helpers.dart';
 
 const _name = 'Nama lengkap (wajib)';
@@ -686,7 +688,8 @@ void main() {
         textField(tester, _name).autofillHints,
         contains(AutofillHints.name),
       );
-      expect(textField(tester, _name).decoration?.labelText, _name);
+      expect(labeledField(_name), findsOneWidget);
+      expect(textField(tester, _name).decoration?.labelText, isNull);
     });
 
     testWidgets('the email field keeps paste on and offers email autofill', (
@@ -704,6 +707,139 @@ void main() {
 
       expectCredentialField(tester, _password, AutofillHints.newPassword);
       expectCredentialField(tester, _confirm, AutofillHints.newPassword);
+    });
+  });
+
+  group('structure', () {
+    const labels = [_name, _email, _password, _confirm];
+
+    testWidgets('wraps every field in a LabeledField with its marker', (
+      tester,
+    ) async {
+      await pumpRegister(tester, auth);
+
+      for (final label in labels) {
+        expect(labeledField(label), findsOneWidget);
+        expect(find.text(label), findsOneWidget);
+      }
+    });
+
+    testWidgets('draws no label inside any field', (tester) async {
+      await pumpRegister(tester, auth);
+
+      expectNoDecorationLabels(tester);
+    });
+
+    testWidgets('puts each label above its field', (tester) async {
+      await pumpRegister(tester, auth);
+
+      for (final label in labels) {
+        final text = tester.getRect(find.text(label));
+        final input = tester.getRect(fieldLabeled(label));
+        expect(text.bottom, lessThanOrEqualTo(input.top));
+      }
+    });
+
+    testWidgets('reads each field label once, on the field', (tester) async {
+      await pumpRegister(tester, auth);
+
+      for (final label in labels) {
+        expectFieldNode(tester, label);
+      }
+    });
+
+    testWidgets('keeps each field error on its field node', (tester) async {
+      await pumpRegister(tester, auth);
+      await submit(tester);
+
+      expectFieldNode(tester, _name, error: 'Nama wajib diisi.');
+      expectFieldNode(tester, _email, error: 'Email wajib diisi.');
+      expectFieldNode(
+        tester,
+        _password,
+        error: 'Kata sandi minimal 8 karakter.',
+      );
+      expectFieldNode(tester, _confirm, error: 'Ketik ulang kata sandi.');
+    });
+
+    testWidgets('tapping a label focuses its field', (tester) async {
+      await pumpRegister(tester, auth);
+
+      await tester.tap(find.text(_email));
+      await tester.pump();
+
+      final editable = tester.widget<EditableText>(
+        find.descendant(
+          of: fieldLabeled(_email),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editable.focusNode.hasFocus, isTrue);
+    });
+
+    testWidgets('pins the Daftar action in a footer outside any scroll view', (
+      tester,
+    ) async {
+      await pumpRegister(tester, auth);
+
+      expectPinnedFooter(tester, 'Daftar');
+    });
+
+    testWidgets('keeps the footer action pinned with errors', (tester) async {
+      await pumpRegister(tester, auth);
+      await submit(tester);
+
+      expectPinnedFooter(tester, 'Daftar');
+    });
+
+    testWidgets('keeps the footer action pinned with a banner', (tester) async {
+      auth.registerFailure = const ApiFailure.network();
+      await pumpRegister(tester, auth);
+      await fillAndSubmit(tester);
+
+      expectPinnedFooter(tester, 'Daftar');
+    });
+
+    testWidgets('shows the busy state inside the footer', (tester) async {
+      auth.gate = Completer<void>();
+      await pumpRegister(tester, auth);
+      await fill(tester);
+      await tapAndPump(tester, buttonLabelled('Daftar'));
+
+      expect(
+        find.descendant(of: find.byType(ActionFooter), matching: busyButton()),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('keeps the footer button on screen at large text size', (
+      tester,
+    ) async {
+      await pumpAtLargeText(tester, buildTestApp(auth: auth));
+      await tester.pumpAndSettle();
+      goTo(tester, '/daftar');
+      await tester.pumpAndSettle();
+
+      final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+      expect(
+        tester.getRect(buttonLabelled('Daftar')).bottom,
+        lessThanOrEqualTo(screen.height),
+      );
+      expectFooterAtBottom(tester);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('uses a white app bar with the title', (tester) async {
+      await pumpRegister(tester, auth);
+
+      expectWhiteAppBar(tester);
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.text('Daftar sebagai Pemilik Kost'),
+        ),
+        findsOneWidget,
+      );
     });
   });
 

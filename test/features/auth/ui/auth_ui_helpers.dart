@@ -3,19 +3,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/app.dart';
 import 'package:niscala/core/router.dart';
+import 'package:niscala/core/tokens.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../../helpers/fakes.dart';
+import '../../../helpers/fields.dart';
 
-/// The text field whose label is [label].
-Finder field(String label) => find.widgetWithText(TextField, label);
+/// The editable field of the labelled field whose label, marker included, is
+/// [label].
+Finder field(String label) => fieldLabeled(label);
 
+/// The `TextField` of the labelled field whose label is [label].
 TextField textField(WidgetTester tester, String label) =>
-    tester.widget<TextField>(field(label));
+    labeledTextField(tester, label);
 
-/// The `errorText` shown by the field labelled [label].
+/// The error shown by the field labelled [label].
 String? fieldError(WidgetTester tester, String label) =>
-    textField(tester, label).decoration?.errorText;
+    labeledFieldError(tester, label);
 
 /// The button that contains the text [label].
 Finder buttonLabelled(String label) =>
@@ -72,18 +77,11 @@ Future<void> type(WidgetTester tester, String label, String text) async {
   await tester.pump();
 }
 
-/// Checks the authentication rules of a credential field: selection and paste
-/// stay on, the autofill hint is set and the field sits in an `AutofillGroup`.
-void expectCredentialField(WidgetTester tester, String label, String hint) {
-  final input = textField(tester, label);
-  expect(input.decoration?.labelText, label);
-  expect(input.enableInteractiveSelection, isNot(false));
-  expect(input.autofillHints, contains(hint));
-  expect(
-    find.ancestor(of: field(label), matching: find.byType(AutofillGroup)),
-    findsOneWidget,
-  );
-}
+/// Checks the authentication rules of a credential field: the label sits in a
+/// [LabeledField] (not in the decoration), selection and paste stay on, the
+/// autofill hint is set and the field sits in an `AutofillGroup`.
+void expectCredentialField(WidgetTester tester, String label, String hint) =>
+    expectLabeledCredentialField(tester, label, hint);
 
 /// Expects the text [text] to be exposed as a live region.
 void expectLiveRegion(WidgetTester tester, String text) {
@@ -130,6 +128,46 @@ void expectBusy(WidgetTester tester) {
   } finally {
     handle.dispose();
   }
+}
+
+/// Expects the primary action [label] to sit in an `ActionFooter` that is
+/// outside every scrollable, with the button inside the footer, and the footer
+/// to sit at the bottom of the screen.
+void expectPinnedFooter(WidgetTester tester, String label) {
+  final footer = find.byType(ActionFooter);
+  expect(footer, findsOneWidget);
+  expect(
+    find.ancestor(of: footer, matching: find.byType(Scrollable)),
+    findsNothing,
+  );
+  expect(
+    find.descendant(of: footer, matching: buttonLabelled(label)),
+    findsOneWidget,
+  );
+  expectFooterAtBottom(tester);
+}
+
+/// Expects the `ActionFooter` to sit directly above a `NavigationBar` when one
+/// is shown, and at the bottom of the screen otherwise.
+void expectFooterAtBottom(WidgetTester tester) {
+  final footer = tester.getRect(find.byType(ActionFooter));
+  final navigation = find.byType(NavigationBar);
+  final bottom = navigation.evaluate().isEmpty
+      ? (tester.view.physicalSize / tester.view.devicePixelRatio).height
+      : tester.getRect(navigation).top;
+  expect(footer.bottom, closeTo(bottom, 1));
+}
+
+/// Expects the app bar to use the white surface colour of the design.
+void expectWhiteAppBar(WidgetTester tester) {
+  final appBar = tester.widget<AppBar>(find.byType(AppBar));
+  final theme = Theme.of(tester.element(find.byType(AppBar)));
+  expect(
+    appBar.backgroundColor ??
+        theme.appBarTheme.backgroundColor ??
+        theme.colorScheme.surface,
+    NiscalaColors.surface,
+  );
 }
 
 /// Shows the sign in screen with [auth] behind it.

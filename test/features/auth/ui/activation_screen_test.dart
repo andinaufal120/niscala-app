@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/features/auth/ui/activation_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
@@ -11,6 +12,7 @@ import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
+import '../../../helpers/fields.dart';
 import 'auth_ui_helpers.dart';
 
 const _link = 'Tautan undangan (wajib)';
@@ -99,8 +101,7 @@ Future<void> fillAndSubmit(
   await submit(tester);
 }
 
-Finder _contactField(String label, int index) =>
-    find.widgetWithText(TextField, label).at(index);
+Finder _contactField(String label, int index) => fieldLabeled(label).at(index);
 
 Future<void> fillContact(
   WidgetTester tester,
@@ -118,8 +119,15 @@ Future<void> fillContact(
   await tester.pump();
 }
 
-String? contactError(WidgetTester tester, String label, int index) =>
-    tester.widget<TextField>(_contactField(label, index)).decoration?.errorText;
+String? contactError(WidgetTester tester, String label, int index) => tester
+    .widget<InputDecorator>(
+      find.descendant(
+        of: labeledField(label).at(index),
+        matching: find.byType(InputDecorator),
+      ),
+    )
+    .decoration
+    .errorText;
 
 Future<void> fillTwoContacts(WidgetTester tester) async {
   await fillContact(tester, 0);
@@ -1377,6 +1385,216 @@ void main() {
 
       expect(
         find.ancestor(of: field(_link), matching: find.byType(AutofillGroup)),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('structure', () {
+    const formLabels = [_name, _email, _password, _confirm];
+
+    testWidgets('wraps the link field in a LabeledField with its marker', (
+      tester,
+    ) async {
+      await pumpActivation(tester, invitations);
+
+      expect(labeledField(_link), findsOneWidget);
+      expect(find.text(_link), findsOneWidget);
+    });
+
+    testWidgets('draws no label inside the link field', (tester) async {
+      await pumpActivation(tester, invitations);
+
+      expectNoDecorationLabels(tester);
+    });
+
+    testWidgets('keeps the link step without a footer', (tester) async {
+      await pumpActivation(tester, invitations);
+
+      expect(find.byType(ActionFooter), findsNothing);
+      expect(buttonLabelled('Lanjut'), findsOneWidget);
+    });
+
+    testWidgets('a link step with a field error still has no footer', (
+      tester,
+    ) async {
+      await pumpActivation(tester, invitations);
+      await tapVisible(tester, buttonLabelled('Lanjut'));
+
+      expect(find.byType(ActionFooter), findsNothing);
+      expect(fieldError(tester, _link), contains('tautan'));
+    });
+
+    for (final status in [
+      InvitationLinkStatus.expired,
+      InvitationLinkStatus.used,
+    ]) {
+      testWidgets('a $status invitation shows no footer and no form', (
+        tester,
+      ) async {
+        invitations.previewResult = makeInvitationPreview(status: status);
+        await pumpActivation(tester, invitations);
+
+        await continueWith(tester, _tokenLink);
+
+        expect(find.byType(ActionFooter), findsNothing);
+        expect(field(_name), findsNothing);
+      });
+    }
+
+    testWidgets('a failed check shows no footer', (tester) async {
+      invitations.previewFailure = const ApiFailure.network();
+      await pumpActivation(tester, invitations);
+
+      await continueWith(tester, _tokenLink);
+
+      expect(find.byType(ActionFooter), findsNothing);
+    });
+
+    testWidgets(
+      'the form wraps every field in a LabeledField with its marker',
+      (tester) async {
+        await pumpForm(tester, invitations);
+
+        for (final label in formLabels) {
+          expect(labeledField(label), findsOneWidget);
+          expect(find.text(label), findsOneWidget);
+        }
+      },
+    );
+
+    testWidgets('the form draws no label inside any field', (tester) async {
+      await pumpForm(tester, invitations);
+
+      expectNoDecorationLabels(tester);
+    });
+
+    testWidgets('the form puts each label above its field', (tester) async {
+      await pumpForm(tester, invitations);
+
+      for (final label in formLabels) {
+        final text = tester.getRect(find.text(label));
+        final input = tester.getRect(fieldLabeled(label));
+        expect(text.bottom, lessThanOrEqualTo(input.top));
+      }
+    });
+
+    testWidgets('the form reads each field label once, on its field', (
+      tester,
+    ) async {
+      await pumpForm(tester, invitations);
+
+      for (final label in formLabels) {
+        expectFieldNode(tester, label);
+      }
+    });
+
+    testWidgets('the form keeps each field error on its field node', (
+      tester,
+    ) async {
+      await pumpForm(tester, invitations);
+      await submit(tester);
+
+      expectFieldNode(tester, _name, error: 'Nama wajib diisi.');
+      expectFieldNode(tester, _email, error: 'Email wajib diisi.');
+      expectFieldNode(
+        tester,
+        _password,
+        error: 'Kata sandi minimal 8 karakter.',
+      );
+      expectFieldNode(tester, _confirm, error: 'Ketik ulang kata sandi.');
+    });
+
+    testWidgets('tapping a label focuses its field on the form', (
+      tester,
+    ) async {
+      await pumpForm(tester, invitations);
+
+      await tester.tap(find.text(_password));
+      await tester.pump();
+
+      final editable = tester.widget<EditableText>(
+        find.descendant(
+          of: fieldLabeled(_password),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editable.focusNode.hasFocus, isTrue);
+    });
+
+    testWidgets('the emergency contact fields are labelled fields', (
+      tester,
+    ) async {
+      await pumpForm(tester, withContactsRequired());
+
+      for (final label in [_contactName, _contactRelationship, _contactPhone]) {
+        expect(labeledField(label), findsNWidgets(2));
+        expect(find.text(label), findsNWidgets(2));
+      }
+    });
+
+    testWidgets('pins the Aktifkan Akun action in a footer on the form', (
+      tester,
+    ) async {
+      await pumpForm(tester, invitations);
+
+      expectPinnedFooter(tester, 'Aktifkan Akun');
+    });
+
+    testWidgets('keeps the footer action pinned with emergency contacts', (
+      tester,
+    ) async {
+      await pumpForm(tester, withContactsRequired());
+
+      expectPinnedFooter(tester, 'Aktifkan Akun');
+    });
+
+    testWidgets('keeps the footer action pinned with a banner', (tester) async {
+      invitations.activateFailure = const ApiFailure.network();
+      await pumpForm(tester, invitations);
+      await fillAndSubmit(tester);
+
+      expectPinnedFooter(tester, 'Aktifkan Akun');
+    });
+
+    testWidgets('shows the busy state inside the footer', (tester) async {
+      invitations.activateGate = Completer<void>();
+      await pumpForm(tester, invitations);
+      await fill(tester);
+      await tapAndPump(tester, buttonLabelled('Aktifkan Akun'));
+
+      expect(
+        find.descendant(of: find.byType(ActionFooter), matching: busyButton()),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('keeps the footer button on screen at large text size', (
+      tester,
+    ) async {
+      await pumpActivationAtLargeText(tester, invitations);
+      await continueWith(tester, _tokenLink);
+
+      final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+      expect(
+        tester.getRect(buttonLabelled('Aktifkan Akun')).bottom,
+        lessThanOrEqualTo(screen.height),
+      );
+      expectFooterAtBottom(tester);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('uses a white app bar with the title on the form', (
+      tester,
+    ) async {
+      await pumpForm(tester, invitations);
+
+      expectWhiteAppBar(tester);
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.text('Aktivasi Akun'),
+        ),
         findsOneWidget,
       );
     });
