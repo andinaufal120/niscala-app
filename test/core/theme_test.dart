@@ -427,15 +427,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final material = tester.widget<Material>(
-        find
-            .descendant(
-              of: find.byType(FilterChip),
-              matching: find.byType(Material),
-            )
-            .first,
-      );
-      expect(material.color, _primary);
+      expect(_chipFill(tester), _primary);
       final style = DefaultTextStyle.of(tester.element(find.text('Semua')));
       expect(style.style.color, _white);
     });
@@ -457,15 +449,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final material = tester.widget<Material>(
-        find
-            .descendant(
-              of: find.byType(FilterChip),
-              matching: find.byType(Material),
-            )
-            .first,
-      );
-      expect(material.color, _white);
+      expect(_chipFill(tester), _white);
     });
   });
 
@@ -515,4 +499,14 @@ void main() {
       expect(contrastRatio(_primary, _white), greaterThanOrEqualTo(4.5));
     });
   });
+}
+
+/// The fill painted by the chip's `Ink`, which is where Flutter draws it
+/// (the chip's `Material` itself has no colour).
+Color? _chipFill(WidgetTester tester) {
+  final ink = tester.widget<Ink>(
+    find.descendant(of: find.byType(FilterChip), matching: find.byType(Ink)),
+  );
+  final decoration = ink.decoration;
+  return decoration is ShapeDecoration ? decoration.color : null;
 }
