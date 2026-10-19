@@ -43,6 +43,8 @@ void _expectOutline(InputBorder? border, {Color? color, double? width}) {
 }
 
 void main() {
+  test('every component text style uses the bundled font', _expectBundledFont);
+
   final theme = buildTheme();
   final scheme = theme.colorScheme;
 
@@ -509,4 +511,29 @@ Color? _chipFill(WidgetTester tester) {
   );
   final decoration = ink.decoration;
   return decoration is ShapeDecoration ? decoration.color : null;
+}
+
+void _expectFamily(TextStyle? style, String name) {
+  expect(style, isNotNull, reason: name);
+  expect(style!.fontFamily, 'PlusJakartaSans', reason: name);
+}
+
+void _expectBundledFont() {
+  final theme = buildTheme();
+  _expectFamily(theme.appBarTheme.titleTextStyle, 'app bar title');
+  for (final (name, style) in [
+    ('filled button', theme.filledButtonTheme.style),
+    ('outlined button', theme.outlinedButtonTheme.style),
+    ('text button', theme.textButtonTheme.style),
+  ]) {
+    _expectFamily(style?.textStyle?.resolve({}), name);
+  }
+  _expectFamily(theme.chipTheme.labelStyle, 'chip label');
+  _expectFamily(theme.inputDecorationTheme.helperStyle, 'input helper');
+  _expectFamily(theme.inputDecorationTheme.errorStyle, 'input error');
+  _expectFamily(theme.dialogTheme.titleTextStyle, 'dialog title');
+  _expectFamily(
+    theme.navigationBarTheme.labelTextStyle?.resolve({}),
+    'nav label',
+  );
 }
