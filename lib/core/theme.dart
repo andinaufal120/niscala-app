@@ -87,6 +87,7 @@ ThemeData buildTheme() {
       scrolledUnderElevation: 0,
       elevation: 0,
       centerTitle: false,
+      titleSpacing: 0,
       shape: const Border(bottom: BorderSide(color: NiscalaColors.divider)),
       titleTextStyle: _style(17, FontWeight.w700, text),
     ),

@@ -8,10 +8,10 @@ import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
-import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala_api/api.dart';
 
+const _bankGroup = 'Rekening untuk transfer sewa (opsional)';
 const _bankHelper =
     'Ditampilkan kepada penyewa properti ini saat membayar dengan transfer. '
     'Tanpa rekening, penyewa hanya bisa membayar tunai. Isi ketiga kolom, atau '
@@ -265,50 +265,47 @@ class _PropertyFormState extends ConsumerState<_PropertyForm> {
                     ),
                   ),
                   formGap,
-                  SectionCard(
-                    title: 'Rekening untuk transfer sewa (opsional)',
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          _bankHelper,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        formGap,
-                        LabeledField(
-                          label: 'Nama bank',
-                          child: TextField(
-                            controller: _bankName,
-                            decoration: InputDecoration(
-                              errorText: _bankNameError,
-                            ),
-                            textInputAction: TextInputAction.next,
-                          ),
-                        ),
-                        formGap,
-                        LabeledField(
-                          label: 'Nomor rekening',
-                          child: TextField(
-                            controller: _accountNumber,
-                            decoration: InputDecoration(
-                              errorText: _accountNumberError,
-                            ),
-                            keyboardType: TextInputType.number,
-                            textInputAction: TextInputAction.next,
-                          ),
-                        ),
-                        formGap,
-                        LabeledField(
-                          label: 'Nama pemilik rekening',
-                          child: TextField(
-                            controller: _holder,
-                            decoration: InputDecoration(
-                              errorText: _holderError,
-                            ),
-                            textInputAction: TextInputAction.done,
-                          ),
-                        ),
-                      ],
+                  Semantics(
+                    header: true,
+                    container: true,
+                    child: Text(
+                      _bankGroup,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ),
+                  const SizedBox(height: NiscalaSpacing.s),
+                  Text(
+                    _bankHelper,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  formGap,
+                  LabeledField(
+                    label: 'Nama bank',
+                    child: TextField(
+                      controller: _bankName,
+                      decoration: InputDecoration(errorText: _bankNameError),
+                      textInputAction: TextInputAction.next,
+                    ),
+                  ),
+                  formGap,
+                  LabeledField(
+                    label: 'Nomor rekening',
+                    child: TextField(
+                      controller: _accountNumber,
+                      decoration: InputDecoration(
+                        errorText: _accountNumberError,
+                      ),
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
+                    ),
+                  ),
+                  formGap,
+                  LabeledField(
+                    label: 'Nama pemilik rekening',
+                    child: TextField(
+                      controller: _holder,
+                      decoration: InputDecoration(errorText: _holderError),
+                      textInputAction: TextInputAction.done,
                     ),
                   ),
                 ],

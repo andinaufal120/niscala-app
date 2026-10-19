@@ -116,7 +116,7 @@ Scaffold _listPage(Widget body, {Widget? action}) => Scaffold(
   body: Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      ScreenHeader(title: 'Keluhan', action: action),
+      ScreenHeader(title: 'Keluhan Saya', action: action),
       Expanded(child: body),
     ],
   ),

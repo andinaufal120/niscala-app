@@ -6,7 +6,6 @@ import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
-import 'package:niscala/core/widgets/info_note.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/auth/ui/auth_widgets.dart';
@@ -145,6 +144,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             busy: _busy,
                             onPressed: _submit,
                           ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
                           formGap,
                           Wrap(
                             alignment: WrapAlignment.center,
@@ -157,17 +161,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          formGap,
-                          const InfoNote(
-                            icon: Icons.mail_outline,
-                            text:
-                                'Penyewa dan pengelola kost mengaktifkan akun '
-                                'lewat tautan undangan dari pemilik kost.',
+                          const SizedBox(height: 8),
+                          DefaultTextStyle(
+                            style: theme.textTheme.bodySmall!,
+                            textAlign: TextAlign.center,
+                            child: const Text(
+                              'Penyewa dan pengelola kost mengaktifkan akun '
+                              'lewat tautan undangan dari pemilik kost.',
+                            ),
                           ),
                           TextButton(
                             onPressed: () => context.go('/aktivasi'),

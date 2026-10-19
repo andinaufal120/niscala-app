@@ -169,14 +169,11 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          'Tidak menemukan email? Periksa folder spam.',
-          style: theme.textTheme.bodyMedium,
-        ),
-        formGap,
         Wrap(
+          alignment: WrapAlignment.spaceBetween,
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 8,
+          runSpacing: 8,
           children: [
             Text('Belum menerima kode?', style: theme.textTheme.bodyMedium),
             OutlinedButton(
@@ -184,6 +181,11 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
               child: const Text('Kirim ulang'),
             ),
           ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Tidak menemukan email? Periksa folder spam.',
+          style: theme.textTheme.bodyMedium,
         ),
       ],
     );
