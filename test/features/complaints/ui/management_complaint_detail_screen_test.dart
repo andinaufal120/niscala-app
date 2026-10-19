@@ -16,6 +16,13 @@ const _description = 'Keran air di kamar mandi bocor sejak kemarin.';
 const _refresh = 'Segarkan';
 const _roles = [UserRole.owner, UserRole.manager];
 
+/// The classification states that show no AI result.
+const _unclassifiedStates = [
+  ComplaintClassificationState.classifying,
+  ComplaintClassificationState.awaitingClassification,
+  ComplaintClassificationState.notClassified,
+];
+
 FakeComplaintRepository _repo([Complaint? complaint]) =>
     FakeComplaintRepository(complaints: [complaint ?? makeComplaint()]);
 
@@ -59,6 +66,18 @@ Complaint _state(ComplaintClassificationState state) =>
     makeComplaint(classificationState: state);
 
 Complaint _withheld() => makeComplaint(classificationWithheld: true);
+
+Complaint _withHandlingNote() => makeComplaint(
+  status: ComplaintStatus.inProgress,
+  classificationState: ComplaintClassificationState.notClassified,
+  statusChanges: [
+    statusChange(
+      ComplaintStatus.inProgress,
+      DateTime.utc(2026, 10, 19, 9),
+      note: 'Tukang datang besok pagi.',
+    ),
+  ],
+);
 
 void main() {
   group('content', () {
@@ -108,22 +127,7 @@ void main() {
     }
 
     testWidgets('shows the status history with handling notes', (tester) async {
-      await _open(
-        tester,
-        _repo(
-          makeComplaint(
-            status: ComplaintStatus.inProgress,
-            classificationState: ComplaintClassificationState.notClassified,
-            statusChanges: [
-              statusChange(
-                ComplaintStatus.inProgress,
-                DateTime.utc(2026, 10, 19, 9),
-                note: 'Tukang datang besok pagi.',
-              ),
-            ],
-          ),
-        ),
-      );
+      await _open(tester, _repo(_withHandlingNote()));
 
       expect(find.text('Tukang datang besok pagi.'), findsOneWidget);
       expect(find.textContaining('19 Okt 2026'), findsOneWidget);
@@ -504,6 +508,172 @@ void main() {
     });
   });
 
+  group('structure', () {
+    testWidgets('keeps the white app bar titled Rincian Keluhan', (
+      tester,
+    ) async {
+      await _open(tester, _repo(_ai()));
+
+      expect(appBarTitle('Rincian Keluhan'), findsOneWidget);
+      expectDetailAppBar(tester);
+    });
+
+    testWidgets(
+      'puts the tenant message in a section card titled Pesan penyewa',
+      (tester) async {
+        await _open(tester, _repo(_ai()));
+
+        expectSectionCard(tester, 'Pesan penyewa');
+        final card = sectionCardOf('Pesan penyewa');
+        expect(
+          find.descendant(of: card, matching: find.text(_description)),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: card, matching: find.text('Budi Santoso')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: card, matching: find.textContaining('Kamar 08')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: card,
+            matching: find.textContaining('18 Okt 2026'),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'puts the status history in a section card titled Riwayat status',
+      (tester) async {
+        await _open(tester, _repo(_withHandlingNote()));
+
+        expectSectionCard(tester, 'Riwayat status');
+        expect(
+          find.descendant(
+            of: sectionCardOf('Riwayat status'),
+            matching: find.text('Tukang datang besok pagi.'),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'puts an AI classification in an emphasis card titled Klasifikasi',
+      (tester) async {
+        await _open(tester, _repo(_ai()));
+
+        expectEmphasisSectionCard(tester, 'Klasifikasi');
+        expect(
+          find.descendant(
+            of: sectionCardOf('Klasifikasi'),
+            matching: find.text('Pipa dan air'),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('puts a manual classification in the emphasis card too', (
+      tester,
+    ) async {
+      await _open(tester, _repo(_manual()));
+
+      expectEmphasisSectionCard(tester, 'Klasifikasi');
+    });
+
+    testWidgets('puts the withheld note in the emphasis card too', (
+      tester,
+    ) async {
+      await _open(tester, _repo(_withheld()));
+
+      expectEmphasisSectionCard(tester, 'Klasifikasi');
+      expect(
+        find.descendant(
+          of: sectionCardOf('Klasifikasi'),
+          matching: subscriptionNote(),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    for (final state in _unclassifiedStates) {
+      testWidgets('puts the classification state $state in the emphasis card', (
+        tester,
+      ) async {
+        await _open(tester, _repo(_state(state)));
+
+        expectEmphasisSectionCard(tester, 'Klasifikasi');
+      });
+    }
+
+    testWidgets('the AI disclaimer sits inside the classification card', (
+      tester,
+    ) async {
+      await _open(tester, _repo(_ai()));
+
+      expect(
+        find.descendant(
+          of: sectionCardOf('Klasifikasi'),
+          matching: aiDisclaimer(),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the suggested action sits inside the classification card', (
+      tester,
+    ) async {
+      await _open(tester, _repo(_ai()));
+
+      expect(
+        find.descendant(
+          of: sectionCardOf('Klasifikasi'),
+          matching: find.text('Panggil tukang ledeng.'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the refresh action sits inside the classification card', (
+      tester,
+    ) async {
+      await _open(
+        tester,
+        _repo(_state(ComplaintClassificationState.classifying)),
+      );
+
+      expect(
+        find.descendant(
+          of: sectionCardOf('Klasifikasi'),
+          matching: find.text(_refresh),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('every section card keeps the card look when classified', (
+      tester,
+    ) async {
+      await _open(tester, _repo(_ai()));
+
+      expectSectionCardLooks(tester);
+    });
+
+    testWidgets('every section card keeps the card look with handling notes', (
+      tester,
+    ) async {
+      await _open(tester, _repo(_withHandlingNote()));
+
+      expectSectionCardLooks(tester);
+    });
+  });
+
   group('accessibility', () {
     final states = <String, FakeComplaintRepository Function()>{
       'classified by the AI': () => _repo(_ai()),
@@ -515,19 +685,7 @@ void main() {
       'not classified': () =>
           _repo(_state(ComplaintClassificationState.notClassified)),
       'withheld': () => _repo(_withheld()),
-      'with handling notes': () => _repo(
-        makeComplaint(
-          status: ComplaintStatus.inProgress,
-          classificationState: ComplaintClassificationState.notClassified,
-          statusChanges: [
-            statusChange(
-              ComplaintStatus.inProgress,
-              DateTime.utc(2026, 10, 19, 9),
-              note: 'Tukang datang besok pagi.',
-            ),
-          ],
-        ),
-      ),
+      'with handling notes': () => _repo(_withHandlingNote()),
       'failed': () => _repo()..getScript.always = const ApiFailure.network(),
     };
 

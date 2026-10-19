@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
+import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/complaints/ui/complaint_form_screen.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_detail_screen.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_list_screen.dart';
@@ -11,9 +13,15 @@ import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
+import '../../../helpers/fields.dart';
+import '../../../helpers/semantics.dart';
 import 'complaint_ui_helpers.dart';
 
+/// The visible label of the description field, with its required marker.
 const _label = 'Deskripsi keluhan (wajib)';
+
+/// The helper text under the description field.
+const _helper = 'Ceritakan masalahnya, minimal 10 karakter.';
 const _send = 'Kirim Keluhan';
 const _valid = 'Keran air di kamar mandi bocor.';
 
@@ -32,9 +40,9 @@ Future<void> _submit(WidgetTester tester) =>
     tapVisible(tester, find.text(_send));
 
 Future<void> _write(WidgetTester tester, String text) =>
-    type(tester, _label, text);
+    typeInto(tester, _label, text);
 
-String? _error(WidgetTester tester) => fieldError(tester, _label);
+String? _error(WidgetTester tester) => labeledFieldError(tester, _label);
 
 void main() {
   group('layout', () {
@@ -45,7 +53,8 @@ void main() {
 
       expect(find.byType(ComplaintFormScreen), findsOneWidget);
       expect(appBarTitle('Ajukan Keluhan'), findsOneWidget);
-      expect(textField(tester, _label).decoration?.labelText, _label);
+      expect(labeledField(_label), findsOneWidget);
+      expect(fieldLabeled(_label), findsOneWidget);
       expect(find.text(_send), findsOneWidget);
     });
 
@@ -54,15 +63,15 @@ void main() {
     ) async {
       await _open(tester, FakeComplaintRepository());
 
-      expect(textField(tester, _label).controller!.text, isEmpty);
+      expect(labeledTextField(tester, _label).controller!.text, isEmpty);
       expect(_error(tester), isNull);
-      expect(textField(tester, _label).decoration?.helperText, contains('10'));
+      expect(find.text(_helper), findsOneWidget);
     });
 
     testWidgets('accepts several lines', (tester) async {
       await _open(tester, FakeComplaintRepository());
 
-      final input = textField(tester, _label);
+      final input = labeledTextField(tester, _label);
       expect(input.maxLines == null || input.maxLines! > 1, isTrue);
     });
 
@@ -78,7 +87,7 @@ void main() {
       final repo = FakeComplaintRepository();
       await _open(tester, repo);
 
-      await tester.tap(field(_label));
+      await tester.tap(fieldLabeled(_label));
       await tester.pumpAndSettle();
 
       expect(repo.submitCalls, 0);
@@ -261,7 +270,7 @@ void main() {
       await _submit(tester);
 
       expect(find.byType(ComplaintFormScreen), findsNothing);
-      expect(field(_label), findsNothing);
+      expect(fieldLabeled(_label), findsNothing);
     });
 
     testWidgets('a classified result is still a success', (tester) async {
@@ -382,7 +391,7 @@ void main() {
       await _submit(tester);
 
       expect(_error(tester), errorMessage('VALIDATION_FAILED'));
-      expect(textField(tester, _label).controller!.text, _valid);
+      expect(labeledTextField(tester, _label).controller!.text, _valid);
       expect(currentPath(tester), '/penyewa/keluhan/baru');
       expect(repo.complaints, isEmpty);
     });
@@ -404,7 +413,7 @@ void main() {
           findsOneWidget,
         );
         expect(_error(tester), isNull);
-        expect(textField(tester, _label).controller!.text, _valid);
+        expect(labeledTextField(tester, _label).controller!.text, _valid);
         expect(currentPath(tester), '/penyewa/keluhan/baru');
       },
     );
@@ -420,7 +429,7 @@ void main() {
       await _submit(tester);
 
       expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
-      expect(textField(tester, _label).controller!.text, _valid);
+      expect(labeledTextField(tester, _label).controller!.text, _valid);
       expect(repo.complaints, isEmpty);
     });
 
@@ -493,6 +502,109 @@ void main() {
 
       expect(find.text(errorMessage('NETWORK_ERROR')), findsNothing);
       expect(_error(tester), isNotNull);
+    });
+  });
+
+  group('structure', () {
+    testWidgets(
+      'wraps the description in a LabeledField with its visible text',
+      (tester) async {
+        await _open(tester, FakeComplaintRepository());
+
+        expect(find.byType(LabeledField), findsOneWidget);
+        expect(labeledField(_label), findsOneWidget);
+        expect(find.text(_label), findsOneWidget);
+      },
+    );
+
+    testWidgets('draws no label inside the description field', (tester) async {
+      await _open(tester, FakeComplaintRepository());
+
+      expectNoDecorationLabels(tester);
+    });
+
+    testWidgets('puts the label above the field', (tester) async {
+      await _open(tester, FakeComplaintRepository());
+
+      final text = tester.getRect(find.text(_label));
+      final input = tester.getRect(fieldLabeled(_label));
+      expect(text.bottom, lessThanOrEqualTo(input.top));
+    });
+
+    testWidgets('reads the label once, on the field', (tester) async {
+      await _open(tester, FakeComplaintRepository());
+
+      expectFieldNode(tester, _label);
+    });
+
+    testWidgets('reads the helper text with the field', (tester) async {
+      await _open(tester, FakeComplaintRepository());
+
+      final handle = tester.ensureSemantics();
+      try {
+        final node = tester.getSemantics(fieldLabeled(_label));
+        expect(announced(node), contains(_helper));
+        expect(nodesAnnouncing(tester, _helper), hasLength(1));
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets('keeps the field error on the field node', (tester) async {
+      await _open(tester, FakeComplaintRepository());
+      await _submit(tester);
+
+      expectFieldNode(tester, _label, error: _error(tester)!);
+    });
+
+    testWidgets('tapping the label focuses the field', (tester) async {
+      await _open(tester, FakeComplaintRepository());
+
+      await tester.tap(find.text(_label));
+      await tester.pump();
+
+      final editable = tester.widget<EditableText>(
+        find.descendant(
+          of: fieldLabeled(_label),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editable.focusNode.hasFocus, isTrue);
+    });
+
+    testWidgets('puts the submit button in a pinned ActionFooter', (
+      tester,
+    ) async {
+      await _open(tester, FakeComplaintRepository());
+
+      expectPinnedFooter(tester, _send);
+    });
+
+    testWidgets('keeps the busy button inside the ActionFooter', (
+      tester,
+    ) async {
+      final repo = FakeComplaintRepository()
+        ..submitScript.gate = Completer<void>();
+      await _open(tester, repo);
+      await _write(tester, _valid);
+
+      await tapAndPump(tester, find.text(_send));
+
+      expect(
+        find.descendant(
+          of: find.byType(ActionFooter),
+          matching: find.byType(CircularProgressIndicator),
+        ),
+        findsOneWidget,
+      );
+      expectBusy(tester);
+    });
+
+    testWidgets('keeps the footer at the bottom at large text', (tester) async {
+      await _open(tester, FakeComplaintRepository(), largeText: true);
+
+      expectFooterAtBottom(tester);
+      expect(tester.takeException(), isNull);
     });
   });
 

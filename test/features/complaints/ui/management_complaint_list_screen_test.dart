@@ -6,6 +6,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/features/complaints/ui/management_complaint_detail_screen.dart';
 import 'package:niscala/features/complaints/ui/management_complaint_list_screen.dart';
 import 'package:niscala_api/api.dart';
@@ -114,7 +115,7 @@ void main() {
         await _open(tester, repo, role: role);
 
         expect(find.byType(ManagementComplaintListScreen), findsOneWidget);
-        expect(appBarTitle('Keluhan'), findsOneWidget);
+        expect(headerTitle('Keluhan'), findsOneWidget);
         expect(currentPath(tester), '/keluhan');
         expect(repo.listCalls, 1);
       });
@@ -421,7 +422,10 @@ void main() {
       for (final label in ['Semua', 'Baru', 'Diproses', 'Selesai']) {
         expect(filterChip(label), findsOneWidget);
         expect(
-          find.descendant(of: find.byType(AppBar), matching: filterChip(label)),
+          find.descendant(
+            of: find.byType(ScreenHeader),
+            matching: filterChip(label),
+          ),
           findsNothing,
         );
       }
@@ -543,6 +547,143 @@ void main() {
       );
       expect(find.textContaining('Tidak ada keluhan'), findsOneWidget);
       expect(filterChip('Semua'), findsOneWidget);
+    });
+  });
+
+  group('structure', () {
+    testWidgets('is a tab root with a ScreenHeader and no app bar', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expect(find.byType(ScreenHeader), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ManagementComplaintListScreen),
+          matching: find.byType(AppBar),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('announces the header title as the page heading', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      final handle = tester.ensureSemantics();
+      try {
+        expect(
+          tester.getSemantics(headerTitle('Keluhan')),
+          isSemantics(isHeader: true),
+        );
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    for (final role in _roles) {
+      testWidgets('a $role gets a header with no action button', (
+        tester,
+      ) async {
+        await _open(tester, _repo(), role: role);
+
+        expect(
+          find.descendant(of: find.byType(ScreenHeader), matching: anyButton()),
+          findsNothing,
+        );
+      });
+    }
+
+    testWidgets('the header stays in place when the list scrolls', (
+      tester,
+    ) async {
+      await _open(tester, _repo(), largeText: true);
+      final before = tester.getRect(find.byType(ScreenHeader));
+
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(find.byType(ScreenHeader)), before);
+    });
+
+    testWidgets('every complaint row is a card holding one complaint', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expect(
+        find.descendant(
+          of: find.byType(ManagementComplaintListScreen),
+          matching: find.byType(Card),
+        ),
+        findsNWidgets(_order.length),
+      );
+      for (final text in _order) {
+        expect(
+          find.ancestor(of: find.text(text), matching: find.byType(Card)),
+          findsOneWidget,
+        );
+      }
+    });
+
+    testWidgets(
+      'each card has a 16 dp radius, a divider border and no shadow',
+      (tester) async {
+        await _open(tester, _repo());
+
+        expectCardLook(
+          tester,
+          find.descendant(
+            of: find.byType(ManagementComplaintListScreen),
+            matching: find.byType(Card),
+          ),
+        );
+      },
+    );
+
+    testWidgets(
+      'a card holds the room, tenant, status and classification of its row',
+      (tester) async {
+        await _open(tester, _repo());
+
+        final card = find.ancestor(
+          of: find.text('Atap kamar mandi bocor deras.'),
+          matching: find.byType(Card),
+        );
+        expect(
+          find.descendant(
+            of: card,
+            matching: find.text('Kamar 12 · Dewi Lestari'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: card, matching: statusBadge('Baru')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: card, matching: find.text('Pipa dan air')),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: card, matching: statusBadge('Tinggi')),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('a withheld card holds the subscription note', (tester) async {
+      await _open(tester, _repo());
+
+      final card = find.ancestor(
+        of: find.text('Kipas angin berisik.'),
+        matching: find.byType(Card),
+      );
+      expect(
+        find.descendant(of: card, matching: subscriptionNote()),
+        findsOneWidget,
+      );
     });
   });
 

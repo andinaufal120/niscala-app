@@ -6,6 +6,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/features/complaints/ui/complaint_form_screen.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_detail_screen.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_list_screen.dart';
@@ -15,7 +16,11 @@ import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
 import 'complaint_ui_helpers.dart';
 
-const _newButton = 'Ajukan Keluhan';
+/// The header action that opens the new complaint form.
+const _newButton = 'Ajukan';
+
+/// The action of the empty state, which opens the same form.
+const _emptyAction = 'Ajukan Keluhan';
 
 /// Five complaints of one tenant:
 /// - c1 new and classified by the AI (high urgency),
@@ -69,7 +74,7 @@ void main() {
       await pumpComplaintApp(tester, _repo());
 
       expect(find.byType(TenantComplaintListScreen), findsOneWidget);
-      expect(appBarTitle('Keluhan'), findsOneWidget);
+      expect(headerTitle('Keluhan'), findsOneWidget);
       expect(currentPath(tester), '/penyewa/keluhan');
     });
 
@@ -162,13 +167,13 @@ void main() {
       await pumpComplaintApp(tester, _repo([]));
 
       expect(find.byType(EmptyState), findsOneWidget);
-      expect(find.text(_newButton), findsOneWidget);
+      expect(find.text(_emptyAction), findsOneWidget);
     });
 
     testWidgets('the empty state action opens the form', (tester) async {
       await pumpComplaintApp(tester, _repo([]));
 
-      await tester.tap(find.text(_newButton));
+      await tester.tap(find.text(_emptyAction));
       await tester.pumpAndSettle();
 
       expect(currentPath(tester), '/penyewa/keluhan/baru');
@@ -324,12 +329,12 @@ void main() {
   });
 
   group('new complaint button', () {
-    testWidgets('is shown above the list, at least 48 dp, and opens the form', (
+    testWidgets('is in the header, at least 48 dp, and opens the form', (
       tester,
     ) async {
       await pumpComplaintApp(tester, _repo());
 
-      expect(find.text(_newButton), findsOneWidget);
+      expect(headerAction(_newButton), findsOneWidget);
       expectTargetSize(tester, _newButton);
 
       await tester.tap(find.text(_newButton));
@@ -358,7 +363,10 @@ void main() {
       for (final label in ['Aktif', 'Selesai']) {
         expect(filterChip(label), findsOneWidget);
         expect(
-          find.descendant(of: find.byType(AppBar), matching: filterChip(label)),
+          find.descendant(
+            of: find.byType(ScreenHeader),
+            matching: filterChip(label),
+          ),
           findsNothing,
         );
       }
@@ -481,6 +489,160 @@ void main() {
       expect(find.text('Keran air di kamar mandi bocor.'), findsNothing);
       expect(filterChip('Selesai'), findsOneWidget);
       expect(find.textContaining('Tidak ada keluhan'), findsOneWidget);
+    });
+  });
+
+  group('structure', () {
+    testWidgets('is a tab root with a ScreenHeader and no app bar', (
+      tester,
+    ) async {
+      await pumpComplaintApp(tester, _repo());
+
+      expect(find.byType(ScreenHeader), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(TenantComplaintListScreen),
+          matching: find.byType(AppBar),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('announces the header title as the page heading', (
+      tester,
+    ) async {
+      await pumpComplaintApp(tester, _repo());
+
+      final handle = tester.ensureSemantics();
+      try {
+        expect(
+          tester.getSemantics(headerTitle('Keluhan')),
+          isSemantics(isHeader: true),
+        );
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets('the header action is a filled button outside the list', (
+      tester,
+    ) async {
+      await pumpComplaintApp(tester, _repo());
+
+      expect(
+        find.ancestor(
+          of: headerAction(_newButton),
+          matching: find.byWidgetPredicate((widget) => widget is FilledButton),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.ancestor(
+          of: headerAction(_newButton),
+          matching: find.byType(Scrollable),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('the header stays in place when the list scrolls', (
+      tester,
+    ) async {
+      await pumpComplaintApp(tester, _repo(), largeText: true);
+      final before = tester.getRect(find.byType(ScreenHeader));
+
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -2000));
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(find.byType(ScreenHeader)), before);
+      expect(headerAction(_newButton), findsOneWidget);
+    });
+
+    testWidgets('every complaint row is a card holding one complaint', (
+      tester,
+    ) async {
+      await pumpComplaintApp(tester, _repo());
+
+      expect(
+        find.descendant(
+          of: find.byType(TenantComplaintListScreen),
+          matching: find.byType(Card),
+        ),
+        findsNWidgets(4),
+      );
+      for (final text in [
+        'Keran air di kamar mandi bocor.',
+        'Lampu kamar sering mati.',
+        'Pintu kamar sulit dikunci.',
+        'Jendela berderit saat dibuka.',
+      ]) {
+        expect(
+          find.ancestor(of: find.text(text), matching: find.byType(Card)),
+          findsOneWidget,
+        );
+      }
+    });
+
+    testWidgets(
+      'each card has a 16 dp radius, a divider border and no shadow',
+      (tester) async {
+        await pumpComplaintApp(tester, _repo());
+
+        expectCardLook(
+          tester,
+          find.descendant(
+            of: find.byType(TenantComplaintListScreen),
+            matching: find.byType(Card),
+          ),
+        );
+      },
+    );
+
+    testWidgets('a card holds the status, category and urgency of its row', (
+      tester,
+    ) async {
+      await pumpComplaintApp(tester, _repo());
+
+      final card = find.ancestor(
+        of: find.text('Keran air di kamar mandi bocor.'),
+        matching: find.byType(Card),
+      );
+      expect(
+        find.descendant(of: card, matching: statusBadge('Baru')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: card, matching: find.text('Pipa dan air')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: card, matching: statusBadge('Tinggi')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the filtered rows are cards with the same look', (
+      tester,
+    ) async {
+      await pumpComplaintApp(tester, _repo());
+
+      await tester.tap(filterChip('Selesai'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byType(TenantComplaintListScreen),
+          matching: find.byType(Card),
+        ),
+        findsOneWidget,
+      );
+      expectCardLook(
+        tester,
+        find.descendant(
+          of: find.byType(TenantComplaintListScreen),
+          matching: find.byType(Card),
+        ),
+      );
     });
   });
 
