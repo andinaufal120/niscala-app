@@ -80,6 +80,9 @@ ThemeData buildTheme() {
     fontFamily: _fontFamily,
     textTheme: textTheme,
     extensions: const [NiscalaTokens()],
+    actionIconTheme: ActionIconThemeData(
+      backButtonIconBuilder: (_) => const Icon(Icons.chevron_left),
+    ),
     appBarTheme: AppBarThemeData(
       backgroundColor: NiscalaColors.surface,
       foregroundColor: text,
@@ -88,6 +91,7 @@ ThemeData buildTheme() {
       elevation: 0,
       centerTitle: false,
       titleSpacing: 0,
+      actionsPadding: const EdgeInsets.only(right: 8),
       shape: const Border(bottom: BorderSide(color: NiscalaColors.divider)),
       titleTextStyle: _style(17, FontWeight.w700, text),
     ),

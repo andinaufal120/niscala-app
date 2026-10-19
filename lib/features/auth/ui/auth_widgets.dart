@@ -111,7 +111,10 @@ class PasswordStrengthHint extends StatelessWidget {
         const SizedBox(height: 4),
         Semantics(
           liveRegion: true,
-          child: Text(passwordStrengthText(password, name: name, email: email)),
+          child: Text(
+            passwordStrengthText(password, name: name, email: email),
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
         ),
       ],
     );

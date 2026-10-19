@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:niscala/core/api/api_providers.dart';
 import 'package:niscala/core/session/session_controller.dart';
@@ -23,7 +24,10 @@ class AccountScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Akun')),
+      appBar: AppBar(
+        title: const Text('Akun'),
+        titleSpacing: NiscalaSpacing.gutter,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Align(

@@ -85,6 +85,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          const SizedBox(height: 28),
                           const Align(
                             alignment: Alignment.centerLeft,
                             child: _LogoTile(),

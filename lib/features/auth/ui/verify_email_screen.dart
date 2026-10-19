@@ -4,6 +4,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/shell/account_screen.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
@@ -111,6 +112,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     return AuthPage(
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        titleSpacing: NiscalaSpacing.gutter,
         title: const Text('Verifikasi email'),
       ),
       footer: ActionFooter(
