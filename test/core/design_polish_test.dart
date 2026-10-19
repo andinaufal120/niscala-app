@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/theme.dart';
 
-import '../features/auth/ui/auth_ui_helpers.dart';
 import '../features/rooms/ui/room_ui_helpers.dart';
 import '../helpers/fakes.dart';
 
@@ -11,17 +10,6 @@ double _titleLeft(WidgetTester tester, String title) => tester
       find.descendant(of: find.byType(AppBar), matching: find.text(title)),
     )
     .dx;
-
-TextStyle _styleOf(WidgetTester tester, String text) => tester
-    .widget<DefaultTextStyle>(
-      find
-          .ancestor(
-            of: find.text(text),
-            matching: find.byType(DefaultTextStyle),
-          )
-          .first,
-    )
-    .style;
 
 void main() {
   group('app bar', () {
@@ -76,18 +64,21 @@ void main() {
   group('forms', () {
     testWidgets('the show password label is 14 semibold', (tester) async {
       await pumpRegister(tester, FakeAuthRepository());
-      final style = _styleOf(tester, 'Tampilkan kata sandi');
-      expect(style.fontSize, 14);
-      expect(style.fontWeight, FontWeight.w600);
+      final style = tester
+          .widget<Text>(find.text('Tampilkan kata sandi'))
+          .style;
+      expect(style?.fontSize, 14);
+      expect(style?.fontWeight, FontWeight.w600);
     });
 
     testWidgets('the strength line is a small muted caption', (tester) async {
       await pumpRegister(tester, FakeAuthRepository());
-      final style = _styleOf(
-        tester,
-        'Kekuatan kata sandi akan muncul saat Anda mengetik.',
-      );
-      expect(style.fontSize, 12);
+      final style = tester
+          .widget<Text>(
+            find.text('Kekuatan kata sandi akan muncul saat Anda mengetik.'),
+          )
+          .style;
+      expect(style?.fontSize, 12);
     });
 
     testWidgets('the login logo has room above it', (tester) async {
