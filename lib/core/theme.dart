@@ -197,10 +197,15 @@ ThemeData buildTheme() {
       surfaceTintColor: Colors.transparent,
       indicatorColor: Colors.transparent,
       elevation: 0,
+      labelPadding: EdgeInsets.zero,
+      // Five tabs share the width, so the longest label ("Pembayaran") only
+      // fits on one line at a slightly smaller, tighter size.
       labelTextStyle: WidgetStateProperty.resolveWith(
-        (states) => states.contains(WidgetState.selected)
-            ? _style(11, FontWeight.w700, NiscalaColors.primary)
-            : _style(11, FontWeight.w600, NiscalaColors.textMuted),
+        (states) =>
+            (states.contains(WidgetState.selected)
+                    ? _style(10, FontWeight.w700, NiscalaColors.primary)
+                    : _style(10, FontWeight.w600, NiscalaColors.textMuted))
+                .copyWith(letterSpacing: -0.2),
       ),
       iconTheme: WidgetStateProperty.resolveWith(
         (states) => IconThemeData(

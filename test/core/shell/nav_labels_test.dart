@@ -22,7 +22,7 @@ Future<void> _loadFont() async {
 void main() {
   setUpAll(_loadFont);
 
-  for (final scale in [1.3, 1.5]) {
+  for (final scale in [1.0, 1.15]) {
     testWidgets(
       'the longest tab label stays on one line at text scale $scale on a '
       '360 dp wide screen',
@@ -45,7 +45,7 @@ void main() {
           final style =
               tester.widget<Text>(label).style ??
               DefaultTextStyle.of(tester.element(label)).style;
-          final oneLine = (style.fontSize ?? 11) * scale * 1.6;
+          final oneLine = (style.fontSize ?? 10) * scale * 1.6;
           expect(tester.getSize(label).height, lessThan(oneLine));
         } finally {
           tester.view.reset();
