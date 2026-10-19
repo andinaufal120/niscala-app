@@ -118,24 +118,55 @@ class _PropertyCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(property.address),
-              Text(
-                '${property.roomCount} kamar · '
-                '${property.occupiedRoomCount} terisi',
+              const SizedBox(height: NiscalaSpacing.s),
+              Wrap(
+                spacing: NiscalaSpacing.s,
+                runSpacing: NiscalaSpacing.s,
+                children: [
+                  _FactPill(
+                    '${property.roomCount} kamar · '
+                    '${property.occupiedRoomCount} terisi',
+                  ),
+                  _FactPill(
+                    managers.isEmpty
+                        ? 'Belum ada pengelola'
+                        : 'Pengelola: $managers',
+                  ),
+                  if (!property.editable)
+                    StatusBadge(
+                      label: 'Hanya lihat',
+                      colors: NiscalaTokens.of(context).readOnly,
+                    ),
+                ],
               ),
-              Text(
-                managers.isEmpty
-                    ? 'Belum ada pengelola'
-                    : 'Pengelola: $managers',
-              ),
-              if (!property.editable) ...[
-                const SizedBox(height: 4),
-                StatusBadge(
-                  label: 'Hanya lihat',
-                  colors: NiscalaTokens.of(context).readOnly,
-                ),
-              ],
             ],
           ),
+          trailing: const Icon(Icons.chevron_right),
+        ),
+      ),
+    );
+  }
+}
+
+/// A short fact about a property on a neutral pill.
+class _FactPill extends StatelessWidget {
+  const _FactPill(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: NiscalaColors.neutralSoft,
+        borderRadius: BorderRadius.circular(NiscalaRadius.small),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: Text(
+          text,
+          style: Theme.of(context).textTheme.labelMedium
+              ?.copyWith(color: NiscalaColors.textSecondary),
         ),
       ),
     );
