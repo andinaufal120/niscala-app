@@ -17,6 +17,12 @@ import '../../helpers/fakes.dart';
 Finder navLabel(String label) =>
     find.descendant(of: find.byType(NavigationBar), matching: find.text(label));
 
+/// The title of a tab: the property and complaint lists are tab roots with
+/// their own header instead of an app bar.
+Finder tabTitle(String title) => const ['Properti', 'Keluhan'].contains(title)
+    ? find.descendant(of: find.byType(ScreenHeader), matching: find.text(title))
+    : appBarTitle(title);
+
 Finder appBarTitle(String title) =>
     find.descendant(of: find.byType(AppBar), matching: find.text(title));
 
@@ -92,17 +98,7 @@ void main() {
 
         expect(currentPath(tester), paths[i]);
         expect(selectedIndex(tester), i);
-        // The property list is a tab root with its own header instead of an
-        // app bar.
-        expect(
-          labels[i] == 'Properti'
-              ? find.descendant(
-                  of: find.byType(ScreenHeader),
-                  matching: find.text('Properti'),
-                )
-              : appBarTitle(labels[i]),
-          findsOneWidget,
-        );
+        expect(tabTitle(labels[i]), findsOneWidget);
       });
 
       testWidgets('selects ${labels[i]} when the route is ${paths[i]}', (
@@ -225,7 +221,7 @@ void main() {
 
         expect(currentPath(tester), paths[i]);
         expect(selectedIndex(tester), i);
-        expect(appBarTitle(labels[i]), findsOneWidget);
+        expect(tabTitle(labels[i]), findsOneWidget);
       });
     }
 
