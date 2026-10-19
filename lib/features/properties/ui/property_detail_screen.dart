@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
+import 'package:niscala/core/widgets/action_card_row.dart';
 import 'package:niscala/core/widgets/confirm_dialog.dart';
+import 'package:niscala/core/widgets/danger_button.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
@@ -88,10 +90,21 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
   Widget build(BuildContext context) {
     final isOwner = ref.watch(currentRoleProvider) == UserRole.owner;
     final property = ref.watch(propertyDetailProvider(widget.propertyId));
+    final loaded = property.value;
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: widget.showBack,
         title: const Text('Rincian Properti'),
+        actionsPadding: const EdgeInsets.only(right: NiscalaSpacing.gutter),
+        actions: [
+          if (isOwner && loaded != null && loaded.editable)
+            TextButton(
+              onPressed: _deleting
+                  ? null
+                  : () => context.go('/properti/${loaded.id}/ubah'),
+              child: const Text('Ubah'),
+            ),
+        ],
       ),
       body: property.when(
         skipLoadingOnReload: true,
@@ -117,75 +130,71 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Semantics(
-            header: true,
-            child: Text(p.name, style: theme.textTheme.headlineSmall),
-          ),
-          const SizedBox(height: 4),
-          Text(p.address, style: theme.textTheme.bodyLarge),
-          if (!p.editable) ...[
-            formGap,
-            StatusBadge(
-              label: 'Hanya bisa dilihat',
-              colors: NiscalaTokens.of(context).readOnly,
-              icon: Icons.visibility_outlined,
-            ),
-            const SizedBox(height: 8),
-            Text(isOwner ? _readOnlyOwner : _readOnlyManager),
-          ],
-          formGap,
-          if (isOwner) ...[
-            if (p.editable)
-              FilledButton(
-                onPressed: _deleting
-                    ? null
-                    : () => context.go('/properti/${p.id}/ubah'),
-                child: const Text('Ubah'),
-              ),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: theme.colorScheme.error,
-              ),
-              onPressed: _deleting ? null : () => _askToDelete(p),
-              child: const Text('Hapus Properti'),
-            ),
-          ] else
-            Text(_managerOnly),
-          formGap,
-          Text('Jumlah kamar', style: theme.textTheme.titleSmall),
-          Text('${p.roomCount} kamar'),
-          Text('${p.occupiedRoomCount} terisi · ${p.vacantRoomCount} kosong'),
-          const SizedBox(height: 8),
-          FilledButton.tonal(
-            onPressed: _deleting
-                ? null
-                : () => context.go('/properti/${p.id}/kamar'),
-            child: const Text('Kelola Kamar'),
-          ),
-          const SizedBox(height: 4),
-          const Text('Tambah, ubah, atau hapus kamar'),
-          const SizedBox(height: 8),
-          FilledButton.tonal(
-            onPressed: _deleting
-                ? null
-                : () => context.go('/properti/${p.id}/penyewa'),
-            child: const Text('Kelola Penyewa'),
-          ),
-          const SizedBox(height: 4),
-          const Text('Daftarkan penyewa, atur masa sewa dan tagihan'),
-          formGap,
           SectionCard(
-            title: 'Pengelola Kost',
-            child: p.managers.isEmpty
-                ? const Text('Belum ada pengelola')
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('${p.managers.length} pengelola'),
-                      Text(managers),
-                    ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Semantics(
+                  header: true,
+                  child: Text(p.name, style: theme.textTheme.headlineSmall),
+                ),
+                const SizedBox(height: NiscalaSpacing.xs),
+                Text(p.address, style: theme.textTheme.bodyLarge),
+                if (!p.editable) ...[
+                  formGap,
+                  StatusBadge(
+                    label: 'Hanya bisa dilihat',
+                    colors: NiscalaTokens.of(context).readOnly,
+                    icon: Icons.visibility_outlined,
                   ),
+                  const SizedBox(height: NiscalaSpacing.s),
+                  Text(isOwner ? _readOnlyOwner : _readOnlyManager),
+                ],
+              ],
+            ),
+          ),
+          if (!isOwner) ...[formGap, const Text(_managerOnly)],
+          formGap,
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: SectionCard(
+                    title: 'Jumlah kamar',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${p.roomCount}',
+                          style: theme.textTheme.headlineSmall,
+                        ),
+                        Text(
+                          '${p.occupiedRoomCount} terisi · '
+                          '${p.vacantRoomCount} kosong',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: NiscalaSpacing.m),
+                Expanded(
+                  child: SectionCard(
+                    title: 'Pengelola Kost',
+                    child: p.managers.isEmpty
+                        ? const Text('Belum ada pengelola')
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('${p.managers.length} pengelola'),
+                              Text(managers),
+                            ],
+                          ),
+                  ),
+                ),
+              ],
+            ),
           ),
           formGap,
           SectionCard(
@@ -200,6 +209,32 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
                     ],
                   ),
           ),
+          formGap,
+          ActionCardRow(
+            icon: Icons.meeting_room_outlined,
+            title: 'Kelola Kamar',
+            subtitle: 'Tambah, ubah, atau hapus kamar',
+            filled: true,
+            onTap: _deleting
+                ? null
+                : () => context.go('/properti/${p.id}/kamar'),
+          ),
+          const SizedBox(height: NiscalaSpacing.m),
+          ActionCardRow(
+            icon: Icons.people_outline,
+            title: 'Kelola Penyewa',
+            subtitle: 'Daftarkan penyewa, atur masa sewa dan tagihan',
+            onTap: _deleting
+                ? null
+                : () => context.go('/properti/${p.id}/penyewa'),
+          ),
+          if (isOwner) ...[
+            formGap,
+            DangerButton(
+              label: 'Hapus Properti',
+              onPressed: _deleting ? null : () => _askToDelete(p),
+            ),
+          ],
         ],
       ),
     );
