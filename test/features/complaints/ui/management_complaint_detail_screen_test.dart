@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
 import 'package:niscala/features/complaints/ui/management_complaint_detail_screen.dart';
 import 'package:niscala_api/api.dart';
 
@@ -100,8 +101,7 @@ void main() {
     ) async {
       await _open(tester, _repo(_ai()));
 
-      expect(find.text('Budi Santoso'), findsOneWidget);
-      expect(find.textContaining('08'), findsOneWidget);
+      expect(tenantMeta(), findsOneWidget);
       expect(find.textContaining('18 Okt 2026'), findsOneWidget);
       expect(find.text(_description), findsOneWidget);
     });
@@ -122,7 +122,14 @@ void main() {
           ),
         );
 
-        expect(statusBadge(entry.value), findsOneWidget);
+        expect(
+          tester.widget<ComplaintStatusSteps>(statusSteps()).status,
+          entry.key,
+        );
+        expect(
+          find.descendant(of: statusSteps(), matching: find.text(entry.value)),
+          findsOneWidget,
+        );
       });
     }
 
@@ -155,9 +162,9 @@ void main() {
     ) async {
       await _open(tester, _repo(_ai()));
 
-      final status = topOf(tester, statusBadge('Baru'));
+      final status = topOf(tester, statusSteps());
       final classification = topOf(tester, find.text('Pipa dan air'));
-      final tenant = topOf(tester, find.text('Budi Santoso'));
+      final tenant = topOf(tester, find.text('Pesan penyewa'));
       final message = topOf(tester, find.text(_description));
       expect(status, lessThan(classification));
       expect(classification, lessThan(tenant));
@@ -168,7 +175,7 @@ void main() {
       testWidgets('keeps the order when the state is $state', (tester) async {
         await _open(tester, _repo(_state(state)));
 
-        final status = topOf(tester, statusBadge('Baru'));
+        final status = topOf(tester, statusSteps());
         final classification = topOf(
           tester,
           find.byWidgetPredicate(
@@ -196,7 +203,7 @@ void main() {
     ) async {
       await _open(tester, _repo(_withheld()));
 
-      final status = topOf(tester, statusBadge('Baru'));
+      final status = topOf(tester, statusSteps());
       final note = topOf(tester, subscriptionNote());
       final message = topOf(tester, find.text(_description));
       expect(status, lessThan(note));
@@ -416,8 +423,8 @@ void main() {
     testWidgets('the rest of the screen still works', (tester) async {
       await _open(tester, _repo(_withheld()));
 
-      expect(statusBadge('Baru'), findsOneWidget);
-      expect(find.text('Budi Santoso'), findsOneWidget);
+      expect(statusSteps(), findsOneWidget);
+      expect(tenantMeta(), findsOneWidget);
       expect(find.text(_description), findsOneWidget);
     });
 
@@ -530,18 +537,7 @@ void main() {
           findsOneWidget,
         );
         expect(
-          find.descendant(of: card, matching: find.text('Budi Santoso')),
-          findsOneWidget,
-        );
-        expect(
-          find.descendant(of: card, matching: find.textContaining('Kamar 08')),
-          findsOneWidget,
-        );
-        expect(
-          find.descendant(
-            of: card,
-            matching: find.textContaining('18 Okt 2026'),
-          ),
+          find.descendant(of: card, matching: tenantMeta()),
           findsOneWidget,
         );
       },

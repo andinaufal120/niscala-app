@@ -17,11 +17,10 @@ import '../../helpers/fakes.dart';
 Finder navLabel(String label) =>
     find.descendant(of: find.byType(NavigationBar), matching: find.text(label));
 
-/// The title of a tab: the property and complaint lists are tab roots with
-/// their own header instead of an app bar.
-Finder tabTitle(String title) => const ['Properti', 'Keluhan'].contains(title)
-    ? find.descendant(of: find.byType(ScreenHeader), matching: find.text(title))
-    : appBarTitle(title);
+/// The title of a tab: every tab root has its own header instead of an app
+/// bar.
+Finder tabTitle(String title) =>
+    find.descendant(of: find.byType(ScreenHeader), matching: find.text(title));
 
 /// The title of a tenant tab. The tenant Keluhan tab is labelled Keluhan in the
 /// navigation bar, but its header reads Keluhan Saya.
@@ -95,7 +94,7 @@ void main() {
 
       expect(currentPath(tester), '/beranda');
       expect(selectedIndex(tester), 0);
-      expect(appBarTitle('Beranda'), findsOneWidget);
+      expect(tabTitle('Beranda'), findsOneWidget);
     });
 
     for (var i = 0; i < labels.length; i++) {
@@ -329,7 +328,8 @@ void main() {
       await tester.tap(navLabel('Akun'));
       await tester.pumpAndSettle();
 
-      expect(appBarTitle('Akun'), findsOneWidget);
+      expect(tabTitle('Akun'), findsOneWidget);
+      expect(find.byType(AppBar), findsNothing);
       expect(find.text('Keluar'), findsOneWidget);
     });
 

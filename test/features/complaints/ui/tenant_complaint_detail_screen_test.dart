@@ -6,6 +6,7 @@ import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
+import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_detail_screen.dart';
 import 'package:niscala_api/api.dart';
 
@@ -100,7 +101,7 @@ void main() {
     ) async {
       await _open(tester, _repo());
 
-      expect(statusBadge('Baru'), findsOneWidget);
+      expect(statusSteps(), findsOneWidget);
       expect(find.textContaining('18 Okt 2026'), findsOneWidget);
       expect(find.text(_description), findsOneWidget);
     });
@@ -121,7 +122,14 @@ void main() {
           ),
         );
 
-        expect(statusBadge(entry.value), findsOneWidget);
+        expect(
+          tester.widget<ComplaintStatusSteps>(statusSteps()).status,
+          entry.key,
+        );
+        expect(
+          find.descendant(of: statusSteps(), matching: find.text(entry.value)),
+          findsOneWidget,
+        );
       });
     }
 

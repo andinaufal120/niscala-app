@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/core/widgets/section_card.dart';
+import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
@@ -50,6 +51,19 @@ Future<void> pumpComplaintApp(
     }
   }
 }
+
+/// The three-step status bar of a complaint detail.
+Finder statusSteps() => find.byType(ComplaintStatusSteps);
+
+/// The single line of a management complaint detail that names the tenant,
+/// the room and the sending date under the message.
+Finder tenantMeta() => find.byWidgetPredicate(
+  (widget) =>
+      widget is Text &&
+      RegExp(r'^Budi Santoso · Kamar 08 · (Dikirim )?18 Okt 2026$')
+          .hasMatch(widget.data ?? ''),
+  description: 'the tenant meta line',
+);
 
 /// The disclaimer shown under AI output.
 Finder aiDisclaimer() =>
