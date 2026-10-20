@@ -130,6 +130,7 @@ void main() {
 
         await flow.open(tester);
         await tester.pump();
+        await tester.pump();
 
         expectAtRest(tester, flow.child);
       });

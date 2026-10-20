@@ -76,6 +76,7 @@ void main() {
 
       _push();
       await tester.pump();
+      await tester.pump();
 
       expect(
         leftOf(tester, find.byKey(_next)),
@@ -126,6 +127,7 @@ void main() {
         await _pumpSmallApp(tester);
 
         _push();
+        await tester.pump();
         await tester.pump();
 
         expectAtRest(tester, find.byKey(_next));
