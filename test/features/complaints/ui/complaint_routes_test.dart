@@ -109,7 +109,17 @@ void main() {
       expect(find.byType(ManagementComplaintDetailScreen), findsOneWidget);
     });
 
-    testWidgets('the Keluhan tab stays selected on a complaint', (
+    testWidgets('the navigation bar is hidden on a complaint', (tester) async {
+      await pumpComplaintApp(
+        tester,
+        FakeComplaintRepository(complaints: [makeComplaint(id: 'c9')]),
+        path: '/penyewa/keluhan/c9',
+      );
+
+      expect(find.byType(NavigationBar), findsNothing);
+    });
+
+    testWidgets('the Keluhan tab is selected again after Kembali', (
       tester,
     ) async {
       await pumpComplaintApp(
@@ -117,6 +127,8 @@ void main() {
         FakeComplaintRepository(complaints: [makeComplaint(id: 'c9')]),
         path: '/penyewa/keluhan/c9',
       );
+
+      await pressBack(tester);
 
       final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
       expect(bar.selectedIndex, 1);

@@ -127,12 +127,24 @@ void main() {
       '/properti/p1/penyewa/t2/undangan',
       '/properti/p1/penyewa/t2/undangan/qr',
     ]) {
-      testWidgets('$path keeps the Properti tab selected', (tester) async {
+      testWidgets('$path hides the navigation bar', (tester) async {
         await pumpTenantApp(tester, _repo(), path: path);
 
-        expect(_selectedTab(tester), 3);
+        expect(find.byType(NavigationBar), findsNothing);
       });
     }
+
+    testWidgets(
+      'the Properti tab is selected again after leaving the tenants',
+      (tester) async {
+        await pumpTenantApp(tester, _repo(), path: '/properti/p1/penyewa');
+
+        await pressBack(tester);
+        await pressBack(tester);
+
+        expect(_selectedTab(tester), 3);
+      },
+    );
 
     testWidgets('Kembali from the tenant list returns to the property', (
       tester,

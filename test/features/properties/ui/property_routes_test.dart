@@ -59,11 +59,17 @@ void main() {
       expect(form.propertyId, 'p2');
     });
 
-    for (final path in ['/properti', '/properti/tambah', '/properti/p1']) {
-      testWidgets('$path keeps the Properti tab selected', (tester) async {
+    testWidgets('/properti keeps the Properti tab selected', (tester) async {
+      await pumpPropertyApp(tester, _repo(), path: '/properti');
+
+      expect(_selectedTab(tester), 3);
+    });
+
+    for (final path in ['/properti/tambah', '/properti/p1']) {
+      testWidgets('$path hides the navigation bar', (tester) async {
         await pumpPropertyApp(tester, _repo(), path: path);
 
-        expect(_selectedTab(tester), 3);
+        expect(find.byType(NavigationBar), findsNothing);
       });
     }
 

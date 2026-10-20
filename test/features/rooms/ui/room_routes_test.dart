@@ -79,12 +79,23 @@ void main() {
       '/properti/p1/kamar/r1',
       '/properti/p1/kamar/r1/ubah',
     ]) {
-      testWidgets('$path keeps the Properti tab selected', (tester) async {
+      testWidgets('$path hides the navigation bar', (tester) async {
         await pumpRoomApp(tester, _repo(), path: path);
 
-        expect(_selectedTab(tester), 3);
+        expect(find.byType(NavigationBar), findsNothing);
       });
     }
+
+    testWidgets('the Properti tab is selected again after leaving the rooms', (
+      tester,
+    ) async {
+      await pumpRoomApp(tester, _repo(), path: '/properti/p1/kamar');
+
+      await pressBack(tester);
+      await pressBack(tester);
+
+      expect(_selectedTab(tester), 3);
+    });
 
     testWidgets('Kembali from the room list returns to the property', (
       tester,
