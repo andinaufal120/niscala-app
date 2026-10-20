@@ -39,6 +39,10 @@ const _propertyRoot = '/properti';
 const _managementComplaints = '/keluhan';
 const _tenantComplaints = '/penyewa/keluhan';
 
+/// The navigator of the whole app. Sub-pages are shown on it, above the tab
+/// shell, so they cover the bottom navigation bar. Tab roots stay in the shell.
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+
 const _signedOutRoutes = {_signIn, '/daftar', '/aktivasi'};
 const _managementRoutes = {_managementHome, '/keluhan', '/pembayaran', '/akun'};
 const _tenantRoutes = {
@@ -89,6 +93,21 @@ Widget _fadingTabs(
 GoRoute _screen(String path, Widget screen) =>
     GoRoute(path: path, builder: (context, state) => screen);
 
+/// A sub-page of a tab root. It is shown on the root navigator, so it covers
+/// the shell and its bottom navigation bar. As a [MaterialPage] it takes the
+/// page transition of the theme, so it slides in and out.
+GoRoute _subPage({
+  required String path,
+  required Widget Function(BuildContext, GoRouterState) builder,
+  List<RouteBase> routes = const [],
+}) => GoRoute(
+  path: path,
+  parentNavigatorKey: _rootNavigatorKey,
+  pageBuilder: (context, state) =>
+      MaterialPage<void>(key: state.pageKey, child: builder(context, state)),
+  routes: routes,
+);
+
 GoRoute _placeholder(String path, String title) =>
     _screen(path, PlaceholderScreen(title: title));
 
@@ -114,24 +133,24 @@ StatefulShellBranch _nestedBranch(
 /// The rooms of a property: the list, the add form, and one room with its edit
 /// form. The add route comes before `:roomId` so it is not read as a room id.
 List<RouteBase> _roomRoutes() => [
-  GoRoute(
+  _subPage(
     path: 'kamar',
     builder: (context, state) =>
         RoomListScreen(propertyId: state.pathParameters['propertyId']!),
     routes: [
-      GoRoute(
+      _subPage(
         path: 'tambah',
         builder: (context, state) =>
             RoomFormScreen(propertyId: state.pathParameters['propertyId']!),
       ),
-      GoRoute(
+      _subPage(
         path: ':roomId',
         builder: (context, state) => RoomDetailScreen(
           propertyId: state.pathParameters['propertyId']!,
           roomId: state.pathParameters['roomId']!,
         ),
         routes: [
-          GoRoute(
+          _subPage(
             path: 'ubah',
             builder: (context, state) => RoomFormScreen(
               propertyId: state.pathParameters['propertyId']!,
@@ -148,26 +167,26 @@ List<RouteBase> _roomRoutes() => [
 /// invitation screens of that tenant. The add route comes before `:tenantId`,
 /// as for rooms.
 List<RouteBase> _tenantScreenRoutes() => [
-  GoRoute(
+  _subPage(
     path: 'penyewa',
     builder: (context, state) =>
         TenantListScreen(propertyId: state.pathParameters['propertyId']!),
     routes: [
-      GoRoute(
+      _subPage(
         path: 'tambah',
         builder: (context, state) => TenantFormScreen(
           propertyId: state.pathParameters['propertyId']!,
           preselectedRoomId: state.uri.queryParameters['kamar'],
         ),
       ),
-      GoRoute(
+      _subPage(
         path: ':tenantId',
         builder: (context, state) => TenantDetailScreen(
           propertyId: state.pathParameters['propertyId']!,
           tenantId: state.pathParameters['tenantId']!,
         ),
         routes: [
-          GoRoute(
+          _subPage(
             path: 'undangan',
             builder: (context, state) => InvitationShareScreen(
               propertyId: state.pathParameters['propertyId']!,
@@ -175,7 +194,7 @@ List<RouteBase> _tenantScreenRoutes() => [
               isNew: state.uri.queryParameters['baru'] == '1',
             ),
             routes: [
-              GoRoute(
+              _subPage(
                 path: 'qr',
                 builder: (context, state) => InvitationQrScreen(
                   propertyId: state.pathParameters['propertyId']!,
@@ -190,25 +209,25 @@ List<RouteBase> _tenantScreenRoutes() => [
   ),
 ];
 
-/// The Properti tab. The detail, form, room and tenant routes are children of
-/// the list, so the tab stays selected and Kembali returns to the list.
+/// The Properti tab. The list is the tab root; the add form, the detail and the
+/// room and tenant routes of a property are sub-pages shown above the shell.
 StatefulShellBranch _propertiesBranch() => StatefulShellBranch(
   routes: [
     GoRoute(
       path: _propertyRoot,
       builder: (context, state) => const PropertyListScreen(),
       routes: [
-        GoRoute(
+        _subPage(
           path: 'tambah',
           builder: (context, state) => const PropertyFormScreen(),
         ),
-        GoRoute(
+        _subPage(
           path: ':propertyId',
           builder: (context, state) => PropertyDetailScreen(
             propertyId: state.pathParameters['propertyId']!,
           ),
           routes: [
-            GoRoute(
+            _subPage(
               path: 'ubah',
               builder: (context, state) => PropertyFormScreen(
                 propertyId: state.pathParameters['propertyId'],
@@ -231,6 +250,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.onDispose(session.dispose);
 
   final router = GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: _loading,
     refreshListenable: session,
     redirect: (context, state) => redirectFor(session.value, state.uri.path),
@@ -262,7 +282,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             _managementComplaints,
             const ManagementComplaintListScreen(),
             [
-              GoRoute(
+              _subPage(
                 path: ':complaintId',
                 builder: (context, state) => ManagementComplaintDetailScreen(
                   complaintId: state.pathParameters['complaintId']!,
@@ -290,11 +310,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           _branch(_tenantHome, const PlaceholderScreen(title: 'Beranda')),
           _nestedBranch(_tenantComplaints, const TenantComplaintListScreen(), [
             // The form route comes before `:complaintId`, as for rooms.
-            GoRoute(
+            _subPage(
               path: 'baru',
               builder: (context, state) => const ComplaintFormScreen(),
             ),
-            GoRoute(
+            _subPage(
               path: ':complaintId',
               builder: (context, state) => TenantComplaintDetailScreen(
                 complaintId: state.pathParameters['complaintId']!,

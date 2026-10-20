@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:niscala/core/slide_page_transitions.dart';
 import 'package:niscala/core/tokens.dart';
 
 const _minimumTarget = Size(48, 48);
@@ -80,6 +81,12 @@ ThemeData buildTheme() {
     fontFamily: _fontFamily,
     textTheme: textTheme,
     extensions: const [NiscalaTokens()],
+    pageTransitionsTheme: PageTransitionsTheme(
+      builders: {
+        for (final platform in TargetPlatform.values)
+          platform: const SlidePageTransitionsBuilder(),
+      },
+    ),
     actionIconTheme: ActionIconThemeData(
       backButtonIconBuilder: (_) => const Icon(Icons.chevron_left),
     ),

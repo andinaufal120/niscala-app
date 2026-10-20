@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
+import 'package:niscala/core/navigation.dart';
 import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
@@ -113,8 +113,10 @@ class InvitationQrScreen extends ConsumerWidget {
           ],
           formGap,
           OutlinedButton(
-            onPressed: () =>
-                context.go('/properti/$propertyId/penyewa/$tenantId/undangan'),
+            onPressed: () => leavePage(
+              context,
+              '/properti/$propertyId/penyewa/$tenantId/undangan',
+            ),
             child: const Text('Tutup'),
           ),
         ],

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/navigation.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/widgets/action_card_row.dart';
 import 'package:niscala/core/widgets/confirm_dialog.dart';
@@ -69,7 +70,7 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
     if (!mounted) return;
     ref.invalidate(propertyListProvider);
     final messenger = ScaffoldMessenger.of(context);
-    context.go('/properti');
+    leavePage(context, '/properti');
     messenger.showSnackBar(const SnackBar(content: Text('Properti dihapus')));
   }
 

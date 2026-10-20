@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
+import 'package:niscala/core/navigation.dart';
 import 'package:niscala/core/widgets/confirm_dialog.dart';
 import 'package:niscala/core/widgets/danger_button.dart';
 import 'package:niscala/core/widgets/detail_app_bar.dart';
@@ -65,7 +66,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
     if (!mounted) return;
     ref.invalidate(roomListProvider(widget.propertyId));
     final messenger = ScaffoldMessenger.of(context);
-    context.go('/properti/${widget.propertyId}/kamar');
+    leavePage(context, '/properti/${widget.propertyId}/kamar');
     messenger.showSnackBar(const SnackBar(content: Text('Kamar dihapus')));
   }
 
