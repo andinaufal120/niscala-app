@@ -116,12 +116,17 @@ void main() {
     /// The header height does not depend on the action. The screens' own
     /// subtitles may differ in text and so wrap differently, so the height of
     /// the subtitle itself is left out.
-    void expectSame(_Header a, _Header b) {
-      expect(
-        b.height - b.subtitleHeight,
-        closeTo(a.height - a.subtitleHeight, 0.5),
-        reason: 'header height without the subtitle',
-      );
+    ///
+    /// At large text the title may wrap beside a visible action, so only the
+    /// title top and left are compared there.
+    void expectSame(_Header a, _Header b, {required bool largeText}) {
+      if (!largeText) {
+        expect(
+          b.height - b.subtitleHeight,
+          closeTo(a.height - a.subtitleHeight, 0.5),
+          reason: 'header height without the subtitle',
+        );
+      }
       expect(b.title.dx, closeTo(a.title.dx, 0.5), reason: 'title left');
       expect(b.title.dy, closeTo(a.title.dy, 0.5), reason: 'title top');
     }
@@ -178,7 +183,7 @@ void main() {
         expect(manager.widget.action, isNull);
         expect(find.text('Tambah'), findsNothing);
 
-        expectSame(owner, manager);
+        expectSame(owner, manager, largeText: largeText);
       });
 
       testWidgets('tenant complaint list: empty (hidden Ajukan) and filled '
@@ -210,7 +215,7 @@ void main() {
         expect(filled.widget.actionVisible, isTrue);
         expect(find.text('Ajukan'), findsOneWidget);
 
-        expectSame(empty, filled);
+        expectSame(empty, filled, largeText: largeText);
       });
     }
   });

@@ -51,14 +51,26 @@ Finder headerTitle(String title) =>
 /// Expects that a user cannot perceive or use an action named [label]: it is
 /// not in the semantics tree, and pressing where it would sit changes nothing.
 /// The action may still be laid out invisibly to keep the header stable.
-Future<void> expectActionUnavailable(WidgetTester tester, String label) async {
+///
+/// With [settle] false, only a few frames are pumped after each press, for
+/// states that animate forever such as loading.
+Future<void> expectActionUnavailable(
+  WidgetTester tester,
+  String label, {
+  bool settle = true,
+}) async {
   final handle = tester.ensureSemantics();
   try {
     expect(find.bySemanticsLabel(label), findsNothing);
     final path = currentPath(tester);
     for (var i = 0; i < find.text(label).evaluate().length; i++) {
       await tester.tapAt(tester.getCenter(find.text(label).at(i)));
-      await tester.pumpAndSettle();
+      if (settle) {
+        await tester.pumpAndSettle();
+      } else {
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
     }
     expect(currentPath(tester), path);
     expect(find.byType(PropertyFormScreen), findsNothing);
@@ -76,11 +88,14 @@ void expectNoHeaderAction(WidgetTester tester) {
 }
 
 /// Expects the header to carry an action that is laid out but hidden.
-Future<void> expectHiddenHeaderAction(WidgetTester tester) async {
+Future<void> expectHiddenHeaderAction(
+  WidgetTester tester, {
+  bool settle = true,
+}) async {
   final header = tester.widget<ScreenHeader>(find.byType(ScreenHeader));
   expect(header.action, isNotNull);
   expect(header.actionVisible, isFalse);
-  await expectActionUnavailable(tester, 'Tambah');
+  await expectActionUnavailable(tester, 'Tambah', settle: settle);
 }
 
 void main() {
@@ -99,8 +114,9 @@ void main() {
       final repo = FakePropertyRepository(properties: _two())
         ..listScript.gate = Completer<void>();
       await pumpPropertyApp(tester, repo, settle: false);
+      await tester.pump(const Duration(milliseconds: 100));
 
-      await expectHiddenHeaderAction(tester);
+      await expectHiddenHeaderAction(tester, settle: false);
     });
 
     testWidgets('an owner has a hidden action when loading failed', (
