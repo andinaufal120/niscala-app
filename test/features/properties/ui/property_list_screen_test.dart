@@ -67,7 +67,106 @@ Future<void> expectActionUnavailable(WidgetTester tester, String label) async {
   }
 }
 
+/// Expects the header to carry no action at all, so that it reserves no width
+/// for one.
+void expectNoHeaderAction(WidgetTester tester) {
+  final header = tester.widget<ScreenHeader>(find.byType(ScreenHeader));
+  expect(header.action, isNull);
+  expect(find.text('Tambah'), findsNothing);
+}
+
+/// Expects the header to carry an action that is laid out but hidden.
+Future<void> expectHiddenHeaderAction(WidgetTester tester) async {
+  final header = tester.widget<ScreenHeader>(find.byType(ScreenHeader));
+  expect(header.action, isNotNull);
+  expect(header.actionVisible, isFalse);
+  await expectActionUnavailable(tester, 'Tambah');
+}
+
 void main() {
+  group('header action by state', () {
+    testWidgets('an owner has a visible action when properties are listed', (
+      tester,
+    ) async {
+      await pumpPropertyApp(tester, FakePropertyRepository(properties: _two()));
+
+      final header = tester.widget<ScreenHeader>(find.byType(ScreenHeader));
+      expect(header.action, isNotNull);
+      expect(header.actionVisible, isTrue);
+    });
+
+    testWidgets('an owner has a hidden action while loading', (tester) async {
+      final repo = FakePropertyRepository(properties: _two())
+        ..listScript.gate = Completer<void>();
+      await pumpPropertyApp(tester, repo, settle: false);
+
+      await expectHiddenHeaderAction(tester);
+    });
+
+    testWidgets('an owner has a hidden action when loading failed', (
+      tester,
+    ) async {
+      final repo = FakePropertyRepository()
+        ..listScript.always = const ApiFailure.network();
+      await pumpPropertyApp(tester, repo);
+
+      await expectHiddenHeaderAction(tester);
+    });
+
+    testWidgets('an owner has a hidden action when there are no properties', (
+      tester,
+    ) async {
+      await pumpPropertyApp(tester, FakePropertyRepository());
+
+      await expectHiddenHeaderAction(tester);
+    });
+
+    testWidgets('a manager has no action with listed properties', (
+      tester,
+    ) async {
+      await pumpPropertyApp(
+        tester,
+        FakePropertyRepository(properties: _two()),
+        role: UserRole.manager,
+      );
+
+      expectNoHeaderAction(tester);
+    });
+
+    testWidgets('a manager has no action while loading', (tester) async {
+      final repo = FakePropertyRepository(properties: _two())
+        ..listScript.gate = Completer<void>();
+      await pumpPropertyApp(
+        tester,
+        repo,
+        settle: false,
+        role: UserRole.manager,
+      );
+
+      expectNoHeaderAction(tester);
+    });
+
+    testWidgets('a manager has no action when loading failed', (tester) async {
+      final repo = FakePropertyRepository()
+        ..listScript.always = const ApiFailure.network();
+      await pumpPropertyApp(tester, repo, role: UserRole.manager);
+
+      expectNoHeaderAction(tester);
+    });
+
+    testWidgets('a manager has no action when there are no properties', (
+      tester,
+    ) async {
+      await pumpPropertyApp(
+        tester,
+        FakePropertyRepository(),
+        role: UserRole.manager,
+      );
+
+      expectNoHeaderAction(tester);
+    });
+  });
+
   group('header', () {
     testWidgets('shows the title Properti in the tab header', (tester) async {
       await pumpPropertyApp(tester, FakePropertyRepository(properties: _two()));
@@ -208,7 +307,7 @@ void main() {
       expect(find.text(_managerEmpty), findsOneWidget);
       expect(find.text(_ownerEmpty), findsNothing);
       expect(find.text('Tambah Properti Pertama'), findsNothing);
-      await expectActionUnavailable(tester, 'Tambah');
+      expectNoHeaderAction(tester);
       await expectActionUnavailable(tester, 'Tambah Properti Pertama');
     });
   });
@@ -356,7 +455,7 @@ void main() {
       );
 
       expect(find.text('Tambah Properti Pertama'), findsNothing);
-      await expectActionUnavailable(tester, 'Tambah');
+      expectNoHeaderAction(tester);
     });
   });
 
@@ -479,9 +578,7 @@ void main() {
       },
     );
 
-    testWidgets('a manager gets a header whose action cannot be used', (
-      tester,
-    ) async {
+    testWidgets('a manager gets a header without an action', (tester) async {
       await pumpPropertyApp(
         tester,
         FakePropertyRepository(properties: _two()),
@@ -489,7 +586,7 @@ void main() {
       );
 
       expect(find.byType(ScreenHeader), findsOneWidget);
-      await expectActionUnavailable(tester, 'Tambah');
+      expectNoHeaderAction(tester);
     });
 
     testWidgets('every property row is a card holding one property', (

@@ -144,7 +144,7 @@ void main() {
     for (final largeText in [false, true]) {
       final scale = largeText ? '200' : '100';
 
-      testWidgets('property list: owner (Tambah) and manager (hidden Tambah) '
+      testWidgets('property list: owner (Tambah) and manager (no action) '
           'at $scale percent text', (tester) async {
         FakePropertyRepository repo() => FakePropertyRepository(
           properties: [
@@ -175,9 +175,8 @@ void main() {
           'Properti',
           largeText: largeText,
         );
-        expect(manager.widget.action, isNotNull);
-        expect(manager.widget.actionVisible, isFalse);
-        await expectInert(tester, 'Tambah');
+        expect(manager.widget.action, isNull);
+        expect(find.text('Tambah'), findsNothing);
 
         expectSame(owner, manager);
       });
