@@ -48,6 +48,25 @@ List<Property> _two({bool secondEditable = true}) => [
 Finder headerTitle(String title) =>
     find.descendant(of: find.byType(ScreenHeader), matching: find.text(title));
 
+/// Expects that a user cannot perceive or use an action named [label]: it is
+/// not in the semantics tree, and pressing where it would sit changes nothing.
+/// The action may still be laid out invisibly to keep the header stable.
+Future<void> expectActionUnavailable(WidgetTester tester, String label) async {
+  final handle = tester.ensureSemantics();
+  try {
+    expect(find.bySemanticsLabel(label), findsNothing);
+    final path = currentPath(tester);
+    for (var i = 0; i < find.text(label).evaluate().length; i++) {
+      await tester.tapAt(tester.getCenter(find.text(label).at(i)));
+      await tester.pumpAndSettle();
+    }
+    expect(currentPath(tester), path);
+    expect(find.byType(PropertyFormScreen), findsNothing);
+  } finally {
+    handle.dispose();
+  }
+}
+
 void main() {
   group('header', () {
     testWidgets('shows the title Properti in the tab header', (tester) async {
@@ -189,8 +208,8 @@ void main() {
       expect(find.text(_managerEmpty), findsOneWidget);
       expect(find.text(_ownerEmpty), findsNothing);
       expect(find.text('Tambah Properti Pertama'), findsNothing);
-      expect(find.text('Tambah'), findsNothing);
-      expect(find.byType(FilledButton), findsNothing);
+      await expectActionUnavailable(tester, 'Tambah');
+      await expectActionUnavailable(tester, 'Tambah Properti Pertama');
     });
   });
 
@@ -336,8 +355,8 @@ void main() {
         role: UserRole.manager,
       );
 
-      expect(find.text('Tambah'), findsNothing);
       expect(find.text('Tambah Properti Pertama'), findsNothing);
+      await expectActionUnavailable(tester, 'Tambah');
     });
   });
 
@@ -460,7 +479,7 @@ void main() {
       },
     );
 
-    testWidgets('a manager gets a header with no action button', (
+    testWidgets('a manager gets a header whose action cannot be used', (
       tester,
     ) async {
       await pumpPropertyApp(
@@ -470,13 +489,7 @@ void main() {
       );
 
       expect(find.byType(ScreenHeader), findsOneWidget);
-      expect(
-        find.descendant(
-          of: find.byType(ScreenHeader),
-          matching: find.byType(ButtonStyleButton),
-        ),
-        findsNothing,
-      );
+      await expectActionUnavailable(tester, 'Tambah');
     });
 
     testWidgets('every property row is a card holding one property', (
