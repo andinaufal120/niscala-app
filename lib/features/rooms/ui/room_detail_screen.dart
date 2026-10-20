@@ -6,6 +6,7 @@ import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
 import 'package:niscala/core/widgets/confirm_dialog.dart';
 import 'package:niscala/core/widgets/danger_button.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
@@ -88,12 +89,9 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
     final room = ref.watch(roomDetailProvider(widget.roomId));
     final loaded = room.value;
     return Scaffold(
-      appBar: AppBar(
-        title: RoomTitle(
-          title: loaded == null ? 'Kamar' : 'Kamar ${loaded.number}',
-          propertyName: property?.name,
-        ),
-        actionsPadding: const EdgeInsets.only(right: NiscalaSpacing.gutter),
+      appBar: DetailAppBar(
+        title: loaded == null ? 'Kamar' : 'Kamar ${loaded.number}',
+        subtitle: property?.name,
         actions: [
           if (loaded != null && loaded.editable)
             TextButton(

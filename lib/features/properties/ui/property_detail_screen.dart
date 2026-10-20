@@ -7,6 +7,7 @@ import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/widgets/action_card_row.dart';
 import 'package:niscala/core/widgets/confirm_dialog.dart';
 import 'package:niscala/core/widgets/danger_button.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
@@ -92,10 +93,9 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
     final property = ref.watch(propertyDetailProvider(widget.propertyId));
     final loaded = property.value;
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: widget.showBack,
-        title: const Text('Rincian Properti'),
-        actionsPadding: const EdgeInsets.only(right: NiscalaSpacing.gutter),
+      appBar: DetailAppBar(
+        title: 'Rincian Properti',
+        leading: widget.showBack ? null : const SizedBox.shrink(),
         actions: [
           if (isOwner && loaded != null && loaded.editable)
             TextButton(

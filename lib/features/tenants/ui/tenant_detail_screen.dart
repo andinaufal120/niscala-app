@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
 import 'package:niscala/core/tokens.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
@@ -30,12 +31,7 @@ class TenantDetailScreen extends ConsumerWidget {
     final property = ref.watch(propertyDetailProvider(propertyId)).value;
     final tenant = ref.watch(tenantDetailProvider(tenantId));
     return Scaffold(
-      appBar: AppBar(
-        title: TenantTitle(
-          title: 'Rincian Penyewa',
-          propertyName: property?.name,
-        ),
-      ),
+      appBar: DetailAppBar(title: 'Rincian Penyewa', subtitle: property?.name),
       body: tenant.when(
         skipLoadingOnReload: true,
         loading: () => const Center(

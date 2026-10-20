@@ -48,18 +48,28 @@ class _TenantComplaintListScreenState
   @override
   Widget build(BuildContext context) {
     final complaints = ref.watch(complaintListProvider);
+    // The Ajukan action keeps its place in every state, so the header does not
+    // change size. It is shown only when there are complaints.
+    final ajukan = FilledButton(
+      onPressed: _openForm,
+      child: const Text('Ajukan'),
+    );
     return complaints.when(
       skipLoadingOnReload: true,
       loading: () => _listPage(
         const Center(
           child: CircularProgressIndicator(semanticsLabel: 'Memuat'),
         ),
+        action: ajukan,
+        actionVisible: false,
       ),
       error: (error, _) => _listPage(
         ErrorView(
           message: errorMessageFor(error),
           onRetry: () => ref.invalidate(complaintListProvider),
         ),
+        action: ajukan,
+        actionVisible: false,
       ),
       data: (items) {
         if (items.isEmpty) {
@@ -69,6 +79,8 @@ class _TenantComplaintListScreenState
               actionLabel: 'Ajukan Keluhan',
               onAction: _openForm,
             ),
+            action: ajukan,
+            actionVisible: false,
           );
         }
         final shown = [
@@ -99,10 +111,7 @@ class _TenantComplaintListScreenState
                 ],
             ],
           ),
-          action: FilledButton(
-            onPressed: _openForm,
-            child: const Text('Ajukan'),
-          ),
+          action: ajukan,
         );
       },
     );
@@ -111,15 +120,20 @@ class _TenantComplaintListScreenState
 
 /// The tab page: the header on top, the state below it. The header has no
 /// app bar, as a tab root does.
-Scaffold _listPage(Widget body, {Widget? action}) => Scaffold(
-  body: Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      ScreenHeader(title: 'Keluhan Saya', action: action),
-      Expanded(child: body),
-    ],
-  ),
-);
+Scaffold _listPage(Widget body, {Widget? action, bool actionVisible = true}) =>
+    Scaffold(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ScreenHeader(
+            title: 'Keluhan Saya',
+            action: action,
+            actionVisible: actionVisible,
+          ),
+          Expanded(child: body),
+        ],
+      ),
+    );
 
 /// One complaint: its description, status, and either its classification or
 /// the state that explains why it has none.

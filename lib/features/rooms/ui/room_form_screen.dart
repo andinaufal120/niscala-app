@@ -6,6 +6,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
@@ -69,7 +70,7 @@ class RoomFormScreen extends ConsumerWidget {
 }
 
 Scaffold _editPage(Widget body) => Scaffold(
-  appBar: AppBar(title: const Text('Ubah Kamar')),
+  appBar: const DetailAppBar(title: 'Ubah Kamar'),
   body: body,
 );
 
@@ -296,10 +297,8 @@ class _RoomFormState extends ConsumerState<_RoomForm> {
     final suggestions = _suggestions();
     final area = _areaText;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          room == null ? 'Tambah Kamar' : 'Ubah Kamar ${room.number}',
-        ),
+      appBar: DetailAppBar(
+        title: room == null ? 'Tambah Kamar' : 'Ubah Kamar ${room.number}',
       ),
       body: Column(
         children: [

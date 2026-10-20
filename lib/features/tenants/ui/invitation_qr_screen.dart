@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/features/tenants/data/invitation_sharing.dart';
@@ -28,7 +29,7 @@ class InvitationQrScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tenant = ref.watch(tenantDetailProvider(tenantId));
     return Scaffold(
-      appBar: AppBar(title: const Text('Kode QR undangan')),
+      appBar: const DetailAppBar(title: 'Kode QR undangan'),
       body: tenant.when(
         skipLoadingOnReload: true,
         loading: () => const Center(

@@ -5,6 +5,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
@@ -52,7 +53,7 @@ class PropertyFormScreen extends ConsumerWidget {
 }
 
 Scaffold _editPage(Widget body) => Scaffold(
-  appBar: AppBar(title: const Text('Ubah Properti')),
+  appBar: const DetailAppBar(title: 'Ubah Properti'),
   body: body,
 );
 
@@ -227,7 +228,7 @@ class _PropertyFormState extends ConsumerState<_PropertyForm> {
   Widget build(BuildContext context) {
     final isEdit = widget.propertyId != null;
     return Scaffold(
-      appBar: AppBar(title: Text(isEdit ? 'Ubah Properti' : 'Tambah Properti')),
+      appBar: DetailAppBar(title: isEdit ? 'Ubah Properti' : 'Tambah Properti'),
       body: Column(
         children: [
           Expanded(

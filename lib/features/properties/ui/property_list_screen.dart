@@ -29,18 +29,28 @@ class PropertyListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isOwner = ref.watch(currentRoleProvider) == UserRole.owner;
     final properties = ref.watch(propertyListProvider);
+    // The add action keeps its place in every state, so the header does not
+    // change size. Only the owner sees it, and only once properties are listed.
+    final addAction = FilledButton(
+      onPressed: () => context.go('/properti/tambah'),
+      child: const Text('Tambah'),
+    );
     return properties.when(
       skipLoadingOnReload: true,
       loading: () => _listPage(
         const Center(
           child: CircularProgressIndicator(semanticsLabel: 'Memuat'),
         ),
+        action: addAction,
+        actionVisible: false,
       ),
       error: (error, _) => _listPage(
         ErrorView(
           message: errorMessageFor(error),
           onRetry: () => ref.invalidate(propertyListProvider),
         ),
+        action: addAction,
+        actionVisible: false,
       ),
       data: (items) {
         if (!isOwner && items.length == 1) {
@@ -56,27 +66,50 @@ class PropertyListScreen extends ConsumerWidget {
               actionLabel: isOwner ? 'Tambah Properti Pertama' : null,
               onAction: isOwner ? () => context.go('/properti/tambah') : null,
             ),
+            action: addAction,
+            actionVisible: false,
+          );
+        }
+        final subtitle = isOwner
+            ? 'Semua properti milik Anda'
+            : 'Properti yang ditugaskan kepada Anda';
+        final cards = [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i > 0) formGap,
+            _PropertyCard(property: items[i]),
+          ],
+        ];
+        // At large text the wrapped header can take most of the screen, so it
+        // scrolls with the list instead of pushing the list off screen.
+        if (MediaQuery.textScalerOf(context).scale(1) > _scrollingHeaderScale) {
+          return Scaffold(
+            body: ListView(
+              children: [
+                ScreenHeader(
+                  title: 'Properti',
+                  subtitle: subtitle,
+                  action: addAction,
+                  actionVisible: isOwner,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(NiscalaSpacing.gutter),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: cards,
+                  ),
+                ),
+              ],
+            ),
           );
         }
         return _listPage(
           ListView(
             padding: const EdgeInsets.all(NiscalaSpacing.gutter),
-            children: [
-              for (var i = 0; i < items.length; i++) ...[
-                if (i > 0) formGap,
-                _PropertyCard(property: items[i]),
-              ],
-            ],
+            children: cards,
           ),
-          subtitle: isOwner
-              ? 'Semua properti milik Anda'
-              : 'Properti yang ditugaskan kepada Anda',
-          action: isOwner
-              ? FilledButton(
-                  onPressed: () => context.go('/properti/tambah'),
-                  child: const Text('Tambah'),
-                )
-              : null,
+          subtitle: subtitle,
+          action: addAction,
+          actionVisible: isOwner,
         );
       },
     );
@@ -85,15 +118,28 @@ class PropertyListScreen extends ConsumerWidget {
 
 /// The tab page: the header on top, the state below it. The header has no
 /// app bar, as a tab root does.
-Scaffold _listPage(Widget body, {String? subtitle, Widget? action}) => Scaffold(
+Scaffold _listPage(
+  Widget body, {
+  String? subtitle,
+  Widget? action,
+  bool actionVisible = true,
+}) => Scaffold(
   body: Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      ScreenHeader(title: 'Properti', subtitle: subtitle, action: action),
+      ScreenHeader(
+        title: 'Properti',
+        subtitle: subtitle,
+        action: action,
+        actionVisible: actionVisible,
+      ),
       Expanded(child: body),
     ],
   ),
 );
+
+/// The text scale above which the header scrolls with the list.
+const _scrollingHeaderScale = 1.5;
 
 class _PropertyCard extends StatelessWidget {
   const _PropertyCard({required this.property});

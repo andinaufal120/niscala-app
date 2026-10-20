@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/tenants/data/invitation_sharing.dart';
 import 'package:niscala/features/tenants/data/tenant_repository.dart';
-import 'package:niscala/features/tenants/ui/tenant_widgets.dart';
 import 'package:niscala_api/api.dart';
 
 /// The invitation link of one tenant, to copy, share or show as a QR code.
@@ -51,11 +51,9 @@ class _InvitationShareScreenState extends ConsumerState<InvitationShareScreen> {
     final property = ref.watch(propertyDetailProvider(widget.propertyId)).value;
     final tenant = ref.watch(tenantDetailProvider(widget.tenantId));
     return Scaffold(
-      appBar: AppBar(
-        title: TenantTitle(
-          title: 'Undangan Penyewa',
-          propertyName: property?.name,
-        ),
+      appBar: DetailAppBar(
+        title: 'Undangan Penyewa',
+        subtitle: property?.name,
         actions: [
           IconButton(
             tooltip: 'Tutup',

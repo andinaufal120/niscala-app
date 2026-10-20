@@ -5,6 +5,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
@@ -85,7 +86,7 @@ class _ComplaintFormScreenState extends ConsumerState<ComplaintFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajukan Keluhan')),
+      appBar: const DetailAppBar(title: 'Ajukan Keluhan'),
       body: Column(
         children: [
           Expanded(

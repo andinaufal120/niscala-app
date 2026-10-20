@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:niscala/core/tokens.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:niscala/core/api/api_providers.dart';
 import 'package:niscala/core/session/session_controller.dart';
+import 'package:niscala/core/tokens.dart';
+import 'package:niscala/core/widgets/danger_button.dart';
+import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala_api/api.dart';
 
 /// Ends the session. The server-side logout is best effort: the device is
@@ -24,20 +26,22 @@ class AccountScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Akun'),
-        titleSpacing: NiscalaSpacing.gutter,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Align(
-          alignment: Alignment.topLeft,
-          child: OutlinedButton.icon(
-            onPressed: () => ref.read(logoutProvider)(),
-            icon: const Icon(Icons.logout),
-            label: const Text('Keluar'),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const ScreenHeader(title: 'Akun'),
+          Padding(
+            padding: const EdgeInsets.all(NiscalaSpacing.gutter),
+            child: SizedBox(
+              width: double.infinity,
+              child: DangerButton(
+                label: 'Keluar',
+                icon: Icons.logout,
+                onPressed: () => ref.read(logoutProvider)(),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

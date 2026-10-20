@@ -5,6 +5,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/auth/data/invitation_repository.dart';
@@ -114,14 +115,14 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
   }
 }
 
-AppBar _activationAppBar(BuildContext context) {
-  return AppBar(
+DetailAppBar _activationAppBar(BuildContext context) {
+  return DetailAppBar(
+    title: 'Aktivasi Akun',
     leading: IconButton(
       tooltip: 'Kembali',
       icon: const Icon(Icons.arrow_back),
       onPressed: () => context.go('/masuk'),
     ),
-    title: const Text('Aktivasi Akun'),
   );
 }
 

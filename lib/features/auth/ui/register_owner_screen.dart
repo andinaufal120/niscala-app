@@ -5,6 +5,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
@@ -100,7 +101,8 @@ class _RegisterOwnerScreenState extends ConsumerState<RegisterOwnerScreen> {
   @override
   Widget build(BuildContext context) {
     return AuthPage(
-      appBar: AppBar(
+      appBar: DetailAppBar(
+        title: 'Daftar sebagai Pemilik Kost',
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back,
@@ -108,7 +110,6 @@ class _RegisterOwnerScreenState extends ConsumerState<RegisterOwnerScreen> {
           ),
           onPressed: () => context.go('/masuk'),
         ),
-        title: const Text('Daftar sebagai Pemilik Kost'),
       ),
       footer: ActionFooter(
         primary: BusyButton(label: 'Daftar', busy: _busy, onPressed: _submit),

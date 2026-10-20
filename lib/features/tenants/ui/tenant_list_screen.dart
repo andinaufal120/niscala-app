@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/filter_chip_row.dart';
@@ -120,9 +121,7 @@ class _TenantListScreenState extends ConsumerState<TenantListScreen> {
 }
 
 Scaffold _page(String? propertyName, Widget body) => Scaffold(
-  appBar: AppBar(
-    title: TenantTitle(title: 'Penyewa', propertyName: propertyName),
-  ),
+  appBar: DetailAppBar(title: 'Penyewa', subtitle: propertyName),
   body: body,
 );
 

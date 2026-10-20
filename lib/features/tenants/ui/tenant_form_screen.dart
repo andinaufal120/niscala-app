@@ -7,6 +7,7 @@ import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
@@ -40,7 +41,7 @@ class TenantFormScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final rooms = ref.watch(roomListProvider(propertyId));
     return Scaffold(
-      appBar: AppBar(title: const Text('Tambah Penyewa')),
+      appBar: const DetailAppBar(title: 'Tambah Penyewa'),
       body: rooms.when(
         skipLoadingOnReload: true,
         loading: () => const Center(

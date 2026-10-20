@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
 import 'package:niscala/core/tokens.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
@@ -39,8 +40,14 @@ class ManagementComplaintDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final complaint = ref.watch(complaintDetailProvider(complaintId));
+    final loaded = complaint.value;
     return Scaffold(
-      appBar: AppBar(title: const Text('Rincian Keluhan')),
+      appBar: DetailAppBar(
+        title: 'Rincian Keluhan',
+        subtitle: loaded == null
+            ? null
+            : 'Kamar ${loaded.room.number} · ${loaded.tenantName}',
+      ),
       body: complaint.when(
         skipLoadingOnReload: true,
         loading: () => const Center(
@@ -64,10 +71,9 @@ class ManagementComplaintDetailScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [ComplaintBadge.status(c.status)],
+          SectionCard(
+            title: 'Status',
+            child: ComplaintStatusSteps(status: c.status),
           ),
           formGap,
           if (c.classificationWithheld)
@@ -109,11 +115,13 @@ class ManagementComplaintDetailScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(c.tenantName, style: theme.textTheme.titleMedium),
-                Text('Kamar ${c.room.number}'),
-                Text('Dikirim ${formatDate(c.createdAt.toLocal())}'),
-                const SizedBox(height: 8),
                 Text(c.description, style: theme.textTheme.bodyLarge),
+                const SizedBox(height: 8),
+                Text(
+                  '${c.tenantName} · Kamar ${c.room.number} · '
+                  'Dikirim ${formatDate(c.createdAt.toLocal())}',
+                  style: theme.textTheme.bodySmall,
+                ),
               ],
             ),
           ),
@@ -132,27 +140,26 @@ class _ClassificationDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labelStyle = Theme.of(context).textTheme.labelLarge;
+    final labelStyle = Theme.of(context).textTheme.labelMedium;
     final suggestedAction = classification.suggestedAction;
     final classifiedBy = classification.classifiedByName;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Kategori', style: labelStyle),
-        Text(classification.category),
-        const SizedBox(height: 8),
-        Text('Urgensi', style: labelStyle),
-        ComplaintBadge.urgency(classification.urgency),
+        ComplaintClassificationValues(classification: classification),
         if (suggestedAction != null) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: NiscalaSpacing.l),
           Text('Tindakan yang disarankan', style: labelStyle),
+          const SizedBox(height: NiscalaSpacing.xs),
           Text(suggestedAction),
         ],
-        const SizedBox(height: 8),
-        if (classifiedBy == null)
-          const Text(_aiDisclaimer)
-        else
+        if (classifiedBy == null) ...[
+          const SizedBox(height: NiscalaSpacing.s),
+          const AiDisclaimerNote(text: _aiDisclaimer),
+        ] else ...[
+          const SizedBox(height: NiscalaSpacing.s),
           Text('Diklasifikasi oleh $classifiedBy'),
+        ],
       ],
     );
   }
