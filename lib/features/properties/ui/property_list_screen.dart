@@ -29,12 +29,15 @@ class PropertyListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isOwner = ref.watch(currentRoleProvider) == UserRole.owner;
     final properties = ref.watch(propertyListProvider);
-    // The add action keeps its place in every state, so the header does not
-    // change size. Only the owner sees it, and only once properties are listed.
-    final addAction = FilledButton(
-      onPressed: () => context.go('/properti/tambah'),
-      child: const Text('Tambah'),
-    );
+    // Only the owner has the add action. It keeps its place in every owner
+    // state, so the header does not change size, and it shows only once
+    // properties are listed.
+    final addAction = isOwner
+        ? FilledButton(
+            onPressed: () => context.go('/properti/tambah'),
+            child: const Text('Tambah'),
+          )
+        : null;
     return properties.when(
       skipLoadingOnReload: true,
       loading: () => _listPage(
@@ -89,7 +92,6 @@ class PropertyListScreen extends ConsumerWidget {
                   title: 'Properti',
                   subtitle: subtitle,
                   action: addAction,
-                  actionVisible: isOwner,
                 ),
                 Padding(
                   padding: const EdgeInsets.all(NiscalaSpacing.gutter),
@@ -109,7 +111,6 @@ class PropertyListScreen extends ConsumerWidget {
           ),
           subtitle: subtitle,
           action: addAction,
-          actionVisible: isOwner,
         );
       },
     );
