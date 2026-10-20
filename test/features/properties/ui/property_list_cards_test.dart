@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/tokens.dart';
+import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala_api/api.dart';
 
@@ -225,6 +226,47 @@ void main() {
       await _open(tester);
 
       expectTargetSize(tester, 'Kos Melati');
+    });
+  });
+
+  group('header subtitle', () {
+    Finder inHeader(String text) => find.descendant(
+      of: find.byType(ScreenHeader),
+      matching: find.text(text),
+    );
+
+    testWidgets('the owner subtitle belongs to the header', (tester) async {
+      await _open(tester);
+
+      expect(find.text('Semua properti milik Anda'), findsOneWidget);
+      expect(inHeader('Semua properti milik Anda'), findsOneWidget);
+    });
+
+    testWidgets('the manager subtitle belongs to the header', (tester) async {
+      await pumpPropertyApp(
+        tester,
+        FakePropertyRepository(properties: _two()),
+        role: UserRole.manager,
+      );
+
+      expect(find.text('Properti yang ditugaskan kepada Anda'), findsOneWidget);
+      expect(inHeader('Properti yang ditugaskan kepada Anda'), findsOneWidget);
+    });
+
+    testWidgets('the owner empty state has no subtitle', (tester) async {
+      await pumpPropertyApp(tester, FakePropertyRepository(properties: []));
+
+      expect(find.text('Semua properti milik Anda'), findsNothing);
+    });
+
+    testWidgets('the manager empty state has no subtitle', (tester) async {
+      await pumpPropertyApp(
+        tester,
+        FakePropertyRepository(properties: []),
+        role: UserRole.manager,
+      );
+
+      expect(find.text('Properti yang ditugaskan kepada Anda'), findsNothing);
     });
   });
 
