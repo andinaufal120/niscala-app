@@ -62,18 +62,15 @@ class PropertyListScreen extends ConsumerWidget {
           ListView(
             padding: const EdgeInsets.all(NiscalaSpacing.gutter),
             children: [
-              Text(
-                isOwner
-                    ? 'Semua properti milik Anda'
-                    : 'Properti yang ditugaskan kepada Anda',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              for (final property in items) ...[
-                formGap,
-                _PropertyCard(property: property),
+              for (var i = 0; i < items.length; i++) ...[
+                if (i > 0) formGap,
+                _PropertyCard(property: items[i]),
               ],
             ],
           ),
+          subtitle: isOwner
+              ? 'Semua properti milik Anda'
+              : 'Properti yang ditugaskan kepada Anda',
           action: isOwner
               ? FilledButton(
                   onPressed: () => context.go('/properti/tambah'),
@@ -88,11 +85,11 @@ class PropertyListScreen extends ConsumerWidget {
 
 /// The tab page: the header on top, the state below it. The header has no
 /// app bar, as a tab root does.
-Scaffold _listPage(Widget body, {Widget? action}) => Scaffold(
+Scaffold _listPage(Widget body, {String? subtitle, Widget? action}) => Scaffold(
   body: Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      ScreenHeader(title: 'Properti', action: action),
+      ScreenHeader(title: 'Properti', subtitle: subtitle, action: action),
       Expanded(child: body),
     ],
   ),

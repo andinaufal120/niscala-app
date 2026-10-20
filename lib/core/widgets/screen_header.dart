@@ -43,7 +43,10 @@ class ScreenHeader extends StatelessWidget {
                       child: Text(title, style: textTheme.headlineSmall),
                     ),
                     if (subtitle != null)
-                      Text(subtitle, style: textTheme.bodySmall),
+                      Text(
+                        subtitle,
+                        style: textTheme.bodySmall?.copyWith(fontSize: 13),
+                      ),
                   ],
                 ),
               ),
