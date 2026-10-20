@@ -27,6 +27,13 @@ const _roots = <(String, UserRole, String, String)>[
   ('tenant account', UserRole.tenant, '/penyewa/akun', 'Akun'),
 ];
 
+typedef _Header = ({
+  ScreenHeader widget,
+  double height,
+  Offset title,
+  double subtitleHeight,
+});
+
 Future<void> _open(WidgetTester tester, UserRole role, String path) async {
   useTallScreen(tester);
   await tester.pumpWidget(
@@ -70,7 +77,7 @@ void main() {
   }
 
   group('the header does not shift when its action comes or goes', () {
-    Future<({double height, Offset title, double bottom})> measure(
+    Future<_Header> measure(
       WidgetTester tester,
       Widget app,
       String path,
@@ -87,28 +94,56 @@ void main() {
       await tester.pumpAndSettle();
       goTo(tester, path);
       await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
       final header = find.byType(ScreenHeader);
+      final widget = tester.widget<ScreenHeader>(header);
+      final subtitle = widget.subtitle;
       return (
+        widget: widget,
         height: tester.getSize(header).height,
         title: tester.getTopLeft(_titleOf(title)),
-        bottom: tester.getRect(header).bottom,
+        subtitleHeight: subtitle == null
+            ? 0.0
+            : tester
+                  .getSize(
+                    find.descendant(of: header, matching: find.text(subtitle)),
+                  )
+                  .height,
       );
     }
 
-    void expectSame(
-      ({double height, Offset title, double bottom}) a,
-      ({double height, Offset title, double bottom}) b,
-    ) {
-      expect(b.height, closeTo(a.height, 0.5), reason: 'header height');
+    /// The header height does not depend on the action. The screens' own
+    /// subtitles may differ in text and so wrap differently, so the height of
+    /// the subtitle itself is left out.
+    void expectSame(_Header a, _Header b) {
+      expect(
+        b.height - b.subtitleHeight,
+        closeTo(a.height - a.subtitleHeight, 0.5),
+        reason: 'header height without the subtitle',
+      );
       expect(b.title.dx, closeTo(a.title.dx, 0.5), reason: 'title left');
       expect(b.title.dy, closeTo(a.title.dy, 0.5), reason: 'title top');
-      expect(b.bottom, closeTo(a.bottom, 0.5), reason: 'body start');
+    }
+
+    /// Pressing where the hidden action sits does nothing and the action is
+    /// not exposed to assistive technology.
+    Future<void> expectInert(WidgetTester tester, String label) async {
+      final handle = tester.ensureSemantics();
+      try {
+        expect(find.bySemanticsLabel(label), findsNothing);
+        final path = currentPath(tester);
+        await tester.tapAt(tester.getCenter(find.text(label)));
+        await tester.pumpAndSettle();
+        expect(currentPath(tester), path);
+      } finally {
+        handle.dispose();
+      }
     }
 
     for (final largeText in [false, true]) {
       final scale = largeText ? '200' : '100';
 
-      testWidgets('property list: owner (Tambah) and manager (no action) '
+      testWidgets('property list: owner (Tambah) and manager (hidden Tambah) '
           'at $scale percent text', (tester) async {
         FakePropertyRepository repo() => FakePropertyRepository(
           properties: [
@@ -126,6 +161,8 @@ void main() {
           'Properti',
           largeText: largeText,
         );
+        expect(owner.widget.action, isNotNull);
+        expect(owner.widget.actionVisible, isTrue);
         expect(find.text('Tambah'), findsOneWidget);
         final manager = await measure(
           tester,
@@ -137,12 +174,14 @@ void main() {
           'Properti',
           largeText: largeText,
         );
-        expect(find.text('Tambah'), findsNothing);
+        expect(manager.widget.action, isNotNull);
+        expect(manager.widget.actionVisible, isFalse);
+        await expectInert(tester, 'Tambah');
 
         expectSame(owner, manager);
       });
 
-      testWidgets('tenant complaint list: empty (no action) and filled '
+      testWidgets('tenant complaint list: empty (hidden Ajukan) and filled '
           '(Ajukan) at $scale percent text', (tester) async {
         final empty = await measure(
           tester,
@@ -154,7 +193,9 @@ void main() {
           'Keluhan Saya',
           largeText: largeText,
         );
-        expect(find.text('Ajukan'), findsNothing);
+        expect(empty.widget.action, isNotNull);
+        expect(empty.widget.actionVisible, isFalse);
+        await expectInert(tester, 'Ajukan');
         final filled = await measure(
           tester,
           buildTestApp(
@@ -165,6 +206,8 @@ void main() {
           'Keluhan Saya',
           largeText: largeText,
         );
+        expect(filled.widget.action, isNotNull);
+        expect(filled.widget.actionVisible, isTrue);
         expect(find.text('Ajukan'), findsOneWidget);
 
         expectSame(empty, filled);

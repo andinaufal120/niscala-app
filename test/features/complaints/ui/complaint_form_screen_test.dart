@@ -247,7 +247,7 @@ void main() {
 
       expect(find.text('Keluhan terkirim.'), findsOneWidget);
       expect(find.text(_valid), findsOneWidget);
-      expect(statusBadge('Baru'), findsOneWidget);
+      expect(statusSteps(), findsOneWidget);
     });
 
     testWidgets('does not wait for the AI to finish', (tester) async {

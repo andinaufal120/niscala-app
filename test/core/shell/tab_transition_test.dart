@@ -147,6 +147,7 @@ void main() {
         await _pumpShell(tester, s.role);
 
         await _switchTo(tester, s.to);
+        await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
         _expectFadingIn(tester, s.toScreen);
@@ -187,6 +188,7 @@ void main() {
       await tester.pumpAndSettle();
 
       await _switchTo(tester, 'Beranda');
+      await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
       _expectFadingIn(tester, find.byType(PlaceholderScreen));

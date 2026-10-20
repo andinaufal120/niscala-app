@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
+import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
 import 'package:niscala_api/api.dart';
@@ -11,6 +12,9 @@ import 'helpers/fakes.dart';
 
 Finder appBarTitle(String title) =>
     find.descendant(of: find.byType(AppBar), matching: find.text(title));
+
+Finder headerTitle(String title) =>
+    find.descendant(of: find.byType(ScreenHeader), matching: find.text(title));
 
 Finder navLabel(String label) =>
     find.descendant(of: find.byType(NavigationBar), matching: find.text(label));
@@ -61,7 +65,8 @@ void main() {
       ]) {
         expect(navLabel(label), findsOneWidget);
       }
-      expect(appBarTitle('Beranda'), findsOneWidget);
+      expect(headerTitle('Beranda'), findsOneWidget);
+      expect(find.byType(AppBar), findsNothing);
     });
   }
 
@@ -79,7 +84,8 @@ void main() {
       expect(navLabel(label), findsOneWidget);
     }
     expect(navLabel('Properti'), findsNothing);
-    expect(appBarTitle('Beranda'), findsOneWidget);
+    expect(headerTitle('Beranda'), findsOneWidget);
+    expect(find.byType(AppBar), findsNothing);
   });
 
   testWidgets('shows the admin screen without tabs for an admin', (
@@ -92,7 +98,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(appBarTitle('Admin'), findsOneWidget);
+    expect(headerTitle('Admin'), findsOneWidget);
+    expect(find.byType(AppBar), findsNothing);
     expect(find.byType(NavigationBar), findsNothing);
   });
 

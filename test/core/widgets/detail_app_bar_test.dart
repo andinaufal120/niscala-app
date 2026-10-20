@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/theme.dart';
@@ -356,6 +357,77 @@ void main() {
       );
       final bar = tester.getRect(find.byType(DetailAppBar));
       expect(tester.getRect(_in(_title)).bottom, lessThanOrEqualTo(bar.bottom));
+    });
+
+    testWidgets('wraps a long title and subtitle instead of ellipsizing at 200 '
+        'percent', (tester) async {
+      const title = 'Rincian keluhan dari penyewa kamar';
+      const subtitle = 'Kamar 08 · Budi Santoso Wijayakusuma';
+      await large(
+        tester,
+        title: title,
+        subtitle: subtitle,
+        actions: [_action()],
+      );
+
+      expect(tester.takeException(), isNull);
+      for (final text in [title, subtitle]) {
+        final widget = tester.widget<Text>(_in(text));
+        expect(widget.overflow, isNot(TextOverflow.ellipsis), reason: text);
+        expect(widget.maxLines, isNull, reason: text);
+        final paragraph = tester.renderObject<RenderParagraph>(_in(text));
+        expect(paragraph.didExceedMaxLines, isFalse, reason: text);
+        expect(
+          paragraph.size.height,
+          greaterThan(paragraph.preferredLineHeight * 1.5),
+          reason: '$text is laid out across several lines',
+        );
+      }
+    });
+
+    testWidgets('grows past the one line bar when the text wraps at 200 '
+        'percent', (tester) async {
+      await large(tester);
+      final oneLine = tester.getSize(find.byType(DetailAppBar)).height;
+
+      await large(
+        tester,
+        title: 'Rincian keluhan dari penyewa kamar',
+        subtitle: 'Kamar 08 · Budi Santoso Wijayakusuma',
+        actions: [_action()],
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getSize(find.byType(DetailAppBar)).height,
+        greaterThan(oneLine),
+      );
+      final bar = tester.getRect(find.byType(DetailAppBar));
+      expect(
+        tester.getRect(_in('Rincian keluhan dari penyewa kamar')).top,
+        greaterThanOrEqualTo(bar.top),
+      );
+      expect(
+        tester.getRect(_in('Kamar 08 · Budi Santoso Wijayakusuma')).bottom,
+        lessThanOrEqualTo(bar.bottom),
+      );
+    });
+
+    testWidgets('does not ellipsize at normal text either', (tester) async {
+      await _show(
+        tester,
+        title: 'Rincian keluhan dari penyewa kamar',
+        subtitle: 'Kamar 08 · Budi Santoso Wijayakusuma',
+      );
+
+      for (final text in [
+        'Rincian keluhan dari penyewa kamar',
+        'Kamar 08 · Budi Santoso Wijayakusuma',
+      ]) {
+        final widget = tester.widget<Text>(_in(text));
+        expect(widget.overflow, isNot(TextOverflow.ellipsis), reason: text);
+        expect(widget.maxLines, isNull, reason: text);
+      }
     });
 
     testWidgets('fits a long title, subtitle and action at 200 percent', (

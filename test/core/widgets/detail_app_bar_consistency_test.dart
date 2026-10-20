@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala_api/api.dart';
 
-import '../../features/auth/ui/auth_ui_helpers.dart';
 import '../../features/complaints/ui/complaint_ui_helpers.dart';
 import '../../features/tenants/ui/tenant_ui_helpers.dart';
 import '../../helpers/fakes.dart';
@@ -69,6 +69,44 @@ final _screens = <String, Future<void> Function(WidgetTester)>{
 
 void main() {
   setUpAll(loadAppFont);
+
+  testWidgets('every detail bar wraps its title and subtitle and grows at 200 '
+      'percent text', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    for (final entry in _screens.entries) {
+      await tester.pumpWidget(const SizedBox());
+      await entry.value(tester);
+
+      final bar = find.byType(DetailAppBar);
+      expect(bar, findsOneWidget, reason: '${entry.key} has a DetailAppBar');
+      expect(tester.takeException(), isNull, reason: '${entry.key} overflow');
+      expect(
+        tester.getSize(bar).height,
+        greaterThanOrEqualTo(112),
+        reason: '${entry.key} bar grows with the text',
+      );
+
+      final widget = tester.widget<DetailAppBar>(bar);
+      for (final text in [widget.title, ?widget.subtitle]) {
+        final finder = find.descendant(of: bar, matching: find.text(text));
+        expect(finder, findsOneWidget, reason: '${entry.key} "$text"');
+        final label = tester.widget<Text>(finder);
+        expect(
+          label.overflow,
+          isNot(TextOverflow.ellipsis),
+          reason: '${entry.key} "$text" overflow',
+        );
+        expect(label.maxLines, isNull, reason: '${entry.key} "$text" lines');
+        expect(
+          tester.renderObject<RenderParagraph>(finder).didExceedMaxLines,
+          isFalse,
+          reason: '${entry.key} "$text" is cut',
+        );
+      }
+    }
+  });
 
   testWidgets('every screen with an app bar uses the shared detail bar', (
     tester,
