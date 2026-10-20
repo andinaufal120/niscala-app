@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/screen_header.dart';
 
 import '../../helpers/a11y.dart';
@@ -209,6 +210,52 @@ void main() {
       final size = tester.getSize(find.byType(IconButton));
       expect(size.width, greaterThanOrEqualTo(48));
       expect(size.height, greaterThanOrEqualTo(48));
+    });
+  });
+
+  group('size', () {
+    testWidgets('is as high with only a title as with subtitle and action', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_screen());
+      final bare = tester.getSize(find.byType(ScreenHeader)).height;
+      final title = tester.getRect(find.text('Properti'));
+
+      await tester.pumpWidget(
+        _screen(subtitle: '3 properti', action: _addButton()),
+      );
+
+      expect(
+        tester.getSize(find.byType(ScreenHeader)).height,
+        closeTo(bare, 0.5),
+      );
+      final full = tester.getRect(find.text('Properti'));
+      expect(full.top, closeTo(title.top, 0.5));
+      expect(full.left, closeTo(title.left, 0.5));
+    });
+
+    testWidgets('is as high with a subtitle only as with an action only', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_screen(subtitle: '3 properti'));
+      final subtitleOnly = tester.getSize(find.byType(ScreenHeader)).height;
+
+      await tester.pumpWidget(_screen(action: _addButton()));
+
+      expect(
+        tester.getSize(find.byType(ScreenHeader)).height,
+        closeTo(subtitleOnly, 0.5),
+      );
+    });
+
+    testWidgets('keeps the title at the top of the header', (tester) async {
+      await tester.pumpWidget(_screen());
+
+      expect(
+        tester.getRect(find.text('Properti')).top -
+            tester.getTopLeft(find.byType(ScreenHeader)).dy,
+        closeTo(NiscalaSpacing.l, 0.5),
+      );
     });
   });
 

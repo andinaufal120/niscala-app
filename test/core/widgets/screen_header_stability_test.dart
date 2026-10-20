@@ -261,14 +261,158 @@ void main() {
     expect(tester.getRect(find.text(_longSubtitle)).right, lessThan(360));
   });
 
-  testWidgets('keeps a header without an action at least 48 dp high plus '
-      'its padding', (tester) async {
+  testWidgets('keeps a header without subtitle or action at least 48 dp high '
+      'plus its padding', (tester) async {
     await _show(tester, _header(withAction: false), largeText: false);
 
     expect(
       tester.getSize(find.byType(ScreenHeader)).height,
       greaterThanOrEqualTo(48 + NiscalaSpacing.l + NiscalaSpacing.m),
     );
+  });
+
+  /// Every combination of subtitle and action, with the action shown, hidden
+  /// or absent.
+  final variants = <String, Widget Function()>{
+    'bare': () => _header(withAction: false),
+    'hidden action only': () => _header(actionVisible: false),
+    'action only': () => _header(),
+    'subtitle only': () => _header(subtitle: _shortSubtitle, withAction: false),
+    'subtitle and hidden action': () =>
+        _header(subtitle: _shortSubtitle, actionVisible: false),
+    'subtitle and action': () => _header(subtitle: _shortSubtitle),
+  };
+
+  for (final size in const [Size(360, 640), Size(390, 844)]) {
+    testWidgets('gives every variant the same height and title position at '
+        '${size.width.toInt()} x ${size.height.toInt()} dp', (tester) async {
+      tester.view.physicalSize = size * 3;
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.reset);
+
+      final heights = <String, double>{};
+      final titles = <String, Rect>{};
+      for (final entry in variants.entries) {
+        await tester.pumpWidget(const SizedBox());
+        await tester.pumpWidget(entry.value());
+        await tester.pumpAndSettle();
+        heights[entry.key] = tester.getSize(find.byType(ScreenHeader)).height;
+        titles[entry.key] = tester.getRect(find.text(_shortTitle));
+      }
+
+      final height = heights.values.first;
+      final title = titles.values.first;
+      for (final key in variants.keys) {
+        expect(heights[key], closeTo(height, 0.5), reason: '$key height');
+        expect(
+          titles[key]!.left,
+          closeTo(title.left, 0.5),
+          reason: '$key left',
+        );
+        expect(titles[key]!.top, closeTo(title.top, 0.5), reason: '$key top');
+      }
+    });
+  }
+
+  testWidgets('reserves the room of a 48 dp action and one subtitle line even '
+      'when neither is present', (tester) async {
+    await _show(tester, _header(withAction: false), largeText: false);
+    final bare = tester.getSize(find.byType(ScreenHeader)).height;
+    final bareTitle = tester.getRect(find.text(_shortTitle));
+    await _show(
+      tester,
+      _header(subtitle: _shortSubtitle, withAction: false),
+      largeText: false,
+    );
+    final subtitle = tester.getRect(find.text(_shortSubtitle));
+    final header = tester.getRect(find.byType(ScreenHeader));
+
+    expect(bare, closeTo(header.height, 0.5));
+    expect(
+      bare,
+      greaterThanOrEqualTo(
+        NiscalaSpacing.l +
+            bareTitle.height +
+            subtitle.height +
+            NiscalaSpacing.m,
+      ),
+      reason: 'room for the title and one subtitle line',
+    );
+    expect(
+      bare,
+      greaterThanOrEqualTo(48 + NiscalaSpacing.l + NiscalaSpacing.m),
+      reason: 'room for a 48 dp action',
+    );
+  });
+
+  for (final subtitle in [null, _shortSubtitle]) {
+    for (final withAction in [false, true]) {
+      testWidgets('aligns the title to the top padding, not the centre, with '
+          'subtitle $subtitle and ${withAction ? 'an' : 'no'} action', (
+        tester,
+      ) async {
+        await _show(
+          tester,
+          _header(subtitle: subtitle, withAction: withAction),
+          largeText: false,
+        );
+
+        final header = tester.getRect(find.byType(ScreenHeader));
+        expect(
+          tester.getRect(find.text(_shortTitle)).top - header.top,
+          closeTo(NiscalaSpacing.l, 0.5),
+        );
+        expect(
+          tester.getRect(find.text(_shortTitle)).left - header.left,
+          closeTo(NiscalaSpacing.gutter, 0.5),
+        );
+      });
+    }
+  }
+
+  testWidgets('keeps the title position and the height of every variant with '
+      'a one-line subtitle at 200 percent text', (tester) async {
+    // A title that wraps beside an action adds height by itself, so heights
+    // are compared between variants whose title has the same line count.
+    final heights = <int, double>{};
+    Rect? first;
+    for (final entry in variants.entries) {
+      await tester.pumpWidget(const SizedBox());
+      await _show(tester, entry.value(), largeText: true);
+      final title = tester.getRect(find.text(_shortTitle));
+      first ??= title;
+      expect(title.left, closeTo(first.left, 0.5), reason: '${entry.key} left');
+      expect(title.top, closeTo(first.top, 0.5), reason: '${entry.key} top');
+
+      final paragraph = tester.renderObject<RenderParagraph>(
+        find.text(_shortTitle),
+      );
+      final lines = (paragraph.size.height / paragraph.preferredLineHeight)
+          .round();
+      final height = tester.getSize(find.byType(ScreenHeader)).height;
+      expect(
+        height,
+        closeTo(heights.putIfAbsent(lines, () => height), 0.5),
+        reason: '${entry.key} height with a $lines-line title',
+      );
+    }
+  });
+
+  testWidgets('lets a wrapped subtitle add height without moving the title', (
+    tester,
+  ) async {
+    await _show(tester, _header(subtitle: _shortSubtitle), largeText: true);
+    final single = tester.getSize(find.byType(ScreenHeader)).height;
+    final title = tester.getRect(find.text(_shortTitle));
+    await _show(tester, _header(subtitle: _longSubtitle), largeText: true);
+
+    expect(
+      tester.getSize(find.byType(ScreenHeader)).height,
+      greaterThan(single),
+    );
+    final wrapped = tester.getRect(find.text(_shortTitle));
+    expect(wrapped.top, closeTo(title.top, 0.5));
+    expect(wrapped.left, closeTo(title.left, 0.5));
   });
 
   testWidgets('keeps the same height with a hidden action and with none at '
@@ -305,18 +449,24 @@ void main() {
   });
 
   for (final subtitle in [null, _shortSubtitle]) {
-    testWidgets('centres the action against the title block with subtitle '
-        '$subtitle', (tester) async {
-      await _show(tester, _header(subtitle: subtitle), largeText: false);
+    for (final visible in [true, false]) {
+      testWidgets('centres the action against the reserved title and '
+          'subtitle block with subtitle $subtitle '
+          '${visible ? 'shown' : 'hidden'}', (tester) async {
+        await _show(
+          tester,
+          _header(subtitle: subtitle, actionVisible: visible),
+          largeText: false,
+        );
 
-      var block = tester.getRect(find.text(_shortTitle));
-      if (subtitle != null) {
-        block = block.expandToInclude(tester.getRect(find.text(subtitle)));
-      }
-      expect(
-        tester.getRect(find.byType(FilledButton)).center.dy,
-        closeTo(block.center.dy, 1),
-      );
-    });
+        final header = tester.getRect(find.byType(ScreenHeader));
+        final blockTop = header.top + NiscalaSpacing.l;
+        final blockBottom = header.bottom - NiscalaSpacing.m;
+        expect(
+          tester.getRect(find.byType(FilledButton)).center.dy,
+          closeTo((blockTop + blockBottom) / 2, 1.5),
+        );
+      });
+    }
   }
 }
