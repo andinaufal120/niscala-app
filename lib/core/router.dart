@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/core/shell/app_shell.dart';
+import 'package:niscala/core/shell/fading_tab_stack.dart';
 import 'package:niscala/core/widgets/loading_screen.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
 import 'package:niscala/features/auth/ui/activation_screen.dart';
@@ -77,6 +78,13 @@ String? redirectFor(SessionState session, String location) {
       return allowed ? null : _managementHome;
   }
 }
+
+/// Cross-fades the tabs of a shell when the tab changes.
+Widget _fadingTabs(
+  BuildContext context,
+  StatefulNavigationShell navigationShell,
+  List<Widget> children,
+) => FadingTabStack(index: navigationShell.currentIndex, children: children);
 
 GoRoute _screen(String path, Widget screen) =>
     GoRoute(path: path, builder: (context, state) => screen);
@@ -236,7 +244,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       _screen('/aktivasi', const ActivationScreen()),
       _screen(_verifyEmail, const VerifyEmailScreen()),
       _placeholder(_admin, 'Admin'),
-      StatefulShellRoute.indexedStack(
+      StatefulShellRoute(
         builder: (context, state, shell) => AppShell(
           navigationShell: shell,
           destinations: [
@@ -247,6 +255,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             _tab('Akun', Icons.person_outline),
           ],
         ),
+        navigatorContainerBuilder: _fadingTabs,
         branches: [
           _branch(_managementHome, const PlaceholderScreen(title: 'Beranda')),
           _nestedBranch(
@@ -266,7 +275,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           _branch('/akun', const AccountScreen()),
         ],
       ),
-      StatefulShellRoute.indexedStack(
+      StatefulShellRoute(
         builder: (context, state, shell) => AppShell(
           navigationShell: shell,
           destinations: [
@@ -276,6 +285,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             _tab('Akun', Icons.person_outline),
           ],
         ),
+        navigatorContainerBuilder: _fadingTabs,
         branches: [
           _branch(_tenantHome, const PlaceholderScreen(title: 'Beranda')),
           _nestedBranch(_tenantComplaints, const TenantComplaintListScreen(), [
