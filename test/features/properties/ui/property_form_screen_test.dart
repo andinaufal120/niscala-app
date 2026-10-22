@@ -461,28 +461,50 @@ void main() {
   });
 
   group('add failures', () {
-    final fieldCases = <({String field, String code, String label})>[
-      (field: 'name', code: 'PROPERTY_NAME_TAKEN', label: _name),
-      (field: 'address', code: 'VALIDATION_FAILED', label: _address),
-      (
-        field: 'bankAccount.bankName',
-        code: 'VALIDATION_FAILED',
-        label: _bankName,
-      ),
-      (
-        field: 'bankAccount.accountNumber',
-        code: 'VALIDATION_FAILED',
-        label: _accountNumber,
-      ),
-      (
-        field: 'bankAccount.accountHolderName',
-        code: 'VALIDATION_FAILED',
-        label: _holder,
-      ),
-    ];
+    final fieldCases =
+        <({String field, String code, String label, String message})>[
+          (
+            field: 'name',
+            code: 'PROPERTY_NAME_TAKEN',
+            label: _name,
+            message: 'Nama properti sudah dipakai.',
+          ),
+          (
+            field: 'name',
+            code: 'VALIDATION_FAILED',
+            label: _name,
+            message: 'Nama properti tidak valid.',
+          ),
+          (
+            field: 'address',
+            code: 'VALIDATION_FAILED',
+            label: _address,
+            message: 'Alamat tidak valid.',
+          ),
+          (
+            field: 'bankAccount.bankName',
+            code: 'VALIDATION_FAILED',
+            label: _bankName,
+            message: 'Nama bank tidak valid.',
+          ),
+          (
+            field: 'bankAccount.accountNumber',
+            code: 'VALIDATION_FAILED',
+            label: _accountNumber,
+            message: 'Nomor rekening tidak valid.',
+          ),
+          (
+            field: 'bankAccount.accountHolderName',
+            code: 'VALIDATION_FAILED',
+            label: _holder,
+            message: 'Nama pemilik rekening tidak valid.',
+          ),
+        ];
 
     for (final c in fieldCases) {
-      testWidgets('shows a ${c.field} error next to its field', (tester) async {
+      testWidgets('shows a ${c.code} on ${c.field} next to its field', (
+        tester,
+      ) async {
         final repo = FakePropertyRepository()
           ..createScript.queue.add(ApiFailure(code: c.code, field: c.field));
         await _pumpAdd(tester, repo);
@@ -491,9 +513,10 @@ void main() {
 
         await _submitAdd(tester);
 
-        expect(labeledFieldError(tester, c.label), errorMessage(c.code));
+        expect(labeledFieldError(tester, c.label), c.message);
         expect(find.byType(PropertyFormScreen), findsOneWidget);
-        expect(snackBar(errorMessage(c.code)), findsNothing);
+        expect(snackBar(c.message), findsNothing);
+        expect(find.text('Terjadi kesalahan. Coba lagi.'), findsNothing);
       });
     }
 
@@ -558,6 +581,9 @@ void main() {
         code: 'VALIDATION_FAILED',
         field: 'managers',
       ),
+      'a validation error without a field': const ApiFailure(
+        code: 'VALIDATION_FAILED',
+      ),
     };
 
     for (final entry in bannerCases.entries) {
@@ -569,7 +595,7 @@ void main() {
 
         await _submitAdd(tester);
 
-        final message = errorMessage(entry.value.code);
+        final message = errorMessageFor(entry.value);
         expect(find.text(message), findsOneWidget);
         expect(snackBar(message), findsNothing);
         expect(labeledFieldError(tester, _name), isNull);
@@ -1175,7 +1201,7 @@ void main() {
       expect(_dialog(), findsNothing);
       expect(
         labeledFieldError(tester, _accountNumber),
-        errorMessage('VALIDATION_FAILED'),
+        'Nomor rekening tidak valid.',
       );
     });
   });

@@ -436,10 +436,10 @@ void main() {
 
           await fillAndSubmit(tester);
 
-          expect(
-            fieldError(tester, entry.value),
-            errorMessage('VALIDATION_FAILED'),
-          );
+          final message = fieldError(tester, entry.value);
+          expect(message, isNotNull);
+          expect(message, isNot('Terjadi kesalahan. Coba lagi.'));
+          expect(message, endsWith(' tidak valid.'));
           for (final other in fieldCases.entries.where(
             (e) => e.key != entry.key,
           )) {
@@ -448,6 +448,41 @@ void main() {
         },
       );
     }
+
+    testWidgets('a validation failure on email says the email is invalid', (
+      tester,
+    ) async {
+      auth.registerFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'email',
+        statusCode: 422,
+      );
+      await pumpRegister(tester, auth);
+
+      await fillAndSubmit(tester);
+
+      expect(fieldError(tester, _email), 'Email tidak valid.');
+      expect(find.text('Email tidak valid.'), findsOneWidget);
+      expect(find.text('Terjadi kesalahan. Coba lagi.'), findsNothing);
+      expectFieldNode(tester, _email, error: 'Email tidak valid.');
+    });
+
+    testWidgets(
+      'a validation failure on password says the password is invalid',
+      (tester) async {
+        auth.registerFailure = const ApiFailure(
+          code: 'VALIDATION_FAILED',
+          field: 'password',
+          statusCode: 422,
+        );
+        await pumpRegister(tester, auth);
+
+        await fillAndSubmit(tester);
+
+        expect(fieldError(tester, _password), 'Kata sandi tidak valid.');
+        expect(fieldError(tester, _email), isNull);
+      },
+    );
 
     final bannerCases = {
       'NETWORK_ERROR': errorMessage('NETWORK_ERROR'),

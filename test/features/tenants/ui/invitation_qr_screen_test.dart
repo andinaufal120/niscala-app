@@ -9,6 +9,7 @@ import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/features/tenants/data/invitation_sharing.dart';
 import 'package:niscala/features/tenants/ui/invitation_qr_screen.dart';
 import 'package:niscala/features/tenants/ui/invitation_share_screen.dart';
+import 'package:niscala/features/tenants/ui/tenant_list_screen.dart';
 import 'package:niscala_api/api.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -232,18 +233,15 @@ void main() {
       expectTargetSize(tester, 'Tutup');
     });
 
-    testWidgets('Tutup returns to the share screen', (tester) async {
+    testWidgets('Tutup goes to the tenant list', (tester) async {
       await _open(tester, _repo());
 
       await tapVisible(tester, find.text('Tutup'));
 
-      expect(currentPath(tester), '/properti/p1/penyewa/t1/undangan');
-      final share = tester.widget<InvitationShareScreen>(
-        find.byType(InvitationShareScreen),
-      );
-      expect(share.propertyId, 'p1');
-      expect(share.tenantId, 't1');
+      expect(currentPath(tester), '/properti/p1/penyewa');
+      expect(find.byType(TenantListScreen), findsOneWidget);
       expect(find.byType(InvitationQrScreen), findsNothing);
+      expect(find.byType(InvitationShareScreen), findsNothing);
     });
 
     testWidgets('Kembali returns to the share screen', (tester) async {

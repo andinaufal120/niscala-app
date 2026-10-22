@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -51,6 +53,7 @@ Future<void> _show(
   List<Widget>? actions,
   bool canPop = false,
 }) async {
+  await tester.pumpWidget(const SizedBox());
   await tester.pumpWidget(
     _app(title: title, subtitle: subtitle, actions: actions, canPop: canPop),
   );
@@ -204,17 +207,65 @@ void main() {
       expect(tester.getTopLeft(_in(_title)).dx, closeTo(plain, 0.5));
     });
 
-    testWidgets('puts the title at the same x with and without a back button', (
+    testWidgets('starts the title at the screen gutter without a back button', (
       tester,
     ) async {
       await _show(tester);
-      final root = tester.getTopLeft(_in(_title)).dx;
 
-      await _show(tester, canPop: true);
-
-      expect(find.byTooltip('Kembali'), findsOneWidget);
-      expect(tester.getTopLeft(_in(_title)).dx, closeTo(root, 0.5));
+      expect(find.byTooltip('Kembali'), findsNothing);
+      expect(
+        tester.getTopLeft(_in(_title)).dx,
+        closeTo(NiscalaSpacing.gutter, 0.5),
+      );
     });
+
+    testWidgets('starts the title at the gutter with subtitle and actions but '
+        'no back button', (tester) async {
+      await _show(tester, subtitle: _subtitle, actions: [_action()]);
+
+      expect(
+        tester.getTopLeft(_in(_title)).dx,
+        closeTo(NiscalaSpacing.gutter, 0.5),
+      );
+      expect(
+        tester.getTopLeft(_in(_subtitle)).dx,
+        closeTo(NiscalaSpacing.gutter, 0.5),
+      );
+    });
+
+    testWidgets(
+      'does not reserve the back button space without a back button',
+      (tester) async {
+        await _show(tester);
+        final without = tester.getTopLeft(_in(_title)).dx;
+
+        await _show(tester, canPop: true);
+
+        expect(without, lessThan(tester.getTopLeft(_in(_title)).dx - 24));
+      },
+    );
+
+    testWidgets(
+      'puts the title at the same x on every bar with a back button',
+      (tester) async {
+        await _show(tester, canPop: true);
+        final plain = tester.getTopLeft(_in(_title)).dx;
+
+        await _show(
+          tester,
+          title: 'Undangan Penyewa',
+          subtitle: _subtitle,
+          actions: [_action()],
+          canPop: true,
+        );
+
+        expect(find.byTooltip('Kembali'), findsOneWidget);
+        expect(
+          tester.getTopLeft(_in('Undangan Penyewa')).dx,
+          closeTo(plain, 0.5),
+        );
+      },
+    );
 
     testWidgets('leaves the back button room before the title', (tester) async {
       await _show(tester, canPop: true);
@@ -317,13 +368,223 @@ void main() {
       String? subtitle,
       List<Widget>? actions,
       String title = _title,
+      bool canPop = false,
     }) async {
       await pumpAtLargeText(
         tester,
-        _app(title: title, subtitle: subtitle, actions: actions),
+        _app(
+          title: title,
+          subtitle: subtitle,
+          actions: actions,
+          canPop: canPop,
+        ),
       );
       await tester.pumpAndSettle();
+      if (canPop) {
+        await tester.tap(find.text('Buka'));
+        await tester.pumpAndSettle();
+      }
     }
+
+    double barHeight(WidgetTester tester) =>
+        tester.getSize(find.byType(DetailAppBar)).height;
+
+    /// The height of the title and subtitle texts laid out one under the other.
+    double blockHeight(WidgetTester tester, String title, String? subtitle) {
+      final first = tester.getRect(_in(title));
+      final last = subtitle == null ? first : tester.getRect(_in(subtitle));
+      return last.bottom - first.top;
+    }
+
+    void expectCentred(WidgetTester tester, String title, String? subtitle) {
+      final first = tester.getRect(_in(title));
+      final last = subtitle == null ? first : tester.getRect(_in(subtitle));
+      final bar = tester.getRect(find.byType(DetailAppBar));
+      expect(
+        (first.top + last.bottom) / 2,
+        closeTo(bar.center.dy, 1),
+        reason: 'the title block is centred in the bar',
+      );
+    }
+
+    testWidgets('has no empty band under a one line title at 200 percent', (
+      tester,
+    ) async {
+      await large(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(barHeight(tester), greaterThanOrEqualTo(56));
+      expect(barHeight(tester), lessThanOrEqualTo(72));
+    });
+
+    testWidgets('is as tall as the text block plus 16 dp at 200 percent', (
+      tester,
+    ) async {
+      await large(tester, subtitle: _subtitle);
+
+      final block = blockHeight(tester, _title, _subtitle);
+      expect(barHeight(tester), closeTo(math.max(56, block + 16), 1));
+      expect(barHeight(tester), lessThanOrEqualTo(block + 24));
+    });
+
+    testWidgets('is as tall as the text block plus 16 dp for a title only', (
+      tester,
+    ) async {
+      await large(tester);
+
+      final block = blockHeight(tester, _title, null);
+      expect(barHeight(tester), closeTo(math.max(56, block + 16), 1));
+    });
+
+    testWidgets('is as tall as the wrapped text plus 16 dp at 200 percent', (
+      tester,
+    ) async {
+      const title = 'Rincian keluhan dari penyewa kamar';
+      const subtitle = 'Kamar 08 · Budi Santoso Wijayakusuma';
+      await large(
+        tester,
+        title: title,
+        subtitle: subtitle,
+        actions: [_action()],
+      );
+
+      final block = blockHeight(tester, title, subtitle);
+      expect(tester.takeException(), isNull);
+      expect(barHeight(tester), closeTo(math.max(56, block + 16), 1));
+      expect(barHeight(tester), lessThanOrEqualTo(block + 24));
+    });
+
+    testWidgets('is 56 dp or the text block plus 16 dp at normal text', (
+      tester,
+    ) async {
+      await _show(tester, subtitle: _subtitle);
+
+      final first = tester.getRect(_in(_title));
+      final last = tester.getRect(_in(_subtitle));
+      expect(
+        tester.getSize(find.byType(DetailAppBar)).height,
+        closeTo(math.max(56, last.bottom - first.top + 16), 1),
+      );
+    });
+
+    testWidgets('centres a one line title in the bar at 200 percent', (
+      tester,
+    ) async {
+      await large(tester);
+
+      expectCentred(tester, _title, null);
+    });
+
+    testWidgets('centres title and subtitle in the bar at 200 percent', (
+      tester,
+    ) async {
+      await large(tester, subtitle: _subtitle);
+
+      expectCentred(tester, _title, _subtitle);
+    });
+
+    testWidgets('centres a wrapped title block in the bar at 200 percent', (
+      tester,
+    ) async {
+      const title = 'Rincian keluhan dari penyewa kamar';
+      const subtitle = 'Kamar 08 · Budi Santoso Wijayakusuma';
+      await large(
+        tester,
+        title: title,
+        subtitle: subtitle,
+        actions: [_action()],
+      );
+
+      expectCentred(tester, title, subtitle);
+    });
+
+    testWidgets('centres the title in the 56 dp bar at normal text', (
+      tester,
+    ) async {
+      await _show(tester);
+
+      expectCentred(tester, _title, null);
+    });
+
+    testWidgets('centres the title and subtitle in the 56 dp bar at normal '
+        'text', (tester) async {
+      await _show(tester, subtitle: _subtitle);
+
+      expectCentred(tester, _title, _subtitle);
+    });
+
+    testWidgets('keeps a 48 dp back button centred at 200 percent', (
+      tester,
+    ) async {
+      await large(tester, canPop: true);
+
+      final back = tester.getRect(find.byTooltip('Kembali'));
+      final bar = tester.getRect(find.byType(DetailAppBar));
+      expect(back.width, greaterThanOrEqualTo(48));
+      expect(back.height, greaterThanOrEqualTo(48));
+      expect(back.center.dy, closeTo(bar.center.dy, 1));
+      expect(back.top, greaterThanOrEqualTo(bar.top));
+      expect(back.bottom, lessThanOrEqualTo(bar.bottom));
+    });
+
+    testWidgets('keeps a 48 dp back button centred next to a tall wrapped '
+        'title', (tester) async {
+      await large(
+        tester,
+        title: 'Rincian keluhan dari penyewa kamar',
+        subtitle: 'Kamar 08 · Budi Santoso Wijayakusuma',
+        actions: [_action()],
+        canPop: true,
+      );
+
+      final back = tester.getRect(find.byTooltip('Kembali'));
+      final bar = tester.getRect(find.byType(DetailAppBar));
+      expect(tester.takeException(), isNull);
+      expect(back.width, greaterThanOrEqualTo(48));
+      expect(back.height, greaterThanOrEqualTo(48));
+      expect(back.center.dy, closeTo(bar.center.dy, 1));
+    });
+
+    testWidgets('keeps a 48 dp action centred at 200 percent', (tester) async {
+      await large(tester, actions: [_action()]);
+
+      final action = tester.getRect(find.byTooltip('Bagikan'));
+      final bar = tester.getRect(find.byType(DetailAppBar));
+      expect(action.width, greaterThanOrEqualTo(48));
+      expect(action.height, greaterThanOrEqualTo(48));
+      expect(action.center.dy, closeTo(bar.center.dy, 1));
+    });
+
+    testWidgets('keeps a 48 dp action centred next to a tall wrapped title', (
+      tester,
+    ) async {
+      await large(
+        tester,
+        title: 'Rincian keluhan dari penyewa kamar',
+        subtitle: 'Kamar 08 · Budi Santoso Wijayakusuma',
+        actions: [_action()],
+      );
+
+      final action = tester.getRect(find.byTooltip('Bagikan'));
+      final bar = tester.getRect(find.byType(DetailAppBar));
+      expect(action.width, greaterThanOrEqualTo(48));
+      expect(action.height, greaterThanOrEqualTo(48));
+      expect(action.center.dy, closeTo(bar.center.dy, 1));
+    });
+
+    testWidgets('reports the height it is laid out with at 200 percent', (
+      tester,
+    ) async {
+      await large(tester, subtitle: _subtitle);
+
+      expect(
+        tester
+            .widget<DetailAppBar>(find.byType(DetailAppBar))
+            .preferredSize
+            .height,
+        closeTo(barHeight(tester), 0.5),
+      );
+    });
 
     testWidgets('grows with a subtitle at 200 percent text', (tester) async {
       await large(tester, subtitle: _subtitle);

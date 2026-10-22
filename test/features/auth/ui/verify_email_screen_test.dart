@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
 import 'package:niscala_api/api.dart';
@@ -95,6 +96,37 @@ void main() {
       expect(find.byType(BackButton), findsNothing);
       expect(find.byIcon(Icons.arrow_back), findsNothing);
       expect(find.byTooltip('Kembali'), findsNothing);
+    });
+
+    testWidgets('starts the title at the screen gutter, not after a back '
+        'button slot', (tester) async {
+      await pumpVerify(tester, auth);
+
+      expect(
+        tester.getTopLeft(appBarTitle('Verifikasi email')).dx,
+        closeTo(NiscalaSpacing.gutter, 0.5),
+      );
+    });
+
+    testWidgets('starts the title at the gutter at large text size', (
+      tester,
+    ) async {
+      await pumpAtLargeText(
+        tester,
+        buildTestApp(
+          store: InMemorySessionStore(
+            storedSession(role: UserRole.owner, emailVerified: false),
+          ),
+          auth: auth,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getTopLeft(appBarTitle('Verifikasi email')).dx,
+        closeTo(NiscalaSpacing.gutter, 0.5),
+      );
     });
 
     testWidgets('shows no error and no banner at first', (tester) async {

@@ -1119,10 +1119,10 @@ void main() {
 
           await fillAndSubmit(tester);
 
-          expect(
-            fieldError(tester, entry.value),
-            errorMessage('VALIDATION_FAILED'),
-          );
+          final message = fieldError(tester, entry.value);
+          expect(message, isNotNull);
+          expect(message, isNot('Terjadi kesalahan. Coba lagi.'));
+          expect(message, endsWith(' tidak valid.'));
           for (final other in fieldCases.entries.where(
             (e) => e.key != entry.key,
           )) {

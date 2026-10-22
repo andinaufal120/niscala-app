@@ -1021,9 +1021,25 @@ void main() {
 
       expect(
         labeledFieldError(tester, _rate),
-        errorMessage('VALIDATION_FAILED'),
+        'Tarif dasar per bulan tidak valid.',
       );
       expect(labeledFieldError(tester, _number), isNull);
+    });
+
+    testWidgets('a number error says the room number is invalid', (
+      tester,
+    ) async {
+      final repo = _repo()
+        ..createScript.queue.add(
+          const ApiFailure(code: 'VALIDATION_FAILED', field: 'number'),
+        );
+      await _pumpAdd(tester, repo);
+      await _fill(tester);
+
+      await _submitAdd(tester);
+
+      expect(labeledFieldError(tester, _number), 'Nomor kamar tidak valid.');
+      expect(labeledFieldError(tester, _rate), isNull);
     });
 
     for (final field in ['lengthM', 'widthM']) {
@@ -1039,11 +1055,38 @@ void main() {
 
         await _submitAdd(tester);
 
-        expect(find.text(errorMessage('VALIDATION_FAILED')), findsOneWidget);
+        expect(find.text(validationMessage(field)), findsOneWidget);
+        expect(find.text('Terjadi kesalahan. Coba lagi.'), findsNothing);
         expect(labeledFieldError(tester, _number), isNull);
         expect(find.byType(RoomFormScreen), findsOneWidget);
       });
     }
+
+    testWidgets('a lengthM error names the length', (tester) async {
+      final repo = _repo()
+        ..createScript.queue.add(
+          const ApiFailure(code: 'VALIDATION_FAILED', field: 'lengthM'),
+        );
+      await _pumpAdd(tester, repo);
+      await _fill(tester, length: '3,5', width: '4');
+
+      await _submitAdd(tester);
+
+      expect(find.text('Panjang tidak valid.'), findsOneWidget);
+    });
+
+    testWidgets('a widthM error names the width', (tester) async {
+      final repo = _repo()
+        ..createScript.queue.add(
+          const ApiFailure(code: 'VALIDATION_FAILED', field: 'widthM'),
+        );
+      await _pumpAdd(tester, repo);
+      await _fill(tester, length: '3,5', width: '4');
+
+      await _submitAdd(tester);
+
+      expect(find.text('Lebar tidak valid.'), findsOneWidget);
+    });
 
     for (final field in ['facilities', 'facilities.0']) {
       testWidgets('a $field error shows in the facilities place', (
@@ -1059,7 +1102,8 @@ void main() {
 
         await _submitAdd(tester);
 
-        expect(find.text(errorMessage('VALIDATION_FAILED')), findsOneWidget);
+        expect(find.text(validationMessage(field)), findsOneWidget);
+        expect(find.text('Terjadi kesalahan. Coba lagi.'), findsNothing);
         expect(labeledFieldError(tester, _number), isNull);
         expect(_chosen('ac'), findsOneWidget);
       });
@@ -1141,7 +1185,7 @@ void main() {
 
         await _submitAdd(tester);
 
-        final message = errorMessage(entry.value.code);
+        final message = errorMessageFor(entry.value);
         expect(find.text(message), findsOneWidget);
         expect(snackBar(message), findsNothing);
         expect(labeledFieldError(tester, _number), isNull);
@@ -1489,7 +1533,7 @@ void main() {
 
       await _submitEdit(tester);
 
-      expect(find.text(errorMessage('VALIDATION_FAILED')), findsOneWidget);
+      expect(find.text('Lebar tidak valid.'), findsOneWidget);
     });
 
     for (final code in ['ROOM_READ_ONLY', 'PROPERTY_READ_ONLY']) {

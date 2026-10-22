@@ -390,7 +390,7 @@ void main() {
 
       await _submit(tester);
 
-      expect(_error(tester), errorMessage('VALIDATION_FAILED'));
+      expect(_error(tester), 'Keluhan tidak valid.');
       expect(labeledTextField(tester, _label).controller!.text, _valid);
       expect(currentPath(tester), '/penyewa/keluhan/baru');
       expect(repo.complaints, isEmpty);

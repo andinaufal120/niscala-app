@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
@@ -89,6 +90,52 @@ void main() {
       expect(find.byType(PropertyDetailScreen), findsOneWidget);
       expect(appBarTitle('Rincian Properti'), findsOneWidget);
       expect(repo.calls, contains('get:p1'));
+    });
+
+    testWidgets('a manager with one property has no back button and the title '
+        'starts at the gutter', (tester) async {
+      await pumpPropertyApp(
+        tester,
+        FakePropertyRepository(properties: [_melati()]),
+        role: UserRole.manager,
+      );
+
+      expect(find.byType(PropertyDetailScreen), findsOneWidget);
+      expect(backButton(), findsNothing);
+      expect(
+        tester.getTopLeft(appBarTitle('Rincian Properti')).dx,
+        closeTo(NiscalaSpacing.gutter, 0.5),
+      );
+    });
+
+    testWidgets('the title of a manager with one property starts at the gutter '
+        'at large text size', (tester) async {
+      await pumpPropertyApp(
+        tester,
+        FakePropertyRepository(properties: [_melati()]),
+        role: UserRole.manager,
+        largeText: true,
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getTopLeft(appBarTitle('Rincian Properti')).dx,
+        closeTo(NiscalaSpacing.gutter, 0.5),
+      );
+    });
+
+    testWidgets('an owner opening the detail sees a back button and the title '
+        'after it', (tester) async {
+      await _openDetail(
+        tester,
+        FakePropertyRepository(properties: [_melati()]),
+      );
+
+      expect(backButton(), findsOneWidget);
+      expect(
+        tester.getTopLeft(appBarTitle('Rincian Properti')).dx,
+        greaterThanOrEqualTo(tester.getRect(backButton()).right - 1),
+      );
     });
 
     testWidgets('shows the name as a header and the address', (tester) async {

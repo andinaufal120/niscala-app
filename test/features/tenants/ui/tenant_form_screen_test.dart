@@ -1655,13 +1655,28 @@ void main() {
 
         await _submit(tester);
 
-        _expectErrors(tester, {
-          entry.value.label: errorMessage(entry.value.failure.code),
-        });
+        final message = errorMessageFor(entry.value.failure);
+        _expectErrors(tester, {entry.value.label: message});
         expect(find.byType(TenantFormScreen), findsOneWidget);
-        expect(snackBar(errorMessage(entry.value.failure.code)), findsNothing);
+        expect(snackBar(message), findsNothing);
+        expect(find.text('Terjadi kesalahan. Coba lagi.'), findsNothing);
       });
     }
+
+    testWidgets('a phone validation error says the phone number is invalid', (
+      tester,
+    ) async {
+      final repo = _repo()
+        ..createScript.queue.add(
+          const ApiFailure(code: 'VALIDATION_FAILED', field: 'phone'),
+        );
+      await _open(tester, repo);
+      await _fill(tester);
+
+      await _submit(tester);
+
+      expect(labeledFieldError(tester, _phone), 'Nomor telepon tidak valid.');
+    });
 
     testWidgets('a taken room says it is occupied', (tester) async {
       final repo = _repo()
@@ -1692,7 +1707,8 @@ void main() {
 
         await _submit(tester);
 
-        expect(find.text(errorMessage('VALIDATION_FAILED')), findsOneWidget);
+        expect(find.text(validationMessage(field)), findsOneWidget);
+        expect(find.text('Terjadi kesalahan. Coba lagi.'), findsNothing);
         _expectErrors(tester, {});
         expect(labeledTextAt(tester, _contactName, 0), 'Kontak 1');
       });
@@ -1783,7 +1799,7 @@ void main() {
 
         await _submit(tester);
 
-        final message = errorMessage(entry.value.code);
+        final message = errorMessageFor(entry.value);
         expect(find.text(message), findsOneWidget);
         expect(snackBar(message), findsNothing);
         _expectErrors(tester, {});

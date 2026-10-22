@@ -121,7 +121,7 @@ void main() {
     }, variant: TargetPlatformVariant.all());
 
     testWidgets(
-      'shows the new page at x 0 after one frame without animations',
+      'shows the new page at x 0 after the page has built without animations',
       (tester) async {
         useReducedMotion(tester);
         await _pumpSmallApp(tester);
