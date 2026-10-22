@@ -113,10 +113,8 @@ class InvitationQrScreen extends ConsumerWidget {
           ],
           formGap,
           OutlinedButton(
-            onPressed: () => leavePage(
-              context,
-              '/properti/$propertyId/penyewa/$tenantId/undangan',
-            ),
+            onPressed: () =>
+                leavePageTo(context, '/properti/$propertyId/penyewa'),
             child: const Text('Tutup'),
           ),
         ],

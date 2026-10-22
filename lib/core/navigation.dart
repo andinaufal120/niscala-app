@@ -10,3 +10,16 @@ void leavePage(BuildContext context, String location) {
     context.go(location);
   }
 }
+
+/// Leaves the current page and the pages above [location], each with its own
+/// pop animation, so the page that was opened last slides out first. When the
+/// pages below cannot be popped down to [location], goes there instead.
+void leavePageTo(BuildContext context, String location) {
+  final router = GoRouter.of(context);
+  while (router.routerDelegate.state.uri.path != location && context.canPop()) {
+    context.pop();
+  }
+  if (router.routerDelegate.state.uri.path != location) {
+    context.go(location);
+  }
+}

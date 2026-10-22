@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
+import 'package:niscala/core/navigation.dart';
 import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
@@ -34,7 +35,8 @@ class InvitationShareScreen extends ConsumerStatefulWidget {
 class _InvitationShareScreenState extends ConsumerState<InvitationShareScreen> {
   var _copied = false;
 
-  void _goToList() => context.go('/properti/${widget.propertyId}/penyewa');
+  void _goToList() =>
+      leavePageTo(context, '/properti/${widget.propertyId}/penyewa');
 
   Future<void> _copy(String url) async {
     await Clipboard.setData(ClipboardData(text: url));
