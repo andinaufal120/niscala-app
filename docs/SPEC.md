@@ -219,11 +219,12 @@ Free-text description → submit → confirmation. An empty or too-short descrip
 List of own complaints, opening on the *Aktif (Active)* filter (*Baru* and *Diproses*). Each shows its status and marks complaints still *Sedang Diklasifikasi*, *Menunggu Klasifikasi* or *Belum Diklasifikasi*. Detail shows category and urgency if classified, and the handling note of each status change. Empty state if none.
 
 **UC-04 View rent payment history and status** (FR-06) · Tenant with an active lease · *Pembayaran (Payments)* tab
-List of bills/payments with status (§5), period, amount and due date. Filters: *Tagihan aktif (Active bill)*, the default, and *Riwayat (History)*. A rejected payment shows the reason management entered.
+List of bills/payments with status (§5), period, amount and due date. Filters: *Tagihan aktif (Active bill)*, the default, and *Riwayat (History)*. *Tagihan aktif* lists the bills that are *Belum Bayar*, *Menunggu Verifikasi* or *Ditolak*, including overdue bills from earlier periods, which show how many days overdue they are; *Riwayat* lists the *Lunas* bills. A rejected payment shows the reason management entered. The upload action appears only on a bill the API marks as uploadable (UC-05).
 
 **UC-05 Upload transfer receipt** (FR-07) · Tenant · from a current-period bill that is *Belum Bayar* or *Ditolak*, on *Pembayaran* or *Beranda* → *Unggah Bukti (Upload receipt)*
 The screen shows the property's bank account and the amount to transfer. Pick an image from the gallery or the camera → submit. Images only: JPG or PNG, at most 5 MB; anything else gets a field error. Camera photos are re-encoded to JPEG before upload, because many Android cameras save HEIC. On success the status becomes *Menunggu Verifikasi*.
 If the property has no bank account, the transfer and upload actions are hidden and the tenant is told to pay cash to management.
+The upload action is shown only when the API marks the bill as uploadable. A bill from an earlier period is therefore not uploadable even when overdue; the tenant sees the amount owed and is told to pay cash to management. A file of the wrong type or over the size limit, and a bill that is no longer uploadable, show their own Indonesian message mapped from the error code.
 
 **UC-06 View notifications** (FR-08) · Tenant · *Notifikasi (Notifications)*
 In-app list only, newest first, unread ones marked. Two types: due-date reminder and payment-status change. Opening one marks it read and shows type, period and status, with a path to UC-04. Empty state if none.
@@ -411,3 +412,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 18-10-2026 | Interim invitation activation: the user pastes the invitation link into the login screen, until U-4 is decided (§7). | NKMA-15 |
 | 18-10-2026 | UC-11 single-property shortcut applies to a Manager only, so an Owner on a plan with one property can still add a property after upgrading. | NKMA-37 |
 | 18-10-2026 | UC-02 and UC-03 list the new classification state *Sedang Diklasifikasi*, completing the sync of niscala-app#16. | NKMA-64 |
+| 23-10-2026 | UC-04 defines *Tagihan aktif* (unpaid, awaiting verification or rejected, including overdue bills) and *Riwayat* (paid); UC-05 shows the upload action only for bills the API marks as uploadable and names the file and bill-state errors. | NKMA-57, NKMA-58 |
