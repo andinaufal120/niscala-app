@@ -204,7 +204,7 @@ class _PropertyFormState extends ConsumerState<_PropertyForm> {
   }
 
   void _showFailure(ApiFailure failure) {
-    final message = errorMessage(failure.code);
+    final message = errorMessageFor(failure);
     setState(() {
       _busy = false;
       switch (failure.field) {
@@ -369,7 +369,7 @@ class _ReauthDialogState extends State<_ReauthDialog> {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _banner = errorMessage(failure.code);
+        _banner = errorMessageFor(failure);
       });
     }
   }

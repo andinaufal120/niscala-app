@@ -292,8 +292,15 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
 
   /// Shows a failure next to the field it belongs to, or as a banner.
   void _showFailure(ApiFailure failure) {
-    final message = errorMessage(failure.code);
+    // The API calls the tenant's name `name`, which this form labels as the
+    // full name.
     final field = failure.field;
+    final message = failure.code == 'VALIDATION_FAILED'
+        ? validationMessage(
+            field,
+            label: field == 'name' ? 'Nama lengkap' : null,
+          )
+        : errorMessageFor(failure);
     setState(() {
       _busy = false;
       if (field == 'roomId') {

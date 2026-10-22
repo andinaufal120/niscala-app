@@ -4,6 +4,27 @@ const _fallback = 'Terjadi kesalahan. Coba lagi.';
 
 const _sessionEnded = 'Sesi Anda telah berakhir. Silakan masuk lagi.';
 
+const _unknownField = 'Data tidak valid.';
+
+/// The Indonesian label of each API field that a validation failure can name.
+const _fieldLabels = {
+  'email': 'Email',
+  'password': 'Kata sandi',
+  'fullName': 'Nama lengkap',
+  'name': 'Nama properti',
+  'address': 'Alamat',
+  'bankAccount.bankName': 'Nama bank',
+  'bankAccount.accountNumber': 'Nomor rekening',
+  'bankAccount.accountHolderName': 'Nama pemilik rekening',
+  'number': 'Nomor kamar',
+  'baseRate': 'Tarif dasar per bulan',
+  'lengthM': 'Panjang',
+  'widthM': 'Lebar',
+  'facilities': 'Fasilitas',
+  'phone': 'Nomor telepon',
+  'description': 'Keluhan',
+};
+
 const _messages = {
   'NETWORK_ERROR':
       'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.',
@@ -46,12 +67,27 @@ const _messages = {
   'REFRESH_TOKEN_INVALID': _sessionEnded,
 };
 
-/// The Indonesian message for an API error code. Unknown codes, and
-/// validation failures (which are shown next to their field), get a generic
-/// message.
+/// The Indonesian message for an API error code. Unknown codes get a generic
+/// message. A validation failure has no message of its own: see
+/// [validationMessage].
 String errorMessage(String code) => _messages[code] ?? _fallback;
 
-/// The Indonesian message for an error caught by a screen. Anything other
-/// than an [ApiFailure] gets the generic message.
-String errorMessageFor(Object error) =>
-    errorMessage(error is ApiFailure ? error.code : 'UNKNOWN');
+/// The Indonesian message for a validation failure on [field], such as
+/// "Email tidak valid.". [label] replaces the label of a known field, for a
+/// screen that shows the field under another name. A null or unknown field
+/// gets a plain message.
+String validationMessage(String? field, {String? label}) {
+  if (field == null || !_fieldLabels.containsKey(field)) {
+    return _unknownField;
+  }
+  return '${label ?? _fieldLabels[field]} tidak valid.';
+}
+
+/// The Indonesian message for an error caught by a screen. A validation
+/// failure gets the message of its field. Anything other than an [ApiFailure]
+/// gets the generic message.
+String errorMessageFor(Object error) {
+  if (error is! ApiFailure) return _fallback;
+  if (error.code == 'VALIDATION_FAILED') return validationMessage(error.field);
+  return errorMessage(error.code);
+}

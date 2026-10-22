@@ -72,7 +72,7 @@ class _ComplaintFormScreenState extends ConsumerState<ComplaintFormScreen> {
   }
 
   void _showFailure(ApiFailure failure) {
-    final message = errorMessage(failure.code);
+    final message = errorMessageFor(failure);
     setState(() {
       _busy = false;
       if (failure.field == 'description') {

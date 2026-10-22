@@ -269,7 +269,7 @@ class _RoomFormState extends ConsumerState<_RoomForm> {
 
   /// Shows a failure next to the field it belongs to, or as a banner.
   void _showFailure(ApiFailure failure) {
-    final message = errorMessage(failure.code);
+    final message = errorMessageFor(failure);
     final field = failure.field;
     setState(() {
       _busy = false;

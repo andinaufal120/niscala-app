@@ -73,7 +73,7 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _banner = errorMessage(failure.code);
+        _banner = errorMessageFor(failure);
       });
     }
   }
@@ -245,7 +245,14 @@ class _ActivationFormState extends ConsumerState<_ActivationForm> {
 
   /// Shows a failure next to the field it belongs to, or as a banner.
   void _showFailure(ApiFailure failure) {
-    final message = errorMessage(failure.code);
+    // The API calls the person's name `name`, which this form labels as the
+    // full name.
+    final message = failure.code == 'VALIDATION_FAILED'
+        ? validationMessage(
+            failure.field,
+            label: failure.field == 'name' ? 'Nama lengkap' : null,
+          )
+        : errorMessageFor(failure);
     final field = switch (failure.code) {
       'EMAIL_ALREADY_REGISTERED' => 'email',
       'PASSWORD_TOO_COMMON' => 'password',

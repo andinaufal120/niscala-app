@@ -72,7 +72,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
         return;
       }
       if (!mounted) return;
-      final message = errorMessage(failure.code);
+      final message = errorMessageFor(failure);
       final onCodeField =
           failure.code == 'VERIFICATION_CODE_INVALID' ||
           failure.code == 'VERIFICATION_CODE_EXPIRED';
@@ -99,7 +99,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
       await ref.read(authRepositoryProvider).sendEmailVerification();
       if (mounted) setState(() => _resent = true);
     } on ApiFailure catch (failure) {
-      if (mounted) setState(() => _banner = errorMessage(failure.code));
+      if (mounted) setState(() => _banner = errorMessageFor(failure));
     } finally {
       if (mounted) setState(() => _resending = false);
     }

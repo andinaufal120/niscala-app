@@ -64,7 +64,7 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
     } on ApiFailure catch (failure) {
       if (!mounted) return;
       setState(() => _deleting = false);
-      await _showDeleteFailure(errorMessage(failure.code));
+      await _showDeleteFailure(errorMessageFor(failure));
       return;
     }
     if (!mounted) return;
