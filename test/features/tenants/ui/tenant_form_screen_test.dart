@@ -1655,7 +1655,9 @@ void main() {
 
         await _submit(tester);
 
-        final message = errorMessageFor(entry.value.failure);
+        final message = entry.value.label == _name
+            ? 'Nama lengkap tidak valid.'
+            : errorMessageFor(entry.value.failure);
         _expectErrors(tester, {entry.value.label: message});
         expect(find.byType(TenantFormScreen), findsOneWidget);
         expect(snackBar(message), findsNothing);
