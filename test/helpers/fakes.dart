@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +13,8 @@ import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/auth/data/invitation_repository.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
+import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
+import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
 import 'package:niscala/features/tenants/data/invitation_sharing.dart';
 import 'package:niscala/features/tenants/data/tenant_repository.dart';
@@ -941,6 +945,225 @@ class FakeComplaintRepository implements ComplaintRepository {
   }
 }
 
+/// A valid 1 x 1 PNG image.
+final Uint8List tinyPng = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA'
+  '60e6kgAAAABJRU5ErkJggg==',
+);
+
+/// A [BankAccount] of the owner Siti Pemilik at BCA.
+BankAccount makeBankAccount() => BankAccount(
+  bankName: 'BCA',
+  accountNumber: '1234567890',
+  accountHolderName: 'Siti Pemilik',
+);
+
+/// A [RentBill] with sensible defaults: an unpaid bill of Budi Santoso in room
+/// 08 of Kos Melati for November 2026, due 5 Nov 2026.
+///
+/// Without [canUploadReceipt] the bill can be uploaded to when it is current,
+/// unpaid or rejected, and the property has a bank account. Without
+/// [hasReceipt] only a bill awaiting verification has a receipt. The default
+/// bank account is BCA 1234567890 of Siti Pemilik; set [withoutBankAccount] for
+/// none.
+RentBill makeRentBill({
+  String id = 'b1',
+  String tenantName = 'Budi Santoso',
+  String roomNumber = '08',
+  String propertyName = 'Kos Melati',
+  int amount = 800000,
+  DateTime? periodStart,
+  DateTime? periodEnd,
+  DateTime? dueDate,
+  PaymentStatus status = PaymentStatus.unpaid,
+  String? rejectionReason,
+  bool? hasReceipt,
+  int daysOverdue = 0,
+  bool isCurrent = true,
+  bool? canUploadReceipt,
+  BankAccount? bankAccount,
+  bool withoutBankAccount = false,
+}) {
+  final account = withoutBankAccount ? null : bankAccount ?? makeBankAccount();
+  final open =
+      status == PaymentStatus.unpaid || status == PaymentStatus.rejected;
+  return RentBill(
+    id: id,
+    amount: amount,
+    daysOverdue: daysOverdue,
+    dueDate: dueDate ?? DateTime.utc(2026, 11, 5),
+    periodStart: periodStart ?? DateTime.utc(2026, 11, 1),
+    periodEnd: periodEnd ?? DateTime.utc(2026, 11, 30),
+    bankAccount: account,
+    payment: Payment(
+      status: status,
+      hasReceipt: hasReceipt ?? status == PaymentStatus.awaitingVerification,
+      rejectionReason: rejectionReason,
+    ),
+    property: PropertyRef(id: 'p1', name: propertyName),
+    room: RoomRef(id: 'r1', number: roomNumber),
+    tenant: TenantRef(id: 't1', name: tenantName),
+    isCurrent: isCurrent,
+    canUploadReceipt:
+        canUploadReceipt ?? (isCurrent && account != null && open),
+  );
+}
+
+/// The list entry of [bill].
+RentBillSummary rentBillSummaryOf(RentBill bill) => RentBillSummary(
+  id: bill.id,
+  amount: bill.amount,
+  daysOverdue: bill.daysOverdue,
+  dueDate: bill.dueDate,
+  periodStart: bill.periodStart,
+  periodEnd: bill.periodEnd,
+  payment: bill.payment,
+  property: bill.property,
+  room: bill.room,
+  tenant: bill.tenant,
+  isCurrent: bill.isCurrent,
+  canUploadReceipt: bill.canUploadReceipt,
+);
+
+/// A [RentBillSummary] with the same defaults as [makeRentBill].
+RentBillSummary makeRentBillSummary({
+  String id = 'b1',
+  int amount = 800000,
+  PaymentStatus status = PaymentStatus.unpaid,
+  String? rejectionReason,
+  int daysOverdue = 0,
+  bool isCurrent = true,
+  bool? canUploadReceipt,
+}) => rentBillSummaryOf(
+  makeRentBill(
+    id: id,
+    amount: amount,
+    status: status,
+    rejectionReason: rejectionReason,
+    daysOverdue: daysOverdue,
+    isCurrent: isCurrent,
+    canUploadReceipt: canUploadReceipt,
+  ),
+);
+
+/// A [RentBillRepository] that keeps the bills in memory and records its calls.
+///
+/// [list] returns summaries of the [bills] whose status is asked for, in their
+/// order. [get] returns the bill or fails with `RENT_BILL_NOT_FOUND`.
+/// [uploadReceipt] turns a bill into one awaiting verification, with a
+/// receipt and no upload action, only when the call succeeds. [receiptBytes]
+/// returns the entry of [receipts] or fails with `RECEIPT_NOT_FOUND`. Script
+/// failures and gates per method with the `*Script` fields. Every call is also
+/// appended to [calls] in order, as `list`, `get:<id>`, `upload:<id>` or
+/// `receipt:<id>`.
+class FakeRentBillRepository implements RentBillRepository {
+  FakeRentBillRepository({
+    List<RentBill>? bills,
+    Map<String, Uint8List>? receipts,
+  }) : bills = bills ?? [],
+       receipts = receipts ?? {};
+
+  final List<RentBill> bills;
+  final Map<String, Uint8List> receipts;
+
+  final calls = <String>[];
+  final listedStatuses = <List<PaymentStatus>>[];
+  final uploaded = <({String id, ReceiptFile file})>[];
+
+  final listScript = CallScript();
+  final getScript = CallScript();
+  final uploadScript = CallScript();
+  final receiptScript = CallScript();
+
+  int get listCalls => calls.where((c) => c == 'list').length;
+  int get getCalls => calls.where((c) => c.startsWith('get:')).length;
+  int get uploadCalls => calls.where((c) => c.startsWith('upload:')).length;
+  int get receiptCalls => calls.where((c) => c.startsWith('receipt:')).length;
+
+  @override
+  Future<List<RentBillSummary>> list({
+    required List<PaymentStatus> statuses,
+  }) async {
+    calls.add('list');
+    listedStatuses.add(List.of(statuses));
+    final failure = await listScript.next();
+    if (failure != null) throw failure;
+    return [
+      for (final b in bills)
+        if (statuses.contains(b.payment.status)) rentBillSummaryOf(b),
+    ];
+  }
+
+  @override
+  Future<RentBill> get(String id) async {
+    calls.add('get:$id');
+    final failure = await getScript.next();
+    if (failure != null) throw failure;
+    return bills.firstWhere(
+      (b) => b.id == id,
+      orElse: () => throw const ApiFailure(code: 'RENT_BILL_NOT_FOUND'),
+    );
+  }
+
+  @override
+  Future<RentBill> uploadReceipt(String id, ReceiptFile file) async {
+    calls.add('upload:$id');
+    uploaded.add((id: id, file: file));
+    final failure = await uploadScript.next();
+    if (failure != null) throw failure;
+    final index = bills.indexWhere((b) => b.id == id);
+    if (index < 0) throw const ApiFailure(code: 'RENT_BILL_NOT_FOUND');
+    final old = bills[index];
+    receipts[id] = file.bytes;
+    return bills[index] = RentBill(
+      id: old.id,
+      amount: old.amount,
+      daysOverdue: old.daysOverdue,
+      dueDate: old.dueDate,
+      periodStart: old.periodStart,
+      periodEnd: old.periodEnd,
+      bankAccount: old.bankAccount,
+      payment: Payment(
+        status: PaymentStatus.awaitingVerification,
+        hasReceipt: true,
+      ),
+      property: old.property,
+      room: old.room,
+      tenant: old.tenant,
+      isCurrent: old.isCurrent,
+      canUploadReceipt: false,
+    );
+  }
+
+  @override
+  Future<Uint8List> receiptBytes(String id) async {
+    calls.add('receipt:$id');
+    final failure = await receiptScript.next();
+    if (failure != null) throw failure;
+    return receipts[id] ?? (throw const ApiFailure(code: 'RECEIPT_NOT_FOUND'));
+  }
+}
+
+/// A [ReceiptPicker] that records the sources asked for.
+///
+/// Each [pick] first takes the next entry of [queue] (null means cancelled),
+/// and falls back to [always] when the queue is empty. While [gate] is set,
+/// every call is held until it completes.
+class FakeReceiptPicker implements ReceiptPicker {
+  final requested = <ReceiptSource>[];
+  final queue = <ReceiptFile?>[];
+  ReceiptFile? always;
+  Completer<void>? gate;
+
+  @override
+  Future<ReceiptFile?> pick(ReceiptSource source) async {
+    requested.add(source);
+    final file = queue.isNotEmpty ? queue.removeAt(0) : always;
+    await gate?.future;
+    return file;
+  }
+}
+
 /// The whole app with a fake session store and no network.
 ///
 /// Without [invitationSharer] sharing does nothing.
@@ -954,6 +1177,8 @@ Widget buildTestApp({
   RoomRepository? rooms,
   TenantRepository? tenants,
   ComplaintRepository? complaints,
+  RentBillRepository? rentBills,
+  ReceiptPicker? receiptPicker,
   Future<void> Function(String text)? invitationSharer,
 }) {
   return ProviderScope(
@@ -973,6 +1198,12 @@ Widget buildTestApp({
       ),
       complaintRepositoryProvider.overrideWithValue(
         complaints ?? FakeComplaintRepository(),
+      ),
+      rentBillRepositoryProvider.overrideWithValue(
+        rentBills ?? FakeRentBillRepository(),
+      ),
+      receiptPickerProvider.overrideWithValue(
+        receiptPicker ?? FakeReceiptPicker(),
       ),
       invitationSharerProvider.overrideWithValue(
         invitationSharer ?? (text) async {},
