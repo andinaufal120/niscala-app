@@ -9,6 +9,7 @@ import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
+import 'package:niscala/features/rent_bills/ui/tenant_payments_screen.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../helpers/a11y.dart';
@@ -270,16 +271,26 @@ void main() {
       );
     });
 
-    testWidgets('shows placeholders for tabs that are not built yet', (
+    testWidgets('shows a placeholder for the home tab that is not built yet', (
       tester,
     ) async {
       await pumpShell(tester, UserRole.tenant);
 
-      for (final label in ['Beranda', 'Pembayaran']) {
-        await tester.tap(navLabel(label));
-        await tester.pumpAndSettle();
-        expect(find.byType(PlaceholderScreen), findsOneWidget);
-      }
+      await tester.tap(navLabel('Beranda'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PlaceholderScreen), findsOneWidget);
+    });
+
+    testWidgets('shows the payments screen instead of a placeholder', (
+      tester,
+    ) async {
+      await pumpShell(tester, UserRole.tenant);
+
+      await tester.tap(navLabel('Pembayaran'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TenantPaymentsScreen), findsOneWidget);
+      expect(find.byType(PlaceholderScreen), findsNothing);
     });
 
     testWidgets('shows the account screen on the account tab', (tester) async {
