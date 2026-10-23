@@ -13,15 +13,15 @@ part of niscala_api;
 class Notification {
   /// Returns a new [Notification] instance.
   Notification({
-    required this.actorName,
-    required this.complaint,
+    this.actorName,
+    this.complaint,
     required this.createdAt,
     required this.id,
-    required this.property,
+    this.property,
     required this.read,
-    required this.rentBill,
-    required this.room,
-    required this.tenant,
+    this.rentBill,
+    this.room,
+    this.tenant,
     required this.type,
   });
 
@@ -190,15 +190,9 @@ class Notification {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
-    'actorName',
-    'complaint',
     'createdAt',
     'id',
-    'property',
     'read',
-    'rentBill',
-    'room',
-    'tenant',
     'type',
   };
 }

@@ -14,9 +14,9 @@ class ComplaintClassification {
   /// Returns a new [ComplaintClassification] instance.
   ComplaintClassification({
     required this.category,
-    required this.classifiedByName,
-    required this.originalAiClassification,
-    required this.suggestedAction,
+    this.classifiedByName,
+    this.originalAiClassification,
+    this.suggestedAction,
     required this.urgency,
   });
 
@@ -144,9 +144,6 @@ class ComplaintClassification {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'category',
-    'classifiedByName',
-    'originalAiClassification',
-    'suggestedAction',
     'urgency',
   };
 }

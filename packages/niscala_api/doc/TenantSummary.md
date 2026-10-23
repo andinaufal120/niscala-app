@@ -11,8 +11,8 @@ Name | Type | Description | Notes
 **accountStatus** | [**TenantAccountStatus**](TenantAccountStatus.md) |  | 
 **billingCycle** | [**BillingCycle**](BillingCycle.md) |  | 
 **id** | **String** |  | 
-**invitationExpiresAt** | [**DateTime**](DateTime.md) |  | 
-**leaseEndDate** | [**DateTime**](DateTime.md) |  | 
+**invitationExpiresAt** | [**DateTime**](DateTime.md) |  | [optional] 
+**leaseEndDate** | [**DateTime**](DateTime.md) |  | [optional] 
 **name** | **String** |  | 
 **room** | [**RoomRef**](RoomRef.md) |  | 
 

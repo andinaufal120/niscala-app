@@ -18,9 +18,13 @@ trap 'rm -rf "$work"' EXIT
 git -C "$api_dir" fetch --quiet origin
 git -C "$api_dir" archive "$ref" | tar -x -C "$work"
 
-# FastAPI declares a 422 body (HTTPValidationError) that is not what the API
-# returns (every error is {code, field, message}), and the Dart generator cannot
-# emit its anyOf "loc" field. Drop both from the exported document.
+# Two adjustments to the exported document, both for the Dart generator:
+# - FastAPI declares a 422 body (HTTPValidationError) that is not what the API
+#   returns (every error is {code, field, message}), and the generator cannot
+#   emit its anyOf "loc" field. Drop both.
+# - A property that is required but nullable (anyOf with null) makes the
+#   generated fromJson assert that the value is not null, which fails for
+#   valid responses. Treat such properties as optional.
 (cd "$work" && uv run --quiet python -c '
 import json
 from app.main import app
@@ -31,6 +35,20 @@ for path in doc["paths"].values():
         operation.get("responses", {}).pop("422", None)
 for name in ("HTTPValidationError", "ValidationError"):
     doc["components"]["schemas"].pop(name, None)
+
+
+def nullable(prop):
+    return any(option.get("type") == "null" for option in prop.get("anyOf", []))
+
+
+for schema in doc["components"]["schemas"].values():
+    required = schema.get("required")
+    if required:
+        schema["required"] = [
+            name
+            for name in required
+            if not nullable(schema.get("properties", {}).get(name, {}))
+        ]
 print(json.dumps(doc, indent=2, sort_keys=True))
 ') > "$root/api/openapi.json"
 

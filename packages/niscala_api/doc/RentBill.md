@@ -9,7 +9,7 @@ import 'package:niscala_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **amount** | **int** | In rupiah. | 
-**bankAccount** | [**BankAccount**](BankAccount.md) |  | 
+**bankAccount** | [**BankAccount**](BankAccount.md) |  | [optional] 
 **daysOverdue** | **int** | Days past the due date while unpaid or rejected, else 0. | 
 **dueDate** | [**DateTime**](DateTime.md) |  | 
 **id** | **String** |  | 

@@ -8,11 +8,11 @@ import 'package:niscala_api/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**actorName** | **String** |  | 
+**actorName** | **String** |  | [optional] 
 **changedAt** | [**DateTime**](DateTime.md) |  | 
 **manual** | **bool** |  | 
-**method** | [**PaymentMethod**](PaymentMethod.md) |  | 
-**reason** | **String** |  | 
+**method** | [**PaymentMethod**](PaymentMethod.md) |  | [optional] 
+**reason** | **String** |  | [optional] 
 **status** | [**PaymentStatus**](PaymentStatus.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

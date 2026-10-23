@@ -10,7 +10,7 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **email** | **String** |  | 
 **emailVerified** | **bool** |  | 
-**googleEmail** | **String** |  | 
+**googleEmail** | **String** |  | [optional] 
 **hasPassword** | **bool** |  | 
 **id** | **String** |  | 
 **name** | **String** |  | 

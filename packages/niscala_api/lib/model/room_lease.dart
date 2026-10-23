@@ -13,9 +13,9 @@ part of niscala_api;
 class RoomLease {
   /// Returns a new [RoomLease] instance.
   RoomLease({
-    required this.endDate,
+    this.endDate,
     required this.rent,
-    required this.startDate,
+    this.startDate,
     required this.tenantId,
     required this.tenantName,
     required this.tenantPhone,
@@ -147,9 +147,7 @@ class RoomLease {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
-    'endDate',
     'rent',
-    'startDate',
     'tenantId',
     'tenantName',
     'tenantPhone',

@@ -8,8 +8,8 @@ import 'package:niscala_api/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**classification** | [**ComplaintClassification**](ComplaintClassification.md) |  | 
-**classificationState** | [**ComplaintClassificationState**](ComplaintClassificationState.md) |  | 
+**classification** | [**ComplaintClassification**](ComplaintClassification.md) |  | [optional] 
+**classificationState** | [**ComplaintClassificationState**](ComplaintClassificationState.md) |  | [optional] 
 **classificationWithheld** | **bool** | True when an AI result exists but is withheld. | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **description** | **String** |  | 

@@ -9,9 +9,9 @@ import 'package:niscala_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **category** | **String** |  | 
-**classifiedByName** | **String** |  | 
-**originalAiClassification** | [**AiComplaintClassification**](AiComplaintClassification.md) |  | 
-**suggestedAction** | **String** |  | 
+**classifiedByName** | **String** |  | [optional] 
+**originalAiClassification** | [**AiComplaintClassification**](AiComplaintClassification.md) |  | [optional] 
+**suggestedAction** | **String** |  | [optional] 
 **urgency** | [**ComplaintUrgency**](ComplaintUrgency.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

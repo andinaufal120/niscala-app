@@ -14,7 +14,7 @@ class RentBill {
   /// Returns a new [RentBill] instance.
   RentBill({
     required this.amount,
-    required this.bankAccount,
+    this.bankAccount,
     required this.daysOverdue,
     required this.dueDate,
     required this.id,
@@ -190,7 +190,6 @@ class RentBill {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'amount',
-    'bankAccount',
     'daysOverdue',
     'dueDate',
     'id',

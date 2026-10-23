@@ -17,12 +17,12 @@ class Room {
     required this.editable,
     this.facilities = const [],
     required this.id,
-    required this.lease,
-    required this.lengthM,
+    this.lease,
+    this.lengthM,
     required this.number,
     required this.occupancy,
     required this.propertyId,
-    required this.widthM,
+    this.widthM,
   });
 
   /// Per month, in rupiah.
@@ -190,12 +190,9 @@ class Room {
     'editable',
     'facilities',
     'id',
-    'lease',
-    'lengthM',
     'number',
     'occupancy',
     'propertyId',
-    'widthM',
   };
 }
 

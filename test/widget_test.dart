@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
+import 'package:niscala/features/auth/ui/login_screen.dart';
+import 'package:niscala/features/auth/ui/verify_email_screen.dart';
 import 'package:niscala_api/api.dart';
 
 import 'helpers/a11y.dart';
@@ -20,7 +22,8 @@ void main() {
     await tester.pumpWidget(buildTestApp());
     await tester.pumpAndSettle();
 
-    expect(appBarTitle('Masuk'), findsOneWidget);
+    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.text('Masuk ke Niscala'), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
   });
 
@@ -106,19 +109,20 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(appBarTitle('Verifikasi Email'), findsOneWidget);
+      expect(find.byType(VerifyEmailScreen), findsOneWidget);
+      expect(appBarTitle('Verifikasi email'), findsOneWidget);
       expect(find.byType(NavigationBar), findsNothing);
     });
   }
 
-  testWidgets('placeholder screens are used for the unbuilt auth screens', (
+  testWidgets('the sign in route shows the real screen, not a placeholder', (
     tester,
   ) async {
     await tester.pumpWidget(buildTestApp());
     await tester.pumpAndSettle();
 
-    expect(find.byType(PlaceholderScreen), findsOneWidget);
-    expect(find.text('Fitur ini belum tersedia'), findsOneWidget);
+    expect(find.byType(PlaceholderScreen), findsNothing);
+    expect(find.text('Fitur ini belum tersedia'), findsNothing);
   });
 
   testWidgets('configures the Indonesian locale and localizations', (

@@ -13,12 +13,12 @@ part of niscala_api;
 class NotificationComplaint {
   /// Returns a new [NotificationComplaint] instance.
   NotificationComplaint({
-    required this.category,
+    this.category,
     required this.complaintId,
     required this.description,
-    required this.handlingNote,
+    this.handlingNote,
     required this.status,
-    required this.urgency,
+    this.urgency,
   });
 
   String? category;
@@ -150,12 +150,9 @@ class NotificationComplaint {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
-    'category',
     'complaintId',
     'description',
-    'handlingNote',
     'status',
-    'urgency',
   };
 }
 

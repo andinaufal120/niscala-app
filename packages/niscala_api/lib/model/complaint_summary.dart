@@ -13,8 +13,8 @@ part of niscala_api;
 class ComplaintSummary {
   /// Returns a new [ComplaintSummary] instance.
   ComplaintSummary({
-    required this.classification,
-    required this.classificationState,
+    this.classification,
+    this.classificationState,
     required this.classificationWithheld,
     required this.createdAt,
     required this.description,
@@ -182,8 +182,6 @@ class ComplaintSummary {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
-    'classification',
-    'classificationState',
     'classificationWithheld',
     'createdAt',
     'description',

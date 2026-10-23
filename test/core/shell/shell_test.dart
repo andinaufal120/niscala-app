@@ -6,6 +6,7 @@ import 'package:niscala/core/router.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
+import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../helpers/a11y.dart';
@@ -293,7 +294,7 @@ void main() {
       expect(logouts, 1);
       expect(find.byType(NavigationBar), findsNothing);
       expect(currentPath(tester), '/masuk');
-      expect(appBarTitle('Masuk'), findsOneWidget);
+      expect(find.byType(LoginScreen), findsOneWidget);
     });
 
     testWidgets('Keluar works for a tenant too', (tester) async {
@@ -319,7 +320,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(logouts, 1);
-      expect(appBarTitle('Masuk'), findsOneWidget);
+      expect(find.byType(LoginScreen), findsOneWidget);
     });
 
     testWidgets('Keluar button is at least 48 by 48 dp', (tester) async {

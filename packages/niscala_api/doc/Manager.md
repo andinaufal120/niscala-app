@@ -9,9 +9,9 @@ import 'package:niscala_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **accountStatus** | [**ManagerAccountStatus**](ManagerAccountStatus.md) |  | 
-**email** | **String** |  | 
+**email** | **String** |  | [optional] 
 **id** | **String** |  | 
-**invitation** | [**ManagerInvitation**](ManagerInvitation.md) |  | 
+**invitation** | [**ManagerInvitation**](ManagerInvitation.md) |  | [optional] 
 **name** | **String** |  | 
 **phone** | **String** | Indonesian mobile number; returned as digits starting with 08. | 
 **properties** | [**List<ManagerProperty>**](ManagerProperty.md) |  | [default to const []]

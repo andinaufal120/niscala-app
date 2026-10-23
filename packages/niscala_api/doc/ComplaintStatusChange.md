@@ -9,7 +9,7 @@ import 'package:niscala_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **changedAt** | [**DateTime**](DateTime.md) |  | 
-**handlingNote** | **String** |  | 
+**handlingNote** | **String** |  | [optional] 
 **status** | [**ComplaintStatus**](ComplaintStatus.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

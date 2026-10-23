@@ -13,7 +13,7 @@ part of niscala_api;
 class ActiveLeaseSummary {
   /// Returns a new [ActiveLeaseSummary] instance.
   ActiveLeaseSummary({
-    required this.endDate,
+    this.endDate,
     required this.propertyName,
     required this.roomNumber,
   });
@@ -121,7 +121,6 @@ class ActiveLeaseSummary {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
-    'endDate',
     'propertyName',
     'roomNumber',
   };

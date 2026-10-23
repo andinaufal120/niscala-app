@@ -15,7 +15,7 @@ class NotificationSettingItem {
   NotificationSettingItem({
     required this.category,
     required this.pushEnabled,
-    required this.urgencyScope,
+    this.urgencyScope,
   });
 
   NotificationCategory category;
@@ -123,7 +123,6 @@ class NotificationSettingItem {
   static const requiredKeys = <String>{
     'category',
     'pushEnabled',
-    'urgencyScope',
   };
 }
 

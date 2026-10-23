@@ -14,7 +14,7 @@ class ManagerSummary {
   /// Returns a new [ManagerSummary] instance.
   ManagerSummary({
     required this.accountStatus,
-    required this.email,
+    this.email,
     required this.id,
     required this.name,
     required this.phone,
@@ -144,7 +144,6 @@ class ManagerSummary {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'accountStatus',
-    'email',
     'id',
     'name',
     'phone',

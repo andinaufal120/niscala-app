@@ -9,13 +9,13 @@ import 'package:niscala_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **accountStatus** | [**TenantAccountStatus**](TenantAccountStatus.md) |  | 
-**email** | **String** |  | 
+**email** | **String** |  | [optional] 
 **emergencyContacts** | [**List<EmergencyContact>**](EmergencyContact.md) |  | [default to const []]
 **id** | **String** |  | 
-**invitation** | [**TenantInvitation**](TenantInvitation.md) |  | 
+**invitation** | [**TenantInvitation**](TenantInvitation.md) |  | [optional] 
 **lease** | [**Lease**](Lease.md) |  | 
 **name** | **String** |  | 
-**occupation** | **String** |  | 
+**occupation** | **String** |  | [optional] 
 **phone** | **String** | Indonesian mobile number; returned as digits starting with 08. | 
 **room** | [**RoomRef**](RoomRef.md) |  | 
 

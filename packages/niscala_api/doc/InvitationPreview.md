@@ -14,7 +14,7 @@ Name | Type | Description | Notes
 **name** | **String** | Pre-filled by management. | 
 **properties** | [**List<InvitationProperty>**](InvitationProperty.md) | One for a Tenant, one or more for a Manager. | [default to const []]
 **role** | [**InvitationRole**](InvitationRole.md) |  | 
-**roomNumber** | **String** |  | 
+**roomNumber** | **String** |  | [optional] 
 **status** | [**InvitationLinkStatus**](InvitationLinkStatus.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

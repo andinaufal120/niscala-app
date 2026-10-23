@@ -14,11 +14,11 @@ class Lease {
   /// Returns a new [Lease] instance.
   Lease({
     required this.billingCycle,
-    required this.endDate,
+    this.endDate,
     required this.gracePeriodDays,
-    required this.nextBillDate,
+    this.nextBillDate,
     required this.rent,
-    required this.startDate,
+    this.startDate,
   });
 
   BillingCycle billingCycle;
@@ -152,11 +152,8 @@ class Lease {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'billingCycle',
-    'endDate',
     'gracePeriodDays',
-    'nextBillDate',
     'rent',
-    'startDate',
   };
 }
 

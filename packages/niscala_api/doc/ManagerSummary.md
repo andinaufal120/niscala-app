@@ -9,7 +9,7 @@ import 'package:niscala_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **accountStatus** | [**ManagerAccountStatus**](ManagerAccountStatus.md) |  | 
-**email** | **String** |  | 
+**email** | **String** |  | [optional] 
 **id** | **String** |  | 
 **name** | **String** |  | 
 **phone** | **String** | Indonesian mobile number; returned as digits starting with 08. | 

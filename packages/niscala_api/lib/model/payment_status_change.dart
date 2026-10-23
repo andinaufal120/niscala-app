@@ -13,11 +13,11 @@ part of niscala_api;
 class PaymentStatusChange {
   /// Returns a new [PaymentStatusChange] instance.
   PaymentStatusChange({
-    required this.actorName,
+    this.actorName,
     required this.changedAt,
     required this.manual,
-    required this.method,
-    required this.reason,
+    this.method,
+    this.reason,
     required this.status,
   });
 
@@ -150,11 +150,8 @@ class PaymentStatusChange {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
-    'actorName',
     'changedAt',
     'manual',
-    'method',
-    'reason',
     'status',
   };
 }

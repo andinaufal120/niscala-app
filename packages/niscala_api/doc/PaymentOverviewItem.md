@@ -8,7 +8,7 @@ import 'package:niscala_api/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**bill** | [**RentBillSummary**](RentBillSummary.md) |  | 
+**bill** | [**RentBillSummary**](RentBillSummary.md) |  | [optional] 
 **room** | [**RoomRef**](RoomRef.md) |  | 
 **tenant** | [**TenantRef**](TenantRef.md) |  | 
 

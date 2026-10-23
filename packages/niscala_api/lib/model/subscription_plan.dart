@@ -15,8 +15,8 @@ class SubscriptionPlan {
   SubscriptionPlan({
     required this.aiEnabled,
     required this.code,
-    required this.maxProperties,
-    required this.maxRoomsPerProperty,
+    this.maxProperties,
+    this.maxRoomsPerProperty,
     this.prices = const [],
   });
 
@@ -142,8 +142,6 @@ class SubscriptionPlan {
   static const requiredKeys = <String>{
     'aiEnabled',
     'code',
-    'maxProperties',
-    'maxRoomsPerProperty',
     'prices',
   };
 }

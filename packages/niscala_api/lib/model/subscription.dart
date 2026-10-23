@@ -14,12 +14,12 @@ class Subscription {
   /// Returns a new [Subscription] instance.
   Subscription({
     required this.autoRenew,
-    required this.billingPeriod,
-    required this.endDate,
-    required this.openOrder,
+    this.billingPeriod,
+    this.endDate,
+    this.openOrder,
     required this.planCode,
     required this.propertyCount,
-    required this.scheduledDowngrade,
+    this.scheduledDowngrade,
     required this.status,
   });
 
@@ -171,12 +171,8 @@ class Subscription {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'autoRenew',
-    'billingPeriod',
-    'endDate',
-    'openOrder',
     'planCode',
     'propertyCount',
-    'scheduledDowngrade',
     'status',
   };
 }
