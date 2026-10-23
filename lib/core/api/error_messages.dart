@@ -67,27 +67,33 @@ const _messages = {
   'REFRESH_TOKEN_INVALID': _sessionEnded,
 };
 
-/// The Indonesian message for an API error code. Unknown codes get a generic
-/// message. A validation failure has no message of its own: see
-/// [validationMessage].
-String errorMessage(String code) => _messages[code] ?? _fallback;
+/// The Indonesian message for an API error code. Unknown codes get the generic
+/// message.
+String _errorMessage(String code) => _messages[code] ?? _fallback;
+
+/// The labels of the person form fields on screens where a person is named
+/// differently from a property. Passed as the [labels] of [validationMessage]
+/// or [errorMessageFor].
+const personFormLabels = {'name': 'Nama lengkap'};
 
 /// The Indonesian message for a validation failure on [field], such as
-/// "Email tidak valid.". [label] replaces the label of a known field, for a
+/// "Email tidak valid.". [labels] replaces the label of a known field, for a
 /// screen that shows the field under another name. A null or unknown field
 /// gets a plain message.
-String validationMessage(String? field, {String? label}) {
+String validationMessage(String? field, {Map<String, String>? labels}) {
   if (field == null || !_fieldLabels.containsKey(field)) {
     return _unknownField;
   }
-  return '${label ?? _fieldLabels[field]} tidak valid.';
+  return '${labels?[field] ?? _fieldLabels[field]} tidak valid.';
 }
 
 /// The Indonesian message for an error caught by a screen. A validation
-/// failure gets the message of its field. Anything other than an [ApiFailure]
-/// gets the generic message.
-String errorMessageFor(Object error) {
+/// failure gets the message of its field, with [labels] applied. Anything
+/// other than an [ApiFailure] gets the generic message.
+String errorMessageFor(Object error, {Map<String, String>? labels}) {
   if (error is! ApiFailure) return _fallback;
-  if (error.code == 'VALIDATION_FAILED') return validationMessage(error.field);
-  return errorMessage(error.code);
+  if (error.code == 'VALIDATION_FAILED') {
+    return validationMessage(error.field, labels: labels);
+  }
+  return _errorMessage(error.code);
 }

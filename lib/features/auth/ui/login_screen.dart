@@ -59,8 +59,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await ref.read(sessionControllerProvider.notifier).signIn(session);
     } on ApiFailure catch (failure) {
       if (!mounted) return;
+      // A validation failure on the email or the password is shown next to
+      // that field. Any other failure is shown in the banner.
+      final field = failure.code == 'VALIDATION_FAILED' ? failure.field : null;
+      final message = errorMessageFor(failure);
       setState(() {
-        _banner = errorMessage(failure.code);
+        _emailError = field == 'email' ? message : null;
+        _passwordError = field == 'password' ? message : null;
+        _banner = field == 'email' || field == 'password' ? null : message;
         _busy = false;
       });
     }

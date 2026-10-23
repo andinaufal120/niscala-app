@@ -77,14 +77,7 @@ class _RegisterOwnerScreenState extends ConsumerState<RegisterOwnerScreen> {
   }
 
   void _showFailure(ApiFailure failure) {
-    // The API calls the registered person's name `name`, which this form
-    // labels as the full name.
-    final message = failure.code == 'VALIDATION_FAILED'
-        ? validationMessage(
-            failure.field,
-            label: failure.field == 'name' ? 'Nama lengkap' : null,
-          )
-        : errorMessageFor(failure);
+    final message = errorMessageFor(failure, labels: personFormLabels);
     final field = switch (failure.code) {
       'EMAIL_ALREADY_REGISTERED' => 'email',
       'PASSWORD_TOO_COMMON' => 'password',
