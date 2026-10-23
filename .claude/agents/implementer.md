@@ -2,6 +2,8 @@
 name: implementer
 description: Writes the implementation that makes the tests from test-writer pass. Use as the second step of every TDD cycle, after the tests are committed. Never modifies tests.
 tools: Read, Grep, Glob, Edit, Write, Bash
+model: haiku
+effort: medium
 hooks:
   PreToolUse:
     - matcher: "Edit|Write"
