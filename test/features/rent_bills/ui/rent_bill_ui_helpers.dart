@@ -56,6 +56,24 @@ Future<void> pumpRentBillApp(
   }
 }
 
+const _errorTexts = {
+  'RECEIPT_TYPE_INVALID': 'Bukti transfer harus berupa gambar JPG atau PNG.',
+  'RECEIPT_TOO_LARGE': 'Ukuran bukti transfer maksimal 5 MB.',
+  'RENT_BILL_NOT_UPLOADABLE': 'Bukti transfer untuk tagihan ini tidak bisa diunggah. Bayar tunai ke pengelola kost.',
+  'PROPERTY_BANK_ACCOUNT_MISSING': 'Properti ini belum memiliki rekening bank. Bayar tunai ke pengelola kost.',
+  'RENT_BILL_NOT_FOUND': 'Tagihan tidak ditemukan.',
+  'RECEIPT_NOT_FOUND': 'Bukti transfer tidak ditemukan.',
+  'INTERNAL_ERROR': 'Terjadi kesalahan pada server. Coba lagi.',
+  'NETWORK_ERROR':
+      'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.',
+  'NO_ACTIVE_LEASE':
+      'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.',
+};
+
+/// The literal Indonesian text the app shows for the API error [code].
+String errorMessage(String code) =>
+    _errorTexts[code] ?? (throw ArgumentError('No expected text for $code'));
+
 DateTime day(int month, int dayOfMonth) =>
     DateTime.utc(2026, month, dayOfMonth);
 
