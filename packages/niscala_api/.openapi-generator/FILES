@@ -38,6 +38,7 @@ doc/EditableAccountStatus.md
 doc/EmailConfirmationInput.md
 doc/EmailVerificationSent.md
 doc/EmergencyContact.md
+doc/ErrorBody.md
 doc/FacilitySuggestionList.md
 doc/GoogleAuthInput.md
 doc/InvitationAcceptancePreview.md
@@ -208,6 +209,7 @@ lib/model/editable_account_status.dart
 lib/model/email_confirmation_input.dart
 lib/model/email_verification_sent.dart
 lib/model/emergency_contact.dart
+lib/model/error_body.dart
 lib/model/facility_suggestion_list.dart
 lib/model/google_auth_input.dart
 lib/model/invitation_acceptance_preview.dart
@@ -349,6 +351,7 @@ test/editable_account_status_test.dart
 test/email_confirmation_input_test.dart
 test/email_verification_sent_test.dart
 test/emergency_contact_test.dart
+test/error_body_test.dart
 test/facility_suggestion_list_test.dart
 test/google_auth_input_test.dart
 test/invitation_acceptance_preview_test.dart

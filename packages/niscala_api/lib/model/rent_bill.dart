@@ -15,9 +15,11 @@ class RentBill {
   RentBill({
     required this.amount,
     this.bankAccount,
+    required this.canUploadReceipt,
     required this.daysOverdue,
     required this.dueDate,
     required this.id,
+    required this.isCurrent,
     required this.payment,
     required this.periodEnd,
     required this.periodStart,
@@ -32,6 +34,9 @@ class RentBill {
 
   BankAccount? bankAccount;
 
+  /// True when the bill is current, unpaid or rejected, and its property has a bank account. Describes the bill, not the caller's role.
+  bool canUploadReceipt;
+
   /// Days past the due date while unpaid or rejected, else 0.
   ///
   /// Minimum value: 0
@@ -40,6 +45,9 @@ class RentBill {
   DateTime dueDate;
 
   String id;
+
+  /// True when the billing period contains today in Asia/Jakarta.
+  bool isCurrent;
 
   Payment payment;
 
@@ -60,9 +68,11 @@ class RentBill {
   bool operator ==(Object other) => identical(this, other) || other is RentBill &&
     other.amount == amount &&
     other.bankAccount == bankAccount &&
+    other.canUploadReceipt == canUploadReceipt &&
     other.daysOverdue == daysOverdue &&
     other.dueDate == dueDate &&
     other.id == id &&
+    other.isCurrent == isCurrent &&
     other.payment == payment &&
     other.periodEnd == periodEnd &&
     other.periodStart == periodStart &&
@@ -76,9 +86,11 @@ class RentBill {
     // ignore: unnecessary_parenthesis
     (amount.hashCode) +
     (bankAccount == null ? 0 : bankAccount!.hashCode) +
+    (canUploadReceipt.hashCode) +
     (daysOverdue.hashCode) +
     (dueDate.hashCode) +
     (id.hashCode) +
+    (isCurrent.hashCode) +
     (payment.hashCode) +
     (periodEnd.hashCode) +
     (periodStart.hashCode) +
@@ -88,7 +100,7 @@ class RentBill {
     (tenant.hashCode);
 
   @override
-  String toString() => 'RentBill[amount=$amount, bankAccount=$bankAccount, daysOverdue=$daysOverdue, dueDate=$dueDate, id=$id, payment=$payment, periodEnd=$periodEnd, periodStart=$periodStart, property=$property, room=$room, statusChanges=$statusChanges, tenant=$tenant]';
+  String toString() => 'RentBill[amount=$amount, bankAccount=$bankAccount, canUploadReceipt=$canUploadReceipt, daysOverdue=$daysOverdue, dueDate=$dueDate, id=$id, isCurrent=$isCurrent, payment=$payment, periodEnd=$periodEnd, periodStart=$periodStart, property=$property, room=$room, statusChanges=$statusChanges, tenant=$tenant]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -98,9 +110,11 @@ class RentBill {
     } else {
       json[r'bankAccount'] = null;
     }
+      json[r'canUploadReceipt'] = this.canUploadReceipt;
       json[r'daysOverdue'] = this.daysOverdue;
       json[r'dueDate'] = _dateFormatter.format(this.dueDate.toUtc());
       json[r'id'] = this.id;
+      json[r'isCurrent'] = this.isCurrent;
       json[r'payment'] = this.payment;
       json[r'periodEnd'] = _dateFormatter.format(this.periodEnd.toUtc());
       json[r'periodStart'] = _dateFormatter.format(this.periodStart.toUtc());
@@ -132,9 +146,11 @@ class RentBill {
       return RentBill(
         amount: mapValueOfType<int>(json, r'amount')!,
         bankAccount: BankAccount.fromJson(json[r'bankAccount']),
+        canUploadReceipt: mapValueOfType<bool>(json, r'canUploadReceipt')!,
         daysOverdue: mapValueOfType<int>(json, r'daysOverdue')!,
         dueDate: mapDateTime(json, r'dueDate', r'')!,
         id: mapValueOfType<String>(json, r'id')!,
+        isCurrent: mapValueOfType<bool>(json, r'isCurrent')!,
         payment: Payment.fromJson(json[r'payment'])!,
         periodEnd: mapDateTime(json, r'periodEnd', r'')!,
         periodStart: mapDateTime(json, r'periodStart', r'')!,
@@ -190,9 +206,11 @@ class RentBill {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'amount',
+    'canUploadReceipt',
     'daysOverdue',
     'dueDate',
     'id',
+    'isCurrent',
     'payment',
     'periodEnd',
     'periodStart',
