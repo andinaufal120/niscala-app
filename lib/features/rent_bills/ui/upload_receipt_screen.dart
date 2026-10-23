@@ -17,6 +17,8 @@ import 'package:niscala_api/api.dart';
 
 const _maxBytes = 5 * 1024 * 1024;
 const _chooseFirst = 'Pilih bukti transfer terlebih dahulu.';
+const _accessDenied =
+    'Tidak bisa mengakses kamera atau galeri. Periksa izin aplikasi.';
 const _sentMessage = 'Bukti transfer terkirim.';
 const _typeInvalid = ApiFailure(code: 'RECEIPT_TYPE_INVALID');
 const _tooLarge = ApiFailure(code: 'RECEIPT_TOO_LARGE');
@@ -47,7 +49,14 @@ class _UploadReceiptScreenState extends ConsumerState<UploadReceiptScreen> {
   var _stale = false;
 
   Future<void> _pick(ReceiptSource source) async {
-    final file = await ref.read(receiptPickerProvider).pick(source);
+    final ReceiptFile? file;
+    try {
+      file = await ref.read(receiptPickerProvider).pick(source);
+    } on PlatformException {
+      if (!mounted) return;
+      setState(() => _fileError = _accessDenied);
+      return;
+    }
     if (file == null || !mounted) return;
     final failure = receiptMediaType(file.bytes) == null
         ? _typeInvalid
@@ -79,11 +88,15 @@ class _UploadReceiptScreenState extends ConsumerState<UploadReceiptScreen> {
       if (!mounted) return;
       ref.invalidate(activeRentBillsProvider);
       ref.invalidate(rentBillDetailProvider(widget.billId));
+      ref.invalidate(receiptBytesProvider(widget.billId));
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text(_sentMessage)));
       context.go('/penyewa/pembayaran');
     } on ApiFailure catch (failure) {
       if (!mounted) return;
+      if (failure.statusCode == 409) {
+        ref.invalidate(rentBillDetailProvider(widget.billId));
+      }
       final message = errorMessageFor(failure);
       setState(() {
         _busy = false;
