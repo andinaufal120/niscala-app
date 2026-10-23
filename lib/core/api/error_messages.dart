@@ -23,6 +23,7 @@ const _fieldLabels = {
   'facilities': 'Fasilitas',
   'phone': 'Nomor telepon',
   'description': 'Keluhan',
+  'file': 'Bukti transfer',
 };
 
 const _messages = {
@@ -62,6 +63,16 @@ const _messages = {
   'NO_ACTIVE_LEASE':
       'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.',
   'COMPLAINT_NOT_FOUND': 'Keluhan tidak ditemukan.',
+  'RECEIPT_TYPE_INVALID': 'Bukti transfer harus berupa gambar JPG atau PNG.',
+  'RECEIPT_TOO_LARGE': 'Ukuran bukti transfer maksimal 5 MB.',
+  'RENT_BILL_NOT_UPLOADABLE':
+      'Bukti transfer untuk tagihan ini tidak bisa diunggah. '
+      'Bayar tunai ke pengelola kost.',
+  'PROPERTY_BANK_ACCOUNT_MISSING':
+      'Properti ini belum memiliki rekening bank. '
+      'Bayar tunai ke pengelola kost.',
+  'RENT_BILL_NOT_FOUND': 'Tagihan tidak ditemukan.',
+  'RECEIPT_NOT_FOUND': 'Bukti transfer tidak ditemukan.',
   'FORBIDDEN': 'Anda tidak memiliki akses untuk tindakan ini.',
   'ACCESS_TOKEN_INVALID': _sessionEnded,
   'REFRESH_TOKEN_INVALID': _sessionEnded,

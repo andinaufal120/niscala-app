@@ -19,6 +19,9 @@ import 'package:niscala/features/complaints/ui/tenant_complaint_list_screen.dart
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
+import 'package:niscala/features/rent_bills/ui/receipt_view_screen.dart';
+import 'package:niscala/features/rent_bills/ui/tenant_payments_screen.dart';
+import 'package:niscala/features/rent_bills/ui/upload_receipt_screen.dart';
 import 'package:niscala/features/rooms/ui/room_detail_screen.dart';
 import 'package:niscala/features/rooms/ui/room_form_screen.dart';
 import 'package:niscala/features/rooms/ui/room_list_screen.dart';
@@ -38,6 +41,7 @@ const _tenantHome = '/penyewa/beranda';
 const _propertyRoot = '/properti';
 const _managementComplaints = '/keluhan';
 const _tenantComplaints = '/penyewa/keluhan';
+const _tenantPayments = '/penyewa/pembayaran';
 
 /// The navigator of the whole app. Sub-pages are shown on it, above the tab
 /// shell, so they cover the bottom navigation bar. Tab roots stay in the shell.
@@ -45,12 +49,7 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 const _signedOutRoutes = {_signIn, '/daftar', '/aktivasi'};
 const _managementRoutes = {_managementHome, '/keluhan', '/pembayaran', '/akun'};
-const _tenantRoutes = {
-  _tenantHome,
-  '/penyewa/keluhan',
-  '/penyewa/pembayaran',
-  '/penyewa/akun',
-};
+const _tenantRoutes = {_tenantHome, '/penyewa/keluhan', '/penyewa/akun'};
 
 /// [root] itself or any location below it.
 bool _isUnder(String location, String root) =>
@@ -69,7 +68,8 @@ String? redirectFor(SessionState session, String location) {
       if (role == UserRole.tenant) {
         final allowed =
             _tenantRoutes.contains(location) ||
-            _isUnder(location, _tenantComplaints);
+            _isUnder(location, _tenantComplaints) ||
+            _isUnder(location, _tenantPayments);
         return allowed ? null : _tenantHome;
       }
       if (role == UserRole.admin) {
@@ -322,10 +322,18 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ),
           ]),
-          _branch(
-            '/penyewa/pembayaran',
-            const PlaceholderScreen(title: 'Pembayaran'),
-          ),
+          _nestedBranch(_tenantPayments, const TenantPaymentsScreen(), [
+            _subPage(
+              path: 'unggah/:id',
+              builder: (context, state) =>
+                  UploadReceiptScreen(billId: state.pathParameters['id']!),
+            ),
+            _subPage(
+              path: 'bukti/:id',
+              builder: (context, state) =>
+                  ReceiptViewScreen(billId: state.pathParameters['id']!),
+            ),
+          ]),
           _branch('/penyewa/akun', const AccountScreen()),
         ],
       ),
