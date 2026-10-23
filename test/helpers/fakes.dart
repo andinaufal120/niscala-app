@@ -961,8 +961,9 @@ BankAccount makeBankAccount() => BankAccount(
 /// A [RentBill] with sensible defaults: an unpaid bill of Budi Santoso in room
 /// 08 of Kos Melati for November 2026, due 5 Nov 2026.
 ///
-/// Without [canUploadReceipt] the bill can be uploaded to when it is current,
-/// unpaid or rejected, and the property has a bank account. Without
+/// Without [canUploadReceipt] the bill can be uploaded to when it is unpaid or
+/// rejected and the property has a bank account, whether or not it is in the
+/// current period ([isCurrent]). Without
 /// [hasReceipt] only a bill awaiting verification has a receipt. The default
 /// bank account is BCA 1234567890 of Siti Pemilik; set [withoutBankAccount] for
 /// none.
@@ -1004,8 +1005,7 @@ RentBill makeRentBill({
     room: RoomRef(id: 'r1', number: roomNumber),
     tenant: TenantRef(id: 't1', name: tenantName),
     isCurrent: isCurrent,
-    canUploadReceipt:
-        canUploadReceipt ?? (isCurrent && account != null && open),
+    canUploadReceipt: canUploadReceipt ?? (account != null && open),
   );
 }
 

@@ -78,7 +78,8 @@ DateTime day(int month, int dayOfMonth) =>
 /// Five bills of one tenant, newest period first, with distinct amounts:
 /// - b1 Rp800.000 unpaid, current, uploadable (Nov 2026, due 5 Nov 2026),
 /// - b2 Rp810.000 awaiting verification (Okt 2026),
-/// - b3 Rp820.000 unpaid, 12 days overdue, not uploadable (Sep 2026),
+/// - b3 Rp820.000 unpaid, 12 days overdue, property without a bank account so
+///   not uploadable (Sep 2026),
 /// - b4 Rp830.000 paid (Agu 2026),
 /// - b5 Rp840.000 paid (Jul 2026).
 List<RentBill> sampleBills() => [
@@ -96,6 +97,7 @@ List<RentBill> sampleBills() => [
     id: 'b3',
     amount: 820000,
     daysOverdue: 12,
+    withoutBankAccount: true,
     periodStart: day(9, 1),
     periodEnd: day(9, 30),
     dueDate: day(9, 5),

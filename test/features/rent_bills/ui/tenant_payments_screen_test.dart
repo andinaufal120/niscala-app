@@ -605,23 +605,89 @@ void main() {
       expect(find.text(_reupload), findsNothing);
     });
 
-    testWidgets('an overdue bill of an earlier period has no upload action', (
-      tester,
-    ) async {
+    testWidgets('an overdue unpaid bill of an earlier period offers Transfer '
+        'sekarang', (tester) async {
       await pumpRentBillApp(
         tester,
         FakeRentBillRepository(
-          bills: [makeRentBill(daysOverdue: 12, isCurrent: false)],
+          bills: [
+            makeRentBill(
+              daysOverdue: 12,
+              isCurrent: false,
+              canUploadReceipt: true,
+            ),
+          ],
         ),
       );
 
-      expect(find.text(_transfer), findsNothing);
-      expect(find.text(_reupload), findsNothing);
+      expect(find.text(_transfer), findsOneWidget);
+      expect(find.text(_cashHint), findsNothing);
+      expectTargetSize(tester, _transfer);
     });
 
-    testWidgets('the action follows canUploadReceipt and ignores isCurrent', (
-      tester,
-    ) async {
+    testWidgets('an overdue rejected bill of an earlier period offers Unggah '
+        'ulang bukti', (tester) async {
+      await pumpRentBillApp(
+        tester,
+        FakeRentBillRepository(
+          bills: [
+            makeRentBill(
+              status: PaymentStatus.rejected,
+              rejectionReason: 'Foto buram.',
+              daysOverdue: 9,
+              isCurrent: false,
+              canUploadReceipt: true,
+            ),
+          ],
+        ),
+      );
+
+      expect(find.text(_reupload), findsOneWidget);
+      expect(find.text(_transfer), findsNothing);
+      expect(find.text(_cashHint), findsNothing);
+    });
+
+    testWidgets(
+      'the action of an overdue earlier bill opens its upload screen',
+      (tester) async {
+        await pumpRentBillApp(
+          tester,
+          FakeRentBillRepository(
+            bills: [
+              makeRentBill(
+                id: 'old',
+                daysOverdue: 12,
+                isCurrent: false,
+                canUploadReceipt: true,
+              ),
+            ],
+          ),
+        );
+
+        await tester.tap(find.text(_transfer));
+        await tester.pumpAndSettle();
+
+        expect(currentPath(tester), uploadPath('old'));
+        expect(find.byType(UploadReceiptScreen), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a current bill that canUploadReceipt rules out has no action',
+      (tester) async {
+        await pumpRentBillApp(
+          tester,
+          FakeRentBillRepository(
+            bills: [makeRentBill(isCurrent: true, canUploadReceipt: false)],
+          ),
+        );
+
+        expect(find.text(_transfer), findsNothing);
+        expect(find.text(_reupload), findsNothing);
+      },
+    );
+
+    testWidgets('each bill follows its own canUploadReceipt', (tester) async {
       await pumpRentBillApp(
         tester,
         FakeRentBillRepository(
@@ -724,7 +790,7 @@ void main() {
               makeRentBill(
                 status: PaymentStatus.rejected,
                 rejectionReason: 'Foto buram.',
-                isCurrent: false,
+                canUploadReceipt: false,
                 daysOverdue: 9,
               ),
             ],
@@ -733,6 +799,61 @@ void main() {
 
         expect(find.text(_cashHint), findsOneWidget);
         expect(find.text(_reupload), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'a current bill with canUploadReceipt false tells to pay cash',
+      (tester) async {
+        await pumpRentBillApp(
+          tester,
+          FakeRentBillRepository(
+            bills: [makeRentBill(isCurrent: true, canUploadReceipt: false)],
+          ),
+        );
+
+        expect(find.text(_cashHint), findsOneWidget);
+        expect(find.text(_transfer), findsNothing);
+      },
+    );
+
+    testWidgets('an earlier bill with canUploadReceipt true has no cash hint', (
+      tester,
+    ) async {
+      await pumpRentBillApp(
+        tester,
+        FakeRentBillRepository(
+          bills: [
+            makeRentBill(
+              isCurrent: false,
+              daysOverdue: 12,
+              canUploadReceipt: true,
+            ),
+          ],
+        ),
+      );
+
+      expect(find.text(_cashHint), findsNothing);
+    });
+
+    testWidgets(
+      'an overdue earlier bill without bank account tells to pay cash',
+      (tester) async {
+        await pumpRentBillApp(
+          tester,
+          FakeRentBillRepository(
+            bills: [
+              makeRentBill(
+                isCurrent: false,
+                daysOverdue: 12,
+                withoutBankAccount: true,
+              ),
+            ],
+          ),
+        );
+
+        expect(find.text(_cashHint), findsOneWidget);
+        expect(find.text(_transfer), findsNothing);
       },
     );
 

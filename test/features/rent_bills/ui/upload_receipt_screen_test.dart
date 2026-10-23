@@ -652,10 +652,16 @@ void main() {
 
   group('bill that cannot be uploaded to', () {
     final cases = <String, RentBill Function()>{
-      'an overdue bill of an earlier period': () =>
-          makeRentBill(daysOverdue: 12, isCurrent: false),
       'a bill of a property without a bank account': () =>
           makeRentBill(withoutBankAccount: true),
+      'an overdue earlier bill of a property without a bank account': () =>
+          makeRentBill(
+            daysOverdue: 12,
+            isCurrent: false,
+            withoutBankAccount: true,
+          ),
+      'a current bill the API marks not uploadable': () =>
+          makeRentBill(isCurrent: true, canUploadReceipt: false),
     };
     for (final entry in cases.entries) {
       testWidgets('${entry.key} hides the transfer and upload actions', (
@@ -690,6 +696,52 @@ void main() {
 
       expect(find.textContaining(_cashHint), findsNothing);
     });
+  });
+
+  group('overdue bill of an earlier period that can be uploaded to', () {
+    final cases = <String, RentBill Function()>{
+      'unpaid': () => makeRentBill(
+        daysOverdue: 12,
+        isCurrent: false,
+        canUploadReceipt: true,
+      ),
+      'rejected': () => makeRentBill(
+        status: PaymentStatus.rejected,
+        rejectionReason: 'Foto buram.',
+        daysOverdue: 12,
+        isCurrent: false,
+        canUploadReceipt: true,
+      ),
+    };
+    for (final entry in cases.entries) {
+      testWidgets('${entry.key} offers the transfer and upload actions', (
+        tester,
+      ) async {
+        await _open(tester, _setup(bills: [entry.value()]));
+
+        for (final label in [_camera, _gallery, _send]) {
+          expect(find.text(label), findsOneWidget, reason: label);
+        }
+        expect(find.textContaining(_cashHint), findsNothing);
+      });
+
+      testWidgets('${entry.key} lets the tenant submit a receipt', (
+        tester,
+      ) async {
+        final s = _setup(bills: [entry.value()]);
+        await _open(tester, s);
+        await _pick(tester, s.picker, jpegFile());
+
+        await _submit(tester);
+
+        expect(s.repo.uploadCalls, 1);
+        expect(s.repo.uploaded.single.id, 'b1');
+        expect(
+          s.repo.bills.single.payment.status,
+          PaymentStatus.awaitingVerification,
+        );
+      });
+    }
   });
 
   group('load failure', () {
@@ -756,7 +808,28 @@ void main() {
       ),
       'for an overdue bill': (tester, large) => _open(
         tester,
-        _setup(bills: [makeRentBill(daysOverdue: 12, isCurrent: false)]),
+        _setup(
+          bills: [
+            makeRentBill(
+              daysOverdue: 12,
+              isCurrent: false,
+              canUploadReceipt: true,
+            ),
+          ],
+        ),
+        largeText: large,
+      ),
+      'for an overdue bill without bank account': (tester, large) => _open(
+        tester,
+        _setup(
+          bills: [
+            makeRentBill(
+              daysOverdue: 12,
+              isCurrent: false,
+              withoutBankAccount: true,
+            ),
+          ],
+        ),
         largeText: large,
       ),
       'when the bill failed to load': (tester, large) {
