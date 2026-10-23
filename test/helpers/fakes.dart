@@ -9,6 +9,8 @@ import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
+import 'package:niscala/features/tenants/data/invitation_sharing.dart';
+import 'package:niscala/features/tenants/data/tenant_repository.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/session/session_store.dart';
 import 'package:niscala/core/theme.dart';
@@ -526,7 +528,197 @@ class FakeRoomRepository implements RoomRepository {
   }
 }
 
+/// An invitation that is still valid. Created 18 Okt 2026, valid until
+/// 25 Okt 2026.
+TenantInvitation makeTenantInvitation({
+  DateTime? createdAt,
+  DateTime? expiresAt,
+  bool expired = false,
+  String? url = 'https://niscala.example/undangan/abc123',
+}) => TenantInvitation(
+  createdAt: createdAt ?? DateTime.utc(2026, 10, 18, 12),
+  expiresAt: expiresAt ?? DateTime.utc(2026, 10, 25, 12),
+  expired: expired,
+  url: url,
+);
+
+/// A [Tenant] with sensible defaults: not activated, with a valid invitation,
+/// in room 08 on a monthly lease from 1 Jan 2026 to 31 Des 2026.
+///
+/// Without [invitation] a not activated tenant gets [makeTenantInvitation]
+/// and an active tenant gets none. Set [withoutInvitation] to force none.
+Tenant makeTenant({
+  String id = 't1',
+  String name = 'Budi Santoso',
+  String phone = '081255204471',
+  String? email,
+  String? occupation = 'Karyawan swasta',
+  TenantAccountStatus accountStatus = TenantAccountStatus.notActivated,
+  TenantInvitation? invitation,
+  bool withoutInvitation = false,
+  List<EmergencyContact> emergencyContacts = const [],
+  String roomId = 'r1',
+  String roomNumber = '08',
+  BillingCycle billingCycle = BillingCycle.monthly,
+  DateTime? startDate,
+  DateTime? endDate,
+  bool noEndDate = false,
+  DateTime? nextBillDate,
+  bool noNextBillDate = false,
+  int gracePeriodDays = 0,
+  int rent = 750000,
+}) => Tenant(
+  id: id,
+  name: name,
+  phone: phone,
+  email: email,
+  occupation: occupation,
+  accountStatus: accountStatus,
+  invitation: withoutInvitation
+      ? null
+      : invitation ??
+            (accountStatus == TenantAccountStatus.notActivated
+                ? makeTenantInvitation()
+                : null),
+  emergencyContacts: emergencyContacts,
+  room: RoomRef(id: roomId, number: roomNumber),
+  lease: Lease(
+    billingCycle: billingCycle,
+    startDate: startDate ?? DateTime.utc(2026, 1, 1),
+    endDate: noEndDate ? null : endDate ?? DateTime.utc(2026, 12, 31),
+    nextBillDate: noNextBillDate
+        ? null
+        : nextBillDate ?? DateTime.utc(2026, 11, 1),
+    gracePeriodDays: gracePeriodDays,
+    rent: rent,
+  ),
+);
+
+/// A [TenantSummary] with sensible defaults: active, monthly, ending
+/// 31 Des 2026.
+TenantSummary makeTenantSummary({
+  String id = 't1',
+  String name = 'Budi Santoso',
+  String roomId = 'r1',
+  String roomNumber = '08',
+  TenantAccountStatus accountStatus = TenantAccountStatus.active,
+  BillingCycle billingCycle = BillingCycle.monthly,
+  DateTime? leaseEndDate,
+  bool noEndDate = false,
+  DateTime? invitationExpiresAt,
+}) => TenantSummary(
+  id: id,
+  name: name,
+  room: RoomRef(id: roomId, number: roomNumber),
+  accountStatus: accountStatus,
+  billingCycle: billingCycle,
+  leaseEndDate: noEndDate ? null : leaseEndDate ?? DateTime.utc(2026, 12, 31),
+  invitationExpiresAt: invitationExpiresAt,
+);
+
+/// A [TenantRepository] that keeps the tenants in memory and records its
+/// calls.
+///
+/// [tenants] belong to the property `p1`; [otherProperties] maps other
+/// property ids to their tenants. [list] returns summaries; [create] adds a
+/// not activated tenant to the property only when the call succeeds, with the
+/// invitation url `https://niscala.example/undangan/<id>` (none when
+/// [createWithoutInvitation] is set). Script failures and gates per method
+/// with the `*Script` fields. Every call is also appended to [calls] in order,
+/// as `list:<propertyId>`, `get:<id>` or `create:<propertyId>`.
+class FakeTenantRepository implements TenantRepository {
+  FakeTenantRepository({
+    List<Tenant>? tenants,
+    Map<String, List<Tenant>>? otherProperties,
+  }) : _byProperty = {'p1': tenants ?? [], ...?otherProperties};
+
+  final Map<String, List<Tenant>> _byProperty;
+
+  /// The tenants of property `p1`.
+  List<Tenant> get tenants => _byProperty['p1']!;
+
+  /// Whether [create] returns a tenant without an invitation.
+  bool createWithoutInvitation = false;
+
+  final calls = <String>[];
+  final created = <({String propertyId, NewTenantInput input})>[];
+
+  final listScript = CallScript();
+  final getScript = CallScript();
+  final createScript = CallScript();
+
+  var _nextId = 1;
+
+  int get listCalls => calls.where((c) => c.startsWith('list:')).length;
+  int get getCalls => calls.where((c) => c.startsWith('get:')).length;
+
+  @override
+  Future<List<TenantSummary>> list(String propertyId) async {
+    calls.add('list:$propertyId');
+    final failure = await listScript.next();
+    if (failure != null) throw failure;
+    return [
+      for (final t in _byProperty[propertyId] ?? <Tenant>[])
+        TenantSummary(
+          id: t.id,
+          name: t.name,
+          room: t.room,
+          accountStatus: t.accountStatus,
+          billingCycle: t.lease.billingCycle,
+          leaseEndDate: t.lease.endDate,
+          invitationExpiresAt: t.invitation?.expiresAt,
+        ),
+    ];
+  }
+
+  @override
+  Future<Tenant> get(String tenantId) async {
+    calls.add('get:$tenantId');
+    final failure = await getScript.next();
+    if (failure != null) throw failure;
+    return _byProperty.values
+        .expand((list) => list)
+        .firstWhere(
+          (t) => t.id == tenantId,
+          orElse: () => throw const ApiFailure(code: 'TENANT_NOT_FOUND'),
+        );
+  }
+
+  @override
+  Future<Tenant> create(String propertyId, NewTenantInput input) async {
+    calls.add('create:$propertyId');
+    created.add((propertyId: propertyId, input: input));
+    final failure = await createScript.next();
+    if (failure != null) throw failure;
+    final id = 'new-${_nextId++}';
+    final lease = input.lease ?? LeaseInput();
+    final tenant = Tenant(
+      id: id,
+      name: input.name,
+      phone: input.phone,
+      occupation: input.occupation,
+      accountStatus: TenantAccountStatus.notActivated,
+      emergencyContacts: input.emergencyContacts,
+      room: RoomRef(id: input.roomId, number: input.roomId),
+      invitation: createWithoutInvitation
+          ? null
+          : makeTenantInvitation(url: 'https://niscala.example/undangan/$id'),
+      lease: Lease(
+        billingCycle: lease.billingCycle,
+        startDate: lease.startDate,
+        endDate: lease.endDate,
+        gracePeriodDays: lease.gracePeriodDays,
+        rent: lease.rent ?? 0,
+      ),
+    );
+    (_byProperty[propertyId] ??= []).add(tenant);
+    return tenant;
+  }
+}
+
 /// The whole app with a fake session store and no network.
+///
+/// Without [invitationSharer] sharing does nothing.
 Widget buildTestApp({
   SessionStore? store,
   Future<AuthTokens> Function(String refreshToken)? refresh,
@@ -534,6 +726,8 @@ Widget buildTestApp({
   AuthRepository? auth,
   PropertyRepository? properties,
   RoomRepository? rooms,
+  TenantRepository? tenants,
+  Future<void> Function(String text)? invitationSharer,
 }) {
   return ProviderScope(
     overrides: [
@@ -544,6 +738,12 @@ Widget buildTestApp({
         properties ?? FakePropertyRepository(),
       ),
       roomRepositoryProvider.overrideWithValue(rooms ?? FakeRoomRepository()),
+      tenantRepositoryProvider.overrideWithValue(
+        tenants ?? FakeTenantRepository(),
+      ),
+      invitationSharerProvider.overrideWithValue(
+        invitationSharer ?? (text) async {},
+      ),
       if (logout != null) logoutProvider.overrideWithValue(logout),
     ],
     child: const NiscalaApp(),

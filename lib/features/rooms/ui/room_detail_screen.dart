@@ -188,7 +188,18 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
           if (lease == null)
             _RoomSection(
               title: 'Kamar kosong',
-              children: const [Text('Belum ada penyewa di kamar ini.')],
+              children: [
+                const Text('Belum ada penyewa di kamar ini.'),
+                if (r.editable) ...[
+                  const SizedBox(height: 8),
+                  FilledButton(
+                    onPressed: () => context.go(
+                      '/properti/${widget.propertyId}/penyewa/tambah?kamar=${r.id}',
+                    ),
+                    child: const Text('Tambah Penyewa'),
+                  ),
+                ],
+              ],
             )
           else
             _RoomSection(
@@ -202,6 +213,13 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
                 const SizedBox(height: 8),
                 Text('Berakhir', style: theme.textTheme.labelLarge),
                 Text(_dateOrDash(lease.endDate)),
+                const SizedBox(height: 8),
+                OutlinedButton(
+                  onPressed: () => context.go(
+                    '/properti/${widget.propertyId}/penyewa/${lease.tenantId}',
+                  ),
+                  child: const Text('Lihat rincian penyewa'),
+                ),
               ],
             ),
           formGap,

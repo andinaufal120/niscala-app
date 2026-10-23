@@ -163,6 +163,15 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
           ),
           const SizedBox(height: 4),
           const Text('Tambah, ubah, atau hapus kamar'),
+          const SizedBox(height: 8),
+          FilledButton.tonal(
+            onPressed: _deleting
+                ? null
+                : () => context.go('/properti/${p.id}/penyewa'),
+            child: const Text('Kelola Penyewa'),
+          ),
+          const SizedBox(height: 4),
+          const Text('Daftarkan penyewa, atur masa sewa dan tagihan'),
           formGap,
           Semantics(
             header: true,
