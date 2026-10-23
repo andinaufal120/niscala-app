@@ -185,6 +185,7 @@ Class | Method | HTTP request | Description
  - [EmailConfirmationInput](doc//EmailConfirmationInput.md)
  - [EmailVerificationSent](doc//EmailVerificationSent.md)
  - [EmergencyContact](doc//EmergencyContact.md)
+ - [ErrorBody](doc//ErrorBody.md)
  - [FacilitySuggestionList](doc//FacilitySuggestionList.md)
  - [GoogleAuthInput](doc//GoogleAuthInput.md)
  - [InvitationAcceptancePreview](doc//InvitationAcceptancePreview.md)

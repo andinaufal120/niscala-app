@@ -22,6 +22,12 @@ void main() {
       // TODO
     });
 
+    // True when the bill is current, unpaid or rejected, and its property has a bank account. Describes the bill, not the caller's role.
+    // bool canUploadReceipt
+    test('to test the property `canUploadReceipt`', () async {
+      // TODO
+    });
+
     // Days past the due date while unpaid or rejected, else 0.
     // int daysOverdue
     test('to test the property `daysOverdue`', () async {
@@ -38,6 +44,12 @@ void main() {
       // TODO
     });
 
+    // True when the billing period contains today in Asia/Jakarta.
+    // bool isCurrent
+    test('to test the property `isCurrent`', () async {
+      // TODO
+    });
+
     // Payment payment
     test('to test the property `payment`', () async {
       // TODO
@@ -50,6 +62,11 @@ void main() {
 
     // DateTime periodStart
     test('to test the property `periodStart`', () async {
+      // TODO
+    });
+
+    // PropertyRef property
+    test('to test the property `property`', () async {
       // TODO
     });
 

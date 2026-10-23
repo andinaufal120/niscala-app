@@ -14,18 +14,24 @@ class RentBillSummary {
   /// Returns a new [RentBillSummary] instance.
   RentBillSummary({
     required this.amount,
+    required this.canUploadReceipt,
     required this.daysOverdue,
     required this.dueDate,
     required this.id,
+    required this.isCurrent,
     required this.payment,
     required this.periodEnd,
     required this.periodStart,
+    required this.property,
     required this.room,
     required this.tenant,
   });
 
   /// In rupiah.
   int amount;
+
+  /// True when the bill is current, unpaid or rejected, and its property has a bank account. Describes the bill, not the caller's role.
+  bool canUploadReceipt;
 
   /// Days past the due date while unpaid or rejected, else 0.
   ///
@@ -36,11 +42,16 @@ class RentBillSummary {
 
   String id;
 
+  /// True when the billing period contains today in Asia/Jakarta.
+  bool isCurrent;
+
   Payment payment;
 
   DateTime periodEnd;
 
   DateTime periodStart;
+
+  PropertyRef property;
 
   RoomRef room;
 
@@ -49,12 +60,15 @@ class RentBillSummary {
   @override
   bool operator ==(Object other) => identical(this, other) || other is RentBillSummary &&
     other.amount == amount &&
+    other.canUploadReceipt == canUploadReceipt &&
     other.daysOverdue == daysOverdue &&
     other.dueDate == dueDate &&
     other.id == id &&
+    other.isCurrent == isCurrent &&
     other.payment == payment &&
     other.periodEnd == periodEnd &&
     other.periodStart == periodStart &&
+    other.property == property &&
     other.room == room &&
     other.tenant == tenant;
 
@@ -62,27 +76,33 @@ class RentBillSummary {
   int get hashCode =>
     // ignore: unnecessary_parenthesis
     (amount.hashCode) +
+    (canUploadReceipt.hashCode) +
     (daysOverdue.hashCode) +
     (dueDate.hashCode) +
     (id.hashCode) +
+    (isCurrent.hashCode) +
     (payment.hashCode) +
     (periodEnd.hashCode) +
     (periodStart.hashCode) +
+    (property.hashCode) +
     (room.hashCode) +
     (tenant.hashCode);
 
   @override
-  String toString() => 'RentBillSummary[amount=$amount, daysOverdue=$daysOverdue, dueDate=$dueDate, id=$id, payment=$payment, periodEnd=$periodEnd, periodStart=$periodStart, room=$room, tenant=$tenant]';
+  String toString() => 'RentBillSummary[amount=$amount, canUploadReceipt=$canUploadReceipt, daysOverdue=$daysOverdue, dueDate=$dueDate, id=$id, isCurrent=$isCurrent, payment=$payment, periodEnd=$periodEnd, periodStart=$periodStart, property=$property, room=$room, tenant=$tenant]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
       json[r'amount'] = this.amount;
+      json[r'canUploadReceipt'] = this.canUploadReceipt;
       json[r'daysOverdue'] = this.daysOverdue;
       json[r'dueDate'] = _dateFormatter.format(this.dueDate.toUtc());
       json[r'id'] = this.id;
+      json[r'isCurrent'] = this.isCurrent;
       json[r'payment'] = this.payment;
       json[r'periodEnd'] = _dateFormatter.format(this.periodEnd.toUtc());
       json[r'periodStart'] = _dateFormatter.format(this.periodStart.toUtc());
+      json[r'property'] = this.property;
       json[r'room'] = this.room;
       json[r'tenant'] = this.tenant;
     return json;
@@ -108,12 +128,15 @@ class RentBillSummary {
 
       return RentBillSummary(
         amount: mapValueOfType<int>(json, r'amount')!,
+        canUploadReceipt: mapValueOfType<bool>(json, r'canUploadReceipt')!,
         daysOverdue: mapValueOfType<int>(json, r'daysOverdue')!,
         dueDate: mapDateTime(json, r'dueDate', r'')!,
         id: mapValueOfType<String>(json, r'id')!,
+        isCurrent: mapValueOfType<bool>(json, r'isCurrent')!,
         payment: Payment.fromJson(json[r'payment'])!,
         periodEnd: mapDateTime(json, r'periodEnd', r'')!,
         periodStart: mapDateTime(json, r'periodStart', r'')!,
+        property: PropertyRef.fromJson(json[r'property'])!,
         room: RoomRef.fromJson(json[r'room'])!,
         tenant: TenantRef.fromJson(json[r'tenant'])!,
       );
@@ -164,12 +187,15 @@ class RentBillSummary {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'amount',
+    'canUploadReceipt',
     'daysOverdue',
     'dueDate',
     'id',
+    'isCurrent',
     'payment',
     'periodEnd',
     'periodStart',
+    'property',
     'room',
     'tenant',
   };
