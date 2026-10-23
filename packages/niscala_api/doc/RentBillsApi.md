@@ -216,7 +216,7 @@ void (empty response body)
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: image/jpeg, image/png
+ - **Accept**: image/jpeg, image/png, application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -270,7 +270,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **listRentBills**
-> RentBillList listRentBills(tenantId, paymentStatus)
+> RentBillList listRentBills(tenantId, propertyId, paymentStatus)
 
 List Rent Bills
 
@@ -288,10 +288,11 @@ import 'package:niscala_api/api.dart';
 
 final api_instance = RentBillsApi();
 final tenantId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
-final paymentStatus = ; // PaymentStatus | 
+final propertyId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
+final paymentStatus = []; // List<PaymentStatus> | 
 
 try {
-    final result = api_instance.listRentBills(tenantId, paymentStatus);
+    final result = api_instance.listRentBills(tenantId, propertyId, paymentStatus);
     print(result);
 } catch (e) {
     print('Exception when calling RentBillsApi->listRentBills: $e\n');
@@ -303,7 +304,8 @@ try {
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **tenantId** | **String**|  | [optional] 
- **paymentStatus** | [**PaymentStatus**](.md)|  | [optional] 
+ **propertyId** | **String**|  | [optional] 
+ **paymentStatus** | [**List<PaymentStatus>**](PaymentStatus.md)|  | [optional] [default to const []]
 
 ### Return type
 

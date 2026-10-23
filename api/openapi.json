@@ -875,6 +875,36 @@
         "title": "EmergencyContact",
         "type": "object"
       },
+      "ErrorBody": {
+        "description": "The JSON body of every error response.",
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorBody",
+        "type": "object"
+      },
       "FacilitySuggestionList": {
         "description": "Distinct facility tags already used on rooms of the same Owner.",
         "properties": {
@@ -2914,7 +2944,7 @@
         "type": "object"
       },
       "RentBill": {
-        "description": "A rent bill with its property, the bank account to pay into and its history.",
+        "description": "A rent bill with the bank account to pay into and its history.",
         "properties": {
           "amount": {
             "description": "In rupiah.",
@@ -2931,6 +2961,11 @@
               }
             ]
           },
+          "canUploadReceipt": {
+            "description": "True when the bill is current, unpaid or rejected, and its property has a bank account. Describes the bill, not the caller's role.",
+            "title": "Canuploadreceipt",
+            "type": "boolean"
+          },
           "daysOverdue": {
             "description": "Days past the due date while unpaid or rejected, else 0.",
             "minimum": 0.0,
@@ -2946,6 +2981,11 @@
             "format": "uuid",
             "title": "Id",
             "type": "string"
+          },
+          "isCurrent": {
+            "description": "True when the billing period contains today in Asia/Jakarta.",
+            "title": "Iscurrent",
+            "type": "boolean"
           },
           "payment": {
             "$ref": "#/components/schemas/Payment"
@@ -2982,13 +3022,15 @@
           "id",
           "tenant",
           "room",
+          "property",
           "periodStart",
           "periodEnd",
           "dueDate",
           "amount",
           "payment",
           "daysOverdue",
-          "property",
+          "isCurrent",
+          "canUploadReceipt",
           "statusChanges"
         ],
         "title": "RentBill",
@@ -3019,6 +3061,11 @@
             "title": "Amount",
             "type": "integer"
           },
+          "canUploadReceipt": {
+            "description": "True when the bill is current, unpaid or rejected, and its property has a bank account. Describes the bill, not the caller's role.",
+            "title": "Canuploadreceipt",
+            "type": "boolean"
+          },
           "daysOverdue": {
             "description": "Days past the due date while unpaid or rejected, else 0.",
             "minimum": 0.0,
@@ -3035,6 +3082,11 @@
             "title": "Id",
             "type": "string"
           },
+          "isCurrent": {
+            "description": "True when the billing period contains today in Asia/Jakarta.",
+            "title": "Iscurrent",
+            "type": "boolean"
+          },
           "payment": {
             "$ref": "#/components/schemas/Payment"
           },
@@ -3048,6 +3100,9 @@
             "title": "Periodstart",
             "type": "string"
           },
+          "property": {
+            "$ref": "#/components/schemas/PropertyRef"
+          },
           "room": {
             "$ref": "#/components/schemas/RoomRef"
           },
@@ -3059,12 +3114,15 @@
           "id",
           "tenant",
           "room",
+          "property",
           "periodStart",
           "periodEnd",
           "dueDate",
           "amount",
           "payment",
-          "daysOverdue"
+          "daysOverdue",
+          "isCurrent",
+          "canUploadReceipt"
         ],
         "title": "RentBillSummary",
         "type": "object"
@@ -6366,12 +6424,32 @@
           },
           {
             "in": "query",
+            "name": "propertyId",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Propertyid"
+            }
+          },
+          {
+            "in": "query",
             "name": "paymentStatus",
             "required": false,
             "schema": {
               "anyOf": [
                 {
-                  "$ref": "#/components/schemas/PaymentStatus"
+                  "items": {
+                    "$ref": "#/components/schemas/PaymentStatus"
+                  },
+                  "type": "array"
                 },
                 {
                   "type": "null"
@@ -6391,6 +6469,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
           }
         },
         "security": [
@@ -6430,6 +6518,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
           }
         },
         "security": [
@@ -6479,6 +6587,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
           }
         },
         "security": [
@@ -6515,6 +6653,26 @@
               "image/png": {}
             },
             "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
           }
         },
         "security": [
@@ -6562,6 +6720,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
           }
         },
         "security": [
@@ -6611,6 +6799,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
           }
         },
         "security": [
@@ -6660,6 +6878,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
           }
         },
         "security": [
@@ -6699,6 +6937,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict"
           }
         },
         "security": [

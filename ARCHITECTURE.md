@@ -35,6 +35,7 @@ Riverpod 3 (no code generation) for state and dependency injection, `go_router` 
 - The base URL comes from `--dart-define=API_BASE_URL` (default `http://10.0.2.2:8000`, the host machine seen from an Android emulator). Debug builds may use plain HTTP; release builds are HTTPS only.
 - `AuthHttpClient` adds the bearer token to every request. When the API answers `401` with `ACCESS_TOKEN_INVALID` it refreshes the token pair once (one refresh shared by concurrent requests) and retries the request once. A failed refresh ends the session.
 - Error text shown to the user is Indonesian, mapped from `ApiFailure.code` in `core/api/error_messages.dart`. The API's English message is never displayed. Unknown codes and `VALIDATION_FAILED` show the generic message; a field error is shown next to its field using `ApiFailure.field`.
+- Binary bodies bypass the typed methods: a receipt image is read from the raw response of `getReceiptWithHttpInfo` (`bodyBytes`), because the generated `getReceipt` returns nothing. A receipt is uploaded as a multipart file through `uploadReceipt`; camera photos are re-encoded to JPEG first (`image_picker`).
 - The app computes no backend value (billing, occupancy, risk, gating). Where a screen needs a value the API does not provide, that is a contract gap.
 
 ## 4. Session and routing

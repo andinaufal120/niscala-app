@@ -315,8 +315,10 @@ class RentBillsApi {
   ///
   /// * [String] tenantId:
   ///
-  /// * [PaymentStatus] paymentStatus:
-  Future<Response> listRentBillsWithHttpInfo({ String? tenantId, PaymentStatus? paymentStatus, }) async {
+  /// * [String] propertyId:
+  ///
+  /// * [List<PaymentStatus>] paymentStatus:
+  Future<Response> listRentBillsWithHttpInfo({ String? tenantId, String? propertyId, List<PaymentStatus>? paymentStatus, }) async {
     // ignore: prefer_const_declarations
     final path = r'/rent-bills';
 
@@ -330,8 +332,11 @@ class RentBillsApi {
     if (tenantId != null) {
       queryParams.addAll(_queryParams('', 'tenantId', tenantId));
     }
+    if (propertyId != null) {
+      queryParams.addAll(_queryParams('', 'propertyId', propertyId));
+    }
     if (paymentStatus != null) {
-      queryParams.addAll(_queryParams('', 'paymentStatus', paymentStatus));
+      queryParams.addAll(_queryParams('multi', 'paymentStatus', paymentStatus));
     }
 
     const contentTypes = <String>[];
@@ -356,9 +361,11 @@ class RentBillsApi {
   ///
   /// * [String] tenantId:
   ///
-  /// * [PaymentStatus] paymentStatus:
-  Future<RentBillList?> listRentBills({ String? tenantId, PaymentStatus? paymentStatus, }) async {
-    final response = await listRentBillsWithHttpInfo( tenantId: tenantId, paymentStatus: paymentStatus, );
+  /// * [String] propertyId:
+  ///
+  /// * [List<PaymentStatus>] paymentStatus:
+  Future<RentBillList?> listRentBills({ String? tenantId, String? propertyId, List<PaymentStatus>? paymentStatus, }) async {
+    final response = await listRentBillsWithHttpInfo( tenantId: tenantId, propertyId: propertyId, paymentStatus: paymentStatus, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
