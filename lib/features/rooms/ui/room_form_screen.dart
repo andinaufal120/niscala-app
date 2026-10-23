@@ -337,6 +337,7 @@ class _RoomFormState extends ConsumerState<_RoomForm> {
                             child: Text('Rp'),
                           ),
                         ),
+                        prefixIconConstraints: const BoxConstraints(),
                         errorText: _rateError,
                       ),
                       keyboardType: TextInputType.number,

@@ -487,6 +487,7 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
                           child: Text('Rp'),
                         ),
                       ),
+                      prefixIconConstraints: const BoxConstraints(),
                       errorText: _rentError,
                     ),
                   ),
