@@ -1,8 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:niscala/features/auth/password_strength.dart';
 
 final _emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
 
+const maximumPasswordLength = 128;
+
 bool isValidEmail(String email) => _emailPattern.hasMatch(email);
+
+/// The Indonesian error for a sign-up email, or null when it is valid.
+String? signUpEmailError(String email) => email.isEmpty
+    ? 'Email wajib diisi.'
+    : isValidEmail(email)
+    ? null
+    : 'Format email tidak valid.';
+
+/// The Indonesian error for a new password, or null when its length is allowed.
+String? newPasswordError(String password) => password.length < 8
+    ? 'Kata sandi minimal 8 karakter.'
+    : password.length > maximumPasswordLength
+    ? 'Kata sandi maksimal $maximumPasswordLength karakter.'
+    : null;
+
+/// The Indonesian error for a confirmation that does not match, or null.
+String? confirmPasswordError(String password, String confirmation) =>
+    confirmation.isEmpty
+    ? 'Ketik ulang kata sandi.'
+    : confirmation != password
+    ? 'Konfirmasi tidak sama dengan kata sandi.'
+    : null;
 
 /// A scrolling form page. The credential fields share one autofill group.
 class AuthPage extends StatelessWidget {
@@ -29,3 +54,63 @@ class AuthPage extends StatelessWidget {
     );
   }
 }
+
+/// The strength bars and the Indonesian line under a new-password field. The
+/// bars are hidden from TalkBack; the line is announced as it changes.
+class PasswordStrengthHint extends StatelessWidget {
+  const PasswordStrengthHint({
+    super.key,
+    required this.password,
+    required this.name,
+    required this.email,
+  });
+
+  final String password;
+  final String name;
+  final String email;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final strength = passwordStrength(password, name: name, email: email);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 8),
+        ExcludeSemantics(
+          child: Row(
+            spacing: 4,
+            children: [
+              for (var i = 1; i <= 4; i++)
+                Expanded(
+                  child: SizedBox(
+                    height: 6,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: strength.index >= i
+                            ? _strengthColor(scheme, strength)
+                            : scheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 4),
+        Semantics(
+          liveRegion: true,
+          child: Text(passwordStrengthText(password, name: name, email: email)),
+        ),
+      ],
+    );
+  }
+}
+
+Color _strengthColor(ColorScheme scheme, PasswordStrength strength) =>
+    switch (strength) {
+      PasswordStrength.weak => scheme.error,
+      PasswordStrength.fair => scheme.tertiary,
+      _ => scheme.primary,
+    };

@@ -6,10 +6,7 @@ import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
-import 'package:niscala/features/auth/password_strength.dart';
 import 'package:niscala/features/auth/ui/auth_widgets.dart';
-
-const _maximumPasswordLength = 128;
 
 class RegisterOwnerScreen extends ConsumerStatefulWidget {
   const RegisterOwnerScreen({super.key});
@@ -47,21 +44,9 @@ class _RegisterOwnerScreenState extends ConsumerState<RegisterOwnerScreen> {
     final email = _email.text.trim();
     final password = _password.text;
     final nameError = name.isEmpty ? 'Nama wajib diisi.' : null;
-    final emailError = email.isEmpty
-        ? 'Email wajib diisi.'
-        : isValidEmail(email)
-        ? null
-        : 'Format email tidak valid.';
-    final passwordError = password.length < 8
-        ? 'Kata sandi minimal 8 karakter.'
-        : password.length > _maximumPasswordLength
-        ? 'Kata sandi maksimal $_maximumPasswordLength karakter.'
-        : null;
-    final confirmError = _confirm.text.isEmpty
-        ? 'Ketik ulang kata sandi.'
-        : _confirm.text != password
-        ? 'Konfirmasi tidak sama dengan kata sandi.'
-        : null;
+    final emailError = signUpEmailError(email);
+    final passwordError = newPasswordError(password);
+    final confirmError = confirmPasswordError(password, _confirm.text);
     final valid =
         nameError == null &&
         emailError == null &&
@@ -112,12 +97,6 @@ class _RegisterOwnerScreenState extends ConsumerState<RegisterOwnerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final strength = passwordStrength(
-      _password.text,
-      name: _name.text,
-      email: _email.text,
-    );
     return AuthPage(
       appBar: AppBar(
         leading: IconButton(
@@ -174,38 +153,10 @@ class _RegisterOwnerScreenState extends ConsumerState<RegisterOwnerScreen> {
           autofillHints: const [AutofillHints.newPassword],
           onChanged: (_) => setState(() {}),
         ),
-        const SizedBox(height: 8),
-        ExcludeSemantics(
-          child: Row(
-            spacing: 4,
-            children: [
-              for (var i = 1; i <= 4; i++)
-                Expanded(
-                  child: SizedBox(
-                    height: 6,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: strength.index >= i
-                            ? _strengthColor(theme.colorScheme, strength)
-                            : theme.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Semantics(
-          liveRegion: true,
-          child: Text(
-            passwordStrengthText(
-              _password.text,
-              name: _name.text,
-              email: _email.text,
-            ),
-          ),
+        PasswordStrengthHint(
+          password: _password.text,
+          name: _name.text,
+          email: _email.text,
         ),
         formGap,
         TextField(
@@ -227,10 +178,3 @@ class _RegisterOwnerScreenState extends ConsumerState<RegisterOwnerScreen> {
     );
   }
 }
-
-Color _strengthColor(ColorScheme scheme, PasswordStrength strength) =>
-    switch (strength) {
-      PasswordStrength.weak => scheme.error,
-      PasswordStrength.fair => scheme.tertiary,
-      _ => scheme.primary,
-    };

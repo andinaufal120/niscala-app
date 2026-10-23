@@ -7,6 +7,7 @@ import 'package:niscala/app.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
+import 'package:niscala/features/auth/data/invitation_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
 import 'package:niscala/features/tenants/data/invitation_sharing.dart';
@@ -716,6 +717,93 @@ class FakeTenantRepository implements TenantRepository {
   }
 }
 
+/// An [InvitationPreview] with sensible defaults: a valid tenant invitation
+/// from Siti Pemilik for room 08 of Kos Melati, whose contacts are complete.
+InvitationPreview makeInvitationPreview({
+  InvitationLinkStatus status = InvitationLinkStatus.valid,
+  InvitationRole role = InvitationRole.tenant,
+  String name = 'Budi Santoso',
+  String inviterName = 'Siti Pemilik',
+  List<InvitationProperty>? properties,
+  String? roomNumber = '08',
+  bool emergencyContactsRequired = false,
+}) => InvitationPreview(
+  emergencyContactsRequired: emergencyContactsRequired,
+  expiresAt: DateTime.utc(2026, 10, 25, 12),
+  inviterName: inviterName,
+  name: name,
+  properties:
+      properties ??
+      [
+        InvitationProperty(
+          address: 'Jl. Melati 1, Bandung',
+          name: 'Kos Melati',
+        ),
+      ],
+  role: role,
+  roomNumber: roomNumber,
+  status: status,
+);
+
+/// An [InvitationRepository] that records its calls and answers from fields.
+///
+/// Set [previewFailure] or [activateFailure] to make that method throw. Set
+/// [previewGate] or [activateGate] to hold that method in flight until it
+/// completes.
+class FakeInvitationRepository implements InvitationRepository {
+  final previews = <String>[];
+  final activations =
+      <
+        ({
+          String token,
+          String name,
+          String email,
+          String password,
+          List<EmergencyContact>? emergencyContacts,
+        })
+      >[];
+
+  InvitationPreview previewResult = makeInvitationPreview();
+  AuthSession activateResult = authSessionFor(
+    UserRole.tenant,
+    emailVerified: false,
+  );
+
+  ApiFailure? previewFailure;
+  ApiFailure? activateFailure;
+
+  Completer<void>? previewGate;
+  Completer<void>? activateGate;
+
+  @override
+  Future<InvitationPreview> preview(String token) async {
+    previews.add(token);
+    await previewGate?.future;
+    if (previewFailure != null) throw previewFailure!;
+    return previewResult;
+  }
+
+  @override
+  Future<AuthSession> activateWithPassword({
+    required String token,
+    required String name,
+    required String email,
+    required String password,
+    List<EmergencyContact>? emergencyContacts,
+  }) async {
+    activations.add((
+      token: token,
+      name: name,
+      email: email,
+      password: password,
+      emergencyContacts: emergencyContacts,
+    ));
+    await activateGate?.future;
+    if (activateFailure != null) throw activateFailure!;
+    return activateResult;
+  }
+}
+
 /// The whole app with a fake session store and no network.
 ///
 /// Without [invitationSharer] sharing does nothing.
@@ -724,6 +812,7 @@ Widget buildTestApp({
   Future<AuthTokens> Function(String refreshToken)? refresh,
   Future<void> Function()? logout,
   AuthRepository? auth,
+  InvitationRepository? invitations,
   PropertyRepository? properties,
   RoomRepository? rooms,
   TenantRepository? tenants,
@@ -734,6 +823,9 @@ Widget buildTestApp({
       sessionStoreProvider.overrideWithValue(store ?? InMemorySessionStore()),
       refreshTokensProvider.overrideWithValue(refresh ?? failingRefresh),
       authRepositoryProvider.overrideWithValue(auth ?? FakeAuthRepository()),
+      invitationRepositoryProvider.overrideWithValue(
+        invitations ?? FakeInvitationRepository(),
+      ),
       propertyRepositoryProvider.overrideWithValue(
         properties ?? FakePropertyRepository(),
       ),

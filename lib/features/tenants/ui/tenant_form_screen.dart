@@ -10,18 +10,16 @@ import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
 import 'package:niscala/features/tenants/data/tenant_repository.dart';
 import 'package:niscala/features/tenants/tenant_format.dart';
+import 'package:niscala/features/tenants/ui/emergency_contact_fields.dart';
 import 'package:niscala_api/api.dart';
 
 const _phoneHelper =
     'Nomor ponsel Indonesia, diawali 08 atau 628. Contoh: 0812-5520-4471.';
-const _invalidPhone = 'Nomor telepon tidak valid. Contoh: 0812-5520-4471.';
-const _contactPhoneRequired = 'Nomor telepon kontak wajib diisi.';
 const _contactsHelper =
     'Isi 2 sampai 4 kontak, atau kosongkan agar penyewa melengkapinya saat '
     'aktivasi.';
 const _contactsCount = 'Isi minimal 2 kontak darurat, atau kosongkan semuanya.';
 const _endBeforeStart = 'Tanggal berakhir tidak boleh sebelum tanggal mulai.';
-const _maxContacts = 4;
 
 /// Adds a tenant to a vacant room of the property. [preselectedRoomId] chooses
 /// the room when it is one of the vacant rooms.
@@ -85,7 +83,7 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
   final _end = TextEditingController();
   final _grace = TextEditingController(text: '0');
   final _rent = TextEditingController();
-  final _contacts = <_ContactDraft>[];
+  final _contacts = <EmergencyContactDraft>[];
 
   String? _roomId;
   DateTime? _startDate;
@@ -166,9 +164,9 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
     });
   }
 
-  void _addContact() => setState(() => _contacts.add(_ContactDraft()));
+  void _addContact() => setState(() => _contacts.add(EmergencyContactDraft()));
 
-  void _removeContact(_ContactDraft draft) {
+  void _removeContact(EmergencyContactDraft draft) {
     setState(() => _contacts.remove(draft));
     // The removed block still holds its controllers until this frame is built.
     WidgetsBinding.instance.addPostFrameCallback((_) => draft.dispose());
@@ -213,7 +211,7 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
         ? 'Nomor telepon wajib diisi.'
         : isValidIndonesianMobile(phone)
         ? null
-        : _invalidPhone;
+        : invalidPhoneMessage;
     final rentError = rentText.isEmpty
         ? 'Tarif sewa wajib diisi.'
         : rent == null || rent <= 0
@@ -394,7 +392,7 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
           ),
           const SizedBox(height: 8),
           for (var i = 0; i < _contacts.length; i++) ...[
-            _ContactBlock(
+            EmergencyContactBlock(
               key: ObjectKey(_contacts[i]),
               index: i + 1,
               draft: _contacts[i],
@@ -402,7 +400,7 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
             ),
             const SizedBox(height: 16),
           ],
-          if (_contacts.length < _maxContacts)
+          if (_contacts.length < maxEmergencyContacts)
             OutlinedButton(
               onPressed: _addContact,
               child: const Text('Tambah Kontak Darurat'),
@@ -478,107 +476,6 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// The text fields of one emergency contact, with the errors of its last
-/// submit.
-class _ContactDraft {
-  final name = TextEditingController();
-  final relationship = TextEditingController();
-  final phone = TextEditingController();
-  String? nameError;
-  String? relationshipError;
-  String? phoneError;
-
-  /// Checks the three fields, keeps each message on its field, and returns
-  /// whether the contact is valid.
-  bool validate() {
-    final nameText = name.text.trim();
-    final relationshipText = relationship.text.trim();
-    final phoneText = phone.text.trim();
-    nameError = nameText.isEmpty ? 'Nama kontak wajib diisi.' : null;
-    relationshipError = relationshipText.isEmpty
-        ? 'Hubungan wajib diisi.'
-        : null;
-    phoneError = phoneText.isEmpty
-        ? _contactPhoneRequired
-        : isValidIndonesianMobile(phoneText)
-        ? null
-        : _invalidPhone;
-    return nameError == null && relationshipError == null && phoneError == null;
-  }
-
-  void dispose() {
-    name.dispose();
-    relationship.dispose();
-    phone.dispose();
-  }
-}
-
-/// One emergency contact of the form, numbered for its remove button.
-class _ContactBlock extends StatelessWidget {
-  const _ContactBlock({
-    super.key,
-    required this.index,
-    required this.draft,
-    required this.onRemove,
-  });
-
-  final int index;
-  final _ContactDraft draft;
-  final VoidCallback onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Semantics(
-                header: true,
-                child: Text(
-                  'Kontak darurat $index',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-              ),
-            ),
-            IconButton(
-              tooltip: 'Hapus kontak darurat $index',
-              icon: const Icon(Icons.delete_outline),
-              onPressed: onRemove,
-            ),
-          ],
-        ),
-        TextField(
-          controller: draft.name,
-          textCapitalization: TextCapitalization.words,
-          decoration: InputDecoration(
-            labelText: 'Nama kontak (wajib)',
-            errorText: draft.nameError,
-          ),
-        ),
-        formGap,
-        TextField(
-          controller: draft.relationship,
-          decoration: InputDecoration(
-            labelText: 'Hubungan (wajib)',
-            errorText: draft.relationshipError,
-          ),
-        ),
-        formGap,
-        TextField(
-          controller: draft.phone,
-          keyboardType: TextInputType.phone,
-          decoration: InputDecoration(
-            labelText: 'Nomor telepon kontak (wajib)',
-            errorText: draft.phoneError,
-          ),
-        ),
-      ],
     );
   }
 }
