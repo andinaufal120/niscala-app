@@ -19,6 +19,16 @@ dart format .      # format
 flutter run        # run on a connected device or emulator
 ```
 
+## Running against a local API
+
+Clone [niscala-api](https://github.com/andinaufal120/niscala-api), start it (see its README), then point the app at it. On an Android emulator the host machine is `10.0.2.2`:
+
+```sh
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
+```
+
+Release builds must use an HTTPS URL.
+
 ## Docs
 
 - `docs/SPEC.md`: what the app has to do
