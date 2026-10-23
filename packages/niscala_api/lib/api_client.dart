@@ -244,6 +244,8 @@ class ApiClient {
           return EmailVerificationSent.fromJson(value);
         case 'EmergencyContact':
           return EmergencyContact.fromJson(value);
+        case 'ErrorBody':
+          return ErrorBody.fromJson(value);
         case 'FacilitySuggestionList':
           return FacilitySuggestionList.fromJson(value);
         case 'GoogleAuthInput':

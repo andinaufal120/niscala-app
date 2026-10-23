@@ -66,7 +66,7 @@ void main() {
     //
     // List the caller's rent bills: a tenant's own, or those on accessible properties.
     //
-    //Future<RentBillList> listRentBills({ String tenantId, PaymentStatus paymentStatus }) async
+    //Future<RentBillList> listRentBills({ String tenantId, String propertyId, List<PaymentStatus> paymentStatus }) async
     test('test listRentBills', () async {
       // TODO
     });

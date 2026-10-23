@@ -74,6 +74,7 @@ part 'model/editable_account_status.dart';
 part 'model/email_confirmation_input.dart';
 part 'model/email_verification_sent.dart';
 part 'model/emergency_contact.dart';
+part 'model/error_body.dart';
 part 'model/facility_suggestion_list.dart';
 part 'model/google_auth_input.dart';
 part 'model/invitation_acceptance_preview.dart';

@@ -10,9 +10,11 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **amount** | **int** | In rupiah. | 
 **bankAccount** | [**BankAccount**](BankAccount.md) |  | [optional] 
+**canUploadReceipt** | **bool** | True when the bill is current, unpaid or rejected, and its property has a bank account. Describes the bill, not the caller's role. | 
 **daysOverdue** | **int** | Days past the due date while unpaid or rejected, else 0. | 
 **dueDate** | [**DateTime**](DateTime.md) |  | 
 **id** | **String** |  | 
+**isCurrent** | **bool** | True when the billing period contains today in Asia/Jakarta. | 
 **payment** | [**Payment**](Payment.md) |  | 
 **periodEnd** | [**DateTime**](DateTime.md) |  | 
 **periodStart** | [**DateTime**](DateTime.md) |  | 
