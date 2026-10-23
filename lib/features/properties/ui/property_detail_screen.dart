@@ -154,6 +154,15 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
           Text('Jumlah kamar', style: theme.textTheme.titleSmall),
           Text('${p.roomCount} kamar'),
           Text('${p.occupiedRoomCount} terisi · ${p.vacantRoomCount} kosong'),
+          const SizedBox(height: 8),
+          FilledButton.tonal(
+            onPressed: _deleting
+                ? null
+                : () => context.go('/properti/${p.id}/kamar'),
+            child: const Text('Kelola Kamar'),
+          ),
+          const SizedBox(height: 4),
+          const Text('Tambah, ubah, atau hapus kamar'),
           formGap,
           Semantics(
             header: true,

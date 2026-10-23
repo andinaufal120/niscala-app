@@ -8,6 +8,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
+import 'package:niscala/features/rooms/data/room_repository.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/session/session_store.dart';
 import 'package:niscala/core/theme.dart';
@@ -325,6 +326,206 @@ class FakePropertyRepository implements PropertyRepository {
   }
 }
 
+/// A [RoomLease] with sensible defaults.
+RoomLease makeRoomLease({
+  String tenantId = 't1',
+  String tenantName = 'Budi Santoso',
+  String tenantPhone = '081234567890',
+  int rent = 750000,
+  DateTime? startDate,
+  DateTime? endDate,
+}) => RoomLease(
+  tenantId: tenantId,
+  tenantName: tenantName,
+  tenantPhone: tenantPhone,
+  rent: rent,
+  startDate: startDate,
+  endDate: endDate,
+);
+
+/// A [Room] with sensible defaults. Without [occupancy] the room is occupied
+/// exactly when it has a [lease].
+Room makeRoom({
+  String id = 'r1',
+  String propertyId = 'p1',
+  String number = '08',
+  int baseRate = 800000,
+  Occupancy? occupancy,
+  RoomLease? lease,
+  num? lengthM,
+  num? widthM,
+  List<String> facilities = const [],
+  bool editable = true,
+}) => Room(
+  id: id,
+  propertyId: propertyId,
+  number: number,
+  baseRate: baseRate,
+  occupancy:
+      occupancy ?? (lease == null ? Occupancy.vacant : Occupancy.occupied),
+  lease: lease,
+  lengthM: lengthM,
+  widthM: widthM,
+  facilities: facilities,
+  editable: editable,
+);
+
+/// A [RoomSummary] with sensible defaults, see [makeRoom].
+RoomSummary makeRoomSummary({
+  String id = 'r1',
+  String number = '08',
+  int baseRate = 800000,
+  Occupancy? occupancy,
+  RoomLeaseSummary? lease,
+  num? lengthM,
+  num? widthM,
+  List<String> facilities = const [],
+  bool editable = true,
+}) => RoomSummary(
+  id: id,
+  number: number,
+  baseRate: baseRate,
+  occupancy:
+      occupancy ?? (lease == null ? Occupancy.vacant : Occupancy.occupied),
+  lease: lease,
+  lengthM: lengthM,
+  widthM: widthM,
+  facilities: facilities,
+  editable: editable,
+);
+
+/// A [RoomRepository] that keeps the rooms in memory and records its calls.
+///
+/// [list] returns summaries of the [rooms] of the property; [create],
+/// [update] and [delete] change [rooms] only when the call succeeds. Script
+/// failures and gates per method with the `*Script` fields. Every call is also
+/// appended to [calls] in order, as `list:<propertyId>`, `get:<id>`,
+/// `create:<propertyId>`, `update:<id>`, `delete:<id>` or
+/// `suggestions:<propertyId>`.
+class FakeRoomRepository implements RoomRepository {
+  FakeRoomRepository({List<Room>? rooms, List<String>? suggestions})
+    : rooms = rooms ?? [],
+      suggestions = suggestions ?? [];
+
+  final List<Room> rooms;
+
+  /// The tags [facilitySuggestions] returns.
+  List<String> suggestions;
+
+  final calls = <String>[];
+  final created = <({String propertyId, RoomInput input})>[];
+  final updated = <({String id, RoomInput input})>[];
+  final deleted = <String>[];
+
+  final listScript = CallScript();
+  final getScript = CallScript();
+  final createScript = CallScript();
+  final updateScript = CallScript();
+  final deleteScript = CallScript();
+  final suggestionsScript = CallScript();
+
+  var _nextId = 1;
+
+  int get listCalls => calls.where((c) => c.startsWith('list:')).length;
+  int get getCalls => calls.where((c) => c.startsWith('get:')).length;
+
+  @override
+  Future<List<RoomSummary>> list(String propertyId) async {
+    calls.add('list:$propertyId');
+    final failure = await listScript.next();
+    if (failure != null) throw failure;
+    return [
+      for (final r in rooms)
+        if (r.propertyId == propertyId)
+          makeRoomSummary(
+            id: r.id,
+            number: r.number,
+            baseRate: r.baseRate,
+            occupancy: r.occupancy,
+            lease: r.lease == null
+                ? null
+                : RoomLeaseSummary(
+                    tenantName: r.lease!.tenantName,
+                    endDate: r.lease!.endDate,
+                  ),
+            lengthM: r.lengthM,
+            widthM: r.widthM,
+            facilities: r.facilities,
+            editable: r.editable,
+          ),
+    ];
+  }
+
+  @override
+  Future<Room> get(String roomId) async {
+    calls.add('get:$roomId');
+    final failure = await getScript.next();
+    if (failure != null) throw failure;
+    return rooms.firstWhere(
+      (r) => r.id == roomId,
+      orElse: () => throw const ApiFailure(code: 'ROOM_NOT_FOUND'),
+    );
+  }
+
+  @override
+  Future<Room> create(String propertyId, RoomInput input) async {
+    calls.add('create:$propertyId');
+    created.add((propertyId: propertyId, input: input));
+    final failure = await createScript.next();
+    if (failure != null) throw failure;
+    final room = makeRoom(
+      id: 'new-${_nextId++}',
+      propertyId: propertyId,
+      number: input.number,
+      baseRate: input.baseRate,
+      lengthM: input.lengthM,
+      widthM: input.widthM,
+      facilities: input.facilities,
+    );
+    rooms.add(room);
+    return room;
+  }
+
+  @override
+  Future<Room> update(String roomId, RoomInput input) async {
+    calls.add('update:$roomId');
+    updated.add((id: roomId, input: input));
+    final failure = await updateScript.next();
+    if (failure != null) throw failure;
+    final index = rooms.indexWhere((r) => r.id == roomId);
+    final old = rooms[index];
+    return rooms[index] = makeRoom(
+      id: roomId,
+      propertyId: old.propertyId,
+      number: input.number,
+      baseRate: input.baseRate,
+      occupancy: old.occupancy,
+      lease: old.lease,
+      lengthM: input.lengthM,
+      widthM: input.widthM,
+      facilities: input.facilities,
+      editable: old.editable,
+    );
+  }
+
+  @override
+  Future<void> delete(String roomId) async {
+    calls.add('delete:$roomId');
+    deleted.add(roomId);
+    final failure = await deleteScript.next();
+    if (failure != null) throw failure;
+    rooms.removeWhere((r) => r.id == roomId);
+  }
+
+  @override
+  Future<List<String>> facilitySuggestions(String propertyId) async {
+    calls.add('suggestions:$propertyId');
+    final failure = await suggestionsScript.next();
+    if (failure != null) throw failure;
+    return List.of(suggestions);
+  }
+}
+
 /// The whole app with a fake session store and no network.
 Widget buildTestApp({
   SessionStore? store,
@@ -332,6 +533,7 @@ Widget buildTestApp({
   Future<void> Function()? logout,
   AuthRepository? auth,
   PropertyRepository? properties,
+  RoomRepository? rooms,
 }) {
   return ProviderScope(
     overrides: [
@@ -341,6 +543,7 @@ Widget buildTestApp({
       propertyRepositoryProvider.overrideWithValue(
         properties ?? FakePropertyRepository(),
       ),
+      roomRepositoryProvider.overrideWithValue(rooms ?? FakeRoomRepository()),
       if (logout != null) logoutProvider.overrideWithValue(logout),
     ],
     child: const NiscalaApp(),
