@@ -116,6 +116,52 @@ void main() {
     });
   });
 
+  group('after a re-upload', () {
+    Uint8List shownBytes(WidgetTester tester) {
+      final image = tester.widget<Image>(find.byType(Image)).image;
+      return (image as MemoryImage).bytes;
+    }
+
+    testWidgets('shows the newly uploaded receipt, not the cached one', (
+      tester,
+    ) async {
+      final first = pngFile(name: 'lama.png', length: 64);
+      final second = pngFile(name: 'baru.png', length: 96);
+      final repo = FakeRentBillRepository(
+        bills: [
+          makeRentBill(
+            id: 'b2',
+            status: PaymentStatus.rejected,
+            rejectionReason: 'Foto buram.',
+            hasReceipt: true,
+          ),
+        ],
+        receipts: {'b2': first.bytes},
+      );
+      final picker = FakeReceiptPicker();
+      await pumpRentBillApp(
+        tester,
+        repo,
+        picker: picker,
+        path: receiptPath('b2'),
+      );
+      expect(shownBytes(tester), first.bytes);
+
+      goTo(tester, uploadPath('b2'));
+      await tester.pumpAndSettle();
+      picker.queue.add(second);
+      await tapVisible(tester, find.text('Pilih dari galeri'));
+      await tapVisible(tester, find.text('Kirim Bukti'));
+      expect(repo.uploaded.single.file.bytes, second.bytes);
+
+      goTo(tester, receiptPath('b2'));
+      await tester.pumpAndSettle();
+
+      expect(repo.receiptCalls, 2);
+      expect(shownBytes(tester), second.bytes);
+    });
+  });
+
   group('failure', () {
     testWidgets('shows the message of the failure and a retry', (tester) async {
       final repo = _repo()..receiptScript.always = const ApiFailure.network();

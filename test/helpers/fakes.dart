@@ -1148,18 +1148,21 @@ class FakeRentBillRepository implements RentBillRepository {
 ///
 /// Each [pick] first takes the next entry of [queue] (null means cancelled),
 /// and falls back to [always] when the queue is empty. While [gate] is set,
-/// every call is held until it completes.
+/// every call is held until it completes. While [failure] is set, every call
+/// throws it, as the device picker does when access is denied.
 class FakeReceiptPicker implements ReceiptPicker {
   final requested = <ReceiptSource>[];
   final queue = <ReceiptFile?>[];
   ReceiptFile? always;
   Completer<void>? gate;
+  Object? failure;
 
   @override
   Future<ReceiptFile?> pick(ReceiptSource source) async {
     requested.add(source);
     final file = queue.isNotEmpty ? queue.removeAt(0) : always;
     await gate?.future;
+    if (failure != null) throw failure!;
     return file;
   }
 }

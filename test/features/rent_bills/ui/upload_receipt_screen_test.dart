@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/widgets/error_view.dart';
@@ -647,6 +648,187 @@ void main() {
         inBill('Rp800.000', statusBadge('Menunggu Verifikasi')),
         findsOneWidget,
       );
+    });
+  });
+
+  group('denied camera or gallery access', () {
+    const denied =
+        'Tidak bisa mengakses kamera atau galeri. Periksa izin aplikasi.';
+    final buttons = {
+      _camera: (
+        PlatformException(code: 'camera_access_denied'),
+        ReceiptSource.camera,
+      ),
+      _gallery: (
+        PlatformException(code: 'photo_access_denied'),
+        ReceiptSource.gallery,
+      ),
+    };
+
+    for (final entry in buttons.entries) {
+      final (error, source) = entry.value;
+
+      testWidgets('${entry.key} shows the access message', (tester) async {
+        final s = _setup();
+        s.picker.failure = error;
+        await _open(tester, s);
+
+        await tapVisible(tester, find.text(entry.key));
+
+        expect(s.picker.requested, [source]);
+        expect(find.text(denied), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        expect(currentPath(tester), uploadPath('b1'));
+      });
+
+      testWidgets('${entry.key} announces the access message', (tester) async {
+        final s = _setup();
+        s.picker.failure = error;
+        await _open(tester, s);
+
+        await tapVisible(tester, find.text(entry.key));
+
+        expectLiveRegion(tester, denied);
+      });
+
+      testWidgets('${entry.key} keeps the file picked before', (tester) async {
+        final s = _setup();
+        await _open(tester, s);
+        final file = jpegFile(name: 'sebelumnya.jpg');
+        await _pick(tester, s.picker, file);
+        s.picker.failure = error;
+
+        await tapVisible(tester, find.text(entry.key));
+        s.picker.failure = null;
+
+        expect(find.text(denied), findsOneWidget);
+        expect(find.text('sebelumnya.jpg'), findsOneWidget);
+        await _submit(tester);
+        expect(s.repo.uploaded.single.file.bytes, file.bytes);
+        expect(s.repo.uploaded.single.file.name, 'sebelumnya.jpg');
+      });
+
+      testWidgets('a later pick after ${entry.key} denied clears the message', (
+        tester,
+      ) async {
+        final s = _setup();
+        s.picker.failure = error;
+        await _open(tester, s);
+        await tapVisible(tester, find.text(entry.key));
+        s.picker.failure = null;
+
+        await _pick(tester, s.picker, pngFile(name: 'baru.png'));
+
+        expect(find.text(denied), findsNothing);
+        expect(find.text('baru.png'), findsOneWidget);
+      });
+    }
+
+    testWidgets('denied access sends nothing', (tester) async {
+      final s = _setup();
+      s.picker.failure = PlatformException(code: 'camera_access_denied');
+      await _open(tester, s);
+
+      await tapVisible(tester, find.text(_camera));
+      await _submit(tester);
+
+      expect(s.repo.uploadCalls, 0);
+      expect(find.text(_chooseFirst), findsOneWidget);
+    });
+
+    testWidgets('meets the accessibility guidelines', (tester) async {
+      final s = _setup();
+      s.picker.failure = PlatformException(code: 'camera_access_denied');
+      await _open(tester, s);
+      await tapVisible(tester, find.text(_camera));
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+  });
+
+  group('conflict refreshes the bill', () {
+    const conflict = ApiFailure(
+      code: 'RENT_BILL_NOT_UPLOADABLE',
+      statusCode: 409,
+    );
+
+    Future<({FakeRentBillRepository repo, FakeReceiptPicker picker})>
+    conflicted(WidgetTester tester, {required bool stillUploadable}) async {
+      final s = _setup();
+      s.repo.uploadScript.queue.add(conflict);
+      await _open(tester, s);
+      await _pick(tester, s.picker, jpegFile());
+      if (!stillUploadable) {
+        s.repo.bills[0] = makeRentBill(
+          id: 'b1',
+          status: PaymentStatus.awaitingVerification,
+        );
+      }
+      await _submit(tester);
+      return s;
+    }
+
+    testWidgets('loads the bill again', (tester) async {
+      final s = await conflicted(tester, stillUploadable: false);
+
+      expect(s.repo.getCalls, 2);
+    });
+
+    testWidgets('hides the upload actions when the bill is no longer open', (
+      tester,
+    ) async {
+      await conflicted(tester, stillUploadable: false);
+
+      for (final label in [_camera, _gallery, _send, 'Salin nomor rekening']) {
+        expect(find.text(label), findsNothing, reason: label);
+      }
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('tells to pay cash when the bill is no longer open', (
+      tester,
+    ) async {
+      await conflicted(tester, stillUploadable: false);
+
+      expect(find.textContaining(_cashHint), findsAtLeastNWidgets(1));
+      expect(currentPath(tester), uploadPath('b1'));
+    });
+
+    testWidgets('keeps the controls when the bill can still be uploaded to', (
+      tester,
+    ) async {
+      final s = await conflicted(tester, stillUploadable: true);
+
+      expect(s.repo.getCalls, 2);
+      for (final label in [_camera, _gallery, _send]) {
+        expect(find.text(label), findsOneWidget, reason: label);
+      }
+      expect(
+        find.text(errorMessage('RENT_BILL_NOT_UPLOADABLE')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+      'a failure other than a conflict does not load the bill again',
+      (tester) async {
+        final s = _setup();
+        s.repo.uploadScript.queue.add(const ApiFailure.network());
+        await _open(tester, s);
+        await _pick(tester, s.picker, jpegFile());
+
+        await _submit(tester);
+
+        expect(s.repo.getCalls, 1);
+      },
+    );
+
+    testWidgets('meets the accessibility guidelines after the refresh', (
+      tester,
+    ) async {
+      await conflicted(tester, stillUploadable: false);
+
+      await expectMeetsA11yGuidelines(tester);
     });
   });
 
