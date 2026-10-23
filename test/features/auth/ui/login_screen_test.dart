@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
+import 'package:niscala/core/widgets/info_note.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/register_owner_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
@@ -12,18 +12,23 @@ import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
+import '../../../helpers/fields.dart';
+import '../../../helpers/semantics.dart';
 import 'auth_ui_helpers.dart';
 
 const _email = 'Email (wajib)';
 const _password = 'Kata sandi (wajib)';
+const _invitationNote =
+    'Penyewa dan pengelola kost mengaktifkan akun lewat tautan undangan '
+    'dari pemilik kost.';
 
 Future<void> fillAndSubmit(
   WidgetTester tester, {
   String email = 'budi@example.com',
   String password = 'rahasia panjang',
 }) async {
-  await type(tester, _email, email);
-  await type(tester, _password, password);
+  await typeInto(tester, _email, email);
+  await typeInto(tester, _password, password);
   await tapVisible(tester, buttonLabelled('Masuk'));
 }
 
@@ -41,8 +46,8 @@ void main() {
       expect(find.byType(LoginScreen), findsOneWidget);
       expect(find.text('Masuk ke Niscala'), findsOneWidget);
       expect(find.text('Kelola Kost Tanpa Ribet'), findsOneWidget);
-      expect(field(_email), findsOneWidget);
-      expect(field(_password), findsOneWidget);
+      expect(fieldLabeled(_email), findsOneWidget);
+      expect(fieldLabeled(_password), findsOneWidget);
       expect(find.text('Tampilkan kata sandi'), findsOneWidget);
       expect(buttonLabelled('Masuk'), findsOneWidget);
       expect(find.text('Pemilik kost baru?'), findsOneWidget);
@@ -63,8 +68,8 @@ void main() {
     ) async {
       await pumpLogin(tester, auth);
 
-      expect(fieldError(tester, _email), isNull);
-      expect(fieldError(tester, _password), isNull);
+      expect(labeledFieldError(tester, _email), isNull);
+      expect(labeledFieldError(tester, _password), isNull);
       expect(find.byType(SnackBar), findsNothing);
       expect(auth.logins, isEmpty);
     });
@@ -74,9 +79,9 @@ void main() {
     ) async {
       await pumpLogin(tester, auth);
 
-      expect(textField(tester, _password).obscureText, isTrue);
+      expect(labeledTextField(tester, _password).obscureText, isTrue);
       expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isFalse);
-      expect(textField(tester, _email).obscureText, isFalse);
+      expect(labeledTextField(tester, _email).obscureText, isFalse);
     });
   });
 
@@ -88,17 +93,17 @@ void main() {
 
       await tester.tap(find.text('Tampilkan kata sandi'));
       await tester.pumpAndSettle();
-      expect(textField(tester, _password).obscureText, isFalse);
+      expect(labeledTextField(tester, _password).obscureText, isFalse);
       expect(tester.widget<Checkbox>(find.byType(Checkbox)).value, isTrue);
 
       await tester.tap(find.text('Tampilkan kata sandi'));
       await tester.pumpAndSettle();
-      expect(textField(tester, _password).obscureText, isTrue);
+      expect(labeledTextField(tester, _password).obscureText, isTrue);
     });
 
     testWidgets('keeps the typed password when toggled', (tester) async {
       await pumpLogin(tester, auth);
-      await type(tester, _password, 'rahasia panjang');
+      await typeInto(tester, _password, 'rahasia panjang');
 
       await tester.tap(find.text('Tampilkan kata sandi'));
       await tester.pumpAndSettle();
@@ -124,8 +129,8 @@ void main() {
 
       await tapVisible(tester, buttonLabelled('Masuk'));
 
-      expect(fieldError(tester, _email), 'Masukkan email.');
-      expect(fieldError(tester, _password), 'Masukkan kata sandi.');
+      expect(labeledFieldError(tester, _email), 'Masukkan email.');
+      expect(labeledFieldError(tester, _password), 'Masukkan kata sandi.');
       expect(auth.logins, isEmpty);
     });
 
@@ -134,7 +139,7 @@ void main() {
 
       await fillAndSubmit(tester, email: '   ');
 
-      expect(fieldError(tester, _email), 'Masukkan email.');
+      expect(labeledFieldError(tester, _email), 'Masukkan email.');
       expect(auth.logins, isEmpty);
     });
 
@@ -150,8 +155,8 @@ void main() {
 
         await fillAndSubmit(tester, email: bad);
 
-        expect(fieldError(tester, _email), 'Format email tidak valid.');
-        expect(fieldError(tester, _password), isNull);
+        expect(labeledFieldError(tester, _email), 'Format email tidak valid.');
+        expect(labeledFieldError(tester, _password), isNull);
         expect(auth.logins, isEmpty);
       });
     }
@@ -163,8 +168,8 @@ void main() {
 
       await fillAndSubmit(tester, password: '');
 
-      expect(fieldError(tester, _email), isNull);
-      expect(fieldError(tester, _password), 'Masukkan kata sandi.');
+      expect(labeledFieldError(tester, _email), isNull);
+      expect(labeledFieldError(tester, _password), 'Masukkan kata sandi.');
       expect(auth.logins, isEmpty);
     });
 
@@ -253,10 +258,10 @@ void main() {
 
   group('failures', () {
     final cases = {
-      'INVALID_CREDENTIALS': errorMessage('INVALID_CREDENTIALS'),
-      'TOO_MANY_LOGIN_ATTEMPTS': errorMessage('TOO_MANY_LOGIN_ATTEMPTS'),
-      'NETWORK_ERROR': errorMessage('NETWORK_ERROR'),
-      'INTERNAL_ERROR': errorMessage('INTERNAL_ERROR'),
+      'INVALID_CREDENTIALS': messageOfCode('INVALID_CREDENTIALS'),
+      'TOO_MANY_LOGIN_ATTEMPTS': messageOfCode('TOO_MANY_LOGIN_ATTEMPTS'),
+      'NETWORK_ERROR': messageOfCode('NETWORK_ERROR'),
+      'INTERNAL_ERROR': messageOfCode('INTERNAL_ERROR'),
       'SOMETHING_NEW': 'Terjadi kesalahan. Coba lagi.',
     };
 
@@ -284,18 +289,121 @@ void main() {
       expect(find.textContaining('INVALID_CREDENTIALS'), findsNothing);
     });
 
+    testWidgets('a validation failure on email is shown on the email field', (
+      tester,
+    ) async {
+      auth.loginFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'email',
+        statusCode: 422,
+      );
+      await pumpLogin(tester, auth);
+
+      await fillAndSubmit(tester);
+
+      expect(labeledFieldError(tester, _email), 'Email tidak valid.');
+      expect(labeledFieldError(tester, _password), isNull);
+      expect(find.text('Email tidak valid.'), findsOneWidget);
+      expect(find.text('Terjadi kesalahan. Coba lagi.'), findsNothing);
+      expect(find.byType(SnackBar), findsNothing);
+      expectFieldNode(tester, _email, error: 'Email tidak valid.');
+      expect(currentPath(tester), '/masuk');
+    });
+
+    testWidgets(
+      'a validation failure on password is shown on the password field',
+      (tester) async {
+        auth.loginFailure = const ApiFailure(
+          code: 'VALIDATION_FAILED',
+          field: 'password',
+          statusCode: 422,
+        );
+        await pumpLogin(tester, auth);
+
+        await fillAndSubmit(tester);
+
+        expect(labeledFieldError(tester, _password), 'Kata sandi tidak valid.');
+        expect(labeledFieldError(tester, _email), isNull);
+        expect(find.text('Kata sandi tidak valid.'), findsOneWidget);
+        expect(find.text('Terjadi kesalahan. Coba lagi.'), findsNothing);
+        expectFieldNode(tester, _password, error: 'Kata sandi tidak valid.');
+      },
+    );
+
+    testWidgets('a validation failure on another field is shown in a banner', (
+      tester,
+    ) async {
+      auth.loginFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'managers',
+        statusCode: 422,
+      );
+      await pumpLogin(tester, auth);
+
+      await fillAndSubmit(tester);
+
+      expect(find.text('Data tidak valid.'), findsOneWidget);
+      expect(labeledFieldError(tester, _email), isNull);
+      expect(labeledFieldError(tester, _password), isNull);
+    });
+
+    testWidgets('a validation failure without a field is shown in a banner', (
+      tester,
+    ) async {
+      auth.loginFailure = const ApiFailure(code: 'VALIDATION_FAILED');
+      await pumpLogin(tester, auth);
+
+      await fillAndSubmit(tester);
+
+      expect(find.text('Data tidak valid.'), findsOneWidget);
+      expect(labeledFieldError(tester, _email), isNull);
+      expect(labeledFieldError(tester, _password), isNull);
+    });
+
+    testWidgets('a code that is not a validation failure ignores its field', (
+      tester,
+    ) async {
+      auth.loginFailure = const ApiFailure(
+        code: 'INVALID_CREDENTIALS',
+        field: 'email',
+      );
+      await pumpLogin(tester, auth);
+
+      await fillAndSubmit(tester);
+
+      expect(find.text(messageOfCode('INVALID_CREDENTIALS')), findsOneWidget);
+      expect(labeledFieldError(tester, _email), isNull);
+    });
+
+    testWidgets('a field error from the server goes away on the next submit', (
+      tester,
+    ) async {
+      auth.loginFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'email',
+      );
+      await pumpLogin(tester, auth);
+      await fillAndSubmit(tester);
+      auth.loginFailure = null;
+
+      await tapVisible(tester, buttonLabelled('Masuk'));
+
+      expect(find.text('Email tidak valid.'), findsNothing);
+      expect(auth.logins, hasLength(2));
+    });
+
     testWidgets('keeps the banner on screen until the next submit', (
       tester,
     ) async {
       auth.loginFailure = const ApiFailure(code: 'INVALID_CREDENTIALS');
       await pumpLogin(tester, auth);
       await fillAndSubmit(tester);
-      final message = errorMessage('INVALID_CREDENTIALS');
+      final message = messageOfCode('INVALID_CREDENTIALS');
 
       await tester.pump(const Duration(seconds: 30));
       expect(find.text(message), findsOneWidget);
 
-      await type(tester, _password, 'diubah');
+      await typeInto(tester, _password, 'diubah');
       expect(find.text(message), findsOneWidget);
     });
 
@@ -305,7 +413,7 @@ void main() {
 
       await fillAndSubmit(tester);
 
-      expectLiveRegion(tester, errorMessage('INVALID_CREDENTIALS'));
+      expectLiveRegion(tester, messageOfCode('INVALID_CREDENTIALS'));
     });
 
     testWidgets('removes the banner while the next request is in flight', (
@@ -318,7 +426,7 @@ void main() {
 
       await tapAndPump(tester, buttonLabelled('Masuk'));
 
-      expect(find.text(errorMessage('INVALID_CREDENTIALS')), findsNothing);
+      expect(find.text(messageOfCode('INVALID_CREDENTIALS')), findsNothing);
       expect(auth.logins, hasLength(2));
     });
 
@@ -355,8 +463,8 @@ void main() {
       auth.gate = Completer<void>();
       await pumpLogin(tester, auth);
 
-      await type(tester, _email, 'budi@example.com');
-      await type(tester, _password, 'rahasia panjang');
+      await typeInto(tester, _email, 'budi@example.com');
+      await typeInto(tester, _password, 'rahasia panjang');
       await tapAndPump(tester, buttonLabelled('Masuk'));
 
       expectBusy(tester);
@@ -366,8 +474,8 @@ void main() {
     testWidgets('a double tap sends one request', (tester) async {
       auth.gate = Completer<void>();
       await pumpLogin(tester, auth);
-      await type(tester, _email, 'budi@example.com');
-      await type(tester, _password, 'rahasia panjang');
+      await typeInto(tester, _email, 'budi@example.com');
+      await typeInto(tester, _password, 'rahasia panjang');
       final button = buttonLabelled('Masuk');
 
       await tester.tap(button);
@@ -383,8 +491,8 @@ void main() {
       auth.gate = Completer<void>();
       auth.loginFailure = const ApiFailure(code: 'NETWORK_ERROR');
       await pumpLogin(tester, auth);
-      await type(tester, _email, 'budi@example.com');
-      await type(tester, _password, 'rahasia panjang');
+      await typeInto(tester, _email, 'budi@example.com');
+      await typeInto(tester, _password, 'rahasia panjang');
       await tapAndPump(tester, buttonLabelled('Masuk'));
 
       auth.gate!.complete();
@@ -404,7 +512,7 @@ void main() {
     ) async {
       await pumpLogin(tester, auth);
 
-      expectCredentialField(tester, _email, AutofillHints.email);
+      expectLabeledCredentialField(tester, _email, AutofillHints.email);
     });
 
     testWidgets(
@@ -412,7 +520,7 @@ void main() {
       (tester) async {
         await pumpLogin(tester, auth);
 
-        expectCredentialField(tester, _password, AutofillHints.password);
+        expectLabeledCredentialField(tester, _password, AutofillHints.password);
       },
     );
 
@@ -421,13 +529,232 @@ void main() {
 
       final groups = find.byType(AutofillGroup);
       expect(
-        find.descendant(of: groups.first, matching: field(_email)),
+        find.descendant(of: groups.first, matching: fieldLabeled(_email)),
         findsOneWidget,
       );
       expect(
-        find.descendant(of: groups.first, matching: field(_password)),
+        find.descendant(of: groups.first, matching: fieldLabeled(_password)),
         findsOneWidget,
       );
+    });
+  });
+
+  group('structure', () {
+    testWidgets('wraps both fields in a LabeledField with the marker', (
+      tester,
+    ) async {
+      await pumpLogin(tester, auth);
+
+      expect(labeledField(_email), findsOneWidget);
+      expect(labeledField(_password), findsOneWidget);
+      expect(find.text(_email), findsOneWidget);
+      expect(find.text(_password), findsOneWidget);
+    });
+
+    testWidgets('draws no label inside any field', (tester) async {
+      await pumpLogin(tester, auth);
+
+      expectNoDecorationLabels(tester);
+    });
+
+    testWidgets('puts each label above its field', (tester) async {
+      await pumpLogin(tester, auth);
+
+      for (final label in [_email, _password]) {
+        final text = tester.getRect(find.text(label));
+        final input = tester.getRect(fieldLabeled(label));
+        expect(text.bottom, lessThanOrEqualTo(input.top));
+      }
+    });
+
+    testWidgets('reads each field label once, on the field', (tester) async {
+      await pumpLogin(tester, auth);
+
+      expectFieldNode(tester, _email);
+      expectFieldNode(tester, _password);
+    });
+
+    testWidgets('keeps a field error on the field node', (tester) async {
+      await pumpLogin(tester, auth);
+      await tapVisible(tester, buttonLabelled('Masuk'));
+
+      expectFieldNode(tester, _email, error: 'Masukkan email.');
+      expectFieldNode(tester, _password, error: 'Masukkan kata sandi.');
+    });
+
+    testWidgets('keeps the format error on the email field node', (
+      tester,
+    ) async {
+      await pumpLogin(tester, auth);
+
+      await fillAndSubmit(tester, email: 'budi');
+
+      expectFieldNode(tester, _email, error: 'Format email tidak valid.');
+    });
+
+    testWidgets('tapping a label focuses its field', (tester) async {
+      await pumpLogin(tester, auth);
+
+      await tester.tap(find.text(_password));
+      await tester.pump();
+
+      final editable = tester.widget<EditableText>(
+        find.descendant(
+          of: fieldLabeled(_password),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editable.focusNode.hasFocus, isTrue);
+    });
+
+    testWidgets('shows the N logo tile above the heading', (tester) async {
+      await pumpLogin(tester, auth);
+
+      expect(find.text('N'), findsOneWidget);
+      final logo = tester.getRect(find.text('N'));
+      final heading = tester.getRect(find.text('Masuk ke Niscala'));
+      expect(logo.bottom, lessThanOrEqualTo(heading.top));
+    });
+
+    testWidgets('keeps the logo tile out of the semantics tree', (
+      tester,
+    ) async {
+      await pumpLogin(tester, auth);
+
+      final handle = tester.ensureSemantics();
+      try {
+        final labels = allSemanticsNodes(tester).map((n) => n.label);
+        expect(labels, isNot(contains('N')));
+        expect(find.bySemanticsLabel('N'), findsNothing);
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets('the heading is a semantic header', (tester) async {
+      await pumpLogin(tester, auth);
+
+      final handle = tester.ensureSemantics();
+      try {
+        expect(
+          tester.getSemantics(find.text('Masuk ke Niscala')),
+          isSemantics(isHeader: true),
+        );
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets('shows the invitation note above its activation link', (
+      tester,
+    ) async {
+      await pumpLogin(tester, auth);
+
+      expect(find.text(_invitationNote), findsOneWidget);
+      expect(find.text('Aktifkan dengan tautan undangan'), findsOneWidget);
+      final submit = tester.getRect(buttonLabelled('Masuk'));
+      final noteRect = tester.getRect(find.text(_invitationNote));
+      final link = tester.getRect(find.text('Aktifkan dengan tautan undangan'));
+      expect(noteRect.top, greaterThanOrEqualTo(submit.bottom));
+      expect(link.top, greaterThanOrEqualTo(noteRect.bottom - 1));
+    });
+
+    testWidgets('shows the Daftar row above the invitation note', (
+      tester,
+    ) async {
+      await pumpLogin(tester, auth);
+
+      final submit = tester.getRect(buttonLabelled('Masuk'));
+      final prompt = tester.getRect(find.text('Pemilik kost baru?'));
+      final daftar = tester.getRect(find.text('Daftar'));
+      final noteRect = tester.getRect(find.text(_invitationNote));
+      final link = tester.getRect(find.text('Aktifkan dengan tautan undangan'));
+      expect(prompt.top, greaterThanOrEqualTo(submit.bottom));
+      expect(daftar.top, lessThan(prompt.bottom));
+      expect(prompt.top, lessThan(daftar.bottom));
+      expect(prompt.bottom, lessThanOrEqualTo(noteRect.top + 1));
+      expect(noteRect.bottom, lessThanOrEqualTo(link.top + 1));
+    });
+
+    testWidgets(
+      'pins the Daftar row, invitation note and link near the bottom',
+      (tester) async {
+        await pumpLogin(tester, auth);
+
+        final link = tester.getRect(
+          find.text('Aktifkan dengan tautan undangan'),
+        );
+        final prompt = tester.getRect(find.text('Pemilik kost baru?'));
+        final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+        expect(link.bottom, greaterThan(screen.height * 0.9));
+        expect(prompt.top, greaterThan(screen.height * 0.8));
+      },
+    );
+
+    testWidgets('shows the invitation note as plain centred muted text', (
+      tester,
+    ) async {
+      await pumpLogin(tester, auth);
+
+      expect(find.byType(InfoNote), findsNothing);
+      final noteRect = tester.getRect(find.text(_invitationNote));
+      final width =
+          tester.view.physicalSize.width / tester.view.devicePixelRatio;
+      expect(noteRect.center.dx, closeTo(width / 2, 1));
+      final style = DefaultTextStyle.of(
+        tester.element(find.text(_invitationNote)),
+      ).style;
+      expect(style.color, const Color(0xFF50605B));
+    });
+
+    testWidgets('the activation link opens the activation screen', (
+      tester,
+    ) async {
+      await pumpLogin(tester, auth);
+
+      await tapVisible(tester, find.text('Aktifkan dengan tautan undangan'));
+
+      expect(currentPath(tester), '/aktivasi');
+    });
+
+    testWidgets('the activation link is a labelled button of 48 dp', (
+      tester,
+    ) async {
+      await pumpLogin(tester, auth);
+
+      final handle = tester.ensureSemantics();
+      try {
+        final node = tester.getSemantics(
+          find.text('Aktifkan dengan tautan undangan'),
+        );
+        expect(
+          node,
+          isSemantics(
+            label: 'Aktifkan dengan tautan undangan',
+            isButton: true,
+            hasTapAction: true,
+          ),
+        );
+        expect(node.rect.height, greaterThanOrEqualTo(48));
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets('still reaches the activation link at large text size', (
+      tester,
+    ) async {
+      await pumpAtLargeText(tester, buildTestApp(auth: auth));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Aktifkan dengan tautan undangan'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Aktifkan dengan tautan undangan'), findsOneWidget);
     });
   });
 
@@ -453,13 +780,44 @@ void main() {
       await expectMeetsA11yGuidelines(tester);
     });
 
+    testWidgets('meets the guidelines with errors from the server', (
+      tester,
+    ) async {
+      auth.loginFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'email',
+      );
+      await pumpLogin(tester, auth);
+      await fillAndSubmit(tester);
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+
+    testWidgets('fits at large text size with errors from the server', (
+      tester,
+    ) async {
+      auth.loginFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'password',
+      );
+      await pumpAtLargeText(tester, buildTestApp(auth: auth));
+      await tester.pumpAndSettle();
+      await typeInto(tester, _email, 'budi@example.com');
+      await typeInto(tester, _password, 'rahasia panjang');
+
+      await tapVisible(tester, buttonLabelled('Masuk'));
+
+      expect(labeledFieldError(tester, _password), 'Kata sandi tidak valid.');
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('meets the guidelines while a request is in flight', (
       tester,
     ) async {
       auth.gate = Completer<void>();
       await pumpLogin(tester, auth);
-      await type(tester, _email, 'budi@example.com');
-      await type(tester, _password, 'rahasia panjang');
+      await typeInto(tester, _email, 'budi@example.com');
+      await typeInto(tester, _password, 'rahasia panjang');
       await tapAndPump(tester, buttonLabelled('Masuk'));
 
       await expectMeetsA11yGuidelines(tester);
@@ -507,12 +865,12 @@ void main() {
       await tapVisible(tester, buttonLabelled('Masuk'));
       expect(tester.takeException(), isNull);
 
-      await type(tester, _email, 'budi@example.com');
-      await type(tester, _password, 'rahasia panjang');
+      await typeInto(tester, _email, 'budi@example.com');
+      await typeInto(tester, _password, 'rahasia panjang');
       await tapVisible(tester, buttonLabelled('Masuk'));
 
       expect(
-        find.text(errorMessage('TOO_MANY_LOGIN_ATTEMPTS')),
+        find.text(messageOfCode('TOO_MANY_LOGIN_ATTEMPTS')),
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);
@@ -524,8 +882,8 @@ void main() {
       auth.gate = Completer<void>();
       await pumpAtLargeText(tester, buildTestApp(auth: auth));
       await tester.pumpAndSettle();
-      await type(tester, _email, 'budi@example.com');
-      await type(tester, _password, 'rahasia panjang');
+      await typeInto(tester, _email, 'budi@example.com');
+      await typeInto(tester, _password, 'rahasia panjang');
 
       await tester.scrollUntilVisible(
         buttonLabelled('Masuk'),

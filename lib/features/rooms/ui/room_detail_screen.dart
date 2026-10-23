@@ -4,9 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
+import 'package:niscala/core/navigation.dart';
 import 'package:niscala/core/widgets/confirm_dialog.dart';
+import 'package:niscala/core/widgets/danger_button.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
@@ -56,13 +60,13 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
     } on ApiFailure catch (failure) {
       if (!mounted) return;
       setState(() => _deleting = false);
-      await _showDeleteFailure(errorMessage(failure.code));
+      await _showDeleteFailure(errorMessageFor(failure));
       return;
     }
     if (!mounted) return;
     ref.invalidate(roomListProvider(widget.propertyId));
     final messenger = ScaffoldMessenger.of(context);
-    context.go('/properti/${widget.propertyId}/kamar');
+    leavePage(context, '/properti/${widget.propertyId}/kamar');
     messenger.showSnackBar(const SnackBar(content: Text('Kamar dihapus')));
   }
 
@@ -86,20 +90,18 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
     final room = ref.watch(roomDetailProvider(widget.roomId));
     final loaded = room.value;
     return Scaffold(
-      appBar: AppBar(
-        title: RoomTitle(
-          title: loaded == null ? 'Kamar' : 'Kamar ${loaded.number}',
-          propertyName: property?.name,
-        ),
+      appBar: DetailAppBar(
+        title: loaded == null ? 'Kamar' : 'Kamar ${loaded.number}',
+        subtitle: property?.name,
         actions: [
           if (loaded != null && loaded.editable)
-            TextButton(
+            DetailBarAction.text(
+              label: 'Ubah',
               onPressed: _deleting
                   ? null
                   : () => context.go(
                       '/properti/${widget.propertyId}/kamar/${widget.roomId}/ubah',
                     ),
-              child: const Text('Ubah'),
             ),
         ],
       ),
@@ -123,113 +125,141 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
     final length = r.lengthM;
     final width = r.widthM;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(NiscalaSpacing.gutter),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              OccupancyBadge(occupancy: r.occupancy),
-              if (!r.editable)
-                StatusBadge(
-                  label: 'Hanya bisa dilihat',
-                  colors: NiscalaTokens.of(context).readOnly,
-                  icon: Icons.visibility_outlined,
-                ),
-            ],
-          ),
-          if (!r.editable) ...[const SizedBox(height: 8), Text(_readOnly)],
-          formGap,
+          if (!r.editable) ...[
+            StatusBadge(
+              label: 'Hanya bisa dilihat',
+              colors: NiscalaTokens.of(context).readOnly,
+              icon: Icons.visibility_outlined,
+            ),
+            const SizedBox(height: NiscalaSpacing.s),
+            const Text(_readOnly),
+            formGap,
+          ],
           if (lease == null)
-            _RoomSection(
+            SectionCard(
               title: 'Tarif dasar kamar',
-              children: [
-                Text('${formatRupiah(r.baseRate)} / bulan'),
-                const Text('Nilai awal saat mendaftarkan penyewa'),
-              ],
+              trailing: OccupancyBadge(occupancy: r.occupancy),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Rent(r.baseRate),
+                  const Text('Nilai awal saat mendaftarkan penyewa'),
+                ],
+              ),
             )
           else
-            _RoomSection(
+            SectionCard(
               title: 'Tarif sewa · masa sewa ini',
-              children: [
-                Text('${formatRupiah(lease.rent)} / bulan'),
-                Text('Tarif dasar kamar: ${formatRupiah(r.baseRate)} / bulan'),
-              ],
-            ),
-          formGap,
-          _RoomSection(
-            title: 'Ukuran',
-            children: [
-              if (length != null && width != null) ...[
-                Text(formatDimensions(length, width)),
-                Text('${formatMeasure(length * width)} m²'),
-              ] else
-                const Text('Belum diisi'),
-            ],
-          ),
-          formGap,
-          _RoomSection(
-            title: 'Fasilitas',
-            children: [
-              if (r.facilities.isEmpty)
-                const Text('Belum ada fasilitas')
-              else
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final tag in r.facilities) Chip(label: Text(tag)),
-                  ],
-                ),
-            ],
-          ),
-          formGap,
-          if (lease == null)
-            _RoomSection(
-              title: 'Kamar kosong',
-              children: [
-                const Text('Belum ada penyewa di kamar ini.'),
-                if (r.editable) ...[
-                  const SizedBox(height: 8),
-                  FilledButton(
-                    onPressed: () => context.go(
-                      '/properti/${widget.propertyId}/penyewa/tambah?kamar=${r.id}',
-                    ),
-                    child: const Text('Tambah Penyewa'),
+              trailing: OccupancyBadge(occupancy: r.occupancy),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Rent(lease.rent),
+                  Text(
+                    'Tarif dasar kamar: ${formatRupiah(r.baseRate)} / bulan',
                   ),
                 ],
-              ],
-            )
-          else
-            _RoomSection(
-              title: 'Penyewa & masa sewa',
-              children: [
-                Text(lease.tenantName, style: theme.textTheme.titleMedium),
-                Text(lease.tenantPhone),
-                const SizedBox(height: 8),
-                Text('Mulai', style: theme.textTheme.labelLarge),
-                Text(_dateOrDash(lease.startDate)),
-                const SizedBox(height: 8),
-                Text('Berakhir', style: theme.textTheme.labelLarge),
-                Text(_dateOrDash(lease.endDate)),
-                const SizedBox(height: 8),
-                OutlinedButton(
-                  onPressed: () => context.go(
-                    '/properti/${widget.propertyId}/penyewa/${lease.tenantId}',
-                  ),
-                  child: const Text('Lihat rincian penyewa'),
-                ),
-              ],
+              ),
             ),
           formGap,
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: theme.colorScheme.error,
+          SectionCard(
+            title: 'Ukuran',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (length != null && width != null) ...[
+                  Text(formatDimensions(length, width)),
+                  Text('${formatMeasure(length * width)} m²'),
+                ] else
+                  const Text('Belum diisi'),
+              ],
             ),
+          ),
+          formGap,
+          SectionCard(
+            title: 'Fasilitas',
+            child: r.facilities.isEmpty
+                ? const Text('Belum ada fasilitas')
+                : Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final tag in r.facilities) _FacilityPill(tag),
+                    ],
+                  ),
+          ),
+          formGap,
+          if (lease == null)
+            SectionCard(
+              title: 'Kamar kosong',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Belum ada penyewa di kamar ini.'),
+                  if (r.editable) ...[
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: () => context.go(
+                        '/properti/${widget.propertyId}/penyewa/tambah?kamar=${r.id}',
+                      ),
+                      child: const Text('Tambah Penyewa'),
+                    ),
+                  ],
+                ],
+              ),
+            )
+          else
+            SectionCard(
+              title: 'Penyewa & masa sewa',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(lease.tenantName, style: theme.textTheme.titleMedium),
+                  Text(lease.tenantPhone),
+                  const SizedBox(height: NiscalaSpacing.s),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _LeaseDate(
+                          'Mulai',
+                          _dateOrDash(lease.startDate),
+                        ),
+                      ),
+                      const SizedBox(width: NiscalaSpacing.s),
+                      Expanded(
+                        child: _LeaseDate(
+                          'Berakhir',
+                          _dateOrDash(lease.endDate),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: NiscalaSpacing.s),
+                  const Divider(height: 1),
+                  TextButton(
+                    onPressed: () => context.go(
+                      '/properti/${widget.propertyId}/penyewa/${lease.tenantId}',
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(child: Text('Lihat rincian penyewa')),
+                        Icon(Icons.chevron_right),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          formGap,
+          DangerButton(
+            label: 'Hapus Kamar',
             onPressed: _deleting ? null : () => _askToDelete(r),
-            child: const Text('Hapus Kamar'),
           ),
         ],
       ),
@@ -237,28 +267,74 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
   }
 }
 
-String _dateOrDash(DateTime? date) => date == null ? '-' : formatDate(date);
+/// A monthly rent: the amount large, the unit small and muted.
+class _Rent extends StatelessWidget {
+  const _Rent(this.amount);
 
-/// A titled block of the detail screen. The title is a header for assistive
-/// technology.
-class _RoomSection extends StatelessWidget {
-  const _RoomSection({required this.title, required this.children});
+  final int amount;
 
-  final String title;
-  final List<Widget> children;
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Text.rich(
+      TextSpan(
+        text: formatRupiah(amount),
+        style: textTheme.headlineSmall,
+        children: [
+          TextSpan(
+            text: ' / bulan',
+            style: textTheme.bodyMedium?.copyWith(
+              color: NiscalaColors.textMuted,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A label with a date under it.
+class _LeaseDate extends StatelessWidget {
+  const _LeaseDate(this.label, this.date);
+
+  final String label;
+  final String date;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Semantics(
-          header: true,
-          child: Text(title, style: Theme.of(context).textTheme.titleSmall),
-        ),
-        const SizedBox(height: 4),
-        ...children,
+        Text(label, style: Theme.of(context).textTheme.labelLarge),
+        Text(date),
       ],
     );
   }
 }
+
+/// One facility on a soft primary pill.
+class _FacilityPill extends StatelessWidget {
+  const _FacilityPill(this.tag);
+
+  final String tag;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: NiscalaColors.primarySoft,
+        borderRadius: BorderRadius.circular(NiscalaRadius.small),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: Text(
+          tag,
+          style: Theme.of(context).textTheme.labelMedium
+              ?.copyWith(color: NiscalaColors.primary),
+        ),
+      ),
+    );
+  }
+}
+
+String _dateOrDash(DateTime? date) => date == null ? '-' : formatDate(date);

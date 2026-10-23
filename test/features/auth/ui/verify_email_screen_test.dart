@@ -4,19 +4,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
+import '../../../helpers/fields.dart';
 import 'auth_ui_helpers.dart';
 
 const _code = 'Kode verifikasi (wajib)';
 const _sentToEmail = 'Kode dikirim ke budi@example.com. Kode berlaku 10 menit.';
 const _sentToUnknown = 'Kode dikirim ke email Anda. Kode berlaku 10 menit.';
+
+/// Every text span of [span] that has text of its own, depth first.
+Iterable<TextSpan> _leafSpans(InlineSpan span) sync* {
+  if (span is! TextSpan) return;
+  if (span.text case final text? when text.isNotEmpty) yield span;
+  for (final child in span.children ?? const <InlineSpan>[]) {
+    yield* _leafSpans(child);
+  }
+}
 
 Future<void> verifyWith(WidgetTester tester, String code) async {
   await type(tester, _code, code);
@@ -44,6 +54,7 @@ void main() {
       expect(buttonLabelled('Kirim ulang'), findsOneWidget);
       expect(buttonLabelled('Verifikasi'), findsOneWidget);
       expect(buttonLabelled('Keluar'), findsOneWidget);
+      expect(find.text('Belum menerima kode?'), findsOneWidget);
       expect(
         find.text('Tidak menemukan email? Periksa folder spam.'),
         findsOneWidget,
@@ -84,6 +95,37 @@ void main() {
       expect(find.byType(BackButton), findsNothing);
       expect(find.byIcon(Icons.arrow_back), findsNothing);
       expect(find.byTooltip('Kembali'), findsNothing);
+    });
+
+    testWidgets('starts the title at the screen gutter, not after a back '
+        'button slot', (tester) async {
+      await pumpVerify(tester, auth);
+
+      expect(
+        tester.getTopLeft(appBarTitle('Verifikasi email')).dx,
+        closeTo(NiscalaSpacing.gutter, 0.5),
+      );
+    });
+
+    testWidgets('starts the title at the gutter at large text size', (
+      tester,
+    ) async {
+      await pumpAtLargeText(
+        tester,
+        buildTestApp(
+          store: InMemorySessionStore(
+            storedSession(role: UserRole.owner, emailVerified: false),
+          ),
+          auth: auth,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getTopLeft(appBarTitle('Verifikasi email')).dx,
+        closeTo(NiscalaSpacing.gutter, 0.5),
+      );
     });
 
     testWidgets('shows no error and no banner at first', (tester) async {
@@ -244,7 +286,7 @@ void main() {
 
       expect(store.stored?.emailVerified, isTrue);
       expect(currentPath(tester), '/beranda');
-      expect(find.text(errorMessage('EMAIL_ALREADY_VERIFIED')), findsNothing);
+      expect(find.text(messageOfCode('EMAIL_ALREADY_VERIFIED')), findsNothing);
     });
   });
 
@@ -259,8 +301,8 @@ void main() {
 
         await verifyWith(tester, '123456');
 
-        expect(fieldError(tester, _code), errorMessage(code));
-        expect(find.text(errorMessage(code)), findsOneWidget);
+        expect(fieldError(tester, _code), messageOfCode(code));
+        expect(find.text(messageOfCode(code)), findsOneWidget);
         expect(currentPath(tester), '/verifikasi-email');
         expect(store.stored?.emailVerified, isFalse);
       });
@@ -273,7 +315,7 @@ void main() {
 
         await verifyWith(tester, '123456');
 
-        expect(find.text(errorMessage(code)), findsOneWidget);
+        expect(find.text(messageOfCode(code)), findsOneWidget);
         expect(fieldError(tester, _code), isNull);
         expect(find.byType(SnackBar), findsNothing);
         expect(currentPath(tester), '/verifikasi-email');
@@ -287,8 +329,8 @@ void main() {
 
       await tester.pump(const Duration(seconds: 30));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
-      expectLiveRegion(tester, errorMessage('NETWORK_ERROR'));
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
+      expectLiveRegion(tester, messageOfCode('NETWORK_ERROR'));
     });
 
     testWidgets('the banner goes away when the next request starts', (
@@ -301,7 +343,7 @@ void main() {
 
       await tapAndPump(tester, buttonLabelled('Verifikasi'));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsNothing);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
       expect(auth.confirmations, hasLength(2));
     });
 
@@ -366,7 +408,7 @@ void main() {
       await tapVisible(tester, buttonLabelled('Kirim ulang'));
 
       expect(
-        find.text(errorMessage('VERIFICATION_CODE_TOO_SOON')),
+        find.text(messageOfCode('VERIFICATION_CODE_TOO_SOON')),
         findsOneWidget,
       );
       expect(find.text('Kode baru dikirim.'), findsNothing);
@@ -380,7 +422,7 @@ void main() {
 
         await tapVisible(tester, buttonLabelled('Kirim ulang'));
 
-        expect(find.text(errorMessage(code)), findsOneWidget);
+        expect(find.text(messageOfCode(code)), findsOneWidget);
         expect(find.text('Kode baru dikirim.'), findsNothing);
       });
     }
@@ -496,12 +538,195 @@ void main() {
         textField(tester, _code).autofillHints,
         contains(AutofillHints.oneTimeCode),
       );
-      expect(textField(tester, _code).decoration?.labelText, _code);
+      expect(labeledField(_code), findsOneWidget);
+      expect(textField(tester, _code).decoration?.labelText, isNull);
       expect(textField(tester, _code).enableInteractiveSelection, isNot(false));
       expect(
         find.ancestor(of: field(_code), matching: find.byType(AutofillGroup)),
         findsOneWidget,
       );
+    });
+  });
+
+  group('structure', () {
+    testWidgets('wraps the code field in a LabeledField with its marker', (
+      tester,
+    ) async {
+      await pumpVerify(tester, auth);
+
+      expect(labeledField(_code), findsOneWidget);
+      expect(find.text(_code), findsOneWidget);
+    });
+
+    testWidgets('draws no label inside the code field', (tester) async {
+      await pumpVerify(tester, auth);
+
+      expectNoDecorationLabels(tester);
+    });
+
+    testWidgets('puts the label above the code field', (tester) async {
+      await pumpVerify(tester, auth);
+
+      final text = tester.getRect(find.text(_code));
+      final input = tester.getRect(fieldLabeled(_code));
+      expect(text.bottom, lessThanOrEqualTo(input.top));
+    });
+
+    testWidgets('reads the code label once, on the field node', (tester) async {
+      await pumpVerify(tester, auth);
+
+      expectFieldNode(tester, _code);
+    });
+
+    testWidgets('keeps the code error on the field node', (tester) async {
+      await pumpVerify(tester, auth);
+      await tapVisible(tester, buttonLabelled('Verifikasi'));
+
+      expectFieldNode(tester, _code, error: 'Masukkan 6 digit kode.');
+    });
+
+    testWidgets('tapping the label focuses the code field', (tester) async {
+      await pumpVerify(tester, auth);
+
+      await tester.tap(find.text(_code));
+      await tester.pump();
+
+      final editable = tester.widget<EditableText>(
+        find.descendant(
+          of: fieldLabeled(_code),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editable.focusNode.hasFocus, isTrue);
+    });
+
+    testWidgets('shows the code large and letter-spaced', (tester) async {
+      await pumpVerify(tester, auth);
+
+      final editable = tester.widget<EditableText>(
+        find.descendant(
+          of: fieldLabeled(_code),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editable.style.fontSize, greaterThanOrEqualTo(24));
+      expect(editable.style.fontWeight?.value, greaterThanOrEqualTo(700));
+      expect(editable.style.letterSpacing, greaterThan(0));
+    });
+
+    testWidgets('shows the email in bold inside the sentence', (tester) async {
+      await pumpVerify(tester, auth);
+
+      final text = tester.widget<Text>(
+        find.textContaining('Kode dikirim ke budi@example.com'),
+      );
+      final root = text.textSpan ?? TextSpan(text: text.data);
+      final email = _leafSpans(root)
+          .singleWhere((span) => span.text == 'budi@example.com');
+      expect(email.style?.fontWeight?.value, greaterThanOrEqualTo(700));
+    });
+
+    testWidgets('shows a resend row with an outlined button of 48 dp', (
+      tester,
+    ) async {
+      await pumpVerify(tester, auth);
+
+      final prompt = tester.getRect(find.text('Belum menerima kode?'));
+      final resend = buttonLabelled('Kirim ulang');
+      expect(
+        find.ancestor(
+          of: find.text('Kirim ulang'),
+          matching: find.byType(OutlinedButton),
+        ),
+        findsOneWidget,
+      );
+      final button = tester.getRect(resend);
+      expect(prompt.top, lessThan(button.bottom));
+      expect(button.top, lessThan(prompt.bottom));
+      expect(button.height, greaterThanOrEqualTo(48));
+      expect(button.width, greaterThanOrEqualTo(48));
+    });
+
+    testWidgets('puts the resend button at the right edge of the row', (
+      tester,
+    ) async {
+      await pumpVerify(tester, auth);
+
+      final width =
+          tester.view.physicalSize.width / tester.view.devicePixelRatio;
+      final button = tester.getRect(buttonLabelled('Kirim ulang'));
+      expect(button.right, closeTo(width - 20, 1));
+    });
+
+    testWidgets('puts the prompt at the left of the resend row', (
+      tester,
+    ) async {
+      await pumpVerify(tester, auth);
+
+      final prompt = tester.getRect(find.text('Belum menerima kode?'));
+      final button = tester.getRect(buttonLabelled('Kirim ulang'));
+      expect(prompt.left, closeTo(20, 1));
+      expect(prompt.right, lessThanOrEqualTo(button.left));
+      expect(prompt.center.dy, greaterThanOrEqualTo(button.top));
+      expect(prompt.center.dy, lessThanOrEqualTo(button.bottom));
+    });
+
+    testWidgets('puts the spam folder hint below the resend row', (
+      tester,
+    ) async {
+      await pumpVerify(tester, auth);
+
+      final prompt = tester.getRect(find.text('Belum menerima kode?'));
+      final button = tester.getRect(buttonLabelled('Kirim ulang'));
+      final hint = tester.getRect(
+        find.text('Tidak menemukan email? Periksa folder spam.'),
+      );
+      expect(hint.top, greaterThanOrEqualTo(button.bottom - 1));
+      expect(hint.top, greaterThanOrEqualTo(prompt.bottom - 1));
+    });
+
+    testWidgets(
+      'pins the Verifikasi action in a footer outside any scroll view',
+      (tester) async {
+        await pumpVerify(tester, auth);
+
+        expectPinnedFooter(tester, 'Verifikasi');
+      },
+    );
+
+    testWidgets('keeps the footer action pinned with an error', (tester) async {
+      await pumpVerify(tester, auth);
+      await tapVisible(tester, buttonLabelled('Verifikasi'));
+
+      expectPinnedFooter(tester, 'Verifikasi');
+    });
+
+    testWidgets('keeps the footer button on screen at large text size', (
+      tester,
+    ) async {
+      await pumpAtLargeText(
+        tester,
+        buildTestApp(
+          store: InMemorySessionStore(storedSession(emailVerified: false)),
+          auth: auth,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+      expect(
+        tester.getRect(buttonLabelled('Verifikasi')).bottom,
+        lessThanOrEqualTo(screen.height),
+      );
+      expectFooterAtBottom(tester);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('uses a white app bar with the title', (tester) async {
+      await pumpVerify(tester, auth);
+
+      expectWhiteAppBar(tester);
+      expect(appBarTitle('Verifikasi email'), findsOneWidget);
     });
   });
 
@@ -621,7 +846,7 @@ void main() {
 
       await tapVisible(tester, buttonLabelled('Verifikasi'));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

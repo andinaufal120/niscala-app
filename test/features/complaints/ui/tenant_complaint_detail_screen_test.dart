@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/section_card.dart';
+import 'package:niscala/core/widgets/status_badge.dart';
+import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_detail_screen.dart';
 import 'package:niscala_api/api.dart';
 
@@ -13,6 +15,14 @@ import 'complaint_ui_helpers.dart';
 
 const _description = 'Keran air di kamar mandi bocor sejak kemarin.';
 const _refresh = 'Segarkan';
+
+/// The classification states that show no AI result: the complaint is still
+/// being classified, or the classification failed or never ran.
+const _unclassifiedStates = [
+  ComplaintClassificationState.classifying,
+  ComplaintClassificationState.awaitingClassification,
+  ComplaintClassificationState.notClassified,
+];
 
 FakeComplaintRepository _repo([Complaint? complaint]) =>
     FakeComplaintRepository(complaints: [complaint ?? makeComplaint()]);
@@ -46,6 +56,18 @@ Complaint _classified({
 Complaint _unclassified(ComplaintClassificationState state) =>
     makeComplaint(classificationState: state);
 
+Complaint _withHandlingNote() => makeComplaint(
+  status: ComplaintStatus.inProgress,
+  classificationState: ComplaintClassificationState.notClassified,
+  statusChanges: [
+    statusChange(
+      ComplaintStatus.inProgress,
+      DateTime.utc(2026, 10, 19, 9),
+      note: 'Tukang datang besok pagi.',
+    ),
+  ],
+);
+
 void main() {
   group('content', () {
     testWidgets('is titled and loads the complaint of the path', (
@@ -78,7 +100,7 @@ void main() {
     ) async {
       await _open(tester, _repo());
 
-      expect(statusBadge('Baru'), findsOneWidget);
+      expect(statusSteps(), findsOneWidget);
       expect(find.textContaining('18 Okt 2026'), findsOneWidget);
       expect(find.text(_description), findsOneWidget);
     });
@@ -99,7 +121,14 @@ void main() {
           ),
         );
 
-        expect(statusBadge(entry.value), findsOneWidget);
+        expect(
+          tester.widget<ComplaintStatusSteps>(statusSteps()).status,
+          entry.key,
+        );
+        expect(
+          find.descendant(of: statusSteps(), matching: find.text(entry.value)),
+          findsOneWidget,
+        );
       });
     }
 
@@ -387,7 +416,7 @@ void main() {
       await tester.tap(find.text(_refresh));
       await tester.pumpAndSettle();
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text('Coba lagi'), findsOneWidget);
     });
 
@@ -481,7 +510,7 @@ void main() {
       final repo = _repo()..getScript.always = const ApiFailure.network();
       await _open(tester, repo);
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text(_description), findsNothing);
     });
 
@@ -509,6 +538,133 @@ void main() {
     });
   });
 
+  group('structure', () {
+    testWidgets('keeps the white app bar titled Rincian Keluhan', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expect(appBarTitle('Rincian Keluhan'), findsOneWidget);
+      expectDetailAppBar(tester);
+    });
+
+    testWidgets('puts the message in a section card', (tester) async {
+      await _open(tester, _repo());
+
+      expect(
+        find.ancestor(
+          of: find.text(_description),
+          matching: find.byType(SectionCard),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+      'puts the status history in a section card titled Riwayat status',
+      (tester) async {
+        await _open(tester, _repo(_withHandlingNote()));
+
+        expectSectionCard(tester, 'Riwayat status');
+        expect(
+          find.descendant(
+            of: sectionCardOf('Riwayat status'),
+            matching: find.text('Tukang datang besok pagi.'),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'puts an AI classification in an emphasis card titled Klasifikasi',
+      (tester) async {
+        await _open(tester, _repo(_classified()));
+
+        expectEmphasisSectionCard(tester, 'Klasifikasi');
+        expect(
+          find.descendant(
+            of: sectionCardOf('Klasifikasi'),
+            matching: find.text('Pipa dan air'),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('puts a manual classification in the emphasis card too', (
+      tester,
+    ) async {
+      await _open(tester, _repo(_classified(classifiedByName: 'Siti Pemilik')));
+
+      expectEmphasisSectionCard(tester, 'Klasifikasi');
+    });
+
+    testWidgets('the AI disclaimer sits inside the classification card', (
+      tester,
+    ) async {
+      await _open(tester, _repo(_classified()));
+
+      expect(
+        find.descendant(
+          of: sectionCardOf('Klasifikasi'),
+          matching: aiDisclaimer(),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    for (final state in _unclassifiedStates) {
+      testWidgets('puts the classification state $state in the emphasis card', (
+        tester,
+      ) async {
+        await _open(tester, _repo(_unclassified(state)));
+
+        expectEmphasisSectionCard(tester, 'Klasifikasi');
+        expect(
+          find.descendant(
+            of: sectionCardOf('Klasifikasi'),
+            matching: find.byType(StatusBadge),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+
+    testWidgets('the refresh action sits inside the classification card', (
+      tester,
+    ) async {
+      await _open(
+        tester,
+        _repo(_unclassified(ComplaintClassificationState.classifying)),
+      );
+
+      expect(
+        find.descendant(
+          of: sectionCardOf('Klasifikasi'),
+          matching: find.text(_refresh),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('every section card keeps the card look when classified', (
+      tester,
+    ) async {
+      await _open(tester, _repo(_classified()));
+
+      expectSectionCardLooks(tester);
+    });
+
+    testWidgets('every section card keeps the card look with handling notes', (
+      tester,
+    ) async {
+      await _open(tester, _repo(_withHandlingNote()));
+
+      expectSectionCardLooks(tester);
+    });
+  });
+
   group('accessibility', () {
     final states = <String, FakeComplaintRepository Function()>{
       'classified': () => _repo(_classified()),
@@ -521,19 +677,7 @@ void main() {
       ),
       'not classified': () =>
           _repo(_unclassified(ComplaintClassificationState.notClassified)),
-      'with handling notes': () => _repo(
-        makeComplaint(
-          status: ComplaintStatus.inProgress,
-          classificationState: ComplaintClassificationState.notClassified,
-          statusChanges: [
-            statusChange(
-              ComplaintStatus.inProgress,
-              DateTime.utc(2026, 10, 19, 9),
-              note: 'Tukang datang besok pagi.',
-            ),
-          ],
-        ),
-      ),
+      'with handling notes': () => _repo(_withHandlingNote()),
       'failed': () => _repo()..getScript.always = const ApiFailure.network(),
     };
 

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/features/tenants/data/invitation_sharing.dart';
 import 'package:niscala/features/tenants/ui/invitation_qr_screen.dart';
@@ -471,7 +470,7 @@ void main() {
       await _open(tester, repo);
 
       expect(find.byType(ErrorView), findsOneWidget);
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text('Coba lagi'), findsOneWidget);
       expect(find.text('Salin'), findsNothing);
     });
@@ -515,6 +514,56 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(currentPath(tester), '/properti/p1/penyewa');
+    });
+  });
+
+  group('structure', () {
+    testWidgets('uses the white detail app bar with the close action', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expectDetailAppBar(tester);
+      expect(appBarTitle('Undangan Penyewa'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.byTooltip('Tutup'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the link, its expiry and the copy action sit in one card', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      final card = find.byType(Card);
+      expect(card, findsOneWidget);
+      expect(
+        find.descendant(of: card, matching: find.byType(SelectableText)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: card,
+          matching: find.text('Berlaku hingga 25 Okt 2026 · sekali pakai'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: card, matching: find.text('Salin')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the link card takes the card look from the theme', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expectCardLook(tester, find.byType(Card));
     });
   });
 

@@ -5,8 +5,12 @@ import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
+import 'package:niscala/core/tokens.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
 import 'package:niscala/features/tenants/data/tenant_repository.dart';
 import 'package:niscala/features/tenants/tenant_format.dart';
@@ -37,7 +41,7 @@ class TenantFormScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final rooms = ref.watch(roomListProvider(propertyId));
     return Scaffold(
-      appBar: AppBar(title: const Text('Tambah Penyewa')),
+      appBar: const DetailAppBar(title: 'Tambah Penyewa'),
       body: rooms.when(
         skipLoadingOnReload: true,
         loading: () => const Center(
@@ -288,8 +292,8 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
 
   /// Shows a failure next to the field it belongs to, or as a banner.
   void _showFailure(ApiFailure failure) {
-    final message = errorMessage(failure.code);
     final field = failure.field;
+    final message = errorMessageFor(failure, labels: personFormLabels);
     setState(() {
       _busy = false;
       if (field == 'roomId') {
@@ -314,168 +318,192 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final noRooms = widget.vacantRooms.isEmpty;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (_banner != null) ...[FormMessage(_banner!), formGap],
-          if (noRooms) ...[
-            Text(
-              'Tidak ada kamar kosong. Tambahkan kamar terlebih dahulu.',
-              style: theme.textTheme.bodyLarge,
-            ),
-            formGap,
-          ],
-          DropdownButtonFormField<String>(
-            initialValue: _roomId,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: 'Kamar (wajib)',
-              errorText: _roomError,
-            ),
-            items: [
-              for (final room in widget.vacantRooms)
-                DropdownMenuItem(
-                  value: room.id,
-                  child: Text('Kamar ${room.number}'),
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(NiscalaSpacing.gutter),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (_banner != null) ...[FormMessage(_banner!), formGap],
+                if (noRooms) ...[
+                  Text(
+                    'Tidak ada kamar kosong. Tambahkan kamar terlebih dahulu.',
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                  formGap,
+                ],
+                LabeledField(
+                  label: 'Kamar',
+                  required: true,
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _roomId,
+                    isExpanded: true,
+                    decoration: InputDecoration(errorText: _roomError),
+                    items: [
+                      for (final room in widget.vacantRooms)
+                        DropdownMenuItem(
+                          value: room.id,
+                          child: Text('Kamar ${room.number}'),
+                        ),
+                    ],
+                    onChanged: noRooms ? null : _chooseRoom,
+                  ),
                 ),
-            ],
-            onChanged: noRooms ? null : _chooseRoom,
-          ),
-          formGap,
-          TextField(
-            controller: _name,
-            textCapitalization: TextCapitalization.words,
-            decoration: InputDecoration(
-              labelText: 'Nama lengkap (wajib)',
-              errorText: _nameError,
-            ),
-          ),
-          formGap,
-          TextField(
-            controller: _phone,
-            keyboardType: TextInputType.phone,
-            decoration: InputDecoration(
-              labelText: 'Nomor telepon (wajib)',
-              helperText: _phoneHelper,
-              errorText: _phoneError,
-            ),
-          ),
-          formGap,
-          TextField(
-            controller: _occupation,
-            textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(
-              labelText: 'Pekerjaan / instansi (opsional)',
-            ),
-          ),
-          formGap,
-          Semantics(
-            header: true,
-            child: Text(
-              'Kontak darurat (opsional)',
-              style: theme.textTheme.titleSmall,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Semantics(
-            liveRegion: _contactsError != null,
-            child: Text(
-              _contactsError ?? _contactsHelper,
-              style: _contactsError == null
-                  ? theme.textTheme.bodyMedium
-                  : theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.error,
+                formGap,
+                LabeledField(
+                  label: 'Nama lengkap',
+                  required: true,
+                  child: TextField(
+                    controller: _name,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(errorText: _nameError),
+                  ),
+                ),
+                formGap,
+                LabeledField(
+                  label: 'Nomor telepon',
+                  required: true,
+                  helper: _phoneHelper,
+                  child: TextField(
+                    controller: _phone,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(errorText: _phoneError),
+                  ),
+                ),
+                formGap,
+                LabeledField(
+                  label: 'Pekerjaan / instansi',
+                  required: false,
+                  child: TextField(
+                    controller: _occupation,
+                    textCapitalization: TextCapitalization.sentences,
+                  ),
+                ),
+                formGap,
+                Semantics(
+                  header: true,
+                  child: Text(
+                    'Kontak darurat (opsional)',
+                    style: theme.textTheme.titleSmall,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Semantics(
+                  liveRegion: _contactsError != null,
+                  child: Text(
+                    _contactsError ?? _contactsHelper,
+                    style: _contactsError == null
+                        ? theme.textTheme.bodyMedium
+                        : theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.error,
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                for (var i = 0; i < _contacts.length; i++) ...[
+                  EmergencyContactBlock(
+                    key: ObjectKey(_contacts[i]),
+                    index: i + 1,
+                    draft: _contacts[i],
+                    onRemove: () => _removeContact(_contacts[i]),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                if (_contacts.length < maxEmergencyContacts)
+                  OutlinedButton(
+                    onPressed: _addContact,
+                    child: const Text('Tambah Kontak Darurat'),
+                  ),
+                formGap,
+                Semantics(
+                  header: true,
+                  child: Text('Masa sewa', style: theme.textTheme.titleSmall),
+                ),
+                const SizedBox(height: 8),
+                LabeledField(
+                  label: 'Tanggal mulai',
+                  required: false,
+                  child: TextField(
+                    controller: _start,
+                    readOnly: true,
+                    onTap: () => _pickDate(start: true),
+                  ),
+                ),
+                formGap,
+                LabeledField(
+                  label: 'Tanggal berakhir',
+                  required: false,
+                  child: TextField(
+                    controller: _end,
+                    readOnly: true,
+                    onTap: () => _pickDate(start: false),
+                    decoration: InputDecoration(errorText: _endError),
+                  ),
+                ),
+                formGap,
+                LabeledField(
+                  label: 'Siklus penagihan',
+                  required: true,
+                  child: DropdownButtonFormField<BillingCycle>(
+                    initialValue: _cycle,
+                    isExpanded: true,
+                    items: [
+                      for (final cycle in BillingCycle.values)
+                        DropdownMenuItem(
+                          value: cycle,
+                          child: Text(billingCycleLabel(cycle)),
+                        ),
+                    ],
+                    onChanged: _chooseCycle,
+                  ),
+                ),
+                formGap,
+                LabeledField(
+                  label: 'Masa tenggang dalam hari',
+                  required: false,
+                  child: TextField(
+                    controller: _grace,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
+                ),
+                formGap,
+                LabeledField(
+                  label: 'Tarif sewa per siklus',
+                  required: true,
+                  child: TextField(
+                    controller: _rent,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    onChanged: (_) {
+                      _rentEdited = true;
+                    },
+                    decoration: InputDecoration(
+                      prefixIcon: const ExcludeSemantics(
+                        child: Padding(
+                          padding: EdgeInsets.only(left: 14, right: 4),
+                          child: Text('Rp'),
+                        ),
+                      ),
+                      prefixIconConstraints: const BoxConstraints(),
+                      errorText: _rentError,
                     ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          for (var i = 0; i < _contacts.length; i++) ...[
-            EmergencyContactBlock(
-              key: ObjectKey(_contacts[i]),
-              index: i + 1,
-              draft: _contacts[i],
-              onRemove: () => _removeContact(_contacts[i]),
-            ),
-            const SizedBox(height: 16),
-          ],
-          if (_contacts.length < maxEmergencyContacts)
-            OutlinedButton(
-              onPressed: _addContact,
-              child: const Text('Tambah Kontak Darurat'),
-            ),
-          formGap,
-          Semantics(
-            header: true,
-            child: Text('Masa sewa', style: theme.textTheme.titleSmall),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _start,
-            readOnly: true,
-            onTap: () => _pickDate(start: true),
-            decoration: const InputDecoration(
-              labelText: 'Tanggal mulai (opsional)',
-            ),
-          ),
-          formGap,
-          TextField(
-            controller: _end,
-            readOnly: true,
-            onTap: () => _pickDate(start: false),
-            decoration: InputDecoration(
-              labelText: 'Tanggal berakhir (opsional)',
-              errorText: _endError,
-            ),
-          ),
-          formGap,
-          DropdownButtonFormField<BillingCycle>(
-            initialValue: _cycle,
-            isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Siklus penagihan (wajib)',
-            ),
-            items: [
-              for (final cycle in BillingCycle.values)
-                DropdownMenuItem(
-                  value: cycle,
-                  child: Text(billingCycleLabel(cycle)),
+                  ),
                 ),
-            ],
-            onChanged: _chooseCycle,
-          ),
-          formGap,
-          TextField(
-            controller: _grace,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            decoration: const InputDecoration(
-              labelText: 'Masa tenggang dalam hari (opsional)',
+              ],
             ),
           ),
-          formGap,
-          TextField(
-            controller: _rent,
-            keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            onChanged: (_) {
-              _rentEdited = true;
-            },
-            decoration: InputDecoration(
-              labelText: 'Tarif sewa per siklus (wajib)',
-              prefixText: 'Rp',
-              errorText: _rentError,
-            ),
-          ),
-          formGap,
-          BusyButton(
+        ),
+        ActionFooter(
+          primary: BusyButton(
             label: 'Simpan Penyewa',
             busy: _busy,
             onPressed: noRooms ? null : _submit,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:niscala/app.dart';
 import 'package:niscala/core/router.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/shell/account_screen.dart';
+import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
@@ -15,6 +16,20 @@ import '../../helpers/fakes.dart';
 
 Finder navLabel(String label) =>
     find.descendant(of: find.byType(NavigationBar), matching: find.text(label));
+
+/// The title of a tab: every tab root has its own header instead of an app
+/// bar.
+Finder tabTitle(String title) =>
+    find.descendant(of: find.byType(ScreenHeader), matching: find.text(title));
+
+/// The title of a tenant tab. The tenant Keluhan tab is labelled Keluhan in the
+/// navigation bar, but its header reads Keluhan Saya.
+Finder tenantTabTitle(String title) => title == 'Keluhan'
+    ? find.descendant(
+        of: find.byType(ScreenHeader),
+        matching: find.text('Keluhan Saya'),
+      )
+    : tabTitle(title);
 
 Finder appBarTitle(String title) =>
     find.descendant(of: find.byType(AppBar), matching: find.text(title));
@@ -79,7 +94,7 @@ void main() {
 
       expect(currentPath(tester), '/beranda');
       expect(selectedIndex(tester), 0);
-      expect(appBarTitle('Beranda'), findsOneWidget);
+      expect(tabTitle('Beranda'), findsOneWidget);
     });
 
     for (var i = 0; i < labels.length; i++) {
@@ -91,7 +106,7 @@ void main() {
 
         expect(currentPath(tester), paths[i]);
         expect(selectedIndex(tester), i);
-        expect(appBarTitle(labels[i]), findsOneWidget);
+        expect(tabTitle(labels[i]), findsOneWidget);
       });
 
       testWidgets('selects ${labels[i]} when the route is ${paths[i]}', (
@@ -117,6 +132,18 @@ void main() {
         expect(find.byType(PlaceholderScreen), findsOneWidget);
         expect(find.text('Fitur ini belum tersedia'), findsOneWidget);
       }
+    });
+
+    testWidgets('the management Keluhan tab keeps the header Keluhan', (
+      tester,
+    ) async {
+      await pumpShell(tester, UserRole.owner);
+
+      await tester.tap(navLabel('Keluhan'));
+      await tester.pumpAndSettle();
+
+      expect(tabTitle('Keluhan'), findsOneWidget);
+      expect(find.text('Keluhan Saya'), findsNothing);
     });
 
     testWidgets('shows the property list on the properties tab', (
@@ -214,9 +241,34 @@ void main() {
 
         expect(currentPath(tester), paths[i]);
         expect(selectedIndex(tester), i);
-        expect(appBarTitle(labels[i]), findsOneWidget);
+        expect(tenantTabTitle(labels[i]), findsOneWidget);
       });
     }
+
+    testWidgets('the Keluhan tab is labelled Keluhan and titled Keluhan Saya', (
+      tester,
+    ) async {
+      await pumpShell(tester, UserRole.tenant);
+
+      await tester.tap(navLabel('Keluhan'));
+      await tester.pumpAndSettle();
+
+      expect(navLabel('Keluhan'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ScreenHeader),
+          matching: find.text('Keluhan Saya'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(ScreenHeader),
+          matching: find.text('Keluhan'),
+        ),
+        findsNothing,
+      );
+    });
 
     testWidgets('shows placeholders for tabs that are not built yet', (
       tester,
@@ -276,7 +328,8 @@ void main() {
       await tester.tap(navLabel('Akun'));
       await tester.pumpAndSettle();
 
-      expect(appBarTitle('Akun'), findsOneWidget);
+      expect(tabTitle('Akun'), findsOneWidget);
+      expect(find.byType(AppBar), findsNothing);
       expect(find.text('Keluar'), findsOneWidget);
     });
 

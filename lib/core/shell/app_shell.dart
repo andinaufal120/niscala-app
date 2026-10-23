@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:niscala/core/tokens.dart';
 
 /// A bottom navigation bar over the branches of a [StatefulNavigationShell].
 class AppShell extends StatelessWidget {
@@ -16,12 +17,17 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        destinations: destinations,
-        onDestinationSelected: (index) => navigationShell.goBranch(
-          index,
-          initialLocation: index == navigationShell.currentIndex,
+      bottomNavigationBar: DecoratedBox(
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: NiscalaColors.divider)),
+        ),
+        child: NavigationBar(
+          selectedIndex: navigationShell.currentIndex,
+          destinations: destinations,
+          onDestinationSelected: (index) => navigationShell.goBranch(
+            index,
+            initialLocation: index == navigationShell.currentIndex,
+          ),
         ),
       ),
     );

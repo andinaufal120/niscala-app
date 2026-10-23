@@ -5,6 +5,7 @@ import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
+import '../../../helpers/fields.dart';
 import '../../rooms/ui/room_ui_helpers.dart';
 
 export '../../rooms/ui/room_ui_helpers.dart';
@@ -112,41 +113,36 @@ Future<void> pumpTenantApp(
   }
 }
 
-/// The input decorator whose label is [label], whatever field it belongs to
-/// (text field or dropdown).
-Finder decorated(String label) => find.byWidgetPredicate(
-  (widget) => widget is InputDecorator && widget.decoration.labelText == label,
-);
+/// The [LabeledField] editable field labelled [label], for labels that repeat
+/// once per emergency contact block.
+Finder labeledFieldAt(String label, int index) => fieldLabeled(label).at(index);
 
-/// The `errorText` shown by the [index]th field labelled [label].
-String? inputError(WidgetTester tester, String label, [int index = 0]) => tester
-    .widget<InputDecorator>(decorated(label).at(index))
-    .decoration
-    .errorText;
+/// The text of the [index]th [LabeledField] labelled [label].
+String labeledTextAt(WidgetTester tester, String label, [int index = 0]) =>
+    tester.widget<TextField>(labeledFieldAt(label, index)).controller!.text;
 
-/// The `helperText` of the [index]th field labelled [label].
-String? inputHelper(WidgetTester tester, String label, [int index = 0]) =>
-    tester
-        .widget<InputDecorator>(decorated(label).at(index))
-        .decoration
-        .helperText;
-
-/// The [index]th text field labelled [label], for labels that repeat.
-Finder fieldAt(String label, int index) =>
-    find.widgetWithText(TextField, label).at(index);
-
-String textAt(WidgetTester tester, String label, [int index = 0]) =>
-    tester.widget<TextField>(fieldAt(label, index)).controller!.text;
-
-Future<void> typeAt(
+/// Types [text] into the [index]th [LabeledField] labelled [label].
+Future<void> typeLabeledAt(
   WidgetTester tester,
   String label,
   int index,
   String text,
 ) async {
-  await tester.enterText(fieldAt(label, index), text);
+  await tester.enterText(labeledFieldAt(label, index), text);
   await tester.pump();
 }
+
+/// The `errorText` shown by the [index]th [LabeledField] labelled [label].
+String? labeledInputError(WidgetTester tester, String label, [int index = 0]) =>
+    tester
+        .widget<InputDecorator>(
+          find.descendant(
+            of: labeledField(label).at(index),
+            matching: find.byType(InputDecorator),
+          ),
+        )
+        .decoration
+        .errorText;
 
 /// Opens the dropdown labelled [label] and taps the entry [option].
 Future<void> choose(WidgetTester tester, String label, String option) async {
@@ -157,13 +153,13 @@ Future<void> choose(WidgetTester tester, String label, String option) async {
 
 /// Opens the dropdown labelled [label] and leaves its entries showing.
 Future<void> openDropdown(WidgetTester tester, String label) async {
-  await tapVisible(tester, decorated(label));
+  await tapVisible(tester, fieldLabeled(label));
 }
 
 /// Opens the date field labelled [label], taps [day] of the month shown and
 /// confirms.
 Future<void> pickDate(WidgetTester tester, String label, int day) async {
-  await tapVisible(tester, field(label));
+  await tapVisible(tester, fieldLabeled(label));
   await tester.tap(
     find.descendant(
       of: find.byType(DatePickerDialog),
@@ -181,7 +177,7 @@ Future<void> pickDate(WidgetTester tester, String label, int day) async {
 /// Opens the date field labelled [label] and dismisses the picker with its
 /// cancel button.
 Future<void> openAndCancelDatePicker(WidgetTester tester, String label) async {
-  await tapVisible(tester, field(label));
+  await tapVisible(tester, fieldLabeled(label));
   final cancel = MaterialLocalizations.of(
     tester.element(find.byType(DatePickerDialog)),
   ).cancelButtonLabel;

@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/auth/ui/auth_widgets.dart';
 
@@ -57,8 +59,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await ref.read(sessionControllerProvider.notifier).signIn(session);
     } on ApiFailure catch (failure) {
       if (!mounted) return;
+      // A validation failure on the email or the password is shown next to
+      // that field. Any other failure is shown in the banner.
+      final field = failure.code == 'VALIDATION_FAILED' ? failure.field : null;
+      final message = errorMessageFor(failure);
       setState(() {
-        _banner = errorMessage(failure.code);
+        _emailError = field == 'email' ? message : null;
+        _passwordError = field == 'password' ? message : null;
+        _banner = field == 'email' || field == 'password' ? null : message;
         _busy = false;
       });
     }
@@ -67,65 +75,153 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return AuthPage(
-      children: [
-        Semantics(
-          header: true,
-          child: Text('Masuk ke Niscala', style: theme.textTheme.headlineSmall),
-        ),
-        const SizedBox(height: 4),
-        Text('Kelola Kost Tanpa Ribet', style: theme.textTheme.bodyLarge),
-        formGap,
-        if (_banner != null) ...[FormMessage(_banner!), formGap],
-        TextField(
-          controller: _email,
-          decoration: InputDecoration(
-            labelText: 'Email (wajib)',
-            errorText: _emailError,
-          ),
-          keyboardType: TextInputType.emailAddress,
-          textInputAction: TextInputAction.next,
-          autofillHints: const [AutofillHints.email],
-        ),
-        formGap,
-        TextField(
-          controller: _password,
-          decoration: InputDecoration(
-            labelText: 'Kata sandi (wajib)',
-            errorText: _passwordError,
-          ),
-          obscureText: !_showPassword,
-          autofillHints: const [AutofillHints.password],
-        ),
-        ShowPasswordCheckbox(
-          value: _showPassword,
-          onChanged: (value) => setState(() => _showPassword = value),
-        ),
-        formGap,
-        BusyButton(label: 'Masuk', busy: _busy, onPressed: _submit),
-        formGap,
-        Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            const Text('Pemilik kost baru?'),
-            TextButton(
-              onPressed: () => context.go('/daftar'),
-              child: const Text('Daftar'),
+    return Scaffold(
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, viewport) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: viewport.maxHeight),
+              child: Padding(
+                padding: const EdgeInsets.all(NiscalaSpacing.gutter),
+                child: AutofillGroup(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 28),
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: _LogoTile(),
+                          ),
+                          formGap,
+                          Semantics(
+                            header: true,
+                            child: Text(
+                              'Masuk ke Niscala',
+                              style: theme.textTheme.headlineSmall,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Kelola Kost Tanpa Ribet',
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                          formGap,
+                          if (_banner != null) ...[
+                            FormMessage(_banner!),
+                            formGap,
+                          ],
+                          LabeledField(
+                            label: 'Email',
+                            required: true,
+                            child: TextField(
+                              controller: _email,
+                              decoration: InputDecoration(
+                                errorText: _emailError,
+                              ),
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [AutofillHints.email],
+                            ),
+                          ),
+                          formGap,
+                          LabeledField(
+                            label: 'Kata sandi',
+                            required: true,
+                            child: TextField(
+                              controller: _password,
+                              decoration: InputDecoration(
+                                errorText: _passwordError,
+                              ),
+                              obscureText: !_showPassword,
+                              autofillHints: const [AutofillHints.password],
+                            ),
+                          ),
+                          ShowPasswordCheckbox(
+                            value: _showPassword,
+                            onChanged: (value) =>
+                                setState(() => _showPassword = value),
+                          ),
+                          formGap,
+                          BusyButton(
+                            label: 'Masuk',
+                            busy: _busy,
+                            onPressed: _submit,
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          formGap,
+                          Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              const Text('Pemilik kost baru?'),
+                              TextButton(
+                                onPressed: () => context.go('/daftar'),
+                                child: const Text('Daftar'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          DefaultTextStyle(
+                            style: theme.textTheme.bodySmall!,
+                            textAlign: TextAlign.center,
+                            child: const Text(
+                              'Penyewa dan pengelola kost mengaktifkan akun '
+                              'lewat tautan undangan dari pemilik kost.',
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => context.go('/aktivasi'),
+                            child: const Text(
+                              'Aktifkan dengan tautan undangan',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ],
+          ),
         ),
-        formGap,
-        const Text(
-          'Penyewa dan pengelola kost mengaktifkan akun lewat tautan undangan '
-          'dari pemilik kost.',
-          textAlign: TextAlign.center,
+      ),
+    );
+  }
+}
+
+/// The decorative "N" mark of the app, hidden from assistive technology.
+class _LogoTile extends StatelessWidget {
+  const _LogoTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return ExcludeSemantics(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: NiscalaColors.primary,
+          borderRadius: BorderRadius.circular(NiscalaRadius.card),
         ),
-        TextButton(
-          onPressed: () => context.go('/aktivasi'),
-          child: const Text('Aktifkan dengan tautan undangan'),
+        child: SizedBox.square(
+          dimension: 56,
+          child: Center(
+            child: Text(
+              'N',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: NiscalaColors.surface,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
         ),
-      ],
+      ),
     );
   }
 }

@@ -4,11 +4,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/features/tenants/data/invitation_sharing.dart';
 import 'package:niscala/features/tenants/ui/invitation_qr_screen.dart';
 import 'package:niscala/features/tenants/ui/invitation_share_screen.dart';
+import 'package:niscala/features/tenants/ui/tenant_list_screen.dart';
 import 'package:niscala_api/api.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -232,18 +232,15 @@ void main() {
       expectTargetSize(tester, 'Tutup');
     });
 
-    testWidgets('Tutup returns to the share screen', (tester) async {
+    testWidgets('Tutup goes to the tenant list', (tester) async {
       await _open(tester, _repo());
 
       await tapVisible(tester, find.text('Tutup'));
 
-      expect(currentPath(tester), '/properti/p1/penyewa/t1/undangan');
-      final share = tester.widget<InvitationShareScreen>(
-        find.byType(InvitationShareScreen),
-      );
-      expect(share.propertyId, 'p1');
-      expect(share.tenantId, 't1');
+      expect(currentPath(tester), '/properti/p1/penyewa');
+      expect(find.byType(TenantListScreen), findsOneWidget);
       expect(find.byType(InvitationQrScreen), findsNothing);
+      expect(find.byType(InvitationShareScreen), findsNothing);
     });
 
     testWidgets('Kembali returns to the share screen', (tester) async {
@@ -287,7 +284,7 @@ void main() {
       await _open(tester, repo);
 
       expect(find.byType(ErrorView), findsOneWidget);
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text('Coba lagi'), findsOneWidget);
       expect(find.byType(QrImageView), findsNothing);
     });
@@ -311,6 +308,43 @@ void main() {
       expect(repo.getCalls, 2);
       expect(find.byType(ErrorView), findsNothing);
       expect(find.byType(QrImageView), findsOneWidget);
+    });
+  });
+
+  group('structure', () {
+    testWidgets('uses the white detail app bar titled Kode QR undangan', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expectDetailAppBar(tester);
+      expect(appBarTitle('Kode QR undangan'), findsOneWidget);
+    });
+
+    testWidgets('the link and its expiry sit in one card', (tester) async {
+      await _open(tester, _repo());
+
+      final card = find.byType(Card);
+      expect(card, findsOneWidget);
+      expect(
+        find.descendant(of: card, matching: find.text(_url)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: card,
+          matching: find.text('Berlaku hingga 25 Okt 2026 · sekali pakai'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the link card takes the card look from the theme', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expectCardLook(tester, find.byType(Card));
     });
   });
 

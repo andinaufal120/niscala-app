@@ -4,7 +4,10 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/shell/account_screen.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/auth/ui/auth_widgets.dart';
 
@@ -69,7 +72,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
         return;
       }
       if (!mounted) return;
-      final message = errorMessage(failure.code);
+      final message = errorMessageFor(failure);
       final onCodeField =
           failure.code == 'VERIFICATION_CODE_INVALID' ||
           failure.code == 'VERIFICATION_CODE_EXPIRED';
@@ -96,7 +99,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
       await ref.read(authRepositoryProvider).sendEmailVerification();
       if (mounted) setState(() => _resent = true);
     } on ApiFailure catch (failure) {
-      if (mounted) setState(() => _banner = errorMessage(failure.code));
+      if (mounted) setState(() => _banner = errorMessageFor(failure));
     } finally {
       if (mounted) setState(() => _resending = false);
     }
@@ -107,9 +110,17 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
     final theme = Theme.of(context);
     final busy = _verifying || _resending;
     return AuthPage(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text('Verifikasi email'),
+      appBar: const DetailAppBar(title: 'Verifikasi email'),
+      footer: ActionFooter(
+        primary: BusyButton(
+          label: 'Verifikasi',
+          busy: _verifying,
+          onPressed: _verify,
+        ),
+        secondary: TextButton(
+          onPressed: () => ref.read(logoutProvider)(),
+          child: const Text('Keluar'),
+        ),
       ),
       children: [
         Semantics(
@@ -120,10 +131,18 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          'Kode dikirim ke ${_accountEmail ?? 'email Anda'}. '
-          'Kode berlaku 10 menit.',
-          style: theme.textTheme.bodyLarge,
+        Text.rich(
+          TextSpan(
+            style: theme.textTheme.bodyLarge,
+            children: [
+              const TextSpan(text: 'Kode dikirim ke '),
+              TextSpan(
+                text: _accountEmail ?? 'email Anda',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const TextSpan(text: '. Kode berlaku 10 menit.'),
+            ],
+          ),
         ),
         formGap,
         if (_banner != null) ...[FormMessage(_banner!), formGap],
@@ -131,35 +150,40 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
           const FormMessage('Kode baru dikirim.', isError: false),
           formGap,
         ],
-        TextField(
-          controller: _code,
-          decoration: InputDecoration(
-            labelText: 'Kode verifikasi (wajib)',
-            errorText: _codeError,
+        LabeledField(
+          label: 'Kode verifikasi',
+          required: true,
+          child: TextField(
+            controller: _code,
+            decoration: InputDecoration(errorText: _codeError),
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 8,
+            ),
+            textAlign: TextAlign.center,
+            keyboardType: TextInputType.number,
+            autofillHints: const [AutofillHints.oneTimeCode],
           ),
-          keyboardType: TextInputType.number,
-          autofillHints: const [AutofillHints.oneTimeCode],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            Text('Belum menerima kode?', style: theme.textTheme.bodyMedium),
+            OutlinedButton(
+              onPressed: busy ? null : _resend,
+              child: const Text('Kirim ulang'),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         Text(
           'Tidak menemukan email? Periksa folder spam.',
           style: theme.textTheme.bodyMedium,
-        ),
-        formGap,
-        BusyButton(label: 'Verifikasi', busy: _verifying, onPressed: _verify),
-        formGap,
-        Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          children: [
-            TextButton(
-              onPressed: busy ? null : _resend,
-              child: const Text('Kirim ulang'),
-            ),
-            TextButton(
-              onPressed: () => ref.read(logoutProvider)(),
-              child: const Text('Keluar'),
-            ),
-          ],
         ),
       ],
     );

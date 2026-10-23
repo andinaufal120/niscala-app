@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
@@ -87,6 +89,52 @@ void main() {
       expect(find.byType(PropertyDetailScreen), findsOneWidget);
       expect(appBarTitle('Rincian Properti'), findsOneWidget);
       expect(repo.calls, contains('get:p1'));
+    });
+
+    testWidgets('a manager with one property has no back button and the title '
+        'starts at the gutter', (tester) async {
+      await pumpPropertyApp(
+        tester,
+        FakePropertyRepository(properties: [_melati()]),
+        role: UserRole.manager,
+      );
+
+      expect(find.byType(PropertyDetailScreen), findsOneWidget);
+      expect(backButton(), findsNothing);
+      expect(
+        tester.getTopLeft(appBarTitle('Rincian Properti')).dx,
+        closeTo(NiscalaSpacing.gutter, 0.5),
+      );
+    });
+
+    testWidgets('the title of a manager with one property starts at the gutter '
+        'at large text size', (tester) async {
+      await pumpPropertyApp(
+        tester,
+        FakePropertyRepository(properties: [_melati()]),
+        role: UserRole.manager,
+        largeText: true,
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getTopLeft(appBarTitle('Rincian Properti')).dx,
+        closeTo(NiscalaSpacing.gutter, 0.5),
+      );
+    });
+
+    testWidgets('an owner opening the detail sees a back button and the title '
+        'after it', (tester) async {
+      await _openDetail(
+        tester,
+        FakePropertyRepository(properties: [_melati()]),
+      );
+
+      expect(backButton(), findsOneWidget);
+      expect(
+        tester.getTopLeft(appBarTitle('Rincian Properti')).dx,
+        greaterThanOrEqualTo(tester.getRect(backButton()).right - 1),
+      );
     });
 
     testWidgets('shows the name as a header and the address', (tester) async {
@@ -201,7 +249,7 @@ void main() {
       await _openDetail(tester, repo);
 
       expect(find.byType(ErrorView), findsOneWidget);
-      expect(find.text(errorMessage('PROPERTY_NOT_FOUND')), findsOneWidget);
+      expect(find.text(messageOfCode('PROPERTY_NOT_FOUND')), findsOneWidget);
       expect(find.text('Hapus Properti'), findsNothing);
     });
 
@@ -607,7 +655,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Properti belum bisa dihapus'), findsOneWidget);
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text('Mengerti'), findsOneWidget);
       expect(snackBar('Properti dihapus'), findsNothing);
     });
@@ -720,6 +768,82 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repo.deleted, ['p1']);
+    });
+  });
+
+  group('structure', () {
+    testWidgets('uses a white detail app bar titled Rincian Properti', (
+      tester,
+    ) async {
+      await _openDetail(
+        tester,
+        FakePropertyRepository(properties: [_melati()]),
+      );
+
+      expectDetailAppBar(tester);
+      expect(appBarTitle('Rincian Properti'), findsOneWidget);
+    });
+
+    testWidgets('puts the managers and the rent account in section cards', (
+      tester,
+    ) async {
+      await _openDetail(
+        tester,
+        FakePropertyRepository(properties: [_melati(bank: bankAccount)]),
+      );
+
+      expectSectionCard(tester, 'Pengelola Kost');
+      expectSectionCard(tester, 'Rekening transfer sewa');
+      expect(
+        find.descendant(
+          of: sectionCardOf('Pengelola Kost'),
+          matching: find.text('2 pengelola'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: sectionCardOf('Rekening transfer sewa'),
+          matching: find.text('BCA · 1234567890'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the rent account card still shows when there is no account', (
+      tester,
+    ) async {
+      await _openDetail(
+        tester,
+        FakePropertyRepository(properties: [_melati()]),
+      );
+
+      expectSectionCard(tester, 'Rekening transfer sewa');
+      expect(
+        find.descendant(
+          of: sectionCardOf('Rekening transfer sewa'),
+          matching: find.text(_noBank),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('every section card takes the card look from the theme', (
+      tester,
+    ) async {
+      await _openDetail(
+        tester,
+        FakePropertyRepository(properties: [_melati(bank: bankAccount)]),
+      );
+
+      expect(find.byType(SectionCard), findsWidgets);
+      expectCardLook(
+        tester,
+        find.descendant(
+          of: find.byType(SectionCard),
+          matching: find.byType(Card),
+        ),
+      );
     });
   });
 

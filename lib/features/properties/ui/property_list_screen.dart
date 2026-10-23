@@ -6,6 +6,7 @@ import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
@@ -28,18 +29,31 @@ class PropertyListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isOwner = ref.watch(currentRoleProvider) == UserRole.owner;
     final properties = ref.watch(propertyListProvider);
+    // Only the owner has the add action. It keeps its place in every owner
+    // state, so the header does not change size, and it shows only once
+    // properties are listed.
+    final addAction = isOwner
+        ? FilledButton(
+            onPressed: () => context.go('/properti/tambah'),
+            child: const Text('Tambah'),
+          )
+        : null;
     return properties.when(
       skipLoadingOnReload: true,
       loading: () => _listPage(
         const Center(
           child: CircularProgressIndicator(semanticsLabel: 'Memuat'),
         ),
+        action: addAction,
+        actionVisible: false,
       ),
       error: (error, _) => _listPage(
         ErrorView(
           message: errorMessageFor(error),
           onRetry: () => ref.invalidate(propertyListProvider),
         ),
+        action: addAction,
+        actionVisible: false,
       ),
       data: (items) {
         if (!isOwner && items.length == 1) {
@@ -55,42 +69,78 @@ class PropertyListScreen extends ConsumerWidget {
               actionLabel: isOwner ? 'Tambah Properti Pertama' : null,
               onAction: isOwner ? () => context.go('/properti/tambah') : null,
             ),
+            action: addAction,
+            actionVisible: false,
+          );
+        }
+        final subtitle = isOwner
+            ? 'Semua properti milik Anda'
+            : 'Properti yang ditugaskan kepada Anda';
+        final cards = [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i > 0) formGap,
+            _PropertyCard(property: items[i]),
+          ],
+        ];
+        // At large text the wrapped header can take most of the screen, so it
+        // scrolls with the list instead of pushing the list off screen.
+        if (MediaQuery.textScalerOf(context).scale(1) > _scrollingHeaderScale) {
+          return Scaffold(
+            body: ListView(
+              children: [
+                ScreenHeader(
+                  title: 'Properti',
+                  subtitle: subtitle,
+                  action: addAction,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(NiscalaSpacing.gutter),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: cards,
+                  ),
+                ),
+              ],
+            ),
           );
         }
         return _listPage(
           ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text(
-                isOwner
-                    ? 'Semua properti milik Anda'
-                    : 'Properti yang ditugaskan kepada Anda',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              if (isOwner) ...[
-                formGap,
-                FilledButton.icon(
-                  onPressed: () => context.go('/properti/tambah'),
-                  icon: const Icon(Icons.add),
-                  label: const Text('Tambah'),
-                ),
-              ],
-              for (final property in items) ...[
-                formGap,
-                _PropertyCard(property: property),
-              ],
-            ],
+            padding: const EdgeInsets.all(NiscalaSpacing.gutter),
+            children: cards,
           ),
+          subtitle: subtitle,
+          action: addAction,
         );
       },
     );
   }
 }
 
-Scaffold _listPage(Widget body) => Scaffold(
-  appBar: AppBar(title: const Text('Properti')),
-  body: body,
+/// The tab page: the header on top, the state below it. The header has no
+/// app bar, as a tab root does.
+Scaffold _listPage(
+  Widget body, {
+  String? subtitle,
+  Widget? action,
+  bool actionVisible = true,
+}) => Scaffold(
+  body: Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      ScreenHeader(
+        title: 'Properti',
+        subtitle: subtitle,
+        action: action,
+        actionVisible: actionVisible,
+      ),
+      Expanded(child: body),
+    ],
+  ),
 );
+
+/// The text scale above which the header scrolls with the list.
+const _scrollingHeaderScale = 1.5;
 
 class _PropertyCard extends StatelessWidget {
   const _PropertyCard({required this.property});
@@ -112,24 +162,55 @@ class _PropertyCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(property.address),
-              Text(
-                '${property.roomCount} kamar · '
-                '${property.occupiedRoomCount} terisi',
+              const SizedBox(height: NiscalaSpacing.s),
+              Wrap(
+                spacing: NiscalaSpacing.s,
+                runSpacing: NiscalaSpacing.s,
+                children: [
+                  _FactPill(
+                    '${property.roomCount} kamar · '
+                    '${property.occupiedRoomCount} terisi',
+                  ),
+                  _FactPill(
+                    managers.isEmpty
+                        ? 'Belum ada pengelola'
+                        : 'Pengelola: $managers',
+                  ),
+                  if (!property.editable)
+                    StatusBadge(
+                      label: 'Hanya lihat',
+                      colors: NiscalaTokens.of(context).readOnly,
+                    ),
+                ],
               ),
-              Text(
-                managers.isEmpty
-                    ? 'Belum ada pengelola'
-                    : 'Pengelola: $managers',
-              ),
-              if (!property.editable) ...[
-                const SizedBox(height: 4),
-                StatusBadge(
-                  label: 'Hanya lihat',
-                  colors: NiscalaTokens.of(context).readOnly,
-                ),
-              ],
             ],
           ),
+          trailing: const Icon(Icons.chevron_right),
+        ),
+      ),
+    );
+  }
+}
+
+/// A short fact about a property on a neutral pill.
+class _FactPill extends StatelessWidget {
+  const _FactPill(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: NiscalaColors.neutralSoft,
+        borderRadius: BorderRadius.circular(NiscalaRadius.small),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: Text(
+          text,
+          style: Theme.of(context).textTheme.labelMedium
+              ?.copyWith(color: NiscalaColors.textSecondary),
         ),
       ),
     );

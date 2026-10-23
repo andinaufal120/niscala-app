@@ -3,11 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/tokens.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala_api/api.dart';
 
+const _bankGroup = 'Rekening untuk transfer sewa (opsional)';
 const _bankHelper =
     'Ditampilkan kepada penyewa properti ini saat membayar dengan transfer. '
     'Tanpa rekening, penyewa hanya bisa membayar tunai. Isi ketiga kolom, atau '
@@ -48,7 +53,7 @@ class PropertyFormScreen extends ConsumerWidget {
 }
 
 Scaffold _editPage(Widget body) => Scaffold(
-  appBar: AppBar(title: const Text('Ubah Properti')),
+  appBar: const DetailAppBar(title: 'Ubah Properti'),
   body: body,
 );
 
@@ -199,7 +204,7 @@ class _PropertyFormState extends ConsumerState<_PropertyForm> {
   }
 
   void _showFailure(ApiFailure failure) {
-    final message = errorMessage(failure.code);
+    final message = errorMessageFor(failure);
     setState(() {
       _busy = false;
       switch (failure.field) {
@@ -223,80 +228,99 @@ class _PropertyFormState extends ConsumerState<_PropertyForm> {
   Widget build(BuildContext context) {
     final isEdit = widget.propertyId != null;
     return Scaffold(
-      appBar: AppBar(title: Text(isEdit ? 'Ubah Properti' : 'Tambah Properti')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_banner != null) ...[FormMessage(_banner!), formGap],
-            TextField(
-              controller: _name,
-              decoration: InputDecoration(
-                labelText: 'Nama properti (wajib)',
-                hintText: 'Contoh: Kos Melati',
-                errorText: _nameError,
+      appBar: DetailAppBar(title: isEdit ? 'Ubah Properti' : 'Tambah Properti'),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(NiscalaSpacing.gutter),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_banner != null) ...[FormMessage(_banner!), formGap],
+                  LabeledField(
+                    label: 'Nama properti',
+                    required: true,
+                    child: TextField(
+                      controller: _name,
+                      decoration: InputDecoration(
+                        hintText: 'Contoh: Kos Melati',
+                        errorText: _nameError,
+                      ),
+                      textCapitalization: TextCapitalization.words,
+                      textInputAction: TextInputAction.next,
+                    ),
+                  ),
+                  formGap,
+                  LabeledField(
+                    label: 'Alamat',
+                    required: true,
+                    child: TextField(
+                      controller: _address,
+                      decoration: InputDecoration(
+                        hintText: 'Jalan, nomor, kelurahan, kota',
+                        errorText: _addressError,
+                      ),
+                      maxLines: 3,
+                      textInputAction: TextInputAction.next,
+                    ),
+                  ),
+                  formGap,
+                  Semantics(
+                    header: true,
+                    container: true,
+                    child: Text(
+                      _bankGroup,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ),
+                  const SizedBox(height: NiscalaSpacing.s),
+                  Text(
+                    _bankHelper,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  formGap,
+                  LabeledField(
+                    label: 'Nama bank',
+                    child: TextField(
+                      controller: _bankName,
+                      decoration: InputDecoration(errorText: _bankNameError),
+                      textInputAction: TextInputAction.next,
+                    ),
+                  ),
+                  formGap,
+                  LabeledField(
+                    label: 'Nomor rekening',
+                    child: TextField(
+                      controller: _accountNumber,
+                      decoration: InputDecoration(
+                        errorText: _accountNumberError,
+                      ),
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
+                    ),
+                  ),
+                  formGap,
+                  LabeledField(
+                    label: 'Nama pemilik rekening',
+                    child: TextField(
+                      controller: _holder,
+                      decoration: InputDecoration(errorText: _holderError),
+                      textInputAction: TextInputAction.done,
+                    ),
+                  ),
+                ],
               ),
-              textCapitalization: TextCapitalization.words,
-              textInputAction: TextInputAction.next,
             ),
-            formGap,
-            TextField(
-              controller: _address,
-              decoration: InputDecoration(
-                labelText: 'Alamat (wajib)',
-                hintText: 'Jalan, nomor, kelurahan, kota',
-                errorText: _addressError,
-              ),
-              maxLines: 3,
-              textInputAction: TextInputAction.next,
-            ),
-            formGap,
-            Semantics(
-              header: true,
-              child: Text(
-                'Rekening untuk transfer sewa (opsional)',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(_bankHelper, style: Theme.of(context).textTheme.bodyMedium),
-            formGap,
-            TextField(
-              controller: _bankName,
-              decoration: InputDecoration(
-                labelText: 'Nama bank',
-                errorText: _bankNameError,
-              ),
-              textInputAction: TextInputAction.next,
-            ),
-            formGap,
-            TextField(
-              controller: _accountNumber,
-              decoration: InputDecoration(
-                labelText: 'Nomor rekening',
-                errorText: _accountNumberError,
-              ),
-              keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.next,
-            ),
-            formGap,
-            TextField(
-              controller: _holder,
-              decoration: InputDecoration(
-                labelText: 'Nama pemilik rekening',
-                errorText: _holderError,
-              ),
-              textInputAction: TextInputAction.done,
-            ),
-            formGap,
-            BusyButton(
+          ),
+          ActionFooter(
+            primary: BusyButton(
               label: isEdit ? 'Simpan Perubahan' : 'Simpan Properti',
               busy: _busy,
               onPressed: _submit,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -345,7 +369,7 @@ class _ReauthDialogState extends State<_ReauthDialog> {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _banner = errorMessage(failure.code);
+        _banner = errorMessageFor(failure);
       });
     }
   }
@@ -363,14 +387,15 @@ class _ReauthDialogState extends State<_ReauthDialog> {
             const Text('Masukkan kata sandi Anda untuk melanjutkan.'),
             if (_banner != null) ...[formGap, FormMessage(_banner!)],
             formGap,
-            TextField(
-              controller: _password,
-              decoration: InputDecoration(
-                labelText: 'Kata sandi (wajib)',
-                errorText: _passwordError,
+            LabeledField(
+              label: 'Kata sandi',
+              required: true,
+              child: TextField(
+                controller: _password,
+                decoration: InputDecoration(errorText: _passwordError),
+                obscureText: !_showPassword,
+                autofillHints: const [AutofillHints.password],
               ),
-              obscureText: !_showPassword,
-              autofillHints: const [AutofillHints.password],
             ),
             ShowPasswordCheckbox(
               value: _showPassword,

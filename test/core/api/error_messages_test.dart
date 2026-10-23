@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 
 const _fallback = 'Terjadi kesalahan. Coba lagi.';
@@ -41,28 +42,61 @@ const _table = {
   'REFRESH_TOKEN_INVALID': 'Sesi Anda telah berakhir. Silakan masuk lagi.',
 };
 
+String _messageOf(String code) => errorMessageFor(ApiFailure(code: code));
+
 void main() {
   for (final entry in _table.entries) {
     test('maps ${entry.key} to its Indonesian message', () {
-      expect(errorMessage(entry.key), entry.value);
+      expect(_messageOf(entry.key), entry.value);
+    });
+
+    test('maps ${entry.key} with a field to the same message', () {
+      expect(
+        errorMessageFor(ApiFailure(code: entry.key, field: 'email')),
+        entry.value,
+      );
     });
   }
 
+  test('maps a network failure to the message of NETWORK_ERROR', () {
+    expect(
+      errorMessageFor(const ApiFailure.network()),
+      _table['NETWORK_ERROR'],
+    );
+  });
+
   test('falls back to the generic message for an unknown code', () {
-    expect(errorMessage('SOMETHING_NEW'), _fallback);
+    expect(_messageOf('SOMETHING_NEW'), _fallback);
   });
 
   test('falls back to the generic message for an empty code', () {
-    expect(errorMessage(''), _fallback);
+    expect(_messageOf(''), _fallback);
   });
 
-  test('shows the generic message for a validation failure', () {
-    expect(errorMessage('VALIDATION_FAILED'), _fallback);
+  test('falls back to the generic message for an error of another type', () {
+    expect(errorMessageFor(StateError('boom')), _fallback);
+    expect(errorMessageFor('NETWORK_ERROR'), _fallback);
+  });
+
+  test('names the field of a validation failure instead of the fallback', () {
+    expect(
+      errorMessageFor(
+        const ApiFailure(code: 'VALIDATION_FAILED', field: 'email'),
+      ),
+      'Email tidak valid.',
+    );
+  });
+
+  test('gives the plain message for a validation failure without a field', () {
+    expect(
+      errorMessageFor(const ApiFailure(code: 'VALIDATION_FAILED')),
+      'Data tidak valid.',
+    );
   });
 
   test('no message contains an English word', () {
     const english = ['password', 'error', 'invalid', 'failed', 'not found'];
-    final messages = [..._table.keys.map(errorMessage), _fallback];
+    final messages = [..._table.keys.map(_messageOf), _fallback];
 
     for (final message in messages) {
       for (final word in english) {

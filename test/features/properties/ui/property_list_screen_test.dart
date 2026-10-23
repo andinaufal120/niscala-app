@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
@@ -42,13 +42,152 @@ List<Property> _two({bool secondEditable = true}) => [
   ),
 ];
 
+/// The title of the tab-root header, which is a [ScreenHeader] and not an app
+/// bar.
+Finder headerTitle(String title) =>
+    find.descendant(of: find.byType(ScreenHeader), matching: find.text(title));
+
+/// Expects that a user cannot perceive or use an action named [label]: it is
+/// not in the semantics tree, and pressing where it would sit changes nothing.
+/// The action may still be laid out invisibly to keep the header stable.
+///
+/// With [settle] false, only a few frames are pumped after each press, for
+/// states that animate forever such as loading.
+Future<void> expectActionUnavailable(
+  WidgetTester tester,
+  String label, {
+  bool settle = true,
+}) async {
+  final handle = tester.ensureSemantics();
+  try {
+    expect(find.bySemanticsLabel(label), findsNothing);
+    final path = currentPath(tester);
+    for (var i = 0; i < find.text(label).evaluate().length; i++) {
+      await tester.tapAt(tester.getCenter(find.text(label).at(i)));
+      if (settle) {
+        await tester.pumpAndSettle();
+      } else {
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+    expect(currentPath(tester), path);
+    expect(find.byType(PropertyFormScreen), findsNothing);
+  } finally {
+    handle.dispose();
+  }
+}
+
+/// Expects the header to carry no action at all, so that it reserves no width
+/// for one.
+void expectNoHeaderAction(WidgetTester tester) {
+  final header = tester.widget<ScreenHeader>(find.byType(ScreenHeader));
+  expect(header.action, isNull);
+  expect(find.text('Tambah'), findsNothing);
+}
+
+/// Expects the header to carry an action that is laid out but hidden.
+Future<void> expectHiddenHeaderAction(
+  WidgetTester tester, {
+  bool settle = true,
+}) async {
+  final header = tester.widget<ScreenHeader>(find.byType(ScreenHeader));
+  expect(header.action, isNotNull);
+  expect(header.actionVisible, isFalse);
+  await expectActionUnavailable(tester, 'Tambah', settle: settle);
+}
+
 void main() {
+  group('header action by state', () {
+    testWidgets('an owner has a visible action when properties are listed', (
+      tester,
+    ) async {
+      await pumpPropertyApp(tester, FakePropertyRepository(properties: _two()));
+
+      final header = tester.widget<ScreenHeader>(find.byType(ScreenHeader));
+      expect(header.action, isNotNull);
+      expect(header.actionVisible, isTrue);
+    });
+
+    testWidgets('an owner has a hidden action while loading', (tester) async {
+      final repo = FakePropertyRepository(properties: _two())
+        ..listScript.gate = Completer<void>();
+      await pumpPropertyApp(tester, repo, settle: false);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      await expectHiddenHeaderAction(tester, settle: false);
+    });
+
+    testWidgets('an owner has a hidden action when loading failed', (
+      tester,
+    ) async {
+      final repo = FakePropertyRepository()
+        ..listScript.always = const ApiFailure.network();
+      await pumpPropertyApp(tester, repo);
+
+      await expectHiddenHeaderAction(tester);
+    });
+
+    testWidgets('an owner has a hidden action when there are no properties', (
+      tester,
+    ) async {
+      await pumpPropertyApp(tester, FakePropertyRepository());
+
+      await expectHiddenHeaderAction(tester);
+    });
+
+    testWidgets('a manager has no action with listed properties', (
+      tester,
+    ) async {
+      await pumpPropertyApp(
+        tester,
+        FakePropertyRepository(properties: _two()),
+        role: UserRole.manager,
+      );
+
+      expectNoHeaderAction(tester);
+    });
+
+    testWidgets('a manager has no action while loading', (tester) async {
+      final repo = FakePropertyRepository(properties: _two())
+        ..listScript.gate = Completer<void>();
+      await pumpPropertyApp(
+        tester,
+        repo,
+        settle: false,
+        role: UserRole.manager,
+      );
+
+      expectNoHeaderAction(tester);
+    });
+
+    testWidgets('a manager has no action when loading failed', (tester) async {
+      final repo = FakePropertyRepository()
+        ..listScript.always = const ApiFailure.network();
+      await pumpPropertyApp(tester, repo, role: UserRole.manager);
+
+      expectNoHeaderAction(tester);
+    });
+
+    testWidgets('a manager has no action when there are no properties', (
+      tester,
+    ) async {
+      await pumpPropertyApp(
+        tester,
+        FakePropertyRepository(),
+        role: UserRole.manager,
+      );
+
+      expectNoHeaderAction(tester);
+    });
+  });
+
   group('header', () {
-    testWidgets('shows the title Properti', (tester) async {
+    testWidgets('shows the title Properti in the tab header', (tester) async {
       await pumpPropertyApp(tester, FakePropertyRepository(properties: _two()));
 
       expect(find.byType(PropertyListScreen), findsOneWidget);
-      expect(appBarTitle('Properti'), findsOneWidget);
+      expect(headerTitle('Properti'), findsOneWidget);
     });
 
     testWidgets('tells an owner the list holds all their properties', (
@@ -108,7 +247,7 @@ void main() {
       await pumpPropertyApp(tester, repo);
 
       expect(find.byType(ErrorView), findsOneWidget);
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text('Coba lagi'), findsOneWidget);
       expect(find.text('Kos Melati'), findsNothing);
     });
@@ -147,7 +286,7 @@ void main() {
       await tester.tap(find.text('Coba lagi'));
       await tester.pumpAndSettle();
 
-      expect(find.text(errorMessage('INTERNAL_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('INTERNAL_ERROR')), findsOneWidget);
       expect(repo.listCalls, 2);
     });
   });
@@ -183,8 +322,8 @@ void main() {
       expect(find.text(_managerEmpty), findsOneWidget);
       expect(find.text(_ownerEmpty), findsNothing);
       expect(find.text('Tambah Properti Pertama'), findsNothing);
-      expect(find.text('Tambah'), findsNothing);
-      expect(find.byType(FilledButton), findsNothing);
+      expectNoHeaderAction(tester);
+      await expectActionUnavailable(tester, 'Tambah Properti Pertama');
     });
   });
 
@@ -330,8 +469,8 @@ void main() {
         role: UserRole.manager,
       );
 
-      expect(find.text('Tambah'), findsNothing);
       expect(find.text('Tambah Properti Pertama'), findsNothing);
+      expectNoHeaderAction(tester);
     });
   });
 
@@ -345,7 +484,7 @@ void main() {
       );
 
       expect(find.byType(PropertyDetailScreen), findsNothing);
-      expect(appBarTitle('Properti'), findsOneWidget);
+      expect(headerTitle('Properti'), findsOneWidget);
       expect(find.text('Kos Melati'), findsOneWidget);
       expect(find.text('Tambah'), findsOneWidget);
     });
@@ -398,6 +537,157 @@ void main() {
             .widget<PropertyDetailScreen>(find.byType(PropertyDetailScreen))
             .showBack,
         isTrue,
+      );
+    });
+  });
+
+  group('structure', () {
+    testWidgets('is a tab root with a ScreenHeader and no app bar', (
+      tester,
+    ) async {
+      await pumpPropertyApp(tester, FakePropertyRepository(properties: _two()));
+
+      expect(find.byType(ScreenHeader), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(PropertyListScreen),
+          matching: find.byType(AppBar),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('announces the header title as the page heading', (
+      tester,
+    ) async {
+      await pumpPropertyApp(tester, FakePropertyRepository(properties: _two()));
+
+      final handle = tester.ensureSemantics();
+      try {
+        expect(
+          tester.getSemantics(headerTitle('Properti')),
+          isSemantics(isHeader: true),
+        );
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets(
+      'an owner sees Tambah as a filled primary action in the header',
+      (tester) async {
+        await pumpPropertyApp(
+          tester,
+          FakePropertyRepository(properties: _two()),
+        );
+
+        final action = find.descendant(
+          of: find.byType(ScreenHeader),
+          matching: find.text('Tambah'),
+        );
+        expect(action, findsOneWidget);
+        expect(
+          find.ancestor(of: action, matching: find.byType(FilledButton)),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('a manager gets a header without an action', (tester) async {
+      await pumpPropertyApp(
+        tester,
+        FakePropertyRepository(properties: _two()),
+        role: UserRole.manager,
+      );
+
+      expect(find.byType(ScreenHeader), findsOneWidget);
+      expectNoHeaderAction(tester);
+    });
+
+    testWidgets('every property row is a card holding one property', (
+      tester,
+    ) async {
+      await pumpPropertyApp(tester, FakePropertyRepository(properties: _two()));
+
+      expect(
+        find.descendant(
+          of: find.byType(PropertyListScreen),
+          matching: find.byType(Card),
+        ),
+        findsNWidgets(2),
+      );
+      for (final name in ['Kos Melati', 'Kos Mawar']) {
+        expect(
+          find.ancestor(of: find.text(name), matching: find.byType(Card)),
+          findsOneWidget,
+        );
+      }
+    });
+
+    testWidgets(
+      'each card has a 16 dp radius, a divider border and no shadow',
+      (tester) async {
+        await pumpPropertyApp(
+          tester,
+          FakePropertyRepository(properties: _two()),
+        );
+
+        expectCardLook(
+          tester,
+          find.descendant(
+            of: find.byType(PropertyListScreen),
+            matching: find.byType(Card),
+          ),
+        );
+      },
+    );
+
+    testWidgets('a card holds the whole row of its property', (tester) async {
+      await pumpPropertyApp(tester, FakePropertyRepository(properties: _two()));
+
+      final melati = find.ancestor(
+        of: find.text('Kos Melati'),
+        matching: find.byType(Card),
+      );
+      expect(
+        find.descendant(
+          of: melati,
+          matching: find.text('Jl. Melati 1, Bandung'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: melati, matching: find.text('10 kamar · 4 terisi')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: melati,
+          matching: find.text('Pengelola: Sari, Dewi'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: melati, matching: find.text('Kos Mawar')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('the view-only badge sits inside its property card', (
+      tester,
+    ) async {
+      await pumpPropertyApp(
+        tester,
+        FakePropertyRepository(properties: _two(secondEditable: false)),
+      );
+
+      final mawar = find.ancestor(
+        of: find.text('Kos Mawar'),
+        matching: find.byType(Card),
+      );
+      expect(
+        find.descendant(of: mawar, matching: find.text('Hanya lihat')),
+        findsOneWidget,
       );
     });
   });

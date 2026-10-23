@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/app.dart';
 import 'package:niscala/core/api/api_failure.dart';
+import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/auth/data/invitation_repository.dart';
@@ -17,6 +18,10 @@ import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/session/session_store.dart';
 import 'package:niscala/core/theme.dart';
 import 'package:niscala_api/api.dart';
+
+/// The Indonesian message a screen shows for a failure that carries only the
+/// API error [code], as a screen derives it from the caught failure.
+String messageOfCode(String code) => errorMessageFor(ApiFailure(code: code));
 
 /// A [SessionStore] that keeps the session in memory.
 class InMemorySessionStore implements SessionStore {

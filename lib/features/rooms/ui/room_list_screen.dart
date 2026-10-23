@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/filter_chip_row.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
@@ -94,10 +96,8 @@ class _RoomListScreenState extends ConsumerState<RoomListScreen> {
                 ),
                 formGap,
               ],
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
+              FilterChipRow(
+                chips: [
                   for (final (label, occupancy) in _filters)
                     ChoiceChip(
                       label: Text(label),
@@ -123,9 +123,7 @@ class _RoomListScreenState extends ConsumerState<RoomListScreen> {
 }
 
 Scaffold _page(String? propertyName, Widget body) => Scaffold(
-  appBar: AppBar(
-    title: RoomTitle(title: 'Kamar', propertyName: propertyName),
-  ),
+  appBar: DetailAppBar(title: 'Kamar', subtitle: propertyName),
   body: body,
 );
 

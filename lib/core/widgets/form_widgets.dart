@@ -92,7 +92,11 @@ class ShowPasswordCheckbox extends StatelessWidget {
     return CheckboxListTile(
       value: value,
       onChanged: (checked) => onChanged(checked ?? false),
-      title: const Text('Tampilkan kata sandi'),
+      title: Text(
+        'Tampilkan kata sandi',
+        style: Theme.of(context).textTheme.titleSmall
+            ?.copyWith(fontWeight: FontWeight.w600),
+      ),
       controlAffinity: ListTileControlAffinity.leading,
       contentPadding: EdgeInsets.zero,
     );

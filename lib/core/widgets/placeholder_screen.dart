@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
+import 'package:niscala/core/widgets/screen_header.dart';
 
-/// Stands in for a screen that is not built yet.
+/// Stands in for a tab root that is not built yet.
 class PlaceholderScreen extends StatelessWidget {
   const PlaceholderScreen({super.key, required this.title});
 
@@ -10,8 +11,15 @@ class PlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: const EmptyState(message: 'Fitur ini belum tersedia'),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ScreenHeader(title: title),
+          const Expanded(
+            child: EmptyState(message: 'Fitur ini belum tersedia'),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/features/tenants/ui/tenant_detail_screen.dart';
@@ -99,7 +98,7 @@ void main() {
       await pumpTenantApp(tester, repo);
 
       expect(find.byType(ErrorView), findsOneWidget);
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text('Coba lagi'), findsOneWidget);
       expect(find.text('Budi Santoso'), findsNothing);
     });
@@ -137,7 +136,7 @@ void main() {
       await tester.tap(find.text('Coba lagi'));
       await tester.pumpAndSettle();
 
-      expect(find.text(errorMessage('INTERNAL_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('INTERNAL_ERROR')), findsOneWidget);
       expect(repo.listCalls, 2);
     });
   });
@@ -518,6 +517,39 @@ void main() {
     });
   });
 
+  group('structure', () {
+    testWidgets('uses the white app bar with the title and property name', (
+      tester,
+    ) async {
+      await pumpTenantApp(tester, _repo());
+
+      expectWhiteAppBar(tester);
+      expect(appBarTitle('Penyewa'), findsOneWidget);
+      expect(inAppBar('Kos Melati'), findsOneWidget);
+    });
+
+    testWidgets('shows each tenant row as a card with the theme look', (
+      tester,
+    ) async {
+      await pumpTenantApp(tester, _repo());
+
+      expect(find.byType(Card), findsNWidgets(3));
+      expectCardLook(tester, find.byType(Card));
+    });
+
+    testWidgets('each tenant name sits in a card of its own', (tester) async {
+      await pumpTenantApp(tester, _repo());
+
+      for (final name in ['Budi Santoso', 'Sari Wulandari', 'Dewi Lestari']) {
+        expect(
+          find.ancestor(of: find.text(name), matching: find.byType(Card)),
+          findsOneWidget,
+          reason: name,
+        );
+      }
+    });
+  });
+
   group('accessibility', () {
     final states = <String, FakeTenantRepository Function()>{
       'loaded': _repo,
@@ -590,6 +622,8 @@ void main() {
       tester,
     ) async {
       await pumpTenantApp(tester, _repo(), largeText: true);
+      await tester.ensureVisible(filterChip('Belum Diaktifkan'));
+      await tester.pumpAndSettle();
       await tester.tap(filterChip('Belum Diaktifkan'));
       await tester.pumpAndSettle();
 
@@ -617,6 +651,8 @@ void main() {
         _repo([makeTenant(accountStatus: TenantAccountStatus.active)]),
         largeText: true,
       );
+      await tester.ensureVisible(filterChip('Belum Diaktifkan'));
+      await tester.pumpAndSettle();
       await tester.tap(filterChip('Belum Diaktifkan'));
       await tester.pumpAndSettle();
 

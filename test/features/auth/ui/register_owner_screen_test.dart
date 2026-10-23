@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/register_owner_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
@@ -11,6 +11,7 @@ import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
+import '../../../helpers/fields.dart';
 import 'auth_ui_helpers.dart';
 
 const _name = 'Nama lengkap (wajib)';
@@ -356,10 +357,10 @@ void main() {
 
       expect(
         fieldError(tester, _email),
-        errorMessage('EMAIL_ALREADY_REGISTERED'),
+        messageOfCode('EMAIL_ALREADY_REGISTERED'),
       );
       expect(
-        find.text(errorMessage('EMAIL_ALREADY_REGISTERED')),
+        find.text(messageOfCode('EMAIL_ALREADY_REGISTERED')),
         findsOneWidget,
       );
       expect(find.byType(RegisterOwnerScreen), findsOneWidget);
@@ -377,10 +378,10 @@ void main() {
 
         expect(
           fieldError(tester, _email),
-          errorMessage('EMAIL_ALREADY_REGISTERED'),
+          messageOfCode('EMAIL_ALREADY_REGISTERED'),
         );
         expect(
-          find.text(errorMessage('EMAIL_ALREADY_REGISTERED')),
+          find.text(messageOfCode('EMAIL_ALREADY_REGISTERED')),
           findsOneWidget,
         );
       },
@@ -399,10 +400,10 @@ void main() {
 
       expect(
         fieldError(tester, _password),
-        errorMessage('PASSWORD_TOO_COMMON'),
+        messageOfCode('PASSWORD_TOO_COMMON'),
       );
       expect(fieldError(tester, _email), isNull);
-      expect(find.text(errorMessage('PASSWORD_TOO_COMMON')), findsOneWidget);
+      expect(find.text(messageOfCode('PASSWORD_TOO_COMMON')), findsOneWidget);
     });
 
     testWidgets(
@@ -415,7 +416,7 @@ void main() {
 
         expect(
           fieldError(tester, _password),
-          errorMessage('PASSWORD_TOO_COMMON'),
+          messageOfCode('PASSWORD_TOO_COMMON'),
         );
       },
     );
@@ -434,10 +435,10 @@ void main() {
 
           await fillAndSubmit(tester);
 
-          expect(
-            fieldError(tester, entry.value),
-            errorMessage('VALIDATION_FAILED'),
-          );
+          final message = fieldError(tester, entry.value);
+          expect(message, isNotNull);
+          expect(message, isNot('Terjadi kesalahan. Coba lagi.'));
+          expect(message, endsWith(' tidak valid.'));
           for (final other in fieldCases.entries.where(
             (e) => e.key != entry.key,
           )) {
@@ -447,9 +448,60 @@ void main() {
       );
     }
 
+    testWidgets('a validation failure on name says the full name is invalid', (
+      tester,
+    ) async {
+      auth.registerFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'name',
+        statusCode: 422,
+      );
+      await pumpRegister(tester, auth);
+
+      await fillAndSubmit(tester);
+
+      expect(fieldError(tester, _name), 'Nama lengkap tidak valid.');
+      expect(find.text('Nama properti tidak valid.'), findsNothing);
+    });
+
+    testWidgets('a validation failure on email says the email is invalid', (
+      tester,
+    ) async {
+      auth.registerFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'email',
+        statusCode: 422,
+      );
+      await pumpRegister(tester, auth);
+
+      await fillAndSubmit(tester);
+
+      expect(fieldError(tester, _email), 'Email tidak valid.');
+      expect(find.text('Email tidak valid.'), findsOneWidget);
+      expect(find.text('Terjadi kesalahan. Coba lagi.'), findsNothing);
+      expectFieldNode(tester, _email, error: 'Email tidak valid.');
+    });
+
+    testWidgets(
+      'a validation failure on password says the password is invalid',
+      (tester) async {
+        auth.registerFailure = const ApiFailure(
+          code: 'VALIDATION_FAILED',
+          field: 'password',
+          statusCode: 422,
+        );
+        await pumpRegister(tester, auth);
+
+        await fillAndSubmit(tester);
+
+        expect(fieldError(tester, _password), 'Kata sandi tidak valid.');
+        expect(fieldError(tester, _email), isNull);
+      },
+    );
+
     final bannerCases = {
-      'NETWORK_ERROR': errorMessage('NETWORK_ERROR'),
-      'INTERNAL_ERROR': errorMessage('INTERNAL_ERROR'),
+      'NETWORK_ERROR': messageOfCode('NETWORK_ERROR'),
+      'INTERNAL_ERROR': messageOfCode('INTERNAL_ERROR'),
       'SOMETHING_NEW': 'Terjadi kesalahan. Coba lagi.',
     };
     for (final entry in bannerCases.entries) {
@@ -477,8 +529,8 @@ void main() {
 
       await tester.pump(const Duration(seconds: 30));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
-      expectLiveRegion(tester, errorMessage('NETWORK_ERROR'));
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
+      expectLiveRegion(tester, messageOfCode('NETWORK_ERROR'));
     });
 
     testWidgets('the banner goes away when the next request starts', (
@@ -491,7 +543,7 @@ void main() {
 
       await tapAndPump(tester, buttonLabelled('Daftar'));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsNothing);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
       expect(auth.registrations, hasLength(2));
     });
 
@@ -686,7 +738,8 @@ void main() {
         textField(tester, _name).autofillHints,
         contains(AutofillHints.name),
       );
-      expect(textField(tester, _name).decoration?.labelText, _name);
+      expect(labeledField(_name), findsOneWidget);
+      expect(textField(tester, _name).decoration?.labelText, isNull);
     });
 
     testWidgets('the email field keeps paste on and offers email autofill', (
@@ -704,6 +757,139 @@ void main() {
 
       expectCredentialField(tester, _password, AutofillHints.newPassword);
       expectCredentialField(tester, _confirm, AutofillHints.newPassword);
+    });
+  });
+
+  group('structure', () {
+    const labels = [_name, _email, _password, _confirm];
+
+    testWidgets('wraps every field in a LabeledField with its marker', (
+      tester,
+    ) async {
+      await pumpRegister(tester, auth);
+
+      for (final label in labels) {
+        expect(labeledField(label), findsOneWidget);
+        expect(find.text(label), findsOneWidget);
+      }
+    });
+
+    testWidgets('draws no label inside any field', (tester) async {
+      await pumpRegister(tester, auth);
+
+      expectNoDecorationLabels(tester);
+    });
+
+    testWidgets('puts each label above its field', (tester) async {
+      await pumpRegister(tester, auth);
+
+      for (final label in labels) {
+        final text = tester.getRect(find.text(label));
+        final input = tester.getRect(fieldLabeled(label));
+        expect(text.bottom, lessThanOrEqualTo(input.top));
+      }
+    });
+
+    testWidgets('reads each field label once, on the field', (tester) async {
+      await pumpRegister(tester, auth);
+
+      for (final label in labels) {
+        expectFieldNode(tester, label);
+      }
+    });
+
+    testWidgets('keeps each field error on its field node', (tester) async {
+      await pumpRegister(tester, auth);
+      await submit(tester);
+
+      expectFieldNode(tester, _name, error: 'Nama wajib diisi.');
+      expectFieldNode(tester, _email, error: 'Email wajib diisi.');
+      expectFieldNode(
+        tester,
+        _password,
+        error: 'Kata sandi minimal 8 karakter.',
+      );
+      expectFieldNode(tester, _confirm, error: 'Ketik ulang kata sandi.');
+    });
+
+    testWidgets('tapping a label focuses its field', (tester) async {
+      await pumpRegister(tester, auth);
+
+      await tester.tap(find.text(_email));
+      await tester.pump();
+
+      final editable = tester.widget<EditableText>(
+        find.descendant(
+          of: fieldLabeled(_email),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(editable.focusNode.hasFocus, isTrue);
+    });
+
+    testWidgets('pins the Daftar action in a footer outside any scroll view', (
+      tester,
+    ) async {
+      await pumpRegister(tester, auth);
+
+      expectPinnedFooter(tester, 'Daftar');
+    });
+
+    testWidgets('keeps the footer action pinned with errors', (tester) async {
+      await pumpRegister(tester, auth);
+      await submit(tester);
+
+      expectPinnedFooter(tester, 'Daftar');
+    });
+
+    testWidgets('keeps the footer action pinned with a banner', (tester) async {
+      auth.registerFailure = const ApiFailure.network();
+      await pumpRegister(tester, auth);
+      await fillAndSubmit(tester);
+
+      expectPinnedFooter(tester, 'Daftar');
+    });
+
+    testWidgets('shows the busy state inside the footer', (tester) async {
+      auth.gate = Completer<void>();
+      await pumpRegister(tester, auth);
+      await fill(tester);
+      await tapAndPump(tester, buttonLabelled('Daftar'));
+
+      expect(
+        find.descendant(of: find.byType(ActionFooter), matching: busyButton()),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('keeps the footer button on screen at large text size', (
+      tester,
+    ) async {
+      await pumpAtLargeText(tester, buildTestApp(auth: auth));
+      await tester.pumpAndSettle();
+      goTo(tester, '/daftar');
+      await tester.pumpAndSettle();
+
+      final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+      expect(
+        tester.getRect(buttonLabelled('Daftar')).bottom,
+        lessThanOrEqualTo(screen.height),
+      );
+      expectFooterAtBottom(tester);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('uses a white app bar with the title', (tester) async {
+      await pumpRegister(tester, auth);
+
+      expectWhiteAppBar(tester);
+      expect(
+        find.descendant(
+          of: find.byType(AppBar),
+          matching: find.text('Daftar sebagai Pemilik Kost'),
+        ),
+        findsOneWidget,
+      );
     });
   });
 
@@ -814,7 +1000,7 @@ void main() {
 
       await tapVisible(tester, buttonLabelled('Daftar'));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

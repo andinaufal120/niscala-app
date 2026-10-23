@@ -133,6 +133,10 @@ void main() {
       expect(border.top, BorderSide.none);
     });
 
+    test('the title sits right next to the back button', () {
+      expect(bar.titleSpacing, 0);
+    });
+
     test('titles are 17 bold, text coloured and left aligned', () {
       expect(bar.titleTextStyle?.fontSize, 17);
       expect(bar.titleTextStyle?.fontWeight, FontWeight.w700);
@@ -475,18 +479,18 @@ void main() {
       expect(nav.indicatorColor, Colors.transparent);
     });
 
-    test('labels are 11 semi-bold and muted', () {
+    test('labels are 10 semi-bold and muted', () {
       final style = nav.labelTextStyle?.resolve({});
 
-      expect(style?.fontSize, 11);
+      expect(style?.fontSize, 10);
       expect(style?.fontWeight, FontWeight.w600);
       expect(style?.color, _textMuted);
     });
 
-    test('the selected label is 11 bold and primary', () {
+    test('the selected label is 10 bold and primary', () {
       final style = nav.labelTextStyle?.resolve(_selected);
 
-      expect(style?.fontSize, 11);
+      expect(style?.fontSize, 10);
       expect(style?.fontWeight, FontWeight.w700);
       expect(style?.color, _primary);
     });

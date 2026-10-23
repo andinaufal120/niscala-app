@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/filter_chip_row.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
 import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
 import 'package:niscala_api/api.dart';
@@ -45,42 +48,51 @@ class _TenantComplaintListScreenState
   @override
   Widget build(BuildContext context) {
     final complaints = ref.watch(complaintListProvider);
-    return Scaffold(
-      appBar: AppBar(title: const Text('Keluhan')),
-      body: complaints.when(
-        skipLoadingOnReload: true,
-        loading: () => const Center(
+    // The Ajukan action keeps its place in every state, so the header does not
+    // change size. It is shown only when there are complaints.
+    final ajukan = FilledButton(
+      onPressed: _openForm,
+      child: const Text('Ajukan'),
+    );
+    return complaints.when(
+      skipLoadingOnReload: true,
+      loading: () => _listPage(
+        const Center(
           child: CircularProgressIndicator(semanticsLabel: 'Memuat'),
         ),
-        error: (error, _) => ErrorView(
+        action: ajukan,
+        actionVisible: false,
+      ),
+      error: (error, _) => _listPage(
+        ErrorView(
           message: errorMessageFor(error),
           onRetry: () => ref.invalidate(complaintListProvider),
         ),
-        data: (items) {
-          if (items.isEmpty) {
-            return EmptyState(
+        action: ajukan,
+        actionVisible: false,
+      ),
+      data: (items) {
+        if (items.isEmpty) {
+          return _listPage(
+            EmptyState(
               message: _empty,
               actionLabel: 'Ajukan Keluhan',
               onAction: _openForm,
-            );
-          }
-          final shown = [
-            for (final complaint in items)
-              if (_matches(_filter, complaint)) complaint,
-          ];
-          return ListView(
-            padding: const EdgeInsets.all(16),
+            ),
+            action: ajukan,
+            actionVisible: false,
+          );
+        }
+        final shown = [
+          for (final complaint in items)
+            if (_matches(_filter, complaint)) complaint,
+        ];
+        return _listPage(
+          ListView(
+            padding: const EdgeInsets.all(NiscalaSpacing.gutter),
             children: [
-              FilledButton.icon(
-                onPressed: _openForm,
-                icon: const Icon(Icons.add),
-                label: const Text('Ajukan Keluhan'),
-              ),
-              formGap,
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
+              FilterChipRow(
+                chips: [
                   for (final (label, filter) in _filters)
                     ChoiceChip(
                       label: Text(label),
@@ -98,12 +110,30 @@ class _TenantComplaintListScreenState
                   const SizedBox(height: 8),
                 ],
             ],
-          );
-        },
-      ),
+          ),
+          action: ajukan,
+        );
+      },
     );
   }
 }
+
+/// The tab page: the header on top, the state below it. The header has no
+/// app bar, as a tab root does.
+Scaffold _listPage(Widget body, {Widget? action, bool actionVisible = true}) =>
+    Scaffold(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ScreenHeader(
+            title: 'Keluhan Saya',
+            action: action,
+            actionVisible: actionVisible,
+          ),
+          Expanded(child: body),
+        ],
+      ),
+    );
 
 /// One complaint: its description, status, and either its classification or
 /// the state that explains why it has none.

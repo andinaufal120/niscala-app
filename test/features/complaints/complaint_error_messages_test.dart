@@ -8,23 +8,21 @@ const _messages = {
   'COMPLAINT_NOT_FOUND': 'Keluhan tidak ditemukan.',
 };
 
+String _messageOf(String code) => errorMessageFor(ApiFailure(code: code));
+
 void main() {
   for (final entry in _messages.entries) {
-    test('maps ${entry.key} to its Indonesian message', () {
-      expect(errorMessage(entry.key), entry.value);
-    });
-
-    test('maps an ApiFailure with ${entry.key} to the same message', () {
-      expect(errorMessageFor(ApiFailure(code: entry.key)), entry.value);
+    test('maps an ApiFailure with ${entry.key} to its Indonesian message', () {
+      expect(_messageOf(entry.key), entry.value);
     });
 
     test('${entry.key} is not the generic message', () {
-      expect(errorMessage(entry.key), isNot(errorMessage('SOMETHING_NEW')));
+      expect(_messageOf(entry.key), isNot(_messageOf('SOMETHING_NEW')));
     });
 
     test('the message of ${entry.key} contains no English word', () {
       const english = ['lease', 'complaint', 'not found', 'active', 'error'];
-      final message = errorMessage(entry.key).toLowerCase();
+      final message = _messageOf(entry.key).toLowerCase();
       for (final word in english) {
         expect(message.contains(word), isFalse, reason: '"$message" has $word');
       }

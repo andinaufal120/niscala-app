@@ -4,8 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/tokens.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/labeled_field.dart';
+import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
 import 'package:niscala/features/rooms/ui/room_widgets.dart';
 import 'package:niscala_api/api.dart';
@@ -65,7 +70,7 @@ class RoomFormScreen extends ConsumerWidget {
 }
 
 Scaffold _editPage(Widget body) => Scaffold(
-  appBar: AppBar(title: const Text('Ubah Kamar')),
+  appBar: const DetailAppBar(title: 'Ubah Kamar'),
   body: body,
 );
 
@@ -264,7 +269,7 @@ class _RoomFormState extends ConsumerState<_RoomForm> {
 
   /// Shows a failure next to the field it belongs to, or as a banner.
   void _showFailure(ApiFailure failure) {
-    final message = errorMessage(failure.code);
+    final message = errorMessageFor(failure);
     final field = failure.field;
     setState(() {
       _busy = false;
@@ -292,149 +297,171 @@ class _RoomFormState extends ConsumerState<_RoomForm> {
     final suggestions = _suggestions();
     final area = _areaText;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          room == null ? 'Tambah Kamar' : 'Ubah Kamar ${room.number}',
-        ),
+      appBar: DetailAppBar(
+        title: room == null ? 'Tambah Kamar' : 'Ubah Kamar ${room.number}',
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_banner != null) ...[FormMessage(_banner!), formGap],
-            TextField(
-              controller: _number,
-              decoration: InputDecoration(
-                labelText: 'Nomor kamar (wajib)',
-                hintText: 'Contoh: 08',
-                errorText: _numberError,
-              ),
-              textInputAction: TextInputAction.next,
-            ),
-            formGap,
-            TextField(
-              controller: _rate,
-              decoration: InputDecoration(
-                labelText: 'Tarif dasar per bulan (wajib)',
-                prefixText: 'Rp',
-                errorText: _rateError,
-              ),
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              textInputAction: TextInputAction.next,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              isEdit ? '$_rateHelper $_rateHelperEdit' : _rateHelper,
-              style: theme.textTheme.bodyMedium,
-            ),
-            formGap,
-            Semantics(
-              header: true,
-              child: Text(
-                'Ukuran kamar (opsional)',
-                style: theme.textTheme.titleSmall,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _length,
-              decoration: InputDecoration(
-                labelText: 'Panjang (m)',
-                errorText: _lengthError,
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onChanged: (_) => setState(() {}),
-              textInputAction: TextInputAction.next,
-            ),
-            formGap,
-            TextField(
-              controller: _width,
-              decoration: InputDecoration(
-                labelText: 'Lebar (m)',
-                errorText: _widthError,
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onChanged: (_) => setState(() {}),
-              textInputAction: TextInputAction.next,
-            ),
-            if (area != null) ...[
-              formGap,
-              Semantics(
-                liveRegion: true,
-                child: Text(area, style: theme.textTheme.bodyLarge),
-              ),
-            ],
-            formGap,
-            Semantics(
-              header: true,
-              child: Text(
-                'Fasilitas (opsional)',
-                style: theme.textTheme.titleSmall,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(_facilityHelper, style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _facility,
-              decoration: InputDecoration(
-                labelText: 'Tambah fasilitas',
-                errorText: _facilityError,
-              ),
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: () => _addTag(_facility.text),
-              child: const Text('Tambah'),
-            ),
-            if (_tags.isNotEmpty) ...[
-              formGap,
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(NiscalaSpacing.gutter),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (final tag in _tags)
-                    _ChosenTag(
-                      tag: tag,
-                      onRemove: () => setState(() => _tags.remove(tag)),
+                  if (_banner != null) ...[FormMessage(_banner!), formGap],
+                  LabeledField(
+                    label: 'Nomor kamar',
+                    required: true,
+                    child: TextField(
+                      controller: _number,
+                      decoration: InputDecoration(
+                        hintText: 'Contoh: 08',
+                        errorText: _numberError,
+                      ),
+                      textInputAction: TextInputAction.next,
                     ),
+                  ),
+                  formGap,
+                  LabeledField(
+                    label: 'Tarif dasar per bulan',
+                    required: true,
+                    helper: isEdit
+                        ? '$_rateHelper $_rateHelperEdit'
+                        : _rateHelper,
+                    child: TextField(
+                      controller: _rate,
+                      decoration: InputDecoration(
+                        prefixIcon: const ExcludeSemantics(
+                          child: Padding(
+                            padding: EdgeInsets.only(left: 14, right: 4),
+                            child: Text('Rp'),
+                          ),
+                        ),
+                        prefixIconConstraints: const BoxConstraints(),
+                        errorText: _rateError,
+                      ),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      textInputAction: TextInputAction.next,
+                    ),
+                  ),
+                  formGap,
+                  SectionCard(
+                    title: 'Ukuran kamar (opsional)',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        LabeledField(
+                          label: 'Panjang (m)',
+                          child: TextField(
+                            controller: _length,
+                            decoration: InputDecoration(
+                              errorText: _lengthError,
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            onChanged: (_) => setState(() {}),
+                            textInputAction: TextInputAction.next,
+                          ),
+                        ),
+                        formGap,
+                        LabeledField(
+                          label: 'Lebar (m)',
+                          child: TextField(
+                            controller: _width,
+                            decoration: InputDecoration(errorText: _widthError),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            onChanged: (_) => setState(() {}),
+                            textInputAction: TextInputAction.next,
+                          ),
+                        ),
+                        if (area != null) ...[
+                          formGap,
+                          Semantics(
+                            liveRegion: true,
+                            child: Text(area, style: theme.textTheme.bodyLarge),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  formGap,
+                  SectionCard(
+                    title: 'Fasilitas (opsional)',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        LabeledField(
+                          label: 'Tambah fasilitas',
+                          helper: _facilityHelper,
+                          child: TextField(
+                            controller: _facility,
+                            decoration: InputDecoration(
+                              errorText: _facilityError,
+                            ),
+                            onChanged: (_) => setState(() {}),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        OutlinedButton(
+                          onPressed: () => _addTag(_facility.text),
+                          child: const Text('Tambah'),
+                        ),
+                        if (_tags.isNotEmpty) ...[
+                          formGap,
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              for (final tag in _tags)
+                                _ChosenTag(
+                                  tag: tag,
+                                  onRemove: () =>
+                                      setState(() => _tags.remove(tag)),
+                                ),
+                            ],
+                          ),
+                        ],
+                        if (suggestions.isNotEmpty) ...[
+                          formGap,
+                          Semantics(
+                            header: true,
+                            child: Text(
+                              'Saran fasilitas',
+                              style: theme.textTheme.titleSmall,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              for (final tag in suggestions)
+                                ActionChip(
+                                  label: Text(tag),
+                                  onPressed: () => _addTag(tag),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ],
-            if (suggestions.isNotEmpty) ...[
-              formGap,
-              Semantics(
-                header: true,
-                child: Text(
-                  'Saran fasilitas',
-                  style: theme.textTheme.titleSmall,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final tag in suggestions)
-                    ActionChip(label: Text(tag), onPressed: () => _addTag(tag)),
-                ],
-              ),
-            ],
-            formGap,
-            BusyButton(
+            ),
+          ),
+          ActionFooter(
+            primary: BusyButton(
               label: isEdit ? 'Simpan Perubahan' : 'Simpan Kamar',
               busy: _busy,
               onPressed: _submit,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

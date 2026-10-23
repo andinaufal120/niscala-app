@@ -3,10 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/navigation.dart';
 import 'package:niscala/core/session/session_controller.dart';
+import 'package:niscala/core/widgets/action_card_row.dart';
 import 'package:niscala/core/widgets/confirm_dialog.dart';
+import 'package:niscala/core/widgets/danger_button.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
@@ -59,13 +64,13 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
     } on ApiFailure catch (failure) {
       if (!mounted) return;
       setState(() => _deleting = false);
-      await _showDeleteFailure(errorMessage(failure.code));
+      await _showDeleteFailure(errorMessageFor(failure));
       return;
     }
     if (!mounted) return;
     ref.invalidate(propertyListProvider);
     final messenger = ScaffoldMessenger.of(context);
-    context.go('/properti');
+    leavePage(context, '/properti');
     messenger.showSnackBar(const SnackBar(content: Text('Properti dihapus')));
   }
 
@@ -87,10 +92,20 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
   Widget build(BuildContext context) {
     final isOwner = ref.watch(currentRoleProvider) == UserRole.owner;
     final property = ref.watch(propertyDetailProvider(widget.propertyId));
+    final loaded = property.value;
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: widget.showBack,
-        title: const Text('Rincian Properti'),
+      appBar: DetailAppBar(
+        title: 'Rincian Properti',
+        showBack: widget.showBack,
+        actions: [
+          if (isOwner && loaded != null && loaded.editable)
+            DetailBarAction.text(
+              label: 'Ubah',
+              onPressed: _deleting
+                  ? null
+                  : () => context.go('/properti/${loaded.id}/ubah'),
+            ),
+        ],
       ),
       body: property.when(
         skipLoadingOnReload: true,
@@ -112,91 +127,114 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
     final bank = p.bankAccount;
     final managers = p.managers.map((m) => m.name).join(', ');
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(NiscalaSpacing.gutter),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Semantics(
-            header: true,
-            child: Text(p.name, style: theme.textTheme.headlineSmall),
+          SectionCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Semantics(
+                  header: true,
+                  child: Text(p.name, style: theme.textTheme.headlineSmall),
+                ),
+                const SizedBox(height: NiscalaSpacing.xs),
+                Text(p.address, style: theme.textTheme.bodyLarge),
+                if (!p.editable) ...[
+                  formGap,
+                  StatusBadge(
+                    label: 'Hanya bisa dilihat',
+                    colors: NiscalaTokens.of(context).readOnly,
+                    icon: Icons.visibility_outlined,
+                  ),
+                  const SizedBox(height: NiscalaSpacing.s),
+                  Text(isOwner ? _readOnlyOwner : _readOnlyManager),
+                ],
+              ],
+            ),
           ),
-          const SizedBox(height: 4),
-          Text(p.address, style: theme.textTheme.bodyLarge),
-          if (!p.editable) ...[
-            formGap,
-            StatusBadge(
-              label: 'Hanya bisa dilihat',
-              colors: NiscalaTokens.of(context).readOnly,
-              icon: Icons.visibility_outlined,
-            ),
-            const SizedBox(height: 8),
-            Text(isOwner ? _readOnlyOwner : _readOnlyManager),
-          ],
+          if (!isOwner) ...[formGap, const Text(_managerOnly)],
           formGap,
-          if (isOwner) ...[
-            if (p.editable)
-              FilledButton(
-                onPressed: _deleting
-                    ? null
-                    : () => context.go('/properti/${p.id}/ubah'),
-                child: const Text('Ubah'),
-              ),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: theme.colorScheme.error,
-              ),
-              onPressed: _deleting ? null : () => _askToDelete(p),
-              child: const Text('Hapus Properti'),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: SectionCard(
+                    title: 'Jumlah kamar',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${p.roomCount}',
+                          style: theme.textTheme.headlineSmall,
+                        ),
+                        Text(
+                          '${p.occupiedRoomCount} terisi · '
+                          '${p.vacantRoomCount} kosong',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: NiscalaSpacing.m),
+                Expanded(
+                  child: SectionCard(
+                    title: 'Pengelola Kost',
+                    child: p.managers.isEmpty
+                        ? const Text('Belum ada pengelola')
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('${p.managers.length} pengelola'),
+                              Text(managers),
+                            ],
+                          ),
+                  ),
+                ),
+              ],
             ),
-          ] else
-            Text(_managerOnly),
+          ),
           formGap,
-          Text('Jumlah kamar', style: theme.textTheme.titleSmall),
-          Text('${p.roomCount} kamar'),
-          Text('${p.occupiedRoomCount} terisi · ${p.vacantRoomCount} kosong'),
-          const SizedBox(height: 8),
-          FilledButton.tonal(
-            onPressed: _deleting
+          SectionCard(
+            title: 'Rekening transfer sewa',
+            child: bank == null
+                ? const Text(_noBank)
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${bank.bankName} · ${bank.accountNumber}'),
+                      Text('a.n. ${bank.accountHolderName}'),
+                    ],
+                  ),
+          ),
+          formGap,
+          ActionCardRow(
+            icon: Icons.meeting_room_outlined,
+            title: 'Kelola Kamar',
+            subtitle: 'Tambah, ubah, atau hapus kamar',
+            filled: true,
+            onTap: _deleting
                 ? null
                 : () => context.go('/properti/${p.id}/kamar'),
-            child: const Text('Kelola Kamar'),
           ),
-          const SizedBox(height: 4),
-          const Text('Tambah, ubah, atau hapus kamar'),
-          const SizedBox(height: 8),
-          FilledButton.tonal(
-            onPressed: _deleting
+          const SizedBox(height: NiscalaSpacing.m),
+          ActionCardRow(
+            icon: Icons.people_outline,
+            title: 'Kelola Penyewa',
+            subtitle: 'Daftarkan penyewa, atur masa sewa dan tagihan',
+            onTap: _deleting
                 ? null
                 : () => context.go('/properti/${p.id}/penyewa'),
-            child: const Text('Kelola Penyewa'),
           ),
-          const SizedBox(height: 4),
-          const Text('Daftarkan penyewa, atur masa sewa dan tagihan'),
-          formGap,
-          Semantics(
-            header: true,
-            child: Text('Pengelola Kost', style: theme.textTheme.titleSmall),
-          ),
-          if (p.managers.isEmpty)
-            const Text('Belum ada pengelola')
-          else ...[
-            Text('${p.managers.length} pengelola'),
-            Text(managers),
-          ],
-          formGap,
-          Semantics(
-            header: true,
-            child: Text(
-              'Rekening transfer sewa',
-              style: theme.textTheme.titleSmall,
+          if (isOwner) ...[
+            formGap,
+            DangerButton(
+              label: 'Hapus Properti',
+              onPressed: _deleting ? null : () => _askToDelete(p),
             ),
-          ),
-          if (bank == null)
-            const Text(_noBank)
-          else ...[
-            Text('${bank.bankName} · ${bank.accountNumber}'),
-            Text('a.n. ${bank.accountHolderName}'),
           ],
         ],
       ),

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/features/rooms/ui/room_detail_screen.dart';
@@ -115,7 +114,7 @@ void main() {
       await pumpRoomApp(tester, repo);
 
       expect(find.byType(ErrorView), findsOneWidget);
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text('Coba lagi'), findsOneWidget);
       expect(find.text('01'), findsNothing);
     });
@@ -153,7 +152,7 @@ void main() {
       await tester.tap(find.text('Coba lagi'));
       await tester.pumpAndSettle();
 
-      expect(find.text(errorMessage('INTERNAL_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('INTERNAL_ERROR')), findsOneWidget);
       expect(repo.listCalls, 2);
     });
   });
@@ -540,6 +539,39 @@ void main() {
     });
   });
 
+  group('structure', () {
+    testWidgets('shows exactly the three filter chips', (tester) async {
+      await pumpRoomApp(tester, _repo());
+
+      expect(
+        find.byWidgetPredicate(
+          (widget) => widget is ChoiceChip || widget is FilterChip,
+        ),
+        findsNWidgets(3),
+      );
+    });
+
+    testWidgets('every filter chip takes its look from the chip theme', (
+      tester,
+    ) async {
+      await pumpRoomApp(tester, _repo());
+
+      for (final label in ['Semua', 'Terisi', 'Kosong']) {
+        expectChipStyledByTheme(tester, label);
+      }
+    });
+
+    testWidgets('the selected chip keeps the chip theme look', (tester) async {
+      await pumpRoomApp(tester, _repo());
+
+      await tester.tap(filterChip('Terisi'));
+      await tester.pumpAndSettle();
+
+      expectChipStyledByTheme(tester, 'Terisi');
+      expectChipStyledByTheme(tester, 'Semua');
+    });
+  });
+
   group('accessibility', () {
     final states = <String, FakeRoomRepository Function()>{
       'loaded': _repo,
@@ -632,6 +664,8 @@ void main() {
       tester,
     ) async {
       await pumpRoomApp(tester, _repo([occupiedRoom()]), largeText: true);
+      await tester.ensureVisible(filterChip('Kosong'));
+      await tester.pumpAndSettle();
       await tester.tap(filterChip('Kosong'));
       await tester.pumpAndSettle();
 

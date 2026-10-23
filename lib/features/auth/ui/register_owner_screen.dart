@@ -4,7 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
+import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/auth/ui/auth_widgets.dart';
 
@@ -74,7 +77,7 @@ class _RegisterOwnerScreenState extends ConsumerState<RegisterOwnerScreen> {
   }
 
   void _showFailure(ApiFailure failure) {
-    final message = errorMessage(failure.code);
+    final message = errorMessageFor(failure, labels: personFormLabels);
     final field = switch (failure.code) {
       'EMAIL_ALREADY_REGISTERED' => 'email',
       'PASSWORD_TOO_COMMON' => 'password',
@@ -98,7 +101,8 @@ class _RegisterOwnerScreenState extends ConsumerState<RegisterOwnerScreen> {
   @override
   Widget build(BuildContext context) {
     return AuthPage(
-      appBar: AppBar(
+      appBar: DetailAppBar(
+        title: 'Daftar sebagai Pemilik Kost',
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back,
@@ -106,52 +110,55 @@ class _RegisterOwnerScreenState extends ConsumerState<RegisterOwnerScreen> {
           ),
           onPressed: () => context.go('/masuk'),
         ),
-        title: const Text('Daftar sebagai Pemilik Kost'),
+      ),
+      footer: ActionFooter(
+        primary: BusyButton(label: 'Daftar', busy: _busy, onPressed: _submit),
       ),
       children: [
         if (_banner != null) ...[FormMessage(_banner!), formGap],
-        TextField(
-          controller: _name,
-          decoration: InputDecoration(
-            labelText: 'Nama lengkap (wajib)',
-            errorText: _nameError,
+        LabeledField(
+          label: 'Nama lengkap',
+          required: true,
+          child: TextField(
+            controller: _name,
+            decoration: InputDecoration(errorText: _nameError),
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.name],
+            onChanged: (_) => setState(() {}),
           ),
-          textCapitalization: TextCapitalization.words,
-          textInputAction: TextInputAction.next,
-          autofillHints: const [AutofillHints.name],
-          onChanged: (_) => setState(() {}),
         ),
         formGap,
-        TextField(
-          controller: _email,
-          decoration: InputDecoration(
-            labelText: 'Email (wajib)',
-            helperText:
-                'Kode verifikasi dikirim ke email ini. Email juga dipakai '
-                'untuk mengatur ulang kata sandi.',
-            helperMaxLines: 4,
-            errorText: _emailError,
+        LabeledField(
+          label: 'Email',
+          required: true,
+          helper:
+              'Kode verifikasi dikirim ke email ini. Email juga dipakai '
+              'untuk mengatur ulang kata sandi.',
+          child: TextField(
+            controller: _email,
+            decoration: InputDecoration(errorText: _emailError),
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.email],
+            onChanged: (_) => setState(() {}),
           ),
-          keyboardType: TextInputType.emailAddress,
-          textInputAction: TextInputAction.next,
-          autofillHints: const [AutofillHints.email],
-          onChanged: (_) => setState(() {}),
         ),
         formGap,
-        TextField(
-          controller: _password,
-          decoration: InputDecoration(
-            labelText: 'Kata sandi (wajib)',
-            helperText:
-                'Minimal 8 karakter. Boleh berupa kalimat panjang, tanpa '
-                'aturan huruf atau simbol khusus.',
-            helperMaxLines: 4,
-            errorText: _passwordError,
+        LabeledField(
+          label: 'Kata sandi',
+          required: true,
+          helper:
+              'Minimal 8 karakter. Boleh berupa kalimat panjang, tanpa '
+              'aturan huruf atau simbol khusus.',
+          child: TextField(
+            controller: _password,
+            decoration: InputDecoration(errorText: _passwordError),
+            obscureText: !_showPassword,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.newPassword],
+            onChanged: (_) => setState(() {}),
           ),
-          obscureText: !_showPassword,
-          textInputAction: TextInputAction.next,
-          autofillHints: const [AutofillHints.newPassword],
-          onChanged: (_) => setState(() {}),
         ),
         PasswordStrengthHint(
           password: _password.text,
@@ -159,21 +166,20 @@ class _RegisterOwnerScreenState extends ConsumerState<RegisterOwnerScreen> {
           email: _email.text,
         ),
         formGap,
-        TextField(
-          controller: _confirm,
-          decoration: InputDecoration(
-            labelText: 'Konfirmasi kata sandi (wajib)',
-            errorText: _confirmError,
+        LabeledField(
+          label: 'Konfirmasi kata sandi',
+          required: true,
+          child: TextField(
+            controller: _confirm,
+            decoration: InputDecoration(errorText: _confirmError),
+            obscureText: !_showPassword,
+            autofillHints: const [AutofillHints.newPassword],
           ),
-          obscureText: !_showPassword,
-          autofillHints: const [AutofillHints.newPassword],
         ),
         ShowPasswordCheckbox(
           value: _showPassword,
           onChanged: (value) => setState(() => _showPassword = value),
         ),
-        formGap,
-        BusyButton(label: 'Daftar', busy: _busy, onPressed: _submit),
       ],
     );
   }

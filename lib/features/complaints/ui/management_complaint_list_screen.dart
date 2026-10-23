@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/filter_chip_row.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
 import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
 import 'package:niscala_api/api.dart';
@@ -40,30 +43,33 @@ class _ManagementComplaintListScreenState
   @override
   Widget build(BuildContext context) {
     final complaints = ref.watch(complaintListProvider);
-    return Scaffold(
-      appBar: AppBar(title: const Text('Keluhan')),
-      body: complaints.when(
-        skipLoadingOnReload: true,
-        loading: () => const Center(
+    return complaints.when(
+      skipLoadingOnReload: true,
+      loading: () => _listPage(
+        const Center(
           child: CircularProgressIndicator(semanticsLabel: 'Memuat'),
         ),
-        error: (error, _) => ErrorView(
+      ),
+      error: (error, _) => _listPage(
+        ErrorView(
           message: errorMessageFor(error),
           onRetry: () => ref.invalidate(complaintListProvider),
         ),
-        data: (items) {
-          if (items.isEmpty) return const EmptyState(message: _empty);
-          final shown = [
-            for (final complaint in items)
-              if (_filter == null || complaint.status == _filter) complaint,
-          ];
-          return ListView(
-            padding: const EdgeInsets.all(16),
+      ),
+      data: (items) {
+        if (items.isEmpty) {
+          return _listPage(const EmptyState(message: _empty));
+        }
+        final shown = [
+          for (final complaint in items)
+            if (_filter == null || complaint.status == _filter) complaint,
+        ];
+        return _listPage(
+          ListView(
+            padding: const EdgeInsets.all(NiscalaSpacing.gutter),
             children: [
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
+              FilterChipRow(
+                chips: [
                   for (final (label, status) in _filters)
                     ChoiceChip(
                       label: Text(label),
@@ -81,12 +87,24 @@ class _ManagementComplaintListScreenState
                   const SizedBox(height: 8),
                 ],
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
+
+/// The tab page: the header on top, the state below it. The header has no
+/// app bar, as a tab root does.
+Scaffold _listPage(Widget body) => Scaffold(
+  body: Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      const ScreenHeader(title: 'Keluhan'),
+      Expanded(child: body),
+    ],
+  ),
+);
 
 /// One complaint: its message, the room and tenant, the property and the
 /// date, and its status and classification.
