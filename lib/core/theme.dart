@@ -26,6 +26,25 @@ TextStyle _style(double size, FontWeight weight, Color color) => TextStyle(
   color: color,
 );
 
+/// The title of a detail app bar. The theme and the bar both use it.
+const detailTitleStyle = TextStyle(
+  fontFamily: _fontFamily,
+  fontSize: 17,
+  fontWeight: FontWeight.w700,
+  color: NiscalaColors.text,
+);
+
+/// The muted subtitle of a detail app bar. It keeps the letter spacing of the
+/// Material body small style, which changes where the text wraps.
+const detailSubtitleStyle = TextStyle(
+  fontFamily: _fontFamily,
+  fontSize: 12,
+  fontWeight: FontWeight.w500,
+  color: NiscalaColors.textMuted,
+  height: 1.5,
+  letterSpacing: 0.4,
+);
+
 /// The app theme. Every colour, type size and radius comes from the tokens;
 /// status badge colours are reached through the [NiscalaTokens] extension.
 ThemeData buildTheme() {
@@ -58,16 +77,12 @@ ThemeData buildTheme() {
   const text = NiscalaColors.text;
   final textTheme = TextTheme(
     headlineSmall: _style(22, FontWeight.w800, text),
-    titleLarge: _style(17, FontWeight.w700, text),
+    titleLarge: detailTitleStyle,
     titleMedium: _style(15, FontWeight.w700, text),
     titleSmall: _style(14, FontWeight.w700, text),
     bodyLarge: _style(15, FontWeight.w400, text).copyWith(height: 1.5),
     bodyMedium: _style(14, FontWeight.w400, text).copyWith(height: 1.5),
-    bodySmall: _style(
-      12,
-      FontWeight.w500,
-      NiscalaColors.textMuted,
-    ).copyWith(height: 1.5),
+    bodySmall: detailSubtitleStyle,
     labelLarge: _style(15, FontWeight.w700, text),
     labelMedium: _style(12, FontWeight.w600, NiscalaColors.textMuted),
     labelSmall: _style(11, FontWeight.w700, text),
@@ -100,7 +115,7 @@ ThemeData buildTheme() {
       titleSpacing: 0,
       actionsPadding: const EdgeInsets.only(right: 8),
       shape: const Border(bottom: BorderSide(color: NiscalaColors.divider)),
-      titleTextStyle: _style(17, FontWeight.w700, text),
+      titleTextStyle: detailTitleStyle,
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(

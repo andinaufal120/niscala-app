@@ -57,9 +57,9 @@ class _InvitationShareScreenState extends ConsumerState<InvitationShareScreen> {
         title: 'Undangan Penyewa',
         subtitle: property?.name,
         actions: [
-          IconButton(
+          DetailBarAction.icon(
+            icon: Icons.close,
             tooltip: 'Tutup',
-            icon: const Icon(Icons.close),
             onPressed: _goToList,
           ),
         ],

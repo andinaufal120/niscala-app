@@ -60,7 +60,7 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
     } on ApiFailure catch (failure) {
       if (!mounted) return;
       setState(() => _deleting = false);
-      await _showDeleteFailure(errorMessage(failure.code));
+      await _showDeleteFailure(errorMessageFor(failure));
       return;
     }
     if (!mounted) return;
@@ -95,13 +95,13 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
         subtitle: property?.name,
         actions: [
           if (loaded != null && loaded.editable)
-            TextButton(
+            DetailBarAction.text(
+              label: 'Ubah',
               onPressed: _deleting
                   ? null
                   : () => context.go(
                       '/properti/${widget.propertyId}/kamar/${widget.roomId}/ubah',
                     ),
-              child: const Text('Ubah'),
             ),
         ],
       ),

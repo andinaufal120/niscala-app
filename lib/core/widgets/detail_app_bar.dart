@@ -1,29 +1,119 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:niscala/core/theme.dart';
 import 'package:niscala/core/tokens.dart';
 
-/// The app bar of a screen that is not a tab root: a bold [title], an optional
+/// An action at the end of a [DetailAppBar]. A null [onPressed] disables it.
+///
+/// The bar sizes each action before it is built, and the title is laid out in
+/// the width that is left, so an action is drawn at exactly the width it was
+/// measured at.
+sealed class DetailBarAction {
+  const DetailBarAction({required this.onPressed});
+
+  /// A text button. It is at least 48 dp wide and grows with its label.
+  const factory DetailBarAction.text({
+    required String label,
+    required VoidCallback? onPressed,
+  }) = _TextAction;
+
+  /// A 48 dp square icon button. [tooltip] is what assistive technology reads.
+  const factory DetailBarAction.icon({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback? onPressed,
+  }) = _IconAction;
+
+  final VoidCallback? onPressed;
+
+  /// The width the action is drawn at, for the given text scale.
+  double width(TextScaler textScaler);
+
+  Widget build();
+}
+
+const _actionTextStyle = TextStyle(
+  fontFamily: 'PlusJakartaSans',
+  fontSize: 14,
+  fontWeight: FontWeight.w600,
+);
+
+final class _TextAction extends DetailBarAction {
+  const _TextAction({required this.label, required super.onPressed});
+
+  final String label;
+
+  @override
+  double width(TextScaler textScaler) {
+    final painter = TextPainter(
+      text: TextSpan(text: label, style: _actionTextStyle),
+      textDirection: TextDirection.ltr,
+      textScaler: textScaler,
+    )..layout();
+    final width = painter.width + 2 * _textActionPadding;
+    painter.dispose();
+    return math.max(_minTarget, width);
+  }
+
+  @override
+  Widget build() => TextButton(
+    onPressed: onPressed,
+    style: TextButton.styleFrom(
+      textStyle: _actionTextStyle,
+      padding: const EdgeInsets.symmetric(horizontal: _textActionPadding),
+    ),
+    child: Text(label),
+  );
+}
+
+final class _IconAction extends DetailBarAction {
+  const _IconAction({
+    required this.icon,
+    required this.tooltip,
+    required super.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+
+  @override
+  double width(TextScaler textScaler) => _minTarget;
+
+  @override
+  Widget build() =>
+      IconButton(tooltip: tooltip, icon: Icon(icon), onPressed: onPressed);
+}
+
+/// The app bar of a screen that is not a tab root: a bold title, an optional
 /// muted [subtitle] under it, and [actions] at the end.
 ///
-/// A route that can pop shows a back button unless [leading] is given. The
-/// title starts at the screen gutter, after the back button slot when there is
-/// one. Text wraps, and the bar is as tall as its wrapped text needs and never
-/// shorter than 56 dp.
+/// A route that can pop shows a back button when [showBack] is true, unless
+/// [leading] is given, which replaces it. The space for that button is kept
+/// whether or not the route can pop, so a bar has the same title width with or
+/// without one. The text wraps, and the bar is as tall as its wrapped text needs
+/// and never shorter than 56 dp.
 class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
   const DetailAppBar({
     super.key,
     required this.title,
     this.subtitle,
     this.actions,
+    this.showBack = true,
     this.leading,
   });
 
   final String title;
   final String? subtitle;
-  final List<Widget>? actions;
+  final List<DetailBarAction>? actions;
 
-  /// Replaces the default back button. A [SizedBox] leaves the slot empty.
+  /// Whether a route that can pop shows the back button. Ignored when [leading]
+  /// is given.
+  final bool showBack;
+
+  /// Replaces the back button. It is laid out at its own width, and at least
+  /// 48 dp wide. The height of the bar is measured for a leading of 48 dp, so a
+  /// wider leading leaves less room for the title.
   final Widget? leading;
 
   /// A [Scaffold] caps its app bar at this height and gives it exactly this
@@ -35,12 +125,14 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
     final platform = WidgetsBinding.instance.platformDispatcher;
     final view = platform.implicitView;
     if (view == null) return const Size.fromHeight(kToolbarHeight);
+    final textScaler = TextScaler.linear(platform.textScaleFactor);
     return Size.fromHeight(
       _barHeight(
         title: title,
         subtitle: subtitle,
-        hasActions: actions?.isNotEmpty ?? false,
-        textScaler: TextScaler.linear(platform.textScaleFactor),
+        reserveSlot: showBack || leading != null,
+        actionsWidth: _actionsWidth(actions ?? const [], textScaler),
+        textScaler: textScaler,
         width: view.physicalSize.width / view.devicePixelRatio,
       ),
     );
@@ -49,118 +141,126 @@ class DetailAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final textTheme = Theme.of(context).textTheme;
+    final textScaler = mediaQuery.textScaler;
     final subtitle = this.subtitle;
-    final hasActions = actions?.isNotEmpty ?? false;
+    final actions = this.actions ?? const <DetailBarAction>[];
+    final hasActions = actions.isNotEmpty;
     final leadingWidget =
-        leading ?? (Navigator.canPop(context) ? const BackButton() : null);
-    // A SizedBox is an empty slot: it takes no width, so the title starts at
-    // the gutter.
-    final hasSlot = leadingWidget != null && leadingWidget is! SizedBox;
+        leading ??
+        (showBack && Navigator.canPop(context) ? const BackButton() : null);
     final heading = MediaQuery(
       // The app bar clamps the text scale of its title. The bar keeps the
       // app's scale so the text and the toolbar height grow together.
       data: mediaQuery,
-      child: Padding(
-        padding: EdgeInsets.only(left: hasSlot ? 0 : _gutter),
-        child: SizedBox(
-          width: _titleWidth(
-            width: mediaQuery.size.width,
-            hasActions: hasActions,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Semantics(
-                header: true,
-                child: Text(
-                  title,
-                  style: textTheme.titleLarge,
-                  softWrap: true,
-                  overflow: TextOverflow.visible,
-                ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (leadingWidget != null)
+            ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: _slotWidth),
+              child: leadingWidget,
+            ),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: leadingWidget == null ? _gutter : 0,
+                // The space of a back button that is not shown stays empty.
+                right:
+                    (hasActions ? 0 : _gutter) +
+                    (leadingWidget == null && showBack ? _slotWidth : 0),
               ),
-              if (subtitle != null)
-                Text(
-                  subtitle,
-                  style: textTheme.bodySmall,
-                  softWrap: true,
-                  overflow: TextOverflow.visible,
-                ),
-            ],
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Semantics(
+                    header: true,
+                    child: Text(
+                      title,
+                      style: detailTitleStyle,
+                      softWrap: true,
+                      overflow: TextOverflow.visible,
+                    ),
+                  ),
+                  if (subtitle != null)
+                    Text(
+                      subtitle,
+                      style: detailSubtitleStyle,
+                      softWrap: true,
+                      overflow: TextOverflow.visible,
+                    ),
+                ],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
     final height = _barHeight(
       title: title,
       subtitle: subtitle,
-      hasActions: hasActions,
-      textScaler: mediaQuery.textScaler,
+      reserveSlot: showBack || leading != null,
+      actionsWidth: _actionsWidth(actions, textScaler),
+      textScaler: textScaler,
       width: mediaQuery.size.width,
     );
     return IconButtonTheme(
       data: const IconButtonThemeData(
         style: ButtonStyle(
-          minimumSize: WidgetStatePropertyAll(Size.square(48)),
+          minimumSize: WidgetStatePropertyAll(Size.square(_minTarget)),
         ),
       ),
       child: AppBar(
-        leading: leadingWidget,
-        leadingWidth: hasSlot ? _leadingWidth : 0,
+        automaticallyImplyLeading: false,
         title: heading,
         excludeHeaderSemantics: true,
         toolbarHeight: height,
         titleSpacing: 0,
         actionsPadding: const EdgeInsets.only(right: NiscalaSpacing.gutter),
-        actions: actions,
+        actions: [
+          for (final action in actions)
+            SizedBox(width: action.width(textScaler), child: action.build()),
+        ],
       ),
     );
   }
 }
 
-/// Title and subtitle styles of the app theme, as the bar lays them out. The
-/// subtitle keeps the letter spacing of the Material body small style, which
-/// the theme inherits, because that spacing changes where the text wraps.
-const _titleStyle = TextStyle(
-  fontFamily: 'PlusJakartaSans',
-  fontSize: 17,
-  fontWeight: FontWeight.w700,
-  color: NiscalaColors.text,
-);
-const _subtitleStyle = TextStyle(
-  fontFamily: 'PlusJakartaSans',
-  fontSize: 12,
-  fontWeight: FontWeight.w500,
-  color: NiscalaColors.textMuted,
-  height: 1.5,
-  letterSpacing: 0.4,
-);
-
-/// The back button slot, the gutter at the start and before the actions, the
-/// actions with their gutter, and the padding above and below the title block.
-const _leadingWidth = 56.0;
+const _minTarget = 48.0;
+const _slotWidth = 48.0;
 const _gutter = 20.0;
-const _actionsWidth = 68.0;
+const _textActionPadding = 12.0;
 const _verticalPadding = 16.0;
 
-/// The width of the title column. It is the same on every bar, with or without
-/// a back button, so a title wraps the same way on each bar and the measured
-/// height is the height that is laid out.
-double _titleWidth({required double width, required bool hasActions}) => math
-    .max(0, width - _leadingWidth - _gutter - (hasActions ? _actionsWidth : 0));
+double _actionsWidth(List<DetailBarAction> actions, TextScaler textScaler) =>
+    actions.fold(0, (sum, action) => sum + action.width(textScaler));
+
+/// The width of the title column: the bar width less the gutters, the back
+/// button slot when [reserveSlot] is set, and the actions.
+double _titleWidth({
+  required double width,
+  required bool reserveSlot,
+  required double actionsWidth,
+}) => math.max(
+  0,
+  width - _gutter - (reserveSlot ? _slotWidth : 0) - _gutter - actionsWidth,
+);
 
 /// The bar height for the wrapped title and subtitle plus padding, and never
 /// less than the 56 dp toolbar.
 double _barHeight({
   required String title,
   required String? subtitle,
-  required bool hasActions,
+  required bool reserveSlot,
+  required double actionsWidth,
   required TextScaler textScaler,
   required double width,
 }) {
-  final textWidth = _titleWidth(width: width, hasActions: hasActions);
+  final textWidth = _titleWidth(
+    width: width,
+    reserveSlot: reserveSlot,
+    actionsWidth: actionsWidth,
+  );
   double lines(String text, TextStyle style) {
     final painter = TextPainter(
       text: TextSpan(text: text, style: style),
@@ -173,7 +273,7 @@ double _barHeight({
   }
 
   final text =
-      lines(title, _titleStyle) +
-      (subtitle == null ? 0 : lines(subtitle, _subtitleStyle));
+      lines(title, detailTitleStyle) +
+      (subtitle == null ? 0 : lines(subtitle, detailSubtitleStyle));
   return math.max(kToolbarHeight, text + _verticalPadding);
 }

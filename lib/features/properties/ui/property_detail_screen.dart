@@ -96,14 +96,14 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
     return Scaffold(
       appBar: DetailAppBar(
         title: 'Rincian Properti',
-        leading: widget.showBack ? null : const SizedBox.shrink(),
+        showBack: widget.showBack,
         actions: [
           if (isOwner && loaded != null && loaded.editable)
-            TextButton(
+            DetailBarAction.text(
+              label: 'Ubah',
               onPressed: _deleting
                   ? null
                   : () => context.go('/properti/${loaded.id}/ubah'),
-              child: const Text('Ubah'),
             ),
         ],
       ),
