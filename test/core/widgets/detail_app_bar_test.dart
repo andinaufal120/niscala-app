@@ -17,7 +17,7 @@ const _subtitle = 'Kamar 08 · Budi Santoso';
 Widget _app({
   String title = _title,
   String? subtitle,
-  List<Widget>? actions,
+  List<DetailBarAction>? actions,
   bool canPop = false,
 }) {
   Widget bar() => Scaffold(
@@ -50,7 +50,7 @@ Future<void> _show(
   WidgetTester tester, {
   String title = _title,
   String? subtitle,
-  List<Widget>? actions,
+  List<DetailBarAction>? actions,
   bool canPop = false,
 }) async {
   await tester.pumpWidget(const SizedBox());
@@ -66,10 +66,10 @@ Future<void> _show(
 Finder _in(String text) =>
     find.descendant(of: find.byType(DetailAppBar), matching: find.text(text));
 
-Widget _action() => IconButton(
-  onPressed: () {},
+DetailBarAction _action() => DetailBarAction.icon(
+  icon: Icons.share,
   tooltip: 'Bagikan',
-  icon: const Icon(Icons.share),
+  onPressed: () {},
 );
 
 void main() {
@@ -328,11 +328,19 @@ void main() {
       await _show(
         tester,
         subtitle: _subtitle,
-        actions: [TextButton(onPressed: () {}, child: const Text('Ubah'))],
+        actions: [DetailBarAction.text(label: 'Ubah', onPressed: () {})],
       );
 
       expect(
-        screenWidth(tester) - tester.getRect(find.byType(TextButton)).right,
+        screenWidth(tester) -
+            tester
+                .getRect(
+                  find.ancestor(
+                    of: find.text('Ubah'),
+                    matching: find.bySubtype<ButtonStyleButton>(),
+                  ),
+                )
+                .right,
         closeTo(20, 0.5),
       );
     });
@@ -342,10 +350,10 @@ void main() {
       await _show(
         tester,
         actions: [
-          IconButton(
-            onPressed: () => taps++,
+          DetailBarAction.icon(
+            icon: Icons.share,
             tooltip: 'Bagikan',
-            icon: const Icon(Icons.share),
+            onPressed: () => taps++,
           ),
         ],
       );
@@ -366,7 +374,7 @@ void main() {
     Future<void> large(
       WidgetTester tester, {
       String? subtitle,
-      List<Widget>? actions,
+      List<DetailBarAction>? actions,
       String title = _title,
       bool canPop = false,
     }) async {

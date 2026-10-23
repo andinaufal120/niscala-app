@@ -139,8 +139,135 @@ void main() {
     test('keeps the message of a network failure', () {
       expect(
         errorMessageFor(const ApiFailure.network()),
-        errorMessage('NETWORK_ERROR'),
+        'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.',
       );
     });
+  });
+
+  group('personFormLabels', () {
+    test('names the name field as the full name', () {
+      expect(personFormLabels, {'name': 'Nama lengkap'});
+    });
+  });
+
+  group('validationMessage with labels', () {
+    test('uses the label given for the field instead of the default', () {
+      expect(
+        validationMessage('name', labels: personFormLabels),
+        'Nama lengkap tidak valid.',
+      );
+    });
+
+    test('keeps the default label of a field the labels do not name', () {
+      expect(
+        validationMessage('email', labels: personFormLabels),
+        'Email tidak valid.',
+      );
+      expect(
+        validationMessage('phone', labels: personFormLabels),
+        'Nomor telepon tidak valid.',
+      );
+    });
+
+    test('keeps the plain message for a field nobody knows', () {
+      expect(
+        validationMessage('managers', labels: personFormLabels),
+        _unknownField,
+      );
+      expect(validationMessage(null, labels: personFormLabels), _unknownField);
+    });
+
+    test('accepts an empty map and a null map like no labels', () {
+      expect(
+        validationMessage('name', labels: const {}),
+        'Nama properti tidak valid.',
+      );
+      expect(
+        validationMessage('name', labels: null),
+        'Nama properti tidak valid.',
+      );
+    });
+
+    test('uses any label map it is given', () {
+      expect(
+        validationMessage('address', labels: const {'address': 'Alamat kost'}),
+        'Alamat kost tidak valid.',
+      );
+    });
+
+    test('leaves the default table unchanged for later calls', () {
+      validationMessage('name', labels: personFormLabels);
+
+      expect(validationMessage('name'), 'Nama properti tidak valid.');
+    });
+  });
+
+  group('errorMessageFor with labels', () {
+    const nameFailure = ApiFailure(code: 'VALIDATION_FAILED', field: 'name');
+
+    test('uses the label for a validation failure on that field', () {
+      expect(
+        errorMessageFor(nameFailure, labels: personFormLabels),
+        'Nama lengkap tidak valid.',
+      );
+    });
+
+    test('keeps the property label without labels', () {
+      expect(errorMessageFor(nameFailure), 'Nama properti tidak valid.');
+    });
+
+    test('keeps the default label of other fields', () {
+      expect(
+        errorMessageFor(
+          const ApiFailure(code: 'VALIDATION_FAILED', field: 'email'),
+          labels: personFormLabels,
+        ),
+        'Email tidak valid.',
+      );
+    });
+
+    test('gives the plain message without a field', () {
+      expect(
+        errorMessageFor(
+          const ApiFailure(code: 'VALIDATION_FAILED'),
+          labels: personFormLabels,
+        ),
+        _unknownField,
+      );
+    });
+
+    test('does not change the message of other codes', () {
+      expect(
+        errorMessageFor(
+          const ApiFailure(code: 'ROOM_NUMBER_TAKEN', field: 'name'),
+          labels: personFormLabels,
+        ),
+        'Nomor kamar sudah dipakai.',
+      );
+      expect(
+        errorMessageFor(const ApiFailure.network(), labels: personFormLabels),
+        errorMessageFor(const ApiFailure.network()),
+      );
+    });
+
+    test('keeps the generic message for an unknown code', () {
+      expect(
+        errorMessageFor(
+          const ApiFailure(code: 'SOMETHING_NEW', field: 'name'),
+          labels: personFormLabels,
+        ),
+        _fallback,
+      );
+    });
+
+    test(
+      'keeps the generic message for an error that is not an ApiFailure',
+      () {
+        expect(
+          errorMessageFor(StateError('boom'), labels: personFormLabels),
+          _fallback,
+        );
+      },
+    );
   });
 }

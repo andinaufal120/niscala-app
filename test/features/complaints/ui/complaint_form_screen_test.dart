@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/complaints/ui/complaint_form_screen.dart';
@@ -116,7 +115,7 @@ void main() {
       await _submit(tester);
 
       expect(_error(tester), isNotNull);
-      expect(_error(tester), isNot(errorMessage('UNKNOWN')));
+      expect(_error(tester), isNot(messageOfCode('UNKNOWN')));
       expect(repo.submitCalls, 0);
       expect(currentPath(tester), '/penyewa/keluhan/baru');
     });
@@ -428,7 +427,7 @@ void main() {
 
       await _submit(tester);
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(labeledTextField(tester, _label).controller!.text, _valid);
       expect(repo.complaints, isEmpty);
     });
@@ -455,7 +454,7 @@ void main() {
 
       await tester.pump(const Duration(seconds: 30));
 
-      expectLiveRegion(tester, errorMessage('NETWORK_ERROR'));
+      expectLiveRegion(tester, messageOfCode('NETWORK_ERROR'));
     });
 
     testWidgets('retrying after a failure saves the complaint', (tester) async {
@@ -470,7 +469,7 @@ void main() {
       expect(repo.submitCalls, 2);
       expect(repo.complaints, hasLength(1));
       expect(find.text('Keluhan terkirim.'), findsOneWidget);
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsNothing);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
     });
 
     testWidgets('the banner goes away on the next submit', (tester) async {
@@ -480,11 +479,11 @@ void main() {
       await _open(tester, repo);
       await _write(tester, _valid);
       await _submit(tester);
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
 
       await _submit(tester);
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsNothing);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
       expect(find.text('Terjadi kesalahan. Coba lagi.'), findsOneWidget);
     });
 
@@ -500,7 +499,7 @@ void main() {
       await _write(tester, 'pendek');
       await _submit(tester);
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsNothing);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
       expect(_error(tester), isNotNull);
     });
   });

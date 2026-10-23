@@ -43,7 +43,10 @@ Room _vacant({bool editable = true}) =>
 
 Finder _appBarUbah() => find.descendant(
   of: find.byType(AppBar),
-  matching: find.widgetWithText(TextButton, 'Ubah'),
+  matching: find.ancestor(
+    of: find.text('Ubah'),
+    matching: find.bySubtype<ButtonStyleButton>(),
+  ),
 );
 
 Finder _badgeBox(String label) =>

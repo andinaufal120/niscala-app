@@ -851,7 +851,7 @@ void main() {
       await _fill(tester);
 
       expect(find.byType(ErrorView), findsNothing);
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsNothing);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
       expect(find.byType(SnackBar), findsNothing);
       await _addTag(tester, 'ac');
       await _submitAdd(tester);
@@ -1001,12 +1001,12 @@ void main() {
 
       expect(
         labeledFieldError(tester, _number),
-        errorMessage('ROOM_NUMBER_TAKEN'),
+        messageOfCode('ROOM_NUMBER_TAKEN'),
       );
       expect(labeledFieldError(tester, _number), 'Nomor kamar sudah dipakai.');
       expect(labeledFieldError(tester, _rate), isNull);
       expect(find.byType(RoomFormScreen), findsOneWidget);
-      expect(snackBar(errorMessage('ROOM_NUMBER_TAKEN')), findsNothing);
+      expect(snackBar(messageOfCode('ROOM_NUMBER_TAKEN')), findsNothing);
     });
 
     testWidgets('a rate error shows next to the rate field', (tester) async {
@@ -1205,7 +1205,7 @@ void main() {
       await _fill(tester);
       await _submitAdd(tester);
 
-      expectLiveRegion(tester, errorMessage('ROOM_LIMIT_REACHED'));
+      expectLiveRegion(tester, messageOfCode('ROOM_LIMIT_REACHED'));
     });
 
     testWidgets('the banner stays on screen until the next submit', (
@@ -1219,7 +1219,7 @@ void main() {
       await tester.pump(const Duration(seconds: 30));
       await tester.pumpAndSettle();
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
     });
 
     testWidgets('the banner goes away when the next submit starts', (
@@ -1233,7 +1233,7 @@ void main() {
 
       await tapAndPump(tester, find.text('Simpan Kamar'));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsNothing);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
       expectBusy(tester);
     });
 
@@ -1357,7 +1357,7 @@ void main() {
       await _pumpEdit(tester, repo);
 
       expect(find.byType(ErrorView), findsAtLeastNWidgets(1));
-      expect(find.text(errorMessage('ROOM_NOT_FOUND')), findsOneWidget);
+      expect(find.text(messageOfCode('ROOM_NOT_FOUND')), findsOneWidget);
       expect(appBarTitle('Ubah Kamar'), findsOneWidget);
       expect(fieldLabeled(_number), findsNothing);
     });
@@ -1516,7 +1516,7 @@ void main() {
 
       expect(
         labeledFieldError(tester, _number),
-        errorMessage('ROOM_NUMBER_TAKEN'),
+        messageOfCode('ROOM_NUMBER_TAKEN'),
       );
       expect(_text(tester, _number), '09');
       expect(find.byType(RoomFormScreen), findsOneWidget);
@@ -1543,9 +1543,9 @@ void main() {
 
         await _submitEdit(tester);
 
-        expect(find.text(errorMessage(code)), findsOneWidget);
-        expect(snackBar(errorMessage(code)), findsNothing);
-        expectLiveRegion(tester, errorMessage(code));
+        expect(find.text(messageOfCode(code)), findsOneWidget);
+        expect(snackBar(messageOfCode(code)), findsNothing);
+        expectLiveRegion(tester, messageOfCode(code));
         expect(snackBar('Perubahan tersimpan'), findsNothing);
       });
     }
@@ -1559,7 +1559,7 @@ void main() {
 
       await _submitEdit(tester);
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(_text(tester, _number), '12');
       expect(_chosen('ac'), findsOneWidget);
       expect(repo.rooms.single.number, '08');

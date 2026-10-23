@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/rooms/ui/room_detail_screen.dart';
@@ -430,7 +429,7 @@ void main() {
       await _open(tester, repo);
 
       expect(find.byType(ErrorView), findsOneWidget);
-      expect(find.text(errorMessage('TENANT_NOT_FOUND')), findsOneWidget);
+      expect(find.text(messageOfCode('TENANT_NOT_FOUND')), findsOneWidget);
       expect(find.text('Penyewa tidak ditemukan.'), findsOneWidget);
       expect(find.text('Masa sewa'), findsNothing);
     });
@@ -442,7 +441,7 @@ void main() {
       await _open(tester, repo);
 
       expect(find.byType(ErrorView), findsOneWidget);
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text('Coba lagi'), findsOneWidget);
     });
 

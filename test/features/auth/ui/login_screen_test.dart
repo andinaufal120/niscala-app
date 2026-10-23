@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/widgets/info_note.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
@@ -259,10 +258,10 @@ void main() {
 
   group('failures', () {
     final cases = {
-      'INVALID_CREDENTIALS': errorMessage('INVALID_CREDENTIALS'),
-      'TOO_MANY_LOGIN_ATTEMPTS': errorMessage('TOO_MANY_LOGIN_ATTEMPTS'),
-      'NETWORK_ERROR': errorMessage('NETWORK_ERROR'),
-      'INTERNAL_ERROR': errorMessage('INTERNAL_ERROR'),
+      'INVALID_CREDENTIALS': messageOfCode('INVALID_CREDENTIALS'),
+      'TOO_MANY_LOGIN_ATTEMPTS': messageOfCode('TOO_MANY_LOGIN_ATTEMPTS'),
+      'NETWORK_ERROR': messageOfCode('NETWORK_ERROR'),
+      'INTERNAL_ERROR': messageOfCode('INTERNAL_ERROR'),
       'SOMETHING_NEW': 'Terjadi kesalahan. Coba lagi.',
     };
 
@@ -290,13 +289,116 @@ void main() {
       expect(find.textContaining('INVALID_CREDENTIALS'), findsNothing);
     });
 
+    testWidgets('a validation failure on email is shown on the email field', (
+      tester,
+    ) async {
+      auth.loginFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'email',
+        statusCode: 422,
+      );
+      await pumpLogin(tester, auth);
+
+      await fillAndSubmit(tester);
+
+      expect(labeledFieldError(tester, _email), 'Email tidak valid.');
+      expect(labeledFieldError(tester, _password), isNull);
+      expect(find.text('Email tidak valid.'), findsOneWidget);
+      expect(find.text('Terjadi kesalahan. Coba lagi.'), findsNothing);
+      expect(find.byType(SnackBar), findsNothing);
+      expectFieldNode(tester, _email, error: 'Email tidak valid.');
+      expect(currentPath(tester), '/masuk');
+    });
+
+    testWidgets(
+      'a validation failure on password is shown on the password field',
+      (tester) async {
+        auth.loginFailure = const ApiFailure(
+          code: 'VALIDATION_FAILED',
+          field: 'password',
+          statusCode: 422,
+        );
+        await pumpLogin(tester, auth);
+
+        await fillAndSubmit(tester);
+
+        expect(labeledFieldError(tester, _password), 'Kata sandi tidak valid.');
+        expect(labeledFieldError(tester, _email), isNull);
+        expect(find.text('Kata sandi tidak valid.'), findsOneWidget);
+        expect(find.text('Terjadi kesalahan. Coba lagi.'), findsNothing);
+        expectFieldNode(tester, _password, error: 'Kata sandi tidak valid.');
+      },
+    );
+
+    testWidgets('a validation failure on another field is shown in a banner', (
+      tester,
+    ) async {
+      auth.loginFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'managers',
+        statusCode: 422,
+      );
+      await pumpLogin(tester, auth);
+
+      await fillAndSubmit(tester);
+
+      expect(find.text('Data tidak valid.'), findsOneWidget);
+      expect(labeledFieldError(tester, _email), isNull);
+      expect(labeledFieldError(tester, _password), isNull);
+    });
+
+    testWidgets('a validation failure without a field is shown in a banner', (
+      tester,
+    ) async {
+      auth.loginFailure = const ApiFailure(code: 'VALIDATION_FAILED');
+      await pumpLogin(tester, auth);
+
+      await fillAndSubmit(tester);
+
+      expect(find.text('Data tidak valid.'), findsOneWidget);
+      expect(labeledFieldError(tester, _email), isNull);
+      expect(labeledFieldError(tester, _password), isNull);
+    });
+
+    testWidgets('a code that is not a validation failure ignores its field', (
+      tester,
+    ) async {
+      auth.loginFailure = const ApiFailure(
+        code: 'INVALID_CREDENTIALS',
+        field: 'email',
+      );
+      await pumpLogin(tester, auth);
+
+      await fillAndSubmit(tester);
+
+      expect(find.text(messageOfCode('INVALID_CREDENTIALS')), findsOneWidget);
+      expect(labeledFieldError(tester, _email), isNull);
+    });
+
+    testWidgets('a field error from the server goes away on the next submit', (
+      tester,
+    ) async {
+      auth.loginFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'email',
+      );
+      await pumpLogin(tester, auth);
+      await fillAndSubmit(tester);
+      auth.loginFailure = null;
+
+      await tapVisible(tester, buttonLabelled('Masuk'));
+
+      expect(find.text('Email tidak valid.'), findsNothing);
+      expect(auth.logins, hasLength(2));
+    });
+
     testWidgets('keeps the banner on screen until the next submit', (
       tester,
     ) async {
       auth.loginFailure = const ApiFailure(code: 'INVALID_CREDENTIALS');
       await pumpLogin(tester, auth);
       await fillAndSubmit(tester);
-      final message = errorMessage('INVALID_CREDENTIALS');
+      final message = messageOfCode('INVALID_CREDENTIALS');
 
       await tester.pump(const Duration(seconds: 30));
       expect(find.text(message), findsOneWidget);
@@ -311,7 +413,7 @@ void main() {
 
       await fillAndSubmit(tester);
 
-      expectLiveRegion(tester, errorMessage('INVALID_CREDENTIALS'));
+      expectLiveRegion(tester, messageOfCode('INVALID_CREDENTIALS'));
     });
 
     testWidgets('removes the banner while the next request is in flight', (
@@ -324,7 +426,7 @@ void main() {
 
       await tapAndPump(tester, buttonLabelled('Masuk'));
 
-      expect(find.text(errorMessage('INVALID_CREDENTIALS')), findsNothing);
+      expect(find.text(messageOfCode('INVALID_CREDENTIALS')), findsNothing);
       expect(auth.logins, hasLength(2));
     });
 
@@ -678,6 +780,37 @@ void main() {
       await expectMeetsA11yGuidelines(tester);
     });
 
+    testWidgets('meets the guidelines with errors from the server', (
+      tester,
+    ) async {
+      auth.loginFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'email',
+      );
+      await pumpLogin(tester, auth);
+      await fillAndSubmit(tester);
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+
+    testWidgets('fits at large text size with errors from the server', (
+      tester,
+    ) async {
+      auth.loginFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'password',
+      );
+      await pumpAtLargeText(tester, buildTestApp(auth: auth));
+      await tester.pumpAndSettle();
+      await typeInto(tester, _email, 'budi@example.com');
+      await typeInto(tester, _password, 'rahasia panjang');
+
+      await tapVisible(tester, buttonLabelled('Masuk'));
+
+      expect(labeledFieldError(tester, _password), 'Kata sandi tidak valid.');
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('meets the guidelines while a request is in flight', (
       tester,
     ) async {
@@ -737,7 +870,7 @@ void main() {
       await tapVisible(tester, buttonLabelled('Masuk'));
 
       expect(
-        find.text(errorMessage('TOO_MANY_LOGIN_ATTEMPTS')),
+        find.text(messageOfCode('TOO_MANY_LOGIN_ATTEMPTS')),
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/register_owner_screen.dart';
@@ -358,10 +357,10 @@ void main() {
 
       expect(
         fieldError(tester, _email),
-        errorMessage('EMAIL_ALREADY_REGISTERED'),
+        messageOfCode('EMAIL_ALREADY_REGISTERED'),
       );
       expect(
-        find.text(errorMessage('EMAIL_ALREADY_REGISTERED')),
+        find.text(messageOfCode('EMAIL_ALREADY_REGISTERED')),
         findsOneWidget,
       );
       expect(find.byType(RegisterOwnerScreen), findsOneWidget);
@@ -379,10 +378,10 @@ void main() {
 
         expect(
           fieldError(tester, _email),
-          errorMessage('EMAIL_ALREADY_REGISTERED'),
+          messageOfCode('EMAIL_ALREADY_REGISTERED'),
         );
         expect(
-          find.text(errorMessage('EMAIL_ALREADY_REGISTERED')),
+          find.text(messageOfCode('EMAIL_ALREADY_REGISTERED')),
           findsOneWidget,
         );
       },
@@ -401,10 +400,10 @@ void main() {
 
       expect(
         fieldError(tester, _password),
-        errorMessage('PASSWORD_TOO_COMMON'),
+        messageOfCode('PASSWORD_TOO_COMMON'),
       );
       expect(fieldError(tester, _email), isNull);
-      expect(find.text(errorMessage('PASSWORD_TOO_COMMON')), findsOneWidget);
+      expect(find.text(messageOfCode('PASSWORD_TOO_COMMON')), findsOneWidget);
     });
 
     testWidgets(
@@ -417,7 +416,7 @@ void main() {
 
         expect(
           fieldError(tester, _password),
-          errorMessage('PASSWORD_TOO_COMMON'),
+          messageOfCode('PASSWORD_TOO_COMMON'),
         );
       },
     );
@@ -448,6 +447,22 @@ void main() {
         },
       );
     }
+
+    testWidgets('a validation failure on name says the full name is invalid', (
+      tester,
+    ) async {
+      auth.registerFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'name',
+        statusCode: 422,
+      );
+      await pumpRegister(tester, auth);
+
+      await fillAndSubmit(tester);
+
+      expect(fieldError(tester, _name), 'Nama lengkap tidak valid.');
+      expect(find.text('Nama properti tidak valid.'), findsNothing);
+    });
 
     testWidgets('a validation failure on email says the email is invalid', (
       tester,
@@ -485,8 +500,8 @@ void main() {
     );
 
     final bannerCases = {
-      'NETWORK_ERROR': errorMessage('NETWORK_ERROR'),
-      'INTERNAL_ERROR': errorMessage('INTERNAL_ERROR'),
+      'NETWORK_ERROR': messageOfCode('NETWORK_ERROR'),
+      'INTERNAL_ERROR': messageOfCode('INTERNAL_ERROR'),
       'SOMETHING_NEW': 'Terjadi kesalahan. Coba lagi.',
     };
     for (final entry in bannerCases.entries) {
@@ -514,8 +529,8 @@ void main() {
 
       await tester.pump(const Duration(seconds: 30));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
-      expectLiveRegion(tester, errorMessage('NETWORK_ERROR'));
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
+      expectLiveRegion(tester, messageOfCode('NETWORK_ERROR'));
     });
 
     testWidgets('the banner goes away when the next request starts', (
@@ -528,7 +543,7 @@ void main() {
 
       await tapAndPump(tester, buttonLabelled('Daftar'));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsNothing);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
       expect(auth.registrations, hasLength(2));
     });
 
@@ -985,7 +1000,7 @@ void main() {
 
       await tapVisible(tester, buttonLabelled('Daftar'));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

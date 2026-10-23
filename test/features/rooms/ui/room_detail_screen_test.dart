@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/rooms/ui/room_detail_screen.dart';
@@ -312,7 +311,7 @@ void main() {
       await _openDetail(tester, repo);
 
       expect(find.byType(ErrorView), findsOneWidget);
-      expect(find.text(errorMessage('ROOM_NOT_FOUND')), findsOneWidget);
+      expect(find.text(messageOfCode('ROOM_NOT_FOUND')), findsOneWidget);
       expect(find.text('Hapus Kamar'), findsNothing);
       expect(inAppBar('Ubah'), findsNothing);
     });
@@ -534,7 +533,7 @@ void main() {
 
       expect(find.text('Kamar belum bisa dihapus'), findsOneWidget);
       expect(find.text(_activeLease), findsOneWidget);
-      expect(find.text(errorMessage('ROOM_HAS_ACTIVE_LEASE')), findsOneWidget);
+      expect(find.text(messageOfCode('ROOM_HAS_ACTIVE_LEASE')), findsOneWidget);
       expect(find.text('Mengerti'), findsOneWidget);
       expect(snackBar('Kamar dihapus'), findsNothing);
       expect(repo.rooms, hasLength(2));
@@ -548,7 +547,40 @@ void main() {
       await _confirmDelete(tester);
 
       expect(find.text('Kamar belum bisa dihapus'), findsOneWidget);
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
+    });
+
+    testWidgets(
+      'a validation failure without a field shows the plain message',
+      (tester) async {
+        final repo = _repo()
+          ..deleteScript.always = const ApiFailure(code: 'VALIDATION_FAILED');
+        await _openDetail(tester, repo);
+        await _askToDelete(tester);
+
+        await _confirmDelete(tester);
+
+        expect(find.text('Kamar belum bisa dihapus'), findsOneWidget);
+        expect(find.text('Data tidak valid.'), findsOneWidget);
+        expect(find.text('Terjadi kesalahan. Coba lagi.'), findsNothing);
+      },
+    );
+
+    testWidgets('a validation failure names its field in the dialog', (
+      tester,
+    ) async {
+      final repo = _repo()
+        ..deleteScript.always = const ApiFailure(
+          code: 'VALIDATION_FAILED',
+          field: 'number',
+        );
+      await _openDetail(tester, repo);
+      await _askToDelete(tester);
+
+      await _confirmDelete(tester);
+
+      expect(find.text('Nomor kamar tidak valid.'), findsOneWidget);
+      expect(find.text('Terjadi kesalahan. Coba lagi.'), findsNothing);
     });
 
     testWidgets('a failure with an unknown code shows the generic message', (

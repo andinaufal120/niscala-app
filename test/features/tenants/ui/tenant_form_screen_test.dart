@@ -471,7 +471,7 @@ void main() {
       await _open(tester, _repo(), rooms: rooms);
 
       expect(find.byType(ErrorView), findsOneWidget);
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text('Coba lagi'), findsOneWidget);
       expect(fieldLabeled(_name), findsNothing);
     });
@@ -1821,7 +1821,7 @@ void main() {
       await _fill(tester);
       await _submit(tester);
 
-      expectLiveRegion(tester, errorMessage('PROPERTY_READ_ONLY'));
+      expectLiveRegion(tester, messageOfCode('PROPERTY_READ_ONLY'));
     });
 
     testWidgets('the banner stays on screen until the next submit', (
@@ -1835,7 +1835,7 @@ void main() {
       await tester.pump(const Duration(seconds: 30));
       await tester.pumpAndSettle();
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
     });
 
     testWidgets('the banner goes away when the next submit starts', (
@@ -1849,7 +1849,7 @@ void main() {
 
       await _tapFirstSave(tester);
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsNothing);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
       expectBusy(tester);
     });
 

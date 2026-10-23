@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/screen_header.dart';
@@ -248,7 +247,7 @@ void main() {
       await pumpPropertyApp(tester, repo);
 
       expect(find.byType(ErrorView), findsOneWidget);
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text('Coba lagi'), findsOneWidget);
       expect(find.text('Kos Melati'), findsNothing);
     });
@@ -287,7 +286,7 @@ void main() {
       await tester.tap(find.text('Coba lagi'));
       await tester.pumpAndSettle();
 
-      expect(find.text(errorMessage('INTERNAL_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('INTERNAL_ERROR')), findsOneWidget);
       expect(repo.listCalls, 2);
     });
   });

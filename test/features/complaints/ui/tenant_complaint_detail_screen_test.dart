@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
@@ -417,7 +416,7 @@ void main() {
       await tester.tap(find.text(_refresh));
       await tester.pumpAndSettle();
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text('Coba lagi'), findsOneWidget);
     });
 
@@ -511,7 +510,7 @@ void main() {
       final repo = _repo()..getScript.always = const ApiFailure.network();
       await _open(tester, repo);
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text(_description), findsNothing);
     });
 

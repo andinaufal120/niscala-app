@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
@@ -287,7 +286,7 @@ void main() {
 
       expect(store.stored?.emailVerified, isTrue);
       expect(currentPath(tester), '/beranda');
-      expect(find.text(errorMessage('EMAIL_ALREADY_VERIFIED')), findsNothing);
+      expect(find.text(messageOfCode('EMAIL_ALREADY_VERIFIED')), findsNothing);
     });
   });
 
@@ -302,8 +301,8 @@ void main() {
 
         await verifyWith(tester, '123456');
 
-        expect(fieldError(tester, _code), errorMessage(code));
-        expect(find.text(errorMessage(code)), findsOneWidget);
+        expect(fieldError(tester, _code), messageOfCode(code));
+        expect(find.text(messageOfCode(code)), findsOneWidget);
         expect(currentPath(tester), '/verifikasi-email');
         expect(store.stored?.emailVerified, isFalse);
       });
@@ -316,7 +315,7 @@ void main() {
 
         await verifyWith(tester, '123456');
 
-        expect(find.text(errorMessage(code)), findsOneWidget);
+        expect(find.text(messageOfCode(code)), findsOneWidget);
         expect(fieldError(tester, _code), isNull);
         expect(find.byType(SnackBar), findsNothing);
         expect(currentPath(tester), '/verifikasi-email');
@@ -330,8 +329,8 @@ void main() {
 
       await tester.pump(const Duration(seconds: 30));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
-      expectLiveRegion(tester, errorMessage('NETWORK_ERROR'));
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
+      expectLiveRegion(tester, messageOfCode('NETWORK_ERROR'));
     });
 
     testWidgets('the banner goes away when the next request starts', (
@@ -344,7 +343,7 @@ void main() {
 
       await tapAndPump(tester, buttonLabelled('Verifikasi'));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsNothing);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
       expect(auth.confirmations, hasLength(2));
     });
 
@@ -409,7 +408,7 @@ void main() {
       await tapVisible(tester, buttonLabelled('Kirim ulang'));
 
       expect(
-        find.text(errorMessage('VERIFICATION_CODE_TOO_SOON')),
+        find.text(messageOfCode('VERIFICATION_CODE_TOO_SOON')),
         findsOneWidget,
       );
       expect(find.text('Kode baru dikirim.'), findsNothing);
@@ -423,7 +422,7 @@ void main() {
 
         await tapVisible(tester, buttonLabelled('Kirim ulang'));
 
-        expect(find.text(errorMessage(code)), findsOneWidget);
+        expect(find.text(messageOfCode(code)), findsOneWidget);
         expect(find.text('Kode baru dikirim.'), findsNothing);
       });
     }
@@ -847,7 +846,7 @@ void main() {
 
       await tapVisible(tester, buttonLabelled('Verifikasi'));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

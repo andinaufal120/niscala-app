@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/section_card.dart';
@@ -250,7 +249,7 @@ void main() {
       await _openDetail(tester, repo);
 
       expect(find.byType(ErrorView), findsOneWidget);
-      expect(find.text(errorMessage('PROPERTY_NOT_FOUND')), findsOneWidget);
+      expect(find.text(messageOfCode('PROPERTY_NOT_FOUND')), findsOneWidget);
       expect(find.text('Hapus Properti'), findsNothing);
     });
 
@@ -656,7 +655,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Properti belum bisa dihapus'), findsOneWidget);
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text('Mengerti'), findsOneWidget);
       expect(snackBar('Properti dihapus'), findsNothing);
     });

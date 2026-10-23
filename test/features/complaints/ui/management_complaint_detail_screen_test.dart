@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
 import 'package:niscala/features/complaints/ui/management_complaint_detail_screen.dart';
@@ -486,7 +485,7 @@ void main() {
       final repo = _repo()..getScript.always = const ApiFailure.network();
       await _open(tester, repo);
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(find.text(_description), findsNothing);
     });
 
@@ -497,7 +496,7 @@ void main() {
         ..getScript.always = const ApiFailure(code: 'FORBIDDEN');
       await _open(tester, repo);
 
-      expect(find.text(errorMessage('FORBIDDEN')), findsOneWidget);
+      expect(find.text(messageOfCode('FORBIDDEN')), findsOneWidget);
     });
 
     testWidgets('Coba lagi loads the complaint again', (tester) async {

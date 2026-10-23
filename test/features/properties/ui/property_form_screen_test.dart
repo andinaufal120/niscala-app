@@ -615,7 +615,7 @@ void main() {
       await _fillRequired(tester);
       await _submitAdd(tester);
 
-      expectLiveRegion(tester, errorMessage('PROPERTY_LIMIT_REACHED'));
+      expectLiveRegion(tester, messageOfCode('PROPERTY_LIMIT_REACHED'));
     });
 
     testWidgets('the banner stays on screen until the next submit', (
@@ -630,7 +630,7 @@ void main() {
       await tester.pump(const Duration(seconds: 30));
       await tester.pumpAndSettle();
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
     });
 
     testWidgets('the banner goes away when the next submit starts', (
@@ -645,7 +645,7 @@ void main() {
 
       await tapAndPump(tester, find.text('Simpan Properti'));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsNothing);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
       expectBusy(tester);
     });
 
@@ -743,7 +743,7 @@ void main() {
       await _pumpEdit(tester, repo);
 
       expect(find.byType(ErrorView), findsAtLeastNWidgets(1));
-      expect(find.text(errorMessage('PROPERTY_NOT_FOUND')), findsOneWidget);
+      expect(find.text(messageOfCode('PROPERTY_NOT_FOUND')), findsOneWidget);
       expect(fieldLabeled(_name), findsNothing);
     });
 
@@ -910,7 +910,7 @@ void main() {
 
       expect(
         labeledFieldError(tester, _name),
-        errorMessage('PROPERTY_NAME_TAKEN'),
+        messageOfCode('PROPERTY_NAME_TAKEN'),
       );
       expect(_text(tester, _name), 'Kos Mawar');
       expect(find.byType(PropertyFormScreen), findsOneWidget);
@@ -923,9 +923,9 @@ void main() {
 
       await _submitEdit(tester);
 
-      expect(find.text(errorMessage('PROPERTY_READ_ONLY')), findsOneWidget);
-      expect(snackBar(errorMessage('PROPERTY_READ_ONLY')), findsNothing);
-      expectLiveRegion(tester, errorMessage('PROPERTY_READ_ONLY'));
+      expect(find.text(messageOfCode('PROPERTY_READ_ONLY')), findsOneWidget);
+      expect(snackBar(messageOfCode('PROPERTY_READ_ONLY')), findsNothing);
+      expectLiveRegion(tester, messageOfCode('PROPERTY_READ_ONLY'));
       expect(snackBar('Perubahan tersimpan'), findsNothing);
     });
 
@@ -939,7 +939,7 @@ void main() {
 
       await _submitEdit(tester);
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(_text(tester, _name), 'Kos Melati Baru');
       expect(repo.properties.single.name, 'Kos Melati');
     });
@@ -971,7 +971,7 @@ void main() {
       await _openReauthDialog(tester, repo);
 
       expect(
-        find.text(errorMessage('REAUTHENTICATION_REQUIRED')),
+        find.text(messageOfCode('REAUTHENTICATION_REQUIRED')),
         findsOneWidget,
       );
     });
@@ -1088,7 +1088,10 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(_dialog(), findsOneWidget);
-        expect(_inDialog(find.text(errorMessage(entry.value))), findsOneWidget);
+        expect(
+          _inDialog(find.text(messageOfCode(entry.value))),
+          findsOneWidget,
+        );
         expect(repo.updated, hasLength(1));
         expect(snackBar('Perubahan tersimpan'), findsNothing);
       });
@@ -1126,7 +1129,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          _inDialog(find.text(errorMessage('NETWORK_ERROR'))),
+          _inDialog(find.text(messageOfCode('NETWORK_ERROR'))),
           findsOneWidget,
         );
       },
@@ -1177,7 +1180,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(_dialog(), findsNothing);
-      expect(find.text(errorMessage('PROPERTY_READ_ONLY')), findsOneWidget);
+      expect(find.text(messageOfCode('PROPERTY_READ_ONLY')), findsOneWidget);
       expect(repo.updated, hasLength(2));
       expect(find.byType(PropertyFormScreen), findsOneWidget);
     });
@@ -1306,7 +1309,7 @@ void main() {
       expectFieldNode(
         tester,
         _name,
-        error: errorMessage('PROPERTY_NAME_TAKEN'),
+        error: messageOfCode('PROPERTY_NAME_TAKEN'),
       );
     });
 

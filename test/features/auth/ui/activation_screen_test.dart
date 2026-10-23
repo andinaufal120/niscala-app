@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/features/auth/ui/activation_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
@@ -360,7 +359,7 @@ void main() {
 
       await continueWith(tester, _tokenLink);
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(field(_name), findsNothing);
       expect(find.byType(SnackBar), findsNothing);
     });
@@ -376,7 +375,7 @@ void main() {
 
       await continueWith(tester, _tokenLink);
 
-      expect(find.text(errorMessage('INTERNAL_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('INTERNAL_ERROR')), findsOneWidget);
     });
 
     testWidgets('an unknown error code shows the generic message', (
@@ -442,7 +441,7 @@ void main() {
 
       await tapAndPump(tester, buttonLabelled('Lanjut'));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsNothing);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
       expect(invitations.previews, hasLength(2));
     });
 
@@ -1047,7 +1046,7 @@ void main() {
 
       expect(
         fieldError(tester, _email),
-        errorMessage('EMAIL_ALREADY_REGISTERED'),
+        messageOfCode('EMAIL_ALREADY_REGISTERED'),
       );
       expect(fieldError(tester, _password), isNull);
       expect(find.byType(ActivationScreen), findsOneWidget);
@@ -1065,7 +1064,7 @@ void main() {
 
         expect(
           fieldError(tester, _email),
-          errorMessage('EMAIL_ALREADY_REGISTERED'),
+          messageOfCode('EMAIL_ALREADY_REGISTERED'),
         );
       },
     );
@@ -1083,7 +1082,7 @@ void main() {
 
       expect(
         fieldError(tester, _password),
-        errorMessage('PASSWORD_TOO_COMMON'),
+        messageOfCode('PASSWORD_TOO_COMMON'),
       );
       expect(fieldError(tester, _email), isNull);
     });
@@ -1100,7 +1099,7 @@ void main() {
 
         expect(
           fieldError(tester, _password),
-          errorMessage('PASSWORD_TOO_COMMON'),
+          messageOfCode('PASSWORD_TOO_COMMON'),
         );
       },
     );
@@ -1132,9 +1131,40 @@ void main() {
       );
     }
 
+    testWidgets('a validation failure on name says the full name is invalid', (
+      tester,
+    ) async {
+      invitations.activateFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'name',
+        statusCode: 422,
+      );
+      await pumpForm(tester, invitations);
+
+      await fillAndSubmit(tester);
+
+      expect(fieldError(tester, _name), 'Nama lengkap tidak valid.');
+      expect(find.text('Nama properti tidak valid.'), findsNothing);
+    });
+
+    testWidgets('a validation failure on email says the email is invalid', (
+      tester,
+    ) async {
+      invitations.activateFailure = const ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'email',
+        statusCode: 422,
+      );
+      await pumpForm(tester, invitations);
+
+      await fillAndSubmit(tester);
+
+      expect(fieldError(tester, _email), 'Email tidak valid.');
+    });
+
     final bannerCases = {
-      'NETWORK_ERROR': errorMessage('NETWORK_ERROR'),
-      'INTERNAL_ERROR': errorMessage('INTERNAL_ERROR'),
+      'NETWORK_ERROR': messageOfCode('NETWORK_ERROR'),
+      'INTERNAL_ERROR': messageOfCode('INTERNAL_ERROR'),
       'SOMETHING_NEW': 'Terjadi kesalahan. Coba lagi.',
     };
     for (final entry in bannerCases.entries) {
@@ -1162,8 +1192,8 @@ void main() {
 
       await tester.pump(const Duration(seconds: 30));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
-      expectLiveRegion(tester, errorMessage('NETWORK_ERROR'));
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
+      expectLiveRegion(tester, messageOfCode('NETWORK_ERROR'));
     });
 
     testWidgets('the banner goes away when the next request starts', (
@@ -1176,7 +1206,7 @@ void main() {
 
       await tapAndPump(tester, buttonLabelled('Aktifkan Akun'));
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsNothing);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
       expect(invitations.activations, hasLength(2));
     });
 
@@ -1807,7 +1837,7 @@ void main() {
 
       await submit(tester);
 
-      expect(find.text(errorMessage('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

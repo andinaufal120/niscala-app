@@ -44,7 +44,10 @@ Future<void> _open(
 
 Finder _appBarUbah() => find.descendant(
   of: find.byType(AppBar),
-  matching: find.widgetWithText(TextButton, 'Ubah'),
+  matching: find.ancestor(
+    of: find.text('Ubah'),
+    matching: find.bySubtype<ButtonStyleButton>(),
+  ),
 );
 
 Finder _cardOf(String text) =>
