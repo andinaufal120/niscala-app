@@ -38,6 +38,9 @@ const _messages = {
   'ROOM_NOT_VACANT': 'Kamar sudah terisi.',
   'TENANT_NOT_FOUND': 'Penyewa tidak ditemukan.',
   'INVITATION_NOT_FOUND': 'Undangan tidak ditemukan. Periksa tautan Anda.',
+  'NO_ACTIVE_LEASE':
+      'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.',
+  'COMPLAINT_NOT_FOUND': 'Keluhan tidak ditemukan.',
   'FORBIDDEN': 'Anda tidak memiliki akses untuk tindakan ini.',
   'ACCESS_TOKEN_INVALID': _sessionEnded,
   'REFRESH_TOKEN_INVALID': _sessionEnded,

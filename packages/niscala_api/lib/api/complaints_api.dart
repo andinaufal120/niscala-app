@@ -140,7 +140,7 @@ class ComplaintsApi {
 
   /// Create Complaint
   ///
-  /// Submit a complaint as the calling tenant.
+  /// Submit a complaint as the calling tenant.  The complaint is saved before it is classified in the background.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -174,7 +174,7 @@ class ComplaintsApi {
 
   /// Create Complaint
   ///
-  /// Submit a complaint as the calling tenant.
+  /// Submit a complaint as the calling tenant.  The complaint is saved before it is classified in the background.
   ///
   /// Parameters:
   ///
