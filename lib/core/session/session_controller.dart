@@ -56,6 +56,14 @@ final refreshTokensProvider = Provider<Future<AuthTokens> Function(String)>((
 final sessionControllerProvider =
     NotifierProvider<SessionController, SessionState>(SessionController.new);
 
+/// The role of the signed-in user, or null when no one is signed in.
+final currentRoleProvider = Provider<UserRole?>((ref) {
+  return switch (ref.watch(sessionControllerProvider)) {
+    SignedIn(:final role) => role,
+    _ => null,
+  };
+});
+
 class SessionController extends Notifier<SessionState> implements TokenSource {
   StoredSession? _session;
   Future<bool>? _refreshing;

@@ -7,6 +7,7 @@ import 'package:niscala/app.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
+import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/session/session_store.dart';
 import 'package:niscala/core/theme.dart';
@@ -169,18 +170,177 @@ class FakeAuthRepository implements AuthRepository {
   }
 }
 
+/// Scripts the outcome of one repository method.
+///
+/// Each call first takes the next entry of [queue] (null means success), and
+/// falls back to [always] when the queue is empty. While [gate] is set, every
+/// call is held in flight until it completes.
+class CallScript {
+  final queue = <ApiFailure?>[];
+  ApiFailure? always;
+  Completer<void>? gate;
+
+  /// Waits for the gate, then returns the failure to throw, if any.
+  Future<ApiFailure?> next() async {
+    final failure = queue.isNotEmpty ? queue.removeAt(0) : always;
+    await gate?.future;
+    return failure;
+  }
+}
+
+/// A [Property] with sensible defaults; vacant rooms are derived.
+Property makeProperty({
+  String id = 'p1',
+  String name = 'Kos Melati',
+  String address = 'Jl. Melati 1, Bandung',
+  BankAccount? bankAccount,
+  int roomCount = 10,
+  int occupiedRoomCount = 4,
+  List<ManagerRef> managers = const [],
+  bool editable = true,
+}) => Property(
+  id: id,
+  name: name,
+  address: address,
+  bankAccount: bankAccount,
+  roomCount: roomCount,
+  occupiedRoomCount: occupiedRoomCount,
+  vacantRoomCount: roomCount - occupiedRoomCount,
+  managers: managers,
+  editable: editable,
+);
+
+/// A [PropertyRepository] that keeps the properties in memory and records its
+/// calls.
+///
+/// [list] returns summaries of [properties]; [create], [update] and [delete]
+/// change [properties] only when the call succeeds. Script failures and gates
+/// per method with the `*Script` fields. Every call is also appended to
+/// [calls] in order, as `list`, `get:<id>`, `create`, `update:<id>`,
+/// `delete:<id>` or `reauthenticate`.
+class FakePropertyRepository implements PropertyRepository {
+  FakePropertyRepository({List<Property>? properties})
+    : properties = properties ?? [];
+
+  final List<Property> properties;
+
+  final calls = <String>[];
+  final created = <PropertyInput>[];
+  final updated = <({String id, PropertyInput input})>[];
+  final deleted = <String>[];
+  final reauthentications = <String>[];
+
+  final listScript = CallScript();
+  final getScript = CallScript();
+  final createScript = CallScript();
+  final updateScript = CallScript();
+  final deleteScript = CallScript();
+  final reauthScript = CallScript();
+
+  var _nextId = 1;
+
+  int get listCalls => calls.where((c) => c == 'list').length;
+  int get getCalls => calls.where((c) => c.startsWith('get:')).length;
+
+  @override
+  Future<List<PropertySummary>> list() async {
+    calls.add('list');
+    final failure = await listScript.next();
+    if (failure != null) throw failure;
+    return [
+      for (final p in properties)
+        PropertySummary(
+          id: p.id,
+          name: p.name,
+          address: p.address,
+          roomCount: p.roomCount,
+          occupiedRoomCount: p.occupiedRoomCount,
+          managers: p.managers,
+          editable: p.editable,
+        ),
+    ];
+  }
+
+  @override
+  Future<Property> get(String id) async {
+    calls.add('get:$id');
+    final failure = await getScript.next();
+    if (failure != null) throw failure;
+    return properties.firstWhere((p) => p.id == id);
+  }
+
+  @override
+  Future<Property> create(PropertyInput input) async {
+    calls.add('create');
+    created.add(input);
+    final failure = await createScript.next();
+    if (failure != null) throw failure;
+    final property = makeProperty(
+      id: 'new-${_nextId++}',
+      name: input.name,
+      address: input.address,
+      bankAccount: input.bankAccount,
+      roomCount: 0,
+      occupiedRoomCount: 0,
+    );
+    properties.add(property);
+    return property;
+  }
+
+  @override
+  Future<Property> update(String id, PropertyInput input) async {
+    calls.add('update:$id');
+    updated.add((id: id, input: input));
+    final failure = await updateScript.next();
+    if (failure != null) throw failure;
+    final index = properties.indexWhere((p) => p.id == id);
+    final old = properties[index];
+    return properties[index] = makeProperty(
+      id: id,
+      name: input.name,
+      address: input.address,
+      bankAccount: input.bankAccount,
+      roomCount: old.roomCount,
+      occupiedRoomCount: old.occupiedRoomCount,
+      managers: old.managers,
+      editable: old.editable,
+    );
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    calls.add('delete:$id');
+    deleted.add(id);
+    final failure = await deleteScript.next();
+    if (failure != null) throw failure;
+    properties.removeWhere((p) => p.id == id);
+  }
+
+  @override
+  Future<void> reauthenticateWithPassword(String password) async {
+    calls.add('reauthenticate');
+    reauthentications.add(password);
+    final failure = await reauthScript.next();
+    if (failure != null) throw failure;
+  }
+}
+
 /// The whole app with a fake session store and no network.
 Widget buildTestApp({
   SessionStore? store,
   Future<AuthTokens> Function(String refreshToken)? refresh,
   Future<void> Function()? logout,
   AuthRepository? auth,
+  PropertyRepository? properties,
 }) {
   return ProviderScope(
     overrides: [
       sessionStoreProvider.overrideWithValue(store ?? InMemorySessionStore()),
       refreshTokensProvider.overrideWithValue(refresh ?? failingRefresh),
       authRepositoryProvider.overrideWithValue(auth ?? FakeAuthRepository()),
+      propertyRepositoryProvider.overrideWithValue(
+        properties ?? FakePropertyRepository(),
+      ),
       if (logout != null) logoutProvider.overrideWithValue(logout),
     ],
     child: const NiscalaApp(),

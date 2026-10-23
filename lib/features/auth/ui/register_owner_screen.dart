@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/session/session_controller.dart';
+import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/auth/password_strength.dart';
 import 'package:niscala/features/auth/ui/auth_widgets.dart';
@@ -129,7 +130,7 @@ class _RegisterOwnerScreenState extends ConsumerState<RegisterOwnerScreen> {
         title: const Text('Daftar sebagai Pemilik Kost'),
       ),
       children: [
-        if (_banner != null) ...[AuthMessage(_banner!), formGap],
+        if (_banner != null) ...[FormMessage(_banner!), formGap],
         TextField(
           controller: _name,
           decoration: InputDecoration(

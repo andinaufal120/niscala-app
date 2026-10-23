@@ -248,7 +248,7 @@ Choose *Belum Bayar*, *Lunas* or *Ditolak* and enter a **required** reason. Choo
 Fields: name and address, both required, and an optional bank account (bank name, account number, account holder name). The name must be unique within the Owner's account (the error comes from the API). Adding past the plan's property limit is rejected (`PROPERTY_LIMIT_REACHED`); the app shows the Indonesian message.
 
 **UC-11 View properties** (FR-12, FR-21) · *Properti (Properties)*
-List with room count and assigned managers. Selecting one shows its detail (name, address, bank account if set, room count, assigned Manager) and sets it as the active context. A Manager can view but not edit or delete. With access to exactly one property, skip the list and open its detail directly.
+List with room count and assigned managers. Selecting one shows its detail (name, address, bank account if set, room count, assigned Manager) and sets it as the active context. A Manager can view but not edit or delete. A Manager with access to exactly one property skips the list and opens its detail directly; an Owner always sees the list, because *Tambah Properti* starts there.
 
 **UC-12 Edit property** (FR-12) · **Owner only** · *Properti → [property] → Ubah Properti (Edit)*
 Form pre-filled with name, address and bank account. Changing the bank account needs a recent re-authentication: on `REAUTHENTICATION_REQUIRED` the app asks for the password, re-authenticates and retries the save. Properties with `editable` false show no edit action.
@@ -409,3 +409,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 18-10-2026 | UC-02 minimum length decided (10 characters); plan-limit, re-authentication and `editable` rules added to UC-10, UC-12, UC-14 to UC-17; UC-18 phone, emergency contact and rent rules; §9 conventions replace the `/health` table; U-3 and U-10 removed, U-9 narrowed. Synced with the backend contract. | NKMA-16, NKMA-7, NKMA-8, NKMA-19 |
 | 18-10-2026 | U-5 decided: dates are shown as day, abbreviated Indonesian month and year (§6 rule 14). | NKMA-8 |
 | 18-10-2026 | Interim invitation activation: the user pastes the invitation link into the login screen, until U-4 is decided (§7). | NKMA-15 |
+| 18-10-2026 | UC-11 single-property shortcut applies to a Manager only, so an Owner on a plan with one property can still add a property after upgrading. | NKMA-37 |

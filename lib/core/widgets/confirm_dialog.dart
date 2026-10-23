@@ -8,9 +8,12 @@ Future<bool> showConfirmDialog(
   required String message,
   required String confirmLabel,
 }) async {
-  final confirmed = await showDialog<bool>(
+  final confirmed = await showGeneralDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    transitionDuration: Duration.zero,
+    pageBuilder: (context, _, _) => AlertDialog(
       title: Text(title),
       content: Text(message),
       actions: [

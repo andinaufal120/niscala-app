@@ -138,6 +138,37 @@ void main() {
       });
     }
 
+    const propertyRoutes = [
+      '/properti/tambah',
+      '/properti/p1',
+      '/properti/p1/ubah',
+    ];
+
+    for (final role in [UserRole.owner, UserRole.manager]) {
+      for (final location in propertyRoutes) {
+        test('$role may stay at $location', () {
+          expect(redirectFor(signedIn(role), location), isNull);
+        });
+      }
+    }
+
+    for (final location in propertyRoutes) {
+      test('a tenant at $location goes to the tenant home', () {
+        expect(
+          redirectFor(signedIn(UserRole.tenant), location),
+          '/penyewa/beranda',
+        );
+      });
+
+      test('an admin at $location goes to the admin home', () {
+        expect(redirectFor(signedIn(UserRole.admin), location), '/admin');
+      });
+
+      test('a signed out user at $location goes to sign in', () {
+        expect(redirectFor(const SignedOut(), location), '/masuk');
+      });
+    }
+
     for (final location in [
       '/penyewa/beranda',
       '/penyewa/keluhan',

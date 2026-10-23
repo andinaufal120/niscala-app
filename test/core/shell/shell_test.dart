@@ -7,6 +7,7 @@ import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
+import 'package:niscala/features/properties/ui/property_list_screen.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../helpers/a11y.dart';
@@ -110,12 +111,24 @@ void main() {
     ) async {
       await pumpShell(tester, UserRole.owner);
 
-      for (final label in ['Beranda', 'Keluhan', 'Pembayaran', 'Properti']) {
+      for (final label in ['Beranda', 'Keluhan', 'Pembayaran']) {
         await tester.tap(navLabel(label));
         await tester.pumpAndSettle();
         expect(find.byType(PlaceholderScreen), findsOneWidget);
         expect(find.text('Fitur ini belum tersedia'), findsOneWidget);
       }
+    });
+
+    testWidgets('shows the property list on the properties tab', (
+      tester,
+    ) async {
+      await pumpShell(tester, UserRole.owner);
+
+      await tester.tap(navLabel('Properti'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PropertyListScreen), findsOneWidget);
+      expect(find.byType(PlaceholderScreen), findsNothing);
     });
 
     testWidgets('shows the account screen on the account tab', (tester) async {
