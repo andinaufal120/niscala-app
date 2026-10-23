@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:niscala/core/format.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/complaints/complaint_labels.dart';
 import 'package:niscala_api/api.dart';
@@ -19,7 +20,10 @@ class ComplaintBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StatusBadge(label: _style.label, tone: _style.tone);
+    return StatusBadge(
+      label: _style.label,
+      colors: _style.colors(NiscalaTokens.of(context)),
+    );
   }
 }
 

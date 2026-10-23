@@ -241,8 +241,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           navigationShell: shell,
           destinations: [
             _tab('Beranda', Icons.home_outlined),
-            _tab('Keluhan', Icons.report_problem_outlined),
-            _tab('Pembayaran', Icons.payments_outlined),
+            _tab('Keluhan', Icons.build_outlined),
+            _tab('Pembayaran', Icons.credit_card_outlined),
             _tab('Properti', Icons.apartment_outlined),
             _tab('Akun', Icons.person_outline),
           ],
@@ -271,8 +271,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           navigationShell: shell,
           destinations: [
             _tab('Beranda', Icons.home_outlined),
-            _tab('Keluhan', Icons.report_problem_outlined),
-            _tab('Pembayaran', Icons.payments_outlined),
+            _tab('Keluhan', Icons.build_outlined),
+            _tab('Pembayaran', Icons.credit_card_outlined),
             _tab('Akun', Icons.person_outline),
           ],
         ),

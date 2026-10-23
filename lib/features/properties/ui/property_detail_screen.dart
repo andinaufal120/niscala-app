@@ -7,6 +7,7 @@ import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/widgets/confirm_dialog.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala_api/api.dart';
@@ -123,9 +124,9 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
           Text(p.address, style: theme.textTheme.bodyLarge),
           if (!p.editable) ...[
             formGap,
-            const StatusBadge(
+            StatusBadge(
               label: 'Hanya bisa dilihat',
-              tone: StatusTone.warning,
+              colors: NiscalaTokens.of(context).readOnly,
               icon: Icons.visibility_outlined,
             ),
             const SizedBox(height: 8),

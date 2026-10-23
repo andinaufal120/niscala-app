@@ -7,6 +7,7 @@ import 'package:niscala/core/format.dart';
 import 'package:niscala/core/widgets/confirm_dialog.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
@@ -132,9 +133,9 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
             children: [
               OccupancyBadge(occupancy: r.occupancy),
               if (!r.editable)
-                const StatusBadge(
+                StatusBadge(
                   label: 'Hanya bisa dilihat',
-                  tone: StatusTone.warning,
+                  colors: NiscalaTokens.of(context).readOnly,
                   icon: Icons.visibility_outlined,
                 ),
             ],

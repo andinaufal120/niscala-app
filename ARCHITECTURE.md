@@ -15,7 +15,8 @@ lib/
     shell/                   # bottom-navigation shells and the account screen
     widgets/                 # shared widgets (status badge, empty/error states, dialogs)
     router.dart              # routes and the role-based redirect
-    theme.dart               # colour and type tokens
+    tokens.dart              # design tokens: colour, type, spacing, radius, status colours
+    theme.dart               # maps the tokens into ThemeData
     format.dart              # money and date display
   features/<area>/           # added per feature: data/ (repositories) and ui/ (screens)
 packages/niscala_api/        # generated Dart client (never hand-edited)
@@ -55,7 +56,7 @@ Each shell is a `StatefulShellRoute` with a bottom navigation bar (SPEC §6a). T
 
 ## 5. UI conventions
 
-- Colours and text styles come from `buildTheme()`; widgets do not hard-code them.
+- Colours, type, spacing and radii come from `tokens.dart` through `buildTheme()` and the `NiscalaTokens` extension; widgets do not hard-code them. Form fields are wrapped in `LabeledField`.
 - A status is always shown with its text label; `StatusBadge(label, tone, icon)` takes the label from a data table owned by the feature (SPEC §5), so colour never carries meaning alone.
 - Empty, error and confirmation states use `EmptyState`, `ErrorView` and `showConfirmDialog`.
 - Money and dates go through `formatRupiah` and `formatDate`.

@@ -1,36 +1,42 @@
-import 'package:niscala/core/widgets/status_badge.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala_api/api.dart';
 
-/// The text and colour of one complaint badge. The label is what the user
-/// reads; the tone only reinforces it.
-typedef ComplaintBadgeStyle = ({String label, StatusTone tone});
+/// The text and colour token of one complaint badge. The label is what the
+/// user reads; the colours only reinforce it.
+typedef ComplaintBadgeStyle = ({
+  String label,
+  BadgeColors Function(NiscalaTokens) colors,
+});
 
 /// The one table of complaint labels. Every complaint screen reads its badges
 /// from these maps, so a status has the same text everywhere.
-const complaintStatusStyles = <ComplaintStatus, ComplaintBadgeStyle>{
-  ComplaintStatus.new_: (label: 'Baru', tone: StatusTone.warning),
-  ComplaintStatus.inProgress: (label: 'Diproses', tone: StatusTone.info),
-  ComplaintStatus.done: (label: 'Selesai', tone: StatusTone.success),
+final complaintStatusStyles = <ComplaintStatus, ComplaintBadgeStyle>{
+  ComplaintStatus.new_: (label: 'Baru', colors: (t) => t.complaintNew),
+  ComplaintStatus.inProgress: (
+    label: 'Diproses',
+    colors: (t) => t.complaintInProgress,
+  ),
+  ComplaintStatus.done: (label: 'Selesai', colors: (t) => t.complaintDone),
 };
 
-const complaintUrgencyStyles = <ComplaintUrgency, ComplaintBadgeStyle>{
-  ComplaintUrgency.low: (label: 'Rendah', tone: StatusTone.neutral),
-  ComplaintUrgency.medium: (label: 'Sedang', tone: StatusTone.warning),
-  ComplaintUrgency.high: (label: 'Tinggi', tone: StatusTone.danger),
+final complaintUrgencyStyles = <ComplaintUrgency, ComplaintBadgeStyle>{
+  ComplaintUrgency.low: (label: 'Rendah', colors: (t) => t.urgencyLow),
+  ComplaintUrgency.medium: (label: 'Sedang', colors: (t) => t.urgencyMedium),
+  ComplaintUrgency.high: (label: 'Tinggi', colors: (t) => t.urgencyHigh),
 };
 
-const complaintClassificationStyles =
+final complaintClassificationStyles =
     <ComplaintClassificationState, ComplaintBadgeStyle>{
       ComplaintClassificationState.classifying: (
         label: 'Sedang Diklasifikasi',
-        tone: StatusTone.info,
+        colors: (t) => t.classificationClassifying,
       ),
       ComplaintClassificationState.awaitingClassification: (
         label: 'Menunggu Klasifikasi',
-        tone: StatusTone.warning,
+        colors: (t) => t.classificationAwaiting,
       ),
       ComplaintClassificationState.notClassified: (
         label: 'Belum Diklasifikasi',
-        tone: StatusTone.neutral,
+        colors: (t) => t.classificationNotClassified,
       ),
     };

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala_api/api.dart';
 
@@ -45,8 +46,9 @@ class OccupancyBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = NiscalaTokens.of(context);
     return occupancy == Occupancy.occupied
-        ? const StatusBadge(label: 'Terisi', tone: StatusTone.success)
-        : const StatusBadge(label: 'Kosong', tone: StatusTone.neutral);
+        ? StatusBadge(label: 'Terisi', colors: tokens.roomOccupied)
+        : StatusBadge(label: 'Kosong', colors: tokens.roomVacant);
   }
 }

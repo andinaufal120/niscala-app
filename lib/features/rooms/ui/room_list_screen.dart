@@ -6,6 +6,7 @@ import 'package:niscala/core/format.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
@@ -174,9 +175,9 @@ class _RoomRow extends StatelessWidget {
               if (detail != null) Text(detail),
               if (!room.editable) ...[
                 const SizedBox(height: 4),
-                const StatusBadge(
+                StatusBadge(
                   label: 'Hanya lihat',
-                  tone: StatusTone.neutral,
+                  colors: NiscalaTokens.of(context).readOnly,
                 ),
               ],
             ],
