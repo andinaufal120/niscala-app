@@ -67,7 +67,8 @@ void main() {
         role: UserRole.tenant,
         path: '/penyewa/beranda',
       );
-      expect(leases.calls, 0);
+      // The home loads the lease; the shared provider is cached.
+      expect(leases.calls, 1);
 
       await tester.tap(
         find.descendant(

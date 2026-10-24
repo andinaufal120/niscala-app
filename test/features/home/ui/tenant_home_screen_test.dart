@@ -69,14 +69,21 @@ Future<void> _open(
     useTallScreen(tester);
     await tester.pumpWidget(app);
   }
-  await tester.pumpAndSettle();
-  goTo(tester, path);
-  if (settle) {
-    await tester.pumpAndSettle();
-  } else {
-    for (var i = 0; i < 5; i++) {
+  // A held request keeps a spinner on the landing page, which never settles.
+  Future<void> pumpFrames() async {
+    for (var i = 0; i < 10; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
+  }
+
+  if (settle) {
+    await tester.pumpAndSettle();
+    goTo(tester, path);
+    await tester.pumpAndSettle();
+  } else {
+    await pumpFrames();
+    goTo(tester, path);
+    await pumpFrames();
   }
 }
 
@@ -1037,12 +1044,16 @@ void main() {
       await expectMeetsA11yGuidelines(tester);
     });
 
+    // The contrast check mis-samples a single-line centered message, so the
+    // error states use the network failure, whose message wraps.
+    const network = ApiFailure.network();
+
     testWidgets('with failing bills, complaints and account', (tester) async {
       await _open(
         tester,
-        rentBills: FakeRentBillRepository()..listScript.always = _failure,
-        complaints: FakeComplaintRepository()..listScript.always = _failure,
-        auth: _auth()..accountFailure = _failure,
+        rentBills: FakeRentBillRepository()..listScript.always = network,
+        complaints: FakeComplaintRepository()..listScript.always = network,
+        auth: _auth()..accountFailure = network,
       );
 
       await expectMeetsA11yGuidelines(tester);
@@ -1052,7 +1063,7 @@ void main() {
       await _open(
         tester,
         leases: FakeLeaseRepository(lease: makeCurrentLease())
-          ..script.always = _failure,
+          ..script.always = network,
       );
 
       await expectMeetsA11yGuidelines(tester);
