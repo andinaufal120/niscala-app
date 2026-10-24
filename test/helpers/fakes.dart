@@ -12,6 +12,7 @@ import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/auth/data/invitation_repository.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
+import 'package:niscala/features/lease/data/lease_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
 import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
@@ -1167,6 +1168,64 @@ class FakeReceiptPicker implements ReceiptPicker {
   }
 }
 
+/// A [CurrentLease] with sensible defaults: room 08 of Kos Melati on a
+/// monthly lease of Rp750.000 from 1 Jan 2026 to 31 Des 2026, 3,5 x 4 m, with
+/// the facilities ac and kasur.
+///
+/// Set [noStartDate], [noEndDate], [noDimensions] to leave those out.
+CurrentLease makeCurrentLease({
+  String propertyName = 'Kos Melati',
+  String address = 'Jl. Melati 1, Bandung',
+  String roomNumber = '08',
+  BillingCycle billingCycle = BillingCycle.monthly,
+  int rent = 750000,
+  DateTime? startDate,
+  DateTime? endDate,
+  bool noStartDate = false,
+  bool noEndDate = false,
+  num? lengthM = 3.5,
+  num? widthM = 4,
+  bool noDimensions = false,
+  List<String> facilities = const ['ac', 'kasur'],
+}) => CurrentLease(
+  billingCycle: billingCycle,
+  property: CurrentLeaseProperty(
+    id: 'p1',
+    name: propertyName,
+    address: address,
+  ),
+  rent: rent,
+  room: CurrentLeaseRoom(
+    id: 'r1',
+    number: roomNumber,
+    lengthM: noDimensions ? null : lengthM,
+    widthM: noDimensions ? null : widthM,
+    facilities: facilities,
+  ),
+  startDate: noStartDate ? null : startDate ?? DateTime.utc(2026, 1, 1),
+  endDate: noEndDate ? null : endDate ?? DateTime.utc(2026, 12, 31),
+);
+
+/// A [LeaseRepository] that answers with [lease] (null means no lease) and
+/// records its calls. Script failures and a gate with [script].
+class FakeLeaseRepository implements LeaseRepository {
+  FakeLeaseRepository({this.lease});
+
+  CurrentLease? lease;
+
+  final script = CallScript();
+
+  var calls = 0;
+
+  @override
+  Future<CurrentLease?> myLease() async {
+    calls++;
+    final failure = await script.next();
+    if (failure != null) throw failure;
+    return lease;
+  }
+}
+
 /// The whole app with a fake session store and no network.
 ///
 /// Without [invitationSharer] sharing does nothing.
@@ -1181,6 +1240,7 @@ Widget buildTestApp({
   TenantRepository? tenants,
   ComplaintRepository? complaints,
   RentBillRepository? rentBills,
+  LeaseRepository? leases,
   ReceiptPicker? receiptPicker,
   Future<void> Function(String text)? invitationSharer,
 }) {
@@ -1204,6 +1264,9 @@ Widget buildTestApp({
       ),
       rentBillRepositoryProvider.overrideWithValue(
         rentBills ?? FakeRentBillRepository(),
+      ),
+      leaseRepositoryProvider.overrideWithValue(
+        leases ?? FakeLeaseRepository(),
       ),
       receiptPickerProvider.overrideWithValue(
         receiptPicker ?? FakeReceiptPicker(),
