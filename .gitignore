@@ -44,5 +44,11 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Android build output
+/android/build/
+
+# Firebase project config, kept out of version control
+/android/app/google-services.json
+
 # Widget Preview related
 .widget_preview/
