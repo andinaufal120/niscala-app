@@ -32,6 +32,13 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   );
 });
 
+/// The signed-in account. Failures are not retried in the background: the
+/// screen shows them and the user retries.
+final myAccountProvider = FutureProvider<Account>(
+  (ref) => ref.watch(authRepositoryProvider).getMyAccount(),
+  retry: (_, _) => null,
+);
+
 class ApiAuthRepository implements AuthRepository {
   ApiAuthRepository({
     required this.auth,
