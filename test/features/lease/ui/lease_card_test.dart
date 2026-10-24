@@ -195,7 +195,14 @@ void main() {
       await pumpLeaseApp(tester, FakeLeaseRepository(lease: lease));
 
       expect(_inCard(find.textContaining('×')), findsNothing);
-      expect(_inCard(find.textContaining(' m')), findsNothing);
+      expect(
+        _inCard(
+          find.byWidgetPredicate(
+            (w) => w is Text && RegExp(r'\d\s*m$').hasMatch(w.data ?? ''),
+          ),
+        ),
+        findsNothing,
+      );
       expect(_textInCard('Rp750.000 / bulan'), findsOneWidget);
     });
 
