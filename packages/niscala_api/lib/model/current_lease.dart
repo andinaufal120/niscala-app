@@ -13,12 +13,22 @@ part of niscala_api;
 class CurrentLease {
   /// Returns a new [CurrentLease] instance.
   CurrentLease({
+    required this.billingCycle,
     this.endDate,
+    required this.property,
+    required this.rent,
     required this.room,
     this.startDate,
   });
 
+  BillingCycle billingCycle;
+
   DateTime? endDate;
+
+  CurrentLeaseProperty property;
+
+  /// Per billing cycle, in rupiah.
+  int rent;
 
   CurrentLeaseRoom room;
 
@@ -26,27 +36,36 @@ class CurrentLease {
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is CurrentLease &&
+    other.billingCycle == billingCycle &&
     other.endDate == endDate &&
+    other.property == property &&
+    other.rent == rent &&
     other.room == room &&
     other.startDate == startDate;
 
   @override
   int get hashCode =>
     // ignore: unnecessary_parenthesis
+    (billingCycle.hashCode) +
     (endDate == null ? 0 : endDate!.hashCode) +
+    (property.hashCode) +
+    (rent.hashCode) +
     (room.hashCode) +
     (startDate == null ? 0 : startDate!.hashCode);
 
   @override
-  String toString() => 'CurrentLease[endDate=$endDate, room=$room, startDate=$startDate]';
+  String toString() => 'CurrentLease[billingCycle=$billingCycle, endDate=$endDate, property=$property, rent=$rent, room=$room, startDate=$startDate]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
+      json[r'billingCycle'] = this.billingCycle;
     if (this.endDate != null) {
       json[r'endDate'] = _dateFormatter.format(this.endDate!.toUtc());
     } else {
       json[r'endDate'] = null;
     }
+      json[r'property'] = this.property;
+      json[r'rent'] = this.rent;
       json[r'room'] = this.room;
     if (this.startDate != null) {
       json[r'startDate'] = _dateFormatter.format(this.startDate!.toUtc());
@@ -75,7 +94,10 @@ class CurrentLease {
       }());
 
       return CurrentLease(
+        billingCycle: BillingCycle.fromJson(json[r'billingCycle'])!,
         endDate: mapDateTime(json, r'endDate', r''),
+        property: CurrentLeaseProperty.fromJson(json[r'property'])!,
+        rent: mapValueOfType<int>(json, r'rent')!,
         room: CurrentLeaseRoom.fromJson(json[r'room'])!,
         startDate: mapDateTime(json, r'startDate', r''),
       );
@@ -125,6 +147,9 @@ class CurrentLease {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
+    'billingCycle',
+    'property',
+    'rent',
     'room',
   };
 }

@@ -30,6 +30,7 @@ doc/ComplaintSummary.md
 doc/ComplaintUrgency.md
 doc/ComplaintsApi.md
 doc/CurrentLease.md
+doc/CurrentLeaseProperty.md
 doc/CurrentLeaseResult.md
 doc/CurrentLeaseRoom.md
 doc/DashboardApi.md
@@ -202,6 +203,7 @@ lib/model/complaint_status_change_input.dart
 lib/model/complaint_summary.dart
 lib/model/complaint_urgency.dart
 lib/model/current_lease.dart
+lib/model/current_lease_property.dart
 lib/model/current_lease_result.dart
 lib/model/current_lease_room.dart
 lib/model/device_info.dart
@@ -342,6 +344,7 @@ test/complaint_summary_test.dart
 test/complaint_test.dart
 test/complaint_urgency_test.dart
 test/complaints_api_test.dart
+test/current_lease_property_test.dart
 test/current_lease_result_test.dart
 test/current_lease_room_test.dart
 test/current_lease_test.dart
