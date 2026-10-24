@@ -573,14 +573,10 @@ void main() {
         FakeLeaseRepository(lease: makeCurrentLease()),
       );
 
-      final handle = tester.ensureSemantics();
-      try {
-        final heading = tester.getSemantics(_textInCard(_heading)).rect;
-        final logout = tester.getSemantics(find.text('Keluar')).rect;
-        expect(heading.top, lessThan(logout.top));
-      } finally {
-        handle.dispose();
-      }
+      expect(
+        tester.getTopLeft(_textInCard(_heading)).dy,
+        lessThan(tester.getTopLeft(find.text('Keluar')).dy),
+      );
     });
   });
 
