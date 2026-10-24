@@ -334,7 +334,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                   ReceiptViewScreen(billId: state.pathParameters['id']!),
             ),
           ]),
-          _branch('/penyewa/akun', const AccountScreen()),
+          _branch('/penyewa/akun', const AccountScreen(showLease: true)),
         ],
       ),
     ],

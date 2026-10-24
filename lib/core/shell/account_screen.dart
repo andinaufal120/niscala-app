@@ -5,6 +5,7 @@ import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/danger_button.dart';
 import 'package:niscala/core/widgets/screen_header.dart';
+import 'package:niscala/features/lease/ui/lease_card.dart';
 import 'package:niscala_api/api.dart';
 
 /// Ends the session. The server-side logout is best effort: the device is
@@ -21,7 +22,11 @@ final logoutProvider = Provider<Future<void> Function()>((ref) {
 });
 
 class AccountScreen extends ConsumerWidget {
-  const AccountScreen({super.key});
+  /// [showLease] adds the room and lease card above the logout button. Only the
+  /// tenant's account tab sets it, so other roles never fetch the lease.
+  const AccountScreen({super.key, this.showLease = false});
+
+  final bool showLease;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,14 +35,25 @@ class AccountScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const ScreenHeader(title: 'Akun'),
-          Padding(
-            padding: const EdgeInsets.all(NiscalaSpacing.gutter),
-            child: SizedBox(
-              width: double.infinity,
-              child: DangerButton(
-                label: 'Keluar',
-                icon: Icons.logout,
-                onPressed: () => ref.read(logoutProvider)(),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(NiscalaSpacing.gutter),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (showLease) ...[
+                    const LeaseCard(),
+                    const SizedBox(height: NiscalaSpacing.l),
+                  ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: DangerButton(
+                      label: 'Keluar',
+                      icon: Icons.logout,
+                      onPressed: () => ref.read(logoutProvider)(),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
