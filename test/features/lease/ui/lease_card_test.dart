@@ -41,19 +41,29 @@ Future<void> pumpLeaseApp(
     useTallScreen(tester);
     await tester.pumpWidget(app);
   }
-  await tester.pumpAndSettle();
-  goTo(tester, path);
-  if (settle) {
-    await tester.pumpAndSettle();
-  } else {
-    for (var i = 0; i < 5; i++) {
+  // A held request keeps a spinner on the landing page, which never settles.
+  Future<void> pumpFrames() async {
+    for (var i = 0; i < 10; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
   }
+
+  if (settle) {
+    await tester.pumpAndSettle();
+    goTo(tester, path);
+    await tester.pumpAndSettle();
+  } else {
+    await pumpFrames();
+    goTo(tester, path);
+    await pumpFrames();
+  }
 }
 
-Finder _inCard(Finder matching) =>
-    find.descendant(of: find.byType(LeaseCard), matching: matching);
+Finder _inCard(Finder matching, {bool skipOffstage = true}) => find.descendant(
+  of: find.byType(LeaseCard),
+  matching: matching,
+  skipOffstage: skipOffstage,
+);
 
 Finder _textInCard(String text) => _inCard(find.text(text));
 
@@ -252,8 +262,8 @@ void main() {
       );
 
       expect(_inCard(find.textContaining('Hubungi')), findsNothing);
-      expect(find.byType(ErrorView), findsNothing);
-      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(_inCard(find.byType(ErrorView)), findsNothing);
+      expect(_inCard(find.byType(CircularProgressIndicator)), findsNothing);
     });
 
     testWidgets('shows only Indonesian copy for the structure', (tester) async {
@@ -326,8 +336,8 @@ void main() {
       );
       expect(_inCard(find.textContaining('×')), findsNothing);
       expect(_inCard(find.textContaining('null')), findsNothing);
-      expect(find.byType(ErrorView), findsNothing);
-      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(_inCard(find.byType(ErrorView)), findsNothing);
+      expect(_inCard(find.byType(CircularProgressIndicator)), findsNothing);
     });
 
     testWidgets('keeps the Keluar button', (tester) async {
@@ -364,7 +374,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(_textInCard('Kos Melati'), findsOneWidget);
-      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(_inCard(find.byType(CircularProgressIndicator)), findsNothing);
     });
 
     testWidgets('shows the empty message once loading finishes', (
@@ -377,7 +387,7 @@ void main() {
       gate.complete();
       await tester.pumpAndSettle();
 
-      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(_inCard(find.byType(CircularProgressIndicator)), findsNothing);
       expect(_inCard(find.textContaining('Hubungi')), findsOneWidget);
     });
 
@@ -408,7 +418,7 @@ void main() {
       await pumpLeaseApp(tester, leases);
 
       expect(_inCard(find.byType(ErrorView)), findsOneWidget);
-      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
+      expect(_textInCard(messageOfCode('NETWORK_ERROR')), findsOneWidget);
       expect(
         messageOfCode('NETWORK_ERROR'),
         'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.',
@@ -426,7 +436,7 @@ void main() {
       await pumpLeaseApp(tester, leases);
 
       expect(
-        find.text('Terjadi kesalahan pada server. Coba lagi.'),
+        _textInCard('Terjadi kesalahan pada server. Coba lagi.'),
         findsOneWidget,
       );
     });
@@ -438,7 +448,7 @@ void main() {
         ..script.always = const ApiFailure(code: 'SOMETHING_NEW');
       await pumpLeaseApp(tester, leases);
 
-      expect(find.text('Terjadi kesalahan. Coba lagi.'), findsOneWidget);
+      expect(_textInCard('Terjadi kesalahan. Coba lagi.'), findsOneWidget);
     });
 
     testWidgets('does not retry in the background', (tester) async {
@@ -457,13 +467,13 @@ void main() {
       final leases = FakeLeaseRepository(lease: makeCurrentLease())
         ..script.queue.add(const ApiFailure.network());
       await pumpLeaseApp(tester, leases);
-      expect(find.byType(ErrorView), findsOneWidget);
+      expect(_inCard(find.byType(ErrorView)), findsOneWidget);
 
-      await tester.tap(find.text(_retry));
+      await tester.tap(_textInCard(_retry));
       await tester.pumpAndSettle();
 
       expect(leases.calls, 2);
-      expect(find.byType(ErrorView), findsNothing);
+      expect(_inCard(find.byType(ErrorView)), findsNothing);
       expect(_textInCard('Kos Melati'), findsOneWidget);
     });
 
@@ -474,10 +484,10 @@ void main() {
         ..script.queue.add(const ApiFailure.network());
       await pumpLeaseApp(tester, leases);
 
-      await tester.tap(find.text(_retry));
+      await tester.tap(_textInCard(_retry));
       await tester.pumpAndSettle();
 
-      expect(find.byType(ErrorView), findsNothing);
+      expect(_inCard(find.byType(ErrorView)), findsNothing);
       expect(_inCard(find.textContaining('Hubungi')), findsOneWidget);
     });
 
@@ -486,11 +496,11 @@ void main() {
         ..script.always = const ApiFailure.network();
       await pumpLeaseApp(tester, leases);
 
-      await tester.tap(find.text(_retry));
+      await tester.tap(_textInCard(_retry));
       await tester.pumpAndSettle();
 
       expect(leases.calls, 2);
-      expect(find.byType(ErrorView), findsOneWidget);
+      expect(_inCard(find.byType(ErrorView)), findsOneWidget);
     });
 
     testWidgets('shows a progress indicator while retrying', (tester) async {
@@ -499,11 +509,11 @@ void main() {
       await pumpLeaseApp(tester, leases);
       leases.script.gate = Completer<void>();
 
-      await tester.tap(find.text(_retry));
+      await tester.tap(_textInCard(_retry));
       await tester.pump();
 
       expect(_inCard(find.byType(CircularProgressIndicator)), findsOneWidget);
-      expect(find.byType(ErrorView), findsNothing);
+      expect(_inCard(find.byType(ErrorView)), findsNothing);
     });
 
     testWidgets('keeps the Keluar button usable', (tester) async {
@@ -650,7 +660,10 @@ void main() {
       await pumpLeaseApp(tester, leases, largeText: true);
 
       expect(tester.takeException(), isNull);
-      expect(find.text(_retry, skipOffstage: false), findsOneWidget);
+      expect(
+        _inCard(find.text(_retry, skipOffstage: false), skipOffstage: false),
+        findsOneWidget,
+      );
     });
 
     testWidgets('fits the loading state', (tester) async {

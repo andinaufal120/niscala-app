@@ -8,6 +8,7 @@ import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
+import 'package:niscala/features/home/ui/tenant_home_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
 import 'package:niscala/features/rent_bills/ui/tenant_payments_screen.dart';
 import 'package:niscala_api/api.dart';
@@ -271,14 +272,13 @@ void main() {
       );
     });
 
-    testWidgets('shows a placeholder for the home tab that is not built yet', (
-      tester,
-    ) async {
+    testWidgets('shows the home screen on the home tab', (tester) async {
       await pumpShell(tester, UserRole.tenant);
 
       await tester.tap(navLabel('Beranda'));
       await tester.pumpAndSettle();
-      expect(find.byType(PlaceholderScreen), findsOneWidget);
+      expect(find.byType(TenantHomeScreen), findsOneWidget);
+      expect(find.byType(PlaceholderScreen), findsNothing);
     });
 
     testWidgets('shows the payments screen instead of a placeholder', (

@@ -16,6 +16,7 @@ import 'package:niscala/features/complaints/ui/management_complaint_detail_scree
 import 'package:niscala/features/complaints/ui/management_complaint_list_screen.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_detail_screen.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_list_screen.dart';
+import 'package:niscala/features/home/ui/tenant_home_screen.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
@@ -307,7 +308,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
         navigatorContainerBuilder: _fadingTabs,
         branches: [
-          _branch(_tenantHome, const PlaceholderScreen(title: 'Beranda')),
+          _branch(_tenantHome, const TenantHomeScreen()),
           _nestedBranch(_tenantComplaints, const TenantComplaintListScreen(), [
             // The form route comes before `:complaintId`, as for rooms.
             _subPage(

@@ -11,6 +11,10 @@ import 'package:niscala/features/rooms/ui/room_widgets.dart';
 import 'package:niscala/features/tenants/tenant_format.dart';
 import 'package:niscala_api/api.dart';
 
+/// Shown to a tenant who has no active lease.
+const noActiveLeaseMessage =
+    'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.';
+
 /// The room and lease of the signed-in tenant, with its loading, empty and
 /// error states.
 class LeaseCard extends ConsumerWidget {
@@ -32,11 +36,7 @@ class LeaseCard extends ConsumerWidget {
           onRetry: () => ref.invalidate(myLeaseProvider),
         ),
         data: (lease) => lease == null
-            ? const EmptyState(
-                message:
-                    'Anda belum memiliki masa sewa aktif. '
-                    'Hubungi pengelola kost.',
-              )
+            ? const EmptyState(message: noActiveLeaseMessage)
             : _LeaseDetails(lease: lease),
       ),
     );
