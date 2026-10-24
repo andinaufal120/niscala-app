@@ -16,8 +16,24 @@ void main() {
   // final instance = CurrentLease();
 
   group('test CurrentLease', () {
+    // BillingCycle billingCycle
+    test('to test the property `billingCycle`', () async {
+      // TODO
+    });
+
     // DateTime endDate
     test('to test the property `endDate`', () async {
+      // TODO
+    });
+
+    // CurrentLeaseProperty property
+    test('to test the property `property`', () async {
+      // TODO
+    });
+
+    // Per billing cycle, in rupiah.
+    // int rent
+    test('to test the property `rent`', () async {
       // TODO
     });
 

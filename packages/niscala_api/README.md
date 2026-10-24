@@ -178,6 +178,7 @@ Class | Method | HTTP request | Description
  - [ComplaintSummary](doc//ComplaintSummary.md)
  - [ComplaintUrgency](doc//ComplaintUrgency.md)
  - [CurrentLease](doc//CurrentLease.md)
+ - [CurrentLeaseProperty](doc//CurrentLeaseProperty.md)
  - [CurrentLeaseResult](doc//CurrentLeaseResult.md)
  - [CurrentLeaseRoom](doc//CurrentLeaseRoom.md)
  - [DeviceInfo](doc//DeviceInfo.md)

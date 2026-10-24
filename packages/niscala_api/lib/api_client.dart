@@ -230,6 +230,8 @@ class ApiClient {
           return ComplaintUrgencyTypeTransformer().decode(value);
         case 'CurrentLease':
           return CurrentLease.fromJson(value);
+        case 'CurrentLeaseProperty':
+          return CurrentLeaseProperty.fromJson(value);
         case 'CurrentLeaseResult':
           return CurrentLeaseResult.fromJson(value);
         case 'CurrentLeaseRoom':

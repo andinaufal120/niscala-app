@@ -15,36 +15,56 @@ class CurrentLeaseRoom {
   CurrentLeaseRoom({
     this.facilities = const [],
     required this.id,
+    this.lengthM,
     required this.number,
+    this.widthM,
   });
 
   List<String> facilities;
 
   String id;
 
+  num? lengthM;
+
   String number;
+
+  num? widthM;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is CurrentLeaseRoom &&
     _deepEquality.equals(other.facilities, facilities) &&
     other.id == id &&
-    other.number == number;
+    other.lengthM == lengthM &&
+    other.number == number &&
+    other.widthM == widthM;
 
   @override
   int get hashCode =>
     // ignore: unnecessary_parenthesis
     (facilities.hashCode) +
     (id.hashCode) +
-    (number.hashCode);
+    (lengthM == null ? 0 : lengthM!.hashCode) +
+    (number.hashCode) +
+    (widthM == null ? 0 : widthM!.hashCode);
 
   @override
-  String toString() => 'CurrentLeaseRoom[facilities=$facilities, id=$id, number=$number]';
+  String toString() => 'CurrentLeaseRoom[facilities=$facilities, id=$id, lengthM=$lengthM, number=$number, widthM=$widthM]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
       json[r'facilities'] = this.facilities;
       json[r'id'] = this.id;
+    if (this.lengthM != null) {
+      json[r'lengthM'] = this.lengthM;
+    } else {
+      json[r'lengthM'] = null;
+    }
       json[r'number'] = this.number;
+    if (this.widthM != null) {
+      json[r'widthM'] = this.widthM;
+    } else {
+      json[r'widthM'] = null;
+    }
     return json;
   }
 
@@ -71,7 +91,13 @@ class CurrentLeaseRoom {
             ? (json[r'facilities'] as Iterable).cast<String>().toList(growable: false)
             : const [],
         id: mapValueOfType<String>(json, r'id')!,
+        lengthM: json[r'lengthM'] == null
+            ? null
+            : num.parse('${json[r'lengthM']}'),
         number: mapValueOfType<String>(json, r'number')!,
+        widthM: json[r'widthM'] == null
+            ? null
+            : num.parse('${json[r'widthM']}'),
       );
     }
     return null;

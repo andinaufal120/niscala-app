@@ -704,6 +704,9 @@
       "CurrentLease": {
         "description": "The calling tenant's active lease.",
         "properties": {
+          "billingCycle": {
+            "$ref": "#/components/schemas/BillingCycle"
+          },
           "endDate": {
             "anyOf": [
               {
@@ -715,6 +718,14 @@
               }
             ],
             "title": "Enddate"
+          },
+          "property": {
+            "$ref": "#/components/schemas/CurrentLeaseProperty"
+          },
+          "rent": {
+            "description": "Per billing cycle, in rupiah.",
+            "title": "Rent",
+            "type": "integer"
           },
           "room": {
             "$ref": "#/components/schemas/CurrentLeaseRoom"
@@ -733,9 +744,37 @@
           }
         },
         "required": [
-          "room"
+          "room",
+          "property",
+          "rent",
+          "billingCycle"
         ],
         "title": "CurrentLease",
+        "type": "object"
+      },
+      "CurrentLeaseProperty": {
+        "description": "The property of the caller's lease.",
+        "properties": {
+          "address": {
+            "title": "Address",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "address"
+        ],
+        "title": "CurrentLeaseProperty",
         "type": "object"
       },
       "CurrentLeaseResult": {
@@ -772,9 +811,33 @@
             "title": "Id",
             "type": "string"
           },
+          "lengthM": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "In metres.",
+            "title": "Lengthm"
+          },
           "number": {
             "title": "Number",
             "type": "string"
+          },
+          "widthM": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "In metres.",
+            "title": "Widthm"
           }
         },
         "required": [
@@ -2962,7 +3025,7 @@
             ]
           },
           "canUploadReceipt": {
-            "description": "True when the bill is current, unpaid or rejected, and its property has a bank account. Describes the bill, not the caller's role.",
+            "description": "True when the bill is unpaid or rejected and its property has a bank account. Describes the bill, not the caller's role.",
             "title": "Canuploadreceipt",
             "type": "boolean"
           },
@@ -3062,7 +3125,7 @@
             "type": "integer"
           },
           "canUploadReceipt": {
-            "description": "True when the bill is current, unpaid or rejected, and its property has a bank account. Describes the bill, not the caller's role.",
+            "description": "True when the bill is unpaid or rejected and its property has a bank account. Describes the bill, not the caller's role.",
             "title": "Canuploadreceipt",
             "type": "boolean"
           },

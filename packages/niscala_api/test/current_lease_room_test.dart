@@ -26,8 +26,18 @@ void main() {
       // TODO
     });
 
+    // num lengthM
+    test('to test the property `lengthM`', () async {
+      // TODO
+    });
+
     // String number
     test('to test the property `number`', () async {
+      // TODO
+    });
+
+    // num widthM
+    test('to test the property `widthM`', () async {
       // TODO
     });
 

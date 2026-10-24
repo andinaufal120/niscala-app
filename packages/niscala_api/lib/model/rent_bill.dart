@@ -34,7 +34,7 @@ class RentBill {
 
   BankAccount? bankAccount;
 
-  /// True when the bill is current, unpaid or rejected, and its property has a bank account. Describes the bill, not the caller's role.
+  /// True when the bill is unpaid or rejected and its property has a bank account. Describes the bill, not the caller's role.
   bool canUploadReceipt;
 
   /// Days past the due date while unpaid or rejected, else 0.

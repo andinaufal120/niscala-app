@@ -67,6 +67,7 @@ part 'model/complaint_status_change_input.dart';
 part 'model/complaint_summary.dart';
 part 'model/complaint_urgency.dart';
 part 'model/current_lease.dart';
+part 'model/current_lease_property.dart';
 part 'model/current_lease_result.dart';
 part 'model/current_lease_room.dart';
 part 'model/device_info.dart';
