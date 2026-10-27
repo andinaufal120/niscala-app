@@ -43,6 +43,10 @@ const _table = {
   'SESSION_NOT_FOUND': 'Perangkat ini sudah keluar atau tidak ditemukan.',
   'SESSION_IS_CURRENT':
       'Perangkat yang sedang dipakai keluar lewat tombol Keluar.',
+  'CURRENT_PASSWORD_INCORRECT': 'Kata sandi saat ini salah.',
+  'PASSWORD_UNCHANGED': 'Kata sandi baru harus berbeda dari yang sekarang.',
+  'TOO_MANY_ATTEMPTS':
+      'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.',
   'FORBIDDEN': 'Anda tidak memiliki akses untuk tindakan ini.',
   'ACCESS_TOKEN_INVALID': 'Sesi Anda telah berakhir. Silakan masuk lagi.',
   'REFRESH_TOKEN_INVALID': 'Sesi Anda telah berakhir. Silakan masuk lagi.',
