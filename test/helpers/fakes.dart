@@ -9,6 +9,7 @@ import 'package:niscala/app.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/shell/account_screen.dart';
+import 'package:niscala/features/account/data/account_repository.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/auth/data/invitation_repository.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
@@ -1278,6 +1279,123 @@ class FakeLeaseRepository implements LeaseRepository {
   }
 }
 
+/// An [Account] with sensible defaults: Andi Pengguna, an owner who signs in
+/// with a password.
+Account makeAccount({
+  String id = 'account-1',
+  String name = 'Andi Pengguna',
+  String email = 'andi@example.com',
+  UserRole role = UserRole.owner,
+  bool emailVerified = true,
+  String? googleEmail,
+  bool hasPassword = true,
+}) => Account(
+  id: id,
+  name: name,
+  email: email,
+  emailVerified: emailVerified,
+  googleEmail: googleEmail,
+  hasPassword: hasPassword,
+  role: role,
+);
+
+/// A [Session] of another Android device unless given, last active 18 Okt 2026
+/// at 12:00 UTC.
+Session makeSession({
+  String id = 's1',
+  String deviceName = 'Galaxy A54',
+  String platform = 'Android',
+  LoginMethod loginMethod = LoginMethod.password,
+  DateTime? lastActiveAt,
+  bool isCurrent = false,
+}) => Session(
+  id: id,
+  deviceName: deviceName,
+  platform: platform,
+  loginMethod: loginMethod,
+  lastActiveAt: lastActiveAt ?? DateTime.utc(2026, 10, 18, 12),
+  isCurrent: isCurrent,
+);
+
+/// An [AccountRepository] that keeps the sessions in memory and records its
+/// calls.
+///
+/// Without [devices] the account has only its current session, Pixel 8.
+/// [sessions] returns [devices] in their order. [endSession] and
+/// [endOtherSessions] change [devices] only when the call succeeds;
+/// [endSession] fails with `SESSION_NOT_FOUND` for an unknown id and with
+/// `SESSION_IS_CURRENT` for the current session. Script failures and gates per
+/// method with the `*Script` fields. Every call is also appended to [calls] in
+/// order, as `me`, `sessions`, `end:<id>` or `endOthers`.
+class FakeAccountRepository implements AccountRepository {
+  FakeAccountRepository({Account? account, List<Session>? devices})
+    : account = account ?? makeAccount(),
+      devices =
+          devices ??
+          [
+            makeSession(
+              id: 'current',
+              deviceName: 'Pixel 8',
+              loginMethod: LoginMethod.google,
+              isCurrent: true,
+            ),
+          ];
+
+  Account account;
+  final List<Session> devices;
+
+  final calls = <String>[];
+
+  final meScript = CallScript();
+  final sessionsScript = CallScript();
+  final endScript = CallScript();
+  final endOthersScript = CallScript();
+
+  int get meCalls => calls.where((c) => c == 'me').length;
+  int get sessionsCalls => calls.where((c) => c == 'sessions').length;
+  int get endCalls => calls.where((c) => c.startsWith('end:')).length;
+  int get endOthersCalls => calls.where((c) => c == 'endOthers').length;
+
+  @override
+  Future<Account> me() async {
+    calls.add('me');
+    final failure = await meScript.next();
+    if (failure != null) throw failure;
+    return account;
+  }
+
+  @override
+  Future<List<Session>> sessions() async {
+    calls.add('sessions');
+    final failure = await sessionsScript.next();
+    if (failure != null) throw failure;
+    return List.of(devices);
+  }
+
+  @override
+  Future<void> endSession(String id) async {
+    calls.add('end:$id');
+    final failure = await endScript.next();
+    if (failure != null) throw failure;
+    final index = devices.indexWhere((s) => s.id == id);
+    if (index < 0) {
+      throw const ApiFailure(code: 'SESSION_NOT_FOUND', statusCode: 404);
+    }
+    if (devices[index].isCurrent) {
+      throw const ApiFailure(code: 'SESSION_IS_CURRENT', statusCode: 409);
+    }
+    devices.removeAt(index);
+  }
+
+  @override
+  Future<void> endOtherSessions() async {
+    calls.add('endOthers');
+    final failure = await endOthersScript.next();
+    if (failure != null) throw failure;
+    devices.removeWhere((s) => !s.isCurrent);
+  }
+}
+
 /// The whole app with a fake session store and no network.
 ///
 /// Without [invitationSharer] sharing does nothing.
@@ -1293,6 +1411,7 @@ Widget buildTestApp({
   ComplaintRepository? complaints,
   RentBillRepository? rentBills,
   LeaseRepository? leases,
+  AccountRepository? accounts,
   ReceiptPicker? receiptPicker,
   Future<void> Function(String text)? invitationSharer,
 }) {
@@ -1319,6 +1438,9 @@ Widget buildTestApp({
       ),
       leaseRepositoryProvider.overrideWithValue(
         leases ?? FakeLeaseRepository(),
+      ),
+      accountRepositoryProvider.overrideWithValue(
+        accounts ?? FakeAccountRepository(),
       ),
       receiptPickerProvider.overrideWithValue(
         receiptPicker ?? FakeReceiptPicker(),

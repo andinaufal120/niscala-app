@@ -40,6 +40,9 @@ const _table = {
   'COMPLAINT_NOT_FOUND': 'Keluhan tidak ditemukan.',
   'COMPLAINT_STATUS_NOT_NEXT':
       'Status keluhan sudah diubah oleh pengguna lain.',
+  'SESSION_NOT_FOUND': 'Perangkat ini sudah keluar atau tidak ditemukan.',
+  'SESSION_IS_CURRENT':
+      'Perangkat yang sedang dipakai keluar lewat tombol Keluar.',
   'FORBIDDEN': 'Anda tidak memiliki akses untuk tindakan ini.',
   'ACCESS_TOKEN_INVALID': 'Sesi Anda telah berakhir. Silakan masuk lagi.',
   'REFRESH_TOKEN_INVALID': 'Sesi Anda telah berakhir. Silakan masuk lagi.',
