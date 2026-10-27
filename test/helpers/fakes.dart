@@ -13,6 +13,7 @@ import 'package:niscala/features/account/data/account_repository.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/auth/data/invitation_repository.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
+import 'package:niscala/features/dashboard/data/dashboard_repository.dart';
 import 'package:niscala/features/lease/data/lease_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
@@ -1561,6 +1562,91 @@ class FakeAccountRepository implements AccountRepository {
   }
 }
 
+/// An [OccupancyRoom] with sensible defaults: room 08, occupied.
+OccupancyRoom makeOccupancyRoom({
+  String id = 'r1',
+  String number = '08',
+  Occupancy occupancy = Occupancy.occupied,
+}) => OccupancyRoom(id: id, number: number, occupancy: occupancy);
+
+/// A [PropertyOccupancy] whose figures are exactly the ones given, whether or
+/// not they agree with [rooms]: the dashboard shows what the API returns.
+PropertyOccupancy makePropertyOccupancy({
+  String id = 'p1',
+  String name = 'Kos Melati',
+  int occupiedRoomCount = 1,
+  int vacantRoomCount = 1,
+  int? roomCount,
+  int occupancyPercentage = 50,
+  List<OccupancyRoom>? rooms,
+}) => PropertyOccupancy(
+  id: id,
+  name: name,
+  occupiedRoomCount: occupiedRoomCount,
+  vacantRoomCount: vacantRoomCount,
+  roomCount: roomCount ?? occupiedRoomCount + vacantRoomCount,
+  occupancyPercentage: occupancyPercentage,
+  rooms:
+      rooms ??
+      [
+        makeOccupancyRoom(id: 'r1', number: '01'),
+        makeOccupancyRoom(id: 'r2', number: '02', occupancy: Occupancy.vacant),
+      ],
+);
+
+/// An [OccupancySummary] whose figures are exactly the ones given.
+OccupancySummary makeOccupancySummary({
+  int propertyCount = 1,
+  int occupiedRoomCount = 1,
+  int vacantRoomCount = 1,
+  int? roomCount,
+  int occupancyPercentage = 50,
+}) => OccupancySummary(
+  propertyCount: propertyCount,
+  occupiedRoomCount: occupiedRoomCount,
+  vacantRoomCount: vacantRoomCount,
+  roomCount: roomCount ?? occupiedRoomCount + vacantRoomCount,
+  occupancyPercentage: occupancyPercentage,
+);
+
+/// An [OccupancyDashboard]. Without [summary] it is the plain figures of one
+/// property per entry of [items]; without [items] the dashboard is empty.
+OccupancyDashboard makeOccupancyDashboard({
+  List<PropertyOccupancy>? items,
+  OccupancySummary? summary,
+}) => OccupancyDashboard(
+  items: items ?? const [],
+  summary:
+      summary ??
+      makeOccupancySummary(
+        propertyCount: (items ?? const []).length,
+        occupiedRoomCount: 0,
+        vacantRoomCount: 0,
+        occupancyPercentage: 0,
+      ),
+);
+
+/// A [DashboardRepository] that answers with [dashboard] (empty by default)
+/// and records its calls. Script failures and a gate with [script].
+class FakeDashboardRepository implements DashboardRepository {
+  FakeDashboardRepository({OccupancyDashboard? dashboard})
+    : dashboard = dashboard ?? makeOccupancyDashboard();
+
+  OccupancyDashboard dashboard;
+
+  final script = CallScript();
+
+  var calls = 0;
+
+  @override
+  Future<OccupancyDashboard> occupancyDashboard() async {
+    calls++;
+    final failure = await script.next();
+    if (failure != null) throw failure;
+    return dashboard;
+  }
+}
+
 /// The whole app with a fake session store and no network.
 ///
 /// Without [invitationSharer] sharing does nothing.
@@ -1577,6 +1663,7 @@ Widget buildTestApp({
   RentBillRepository? rentBills,
   LeaseRepository? leases,
   AccountRepository? accounts,
+  DashboardRepository? dashboard,
   ReceiptPicker? receiptPicker,
   Future<void> Function(String text)? invitationSharer,
 }) {
@@ -1606,6 +1693,9 @@ Widget buildTestApp({
       ),
       accountRepositoryProvider.overrideWithValue(
         accounts ?? FakeAccountRepository(),
+      ),
+      dashboardRepositoryProvider.overrideWithValue(
+        dashboard ?? FakeDashboardRepository(),
       ),
       receiptPickerProvider.overrideWithValue(
         receiptPicker ?? FakeReceiptPicker(),
