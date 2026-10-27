@@ -1,43 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/complaints/complaint_labels.dart';
-import 'package:niscala/features/complaints/data/complaint_repository.dart';
 import 'package:niscala_api/api.dart';
 
-/// The API code of a status change that another user already made.
-const statusNotNextCode = 'COMPLAINT_STATUS_NOT_NEXT';
-
-/// How a [ComplaintStatusSheet] ended, when the caller must act on it. Cancelling
-/// pops without a value.
-enum ComplaintStatusChangeOutcome { saved, conflict }
+/// Saves the status change with the trimmed handling note, or null when the
+/// note is empty. Completes normally once the caller has handled the outcome,
+/// and throws an [ApiFailure] for a failure the sheet shows to the user.
+typedef ComplaintStatusConfirm = Future<void> Function(String? handlingNote);
 
 /// Asks the caller to confirm moving a complaint to [next] and collects the
 /// optional handling note, which the tenant sees.
 ///
-/// Pops with [ComplaintStatusChangeOutcome.saved] once the change is stored, or
-/// with `conflict` when the complaint already moved on. Any other failure stays
-/// on the sheet with its message, and the typed note is kept.
-class ComplaintStatusSheet extends ConsumerStatefulWidget {
+/// Pops once [onConfirm] completes. Any [ApiFailure] it throws stays on the
+/// sheet with its message, and the typed note is kept. The sheet holds no
+/// request of its own, so the caller's work goes on if the sheet is dismissed
+/// while it is in flight.
+class ComplaintStatusSheet extends StatefulWidget {
   const ComplaintStatusSheet({
     super.key,
-    required this.complaintId,
     required this.next,
+    required this.onConfirm,
   });
 
-  final String complaintId;
   final ComplaintStatus next;
+  final ComplaintStatusConfirm onConfirm;
 
   @override
-  ConsumerState<ComplaintStatusSheet> createState() =>
-      _ComplaintStatusSheetState();
+  State<ComplaintStatusSheet> createState() => _ComplaintStatusSheetState();
 }
 
-class _ComplaintStatusSheetState extends ConsumerState<ComplaintStatusSheet> {
+class _ComplaintStatusSheetState extends State<ComplaintStatusSheet> {
   final _note = TextEditingController();
   var _saving = false;
   String? _error;
@@ -55,26 +51,17 @@ class _ComplaintStatusSheetState extends ConsumerState<ComplaintStatusSheet> {
       _error = null;
     });
     try {
-      await ref
-          .read(complaintRepositoryProvider)
-          .changeStatus(
-            widget.complaintId,
-            widget.next,
-            handlingNote: note.isEmpty ? null : note,
-          );
-      if (!mounted) return;
-      Navigator.of(context).pop(ComplaintStatusChangeOutcome.saved);
+      await widget.onConfirm(note.isEmpty ? null : note);
     } on ApiFailure catch (failure) {
       if (!mounted) return;
-      if (failure.code == statusNotNextCode) {
-        Navigator.of(context).pop(ComplaintStatusChangeOutcome.conflict);
-        return;
-      }
       setState(() {
         _saving = false;
         _error = errorMessageFor(failure);
       });
+      return;
     }
+    if (!mounted) return;
+    Navigator.of(context).pop();
   }
 
   @override

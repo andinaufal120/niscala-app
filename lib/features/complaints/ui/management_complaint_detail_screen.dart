@@ -15,6 +15,7 @@ import 'package:niscala/features/complaints/ui/complaint_status_sheet.dart';
 import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
 import 'package:niscala_api/api.dart';
 
+const _statusNotNextCode = 'COMPLAINT_STATUS_NOT_NEXT';
 const _withheld = 'Klasifikasi AI memerlukan langganan aktif.';
 const _aiDisclaimer =
     'Klasifikasi dibuat AI dan bisa keliru. Periksa kembali sebelum bertindak.';
@@ -60,24 +61,43 @@ class _ManagementComplaintDetailScreenState
   var _conflict = false;
 
   Future<void> _changeStatus(ComplaintStatus next) async {
-    final outcome = await showModalBottomSheet<ComplaintStatusChangeOutcome>(
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) =>
-          ComplaintStatusSheet(complaintId: widget.complaintId, next: next),
+      builder: (_) => ComplaintStatusSheet(
+        next: next,
+        onConfirm: (handlingNote) => _save(next, handlingNote),
+      ),
     );
-    if (!mounted || outcome == null) return;
+  }
+
+  /// Stores the change and reloads what it affects. This runs to the end even
+  /// when the sheet was dismissed while the request was in flight, so the
+  /// outcome always reaches the screen.
+  Future<void> _save(ComplaintStatus next, String? handlingNote) async {
+    try {
+      await ref
+          .read(complaintRepositoryProvider)
+          .changeStatus(widget.complaintId, next, handlingNote: handlingNote);
+    } on ApiFailure catch (failure) {
+      if (failure.code != _statusNotNextCode) rethrow;
+      _settle(conflict: true);
+      return;
+    }
+    _settle(conflict: false);
+  }
+
+  void _settle({required bool conflict}) {
+    if (!mounted) return;
     ref.invalidate(complaintDetailProvider(widget.complaintId));
-    if (outcome == ComplaintStatusChangeOutcome.saved) {
+    if (!conflict) {
       // The list stays paused under this screen, so it fetches only when it is
       // read here.
       ref.invalidate(complaintListProvider);
       ref.read(complaintListProvider);
     }
-    setState(
-      () => _conflict = outcome == ComplaintStatusChangeOutcome.conflict,
-    );
+    setState(() => _conflict = conflict);
   }
 
   @override
@@ -126,13 +146,17 @@ class _ManagementComplaintDetailScreenState
         children: [
           if (_conflict) ...[
             FormMessage(
-              errorMessageFor(const ApiFailure(code: statusNotNextCode)),
+              errorMessageFor(const ApiFailure(code: _statusNotNextCode)),
             ),
             formGap,
           ],
           SectionCard(
             title: 'Status',
-            child: ComplaintStatusSteps(status: c.status),
+            child: Semantics(
+              container: true,
+              liveRegion: true,
+              child: ComplaintStatusSteps(status: c.status),
+            ),
           ),
           formGap,
           if (c.classificationWithheld)
