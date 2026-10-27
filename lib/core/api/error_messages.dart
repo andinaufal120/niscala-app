@@ -59,6 +59,9 @@ const _messages = {
   'ROOM_NOT_FOUND': 'Kamar tidak ditemukan.',
   'ROOM_NOT_VACANT': 'Kamar sudah terisi.',
   'TENANT_NOT_FOUND': 'Penyewa tidak ditemukan.',
+  'SESSION_NOT_FOUND': 'Perangkat ini sudah keluar atau tidak ditemukan.',
+  'SESSION_IS_CURRENT':
+      'Perangkat yang sedang dipakai keluar lewat tombol Keluar.',
   'INVITATION_NOT_FOUND': 'Undangan tidak ditemukan. Periksa tautan Anda.',
   'NO_ACTIVE_LEASE':
       'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.',
