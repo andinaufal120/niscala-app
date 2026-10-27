@@ -11,8 +11,8 @@ import 'package:niscala/features/rooms/ui/room_widgets.dart';
 import 'package:niscala_api/api.dart';
 
 const _emptyMessage =
-    'Belum ada properti. Hunian kamar akan tampil di sini setelah properti '
-    'ditambahkan oleh pemilik kost.';
+    'Belum ada properti. Hunian kamar akan tampil di sini setelah ada '
+    'properti yang bisa Anda kelola.';
 const _noRooms = 'Belum ada kamar di properti ini.';
 const _summaryHeading = 'Ringkasan semua properti';
 
