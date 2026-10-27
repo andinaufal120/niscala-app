@@ -612,7 +612,7 @@ void main() {
     testWidgets('deleting the last manager shows the empty list', (
       tester,
     ) async {
-      final repo = _repo([makeManager()]);
+      final repo = _repo([makeManager(nickname: 'Bu Rina')]);
       await pumpManagerApp(tester, repo);
       await tester.tap(find.text('Bu Rina'));
       await tester.pumpAndSettle();
