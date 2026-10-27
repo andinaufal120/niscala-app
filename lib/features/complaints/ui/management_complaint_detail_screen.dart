@@ -11,6 +11,7 @@ import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/complaints/complaint_labels.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
+import 'package:niscala/features/complaints/ui/complaint_classification_sheet.dart';
 import 'package:niscala/features/complaints/ui/complaint_status_sheet.dart';
 import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
 import 'package:niscala_api/api.dart';
@@ -43,8 +44,9 @@ ComplaintStatus? _nextStatus(ComplaintStatus status) => switch (status) {
   _ => null,
 };
 
-/// One complaint on the caller's properties. Its one status action moves the
-/// complaint to the next status after a confirmation.
+/// One complaint on the caller's properties. Its status action moves the
+/// complaint to the next status after a confirmation, and its classification
+/// can be set by hand.
 class ManagementComplaintDetailScreen extends ConsumerStatefulWidget {
   const ManagementComplaintDetailScreen({super.key, required this.complaintId});
 
@@ -72,6 +74,35 @@ class _ManagementComplaintDetailScreenState
     );
   }
 
+  /// Opens the sheet that sets the classification by hand, starting from
+  /// [current], or from nothing when there is none.
+  Future<void> _classify(ComplaintClassification? current) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => ComplaintClassificationSheet(
+        current: current,
+        onConfirm: _saveClassification,
+      ),
+    );
+  }
+
+  /// Stores the manual classification and reloads what it affects. Like
+  /// [_save], it runs to the end when the sheet was dismissed in the meantime.
+  /// A failure is rethrown for the sheet to show.
+  Future<void> _saveClassification(
+    String category,
+    ComplaintUrgency urgency,
+  ) async {
+    await ref
+        .read(complaintRepositoryProvider)
+        .classify(widget.complaintId, category: category, urgency: urgency);
+    if (!mounted) return;
+    ref.invalidate(complaintDetailProvider(widget.complaintId));
+    _refreshList();
+  }
+
   /// Stores the change and reloads what it affects. This runs to the end even
   /// when the sheet was dismissed while the request was in flight, so the
   /// outcome always reaches the screen.
@@ -91,13 +122,15 @@ class _ManagementComplaintDetailScreenState
   void _settle({required bool conflict}) {
     if (!mounted) return;
     ref.invalidate(complaintDetailProvider(widget.complaintId));
-    if (!conflict) {
-      // The list stays paused under this screen, so it fetches only when it is
-      // read here.
-      ref.invalidate(complaintListProvider);
-      ref.read(complaintListProvider);
-    }
+    if (!conflict) _refreshList();
     setState(() => _conflict = conflict);
+  }
+
+  void _refreshList() {
+    // The list stays paused under this screen, so it fetches only when it is
+    // read here.
+    ref.invalidate(complaintListProvider);
+    ref.read(complaintListProvider);
   }
 
   @override
@@ -137,8 +170,6 @@ class _ManagementComplaintDetailScreenState
 
   Widget _details(Complaint c) {
     final theme = Theme.of(context);
-    final classification = c.classification;
-    final state = c.classificationState;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(NiscalaSpacing.gutter),
       child: Column(
@@ -159,41 +190,7 @@ class _ManagementComplaintDetailScreenState
             ),
           ),
           formGap,
-          if (c.classificationWithheld)
-            const SectionCard(
-              emphasis: true,
-              title: 'Klasifikasi',
-              child: Text(_withheld),
-            )
-          else if (classification != null)
-            SectionCard(
-              emphasis: true,
-              title: 'Klasifikasi',
-              child: _ClassificationDetails(classification: classification),
-            )
-          else if (state != null)
-            SectionCard(
-              emphasis: true,
-              title: 'Klasifikasi',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ComplaintBadge.classification(state),
-                  const SizedBox(height: 8),
-                  Text(_stateExplanation(state)),
-                  if (state == ComplaintClassificationState.classifying) ...[
-                    const SizedBox(height: 8),
-                    FilledButton.tonal(
-                      onPressed: () => ref.invalidate(
-                        complaintDetailProvider(widget.complaintId),
-                      ),
-                      child: const Text('Segarkan'),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          formGap,
+          if (_classificationCard(c) case final card?) ...[card, formGap],
           SectionCard(
             title: 'Pesan penyewa',
             child: Column(
@@ -215,6 +212,72 @@ class _ManagementComplaintDetailScreenState
       ),
     );
   }
+
+  /// The emphasis card with the classification, or what stands in for it, and
+  /// the button that sets it by hand. Null when the complaint has neither a
+  /// classification, a withheld note nor a classification state.
+  SectionCard? _classificationCard(Complaint c) {
+    final classification = c.classificationWithheld ? null : c.classification;
+    final state = c.classificationWithheld ? null : c.classificationState;
+    final Widget body;
+    if (c.classificationWithheld) {
+      body = const Text(_withheld);
+    } else if (classification != null) {
+      body = _ClassificationDetails(classification: classification);
+    } else if (state != null) {
+      body = _ClassificationState(
+        state: state,
+        onRefresh: () =>
+            ref.invalidate(complaintDetailProvider(widget.complaintId)),
+      );
+    } else {
+      return null;
+    }
+    // The action sits above the content, so it stays on screen at large text.
+    return SectionCard(
+      emphasis: true,
+      title: 'Klasifikasi',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FilledButton.tonal(
+            onPressed: () => _classify(classification),
+            child: Text(classification == null ? 'Klasifikasikan' : 'Ubah'),
+          ),
+          const SizedBox(height: 8),
+          body,
+        ],
+      ),
+    );
+  }
+}
+
+/// A classification state with what it means for management, and a refresh
+/// action while the AI is still working on the complaint.
+class _ClassificationState extends StatelessWidget {
+  const _ClassificationState({required this.state, required this.onRefresh});
+
+  final ComplaintClassificationState state;
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ComplaintBadge.classification(state),
+        const SizedBox(height: 8),
+        Text(_stateExplanation(state)),
+        if (state == ComplaintClassificationState.classifying) ...[
+          const SizedBox(height: 8),
+          FilledButton.tonal(
+            onPressed: onRefresh,
+            child: const Text('Segarkan'),
+          ),
+        ],
+      ],
+    );
+  }
 }
 
 class _ClassificationDetails extends StatelessWidget {
@@ -227,6 +290,7 @@ class _ClassificationDetails extends StatelessWidget {
     final labelStyle = Theme.of(context).textTheme.labelMedium;
     final suggestedAction = classification.suggestedAction;
     final classifiedBy = classification.classifiedByName;
+    final original = classification.originalAiClassification;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -243,6 +307,13 @@ class _ClassificationDetails extends StatelessWidget {
         ] else ...[
           const SizedBox(height: NiscalaSpacing.s),
           Text('Diklasifikasi oleh $classifiedBy'),
+        ],
+        if (original != null) ...[
+          const SizedBox(height: NiscalaSpacing.s),
+          Text(
+            'Hasil asli AI: ${original.category}, '
+            '${complaintUrgencyStyles[original.urgency]!.label.toLowerCase()}',
+          ),
         ],
       ],
     );

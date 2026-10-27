@@ -88,6 +88,8 @@ const _messages = {
   'COMPLAINT_NOT_FOUND': 'Keluhan tidak ditemukan.',
   'COMPLAINT_STATUS_NOT_NEXT':
       'Status keluhan sudah diubah oleh pengguna lain.',
+  'COMPLAINT_CATEGORY_INVALID':
+      'Kategori tidak valid. Pilih kategori dari daftar.',
   'RECEIPT_TYPE_INVALID': 'Bukti transfer harus berupa gambar JPG atau PNG.',
   'RECEIPT_TOO_LARGE': 'Ukuran bukti transfer maksimal 5 MB.',
   'RENT_BILL_NOT_UPLOADABLE':

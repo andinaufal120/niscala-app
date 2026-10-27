@@ -23,6 +23,17 @@ abstract interface class ComplaintRepository {
   /// Saves a complaint as the calling tenant. The returned complaint may still
   /// be unclassified; the AI classification runs in the background.
   Future<Complaint> submit(String description);
+
+  /// The categories a complaint can be classified into, in the order given.
+  Future<List<String>> categories();
+
+  /// Sets the category and urgency of a complaint by hand. The returned
+  /// complaint keeps the AI result that this classification replaced.
+  Future<Complaint> classify(
+    String complaintId, {
+    required String category,
+    required ComplaintUrgency urgency,
+  });
 }
 
 final complaintRepositoryProvider = Provider<ComplaintRepository>((ref) {
@@ -41,6 +52,14 @@ final complaintListProvider = FutureProvider<List<ComplaintSummary>>(
 /// are not retried in the background, see [complaintListProvider].
 final complaintDetailProvider = FutureProvider.family<Complaint, String>(
   (ref, complaintId) => ref.watch(complaintRepositoryProvider).get(complaintId),
+  retry: (_, _) => null,
+);
+
+/// The categories for manual classification. Fetched once; invalidate it to
+/// fetch again. Failures are not retried in the background, see
+/// [complaintListProvider].
+final complaintCategoriesProvider = FutureProvider<List<String>>(
+  (ref) => ref.watch(complaintRepositoryProvider).categories(),
   retry: (_, _) => null,
 );
 
@@ -79,6 +98,23 @@ class ApiComplaintRepository implements ComplaintRepository {
   Future<Complaint> submit(String description) => _guard(() async {
     return (await complaints.createComplaint(
       ComplaintInput(description: description),
+    ))!;
+  });
+
+  @override
+  Future<List<String>> categories() => _guard(() async {
+    return (await complaints.listComplaintCategories())!.items;
+  });
+
+  @override
+  Future<Complaint> classify(
+    String complaintId, {
+    required String category,
+    required ComplaintUrgency urgency,
+  }) => _guard(() async {
+    return (await complaints.classifyComplaint(
+      complaintId,
+      ComplaintClassificationInput(category: category, urgency: urgency),
     ))!;
   });
 
