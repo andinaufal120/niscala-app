@@ -311,4 +311,273 @@ void main() {
       );
     });
   });
+
+  group('previewAcceptance', () {
+    test('posts only the token and returns the preview', () async {
+      final h = _Harness((_) => _ok(_acceptanceJson()));
+
+      final result = await h.repository.previewAcceptance('abc123');
+
+      expect(h.request.method, 'POST');
+      expect(h.request.url.path, '/invitations/acceptance-previews');
+      expect(h.body, {'token': 'abc123'});
+      expect(result.accountName, 'Andi Pengguna');
+      expect(result.accountEmail, 'andi@example.com');
+      expect(result.accountRole, UserRole.manager);
+      expect(result.canAccept, isTrue);
+      expect(result.blocker, isNull);
+      expect(result.activeLease, isNull);
+      expect(result.invitation.status, InvitationLinkStatus.valid);
+      expect(result.invitation.role, InvitationRole.manager);
+      expect(result.invitation.inviterName, 'Siti Pemilik');
+      expect(result.invitation.properties.single.name, 'Kos Melati');
+      expect(
+        result.invitation.properties.single.address,
+        'Jl. Melati 1, Bandung',
+      );
+    });
+
+    test('sends no device information', () async {
+      final h = _Harness((_) => _ok(_acceptanceJson()));
+
+      await h.repository.previewAcceptance('abc123');
+
+      expect(h.body.keys, ['token']);
+    });
+
+    test('returns a role mismatch blocker', () async {
+      final h = _Harness(
+        (_) => _ok(
+          _acceptanceJson(
+            canAccept: false,
+            blocker: 'roleMismatch',
+            accountRole: 'owner',
+          ),
+        ),
+      );
+
+      final result = await h.repository.previewAcceptance('abc123');
+
+      expect(result.canAccept, isFalse);
+      expect(result.blocker, InvitationBlocker.roleMismatch);
+      expect(result.accountRole, UserRole.owner);
+    });
+
+    test('returns an active lease blocker with the lease', () async {
+      final h = _Harness(
+        (_) => _ok(
+          _acceptanceJson(
+            role: 'tenant',
+            canAccept: false,
+            blocker: 'activeLease',
+            accountRole: 'tenant',
+            activeLease: {
+              'propertyName': 'Kos Mawar',
+              'roomNumber': '12',
+              'endDate': '2026-12-31',
+            },
+          ),
+        ),
+      );
+
+      final result = await h.repository.previewAcceptance('abc123');
+
+      expect(result.blocker, InvitationBlocker.activeLease);
+      expect(result.activeLease?.propertyName, 'Kos Mawar');
+      expect(result.activeLease?.roomNumber, '12');
+    });
+
+    for (final entry in {
+      'expired': InvitationLinkStatus.expired,
+      'used': InvitationLinkStatus.used,
+    }.entries) {
+      test(
+        'returns a ${entry.key} invitation as a preview, not a failure',
+        () async {
+          final h = _Harness(
+            (_) => _ok(_acceptanceJson(status: entry.key, canAccept: false)),
+          );
+
+          final result = await h.repository.previewAcceptance('abc123');
+
+          expect(result.invitation.status, entry.value);
+          expect(result.canAccept, isFalse);
+        },
+      );
+    }
+
+    test('converts a not found response to an ApiFailure', () async {
+      final h = _Harness((_) => _error(404, 'INVITATION_NOT_FOUND'));
+
+      await expectLater(
+        h.repository.previewAcceptance('nope'),
+        throwsA(_failure('INVITATION_NOT_FOUND', status: 404)),
+      );
+    });
+
+    test('keeps the code, field and status of a validation error', () async {
+      final h = _Harness(
+        (_) => _error(422, 'VALIDATION_FAILED', field: 'token'),
+      );
+
+      await expectLater(
+        h.repository.previewAcceptance(''),
+        throwsA(_failure('VALIDATION_FAILED', field: 'token', status: 422)),
+      );
+    });
+
+    test('keeps the code of an expired access token', () async {
+      final h = _Harness((_) => _error(401, 'ACCESS_TOKEN_INVALID'));
+
+      await expectLater(
+        h.repository.previewAcceptance('abc123'),
+        throwsA(_failure('ACCESS_TOKEN_INVALID', status: 401)),
+      );
+    });
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(const SocketException('no route'));
+
+      await expectLater(
+        h.repository.previewAcceptance('abc123'),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+
+    test('converts a client exception to a network failure', () async {
+      final h = _Harness.failing(http.ClientException('broken'));
+
+      await expectLater(
+        h.repository.previewAcceptance('abc123'),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+
+    test('maps a server error without a body to INTERNAL_ERROR', () async {
+      final h = _Harness((_) => http.Response('', 500));
+
+      await expectLater(
+        h.repository.previewAcceptance('abc123'),
+        throwsA(_failure('INTERNAL_ERROR', status: 500)),
+      );
+    });
+  });
+
+  group('accept', () {
+    test('posts only the token and completes on an empty answer', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await h.repository.accept('abc123');
+
+      expect(h.request.method, 'POST');
+      expect(h.request.url.path, '/invitations/acceptances');
+      expect(h.body, {'token': 'abc123'});
+    });
+
+    test('completes on a 200 answer without a body', () async {
+      final h = _Harness((_) => http.Response('', 200));
+
+      await h.repository.accept('abc123');
+
+      expect(h.requests, hasLength(1));
+    });
+
+    test('sends no device information', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await h.repository.accept('abc123');
+
+      expect(h.body.keys, ['token']);
+    });
+
+    for (final entry in {
+      404: 'INVITATION_NOT_FOUND',
+      409: 'INVITATION_USED',
+    }.entries) {
+      test('keeps ${entry.value} with its status', () async {
+        final h = _Harness((_) => _error(entry.key, entry.value));
+
+        await expectLater(
+          h.repository.accept('abc123'),
+          throwsA(_failure(entry.value, status: entry.key)),
+        );
+      });
+    }
+
+    for (final code in [
+      'INVITATION_EXPIRED',
+      'INVITATION_ROLE_MISMATCH',
+      'TENANT_HAS_ACTIVE_LEASE',
+      'MANAGER_ALREADY_ADDED',
+    ]) {
+      test('keeps $code with its status', () async {
+        final h = _Harness((_) => _error(409, code));
+
+        await expectLater(
+          h.repository.accept('abc123'),
+          throwsA(_failure(code, status: 409)),
+        );
+      });
+    }
+
+    test('keeps the code, field and status of a validation error', () async {
+      final h = _Harness(
+        (_) => _error(422, 'VALIDATION_FAILED', field: 'token'),
+      );
+
+      await expectLater(
+        h.repository.accept(''),
+        throwsA(_failure('VALIDATION_FAILED', field: 'token', status: 422)),
+      );
+    });
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(const SocketException('no route'));
+
+      await expectLater(
+        h.repository.accept('abc123'),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+
+    test('converts a client exception to a network failure', () async {
+      final h = _Harness.failing(http.ClientException('broken'));
+
+      await expectLater(
+        h.repository.accept('abc123'),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+
+    test('maps a server error without a body to INTERNAL_ERROR', () async {
+      final h = _Harness((_) => http.Response('', 503));
+
+      await expectLater(
+        h.repository.accept('abc123'),
+        throwsA(_failure('INTERNAL_ERROR', status: 503)),
+      );
+    });
+  });
 }
+
+Map<String, Object?> _acceptanceJson({
+  String status = 'valid',
+  String role = 'manager',
+  String accountRole = 'manager',
+  bool canAccept = true,
+  String? blocker,
+  Map<String, Object?>? activeLease,
+}) => {
+  'invitation': _previewJson(
+    status: status,
+    role: role,
+    roomNumber: null,
+    emergencyContactsRequired: false,
+  ),
+  'accountName': 'Andi Pengguna',
+  'accountEmail': 'andi@example.com',
+  'accountRole': accountRole,
+  'canAccept': canAccept,
+  'blocker': blocker,
+  'activeLease': activeLease,
+};

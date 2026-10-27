@@ -803,6 +803,67 @@ void main() {
     });
   });
 
+  group('activating with a manager invitation', () {
+    FakeInvitationRepository managerInvitation() => FakeInvitationRepository()
+      ..previewResult = makeInvitationPreview(
+        role: InvitationRole.manager,
+        roomNumber: null,
+        emergencyContactsRequired: false,
+        properties: [
+          InvitationProperty(address: 'Jl. Melati 1', name: 'Kos Melati'),
+          InvitationProperty(address: 'Jl. Mawar 2', name: 'Kos Mawar'),
+        ],
+      )
+      ..activateResult = authSessionFor(UserRole.manager);
+
+    testWidgets('shows no emergency contact fields', (tester) async {
+      await pumpForm(tester, managerInvitation());
+
+      expect(find.textContaining('Kontak darurat'), findsNothing);
+      expect(field(_contactName), findsNothing);
+      expect(field(_contactRelationship), findsNothing);
+      expect(field(_contactPhone), findsNothing);
+      expect(find.text('Tambah Kontak Darurat'), findsNothing);
+    });
+
+    testWidgets('names the inviter and every property but no room', (
+      tester,
+    ) async {
+      await pumpForm(tester, managerInvitation());
+
+      expect(find.textContaining('Siti Pemilik'), findsOneWidget);
+      expect(find.textContaining('Kos Melati'), findsOneWidget);
+      expect(find.textContaining('Kos Mawar'), findsOneWidget);
+      expect(find.textContaining('Kamar'), findsNothing);
+    });
+
+    testWidgets('activates without sending emergency contacts', (tester) async {
+      final repository = managerInvitation();
+      await pumpForm(tester, repository);
+
+      await fillAndSubmit(tester);
+
+      expect(repository.activations, hasLength(1));
+      expect(repository.activations.single.token, 'abc123');
+      expect(repository.activations.single.emergencyContacts, isNull);
+    });
+
+    testWidgets('the form is valid without any contact', (tester) async {
+      await pumpForm(tester, managerInvitation());
+
+      await fillAndSubmit(tester);
+
+      expect(find.textContaining('minimal 2'), findsNothing);
+      expect(currentPath(tester), '/beranda');
+    });
+
+    testWidgets('meets the guidelines on the form', (tester) async {
+      await pumpForm(tester, managerInvitation());
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+  });
+
   group('validation', () {
     testWidgets('empty fields name every field and send nothing', (
       tester,

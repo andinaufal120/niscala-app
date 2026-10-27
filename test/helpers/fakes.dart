@@ -757,12 +757,67 @@ InvitationPreview makeInvitationPreview({
   status: status,
 );
 
+/// An [InvitationAcceptancePreview] with sensible defaults: Andi Pengguna,
+/// a Manager, may accept a valid Manager invitation from Siti Pemilik.
+///
+/// Without [canAccept] the invitation can be accepted exactly when it is valid
+/// and there is no [blocker].
+InvitationAcceptancePreview makeAcceptancePreview({
+  InvitationPreview? invitation,
+  String accountName = 'Andi Pengguna',
+  String accountEmail = 'andi@example.com',
+  UserRole accountRole = UserRole.manager,
+  InvitationBlocker? blocker,
+  ActiveLeaseSummary? activeLease,
+  bool? canAccept,
+}) {
+  final shown =
+      invitation ??
+      makeInvitationPreview(role: InvitationRole.manager, roomNumber: null);
+  return InvitationAcceptancePreview(
+    invitation: shown,
+    accountName: accountName,
+    accountEmail: accountEmail,
+    accountRole: accountRole,
+    blocker: blocker,
+    activeLease: activeLease,
+    canAccept:
+        canAccept ??
+        (shown.status == InvitationLinkStatus.valid && blocker == null),
+  );
+}
+
 /// An [InvitationRepository] that records its calls and answers from fields.
 ///
-/// Set [previewFailure] or [activateFailure] to make that method throw. Set
-/// [previewGate] or [activateGate] to hold that method in flight until it
-/// completes.
+/// Set [previewFailure], [activateFailure], [previewAcceptanceFailure] or
+/// [acceptFailure] to make that method throw. Set [previewGate],
+/// [activateGate], [previewAcceptanceGate] or [acceptGate] to hold that method
+/// in flight until it completes.
 class FakeInvitationRepository implements InvitationRepository {
+  final acceptancePreviews = <String>[];
+  final acceptances = <String>[];
+
+  InvitationAcceptancePreview previewAcceptanceResult = makeAcceptancePreview();
+  ApiFailure? previewAcceptanceFailure;
+  ApiFailure? acceptFailure;
+  Completer<void>? previewAcceptanceGate;
+  Completer<void>? acceptGate;
+
+  @override
+  Future<InvitationAcceptancePreview> previewAcceptance(String token) async {
+    acceptancePreviews.add(token);
+    await previewAcceptanceGate?.future;
+    if (previewAcceptanceFailure != null) throw previewAcceptanceFailure!;
+    return previewAcceptanceResult;
+  }
+
+  @override
+  Future<void> accept(String token) async {
+    acceptances.add(token);
+    await acceptGate?.future;
+    if (acceptFailure != null) throw acceptFailure!;
+  }
+
   final previews = <String>[];
   final activations =
       <
