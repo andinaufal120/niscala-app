@@ -230,6 +230,15 @@ class _PropertyDetailScreenState extends ConsumerState<PropertyDetailScreen> {
                 : () => context.go('/properti/${p.id}/penyewa'),
           ),
           if (isOwner) ...[
+            const SizedBox(height: NiscalaSpacing.m),
+            ActionCardRow(
+              icon: Icons.badge_outlined,
+              title: 'Pengelola',
+              subtitle: 'Tambah, ubah, atau hapus pengelola kost',
+              onTap: _deleting
+                  ? null
+                  : () => context.go('/properti/${p.id}/pengelola'),
+            ),
             formGap,
             DangerButton(
               label: 'Hapus Properti',

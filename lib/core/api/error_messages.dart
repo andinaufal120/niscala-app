@@ -76,6 +76,11 @@ const _messages = {
   'PASSWORD_UNCHANGED': 'Kata sandi baru harus berbeda dari yang sekarang.',
   'TOO_MANY_ATTEMPTS':
       'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.',
+  'MANAGER_NOT_FOUND': 'Pengelola tidak ditemukan.',
+  'MANAGER_NAME_NOT_EDITABLE':
+      'Nama Pengelola yang sudah aktif tidak dapat diubah.',
+  'MANAGER_ALREADY_ACTIVE':
+      'Pengelola ini sudah aktif, tautan undangan tidak diperlukan.',
   'INVITATION_NOT_FOUND': 'Undangan tidak ditemukan. Periksa tautan Anda.',
   'INVITATION_EXPIRED': invitationExpiredMessage,
   'INVITATION_USED': invitationUsedMessage,
