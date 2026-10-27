@@ -211,40 +211,53 @@ void main() {
   });
 
   group('classification actions', () {
-    testWidgets('offers only the status action on a classified complaint', (
+    testWidgets('offers the status action and Ubah on a classified complaint', (
       tester,
     ) async {
       await _open(tester, _repo(_ai()));
 
-      expect(actionButtons(), findsOneWidget);
+      expect(actionButtons(), findsNWidgets(2));
       expect(find.text('Tandai Diproses'), findsOneWidget);
+      expect(find.text('Ubah'), findsOneWidget);
+      expect(find.text('Klasifikasikan'), findsNothing);
       expect(find.byType(TextField), findsNothing);
       expect(find.text('Ubah Status'), findsNothing);
     });
 
-    for (final state in [
-      ComplaintClassificationState.awaitingClassification,
-      ComplaintClassificationState.notClassified,
-    ]) {
-      testWidgets('offers only the status action when the state is $state', (
-        tester,
-      ) async {
-        await _open(tester, _repo(_state(state)));
+    for (final state in _unclassifiedStates) {
+      testWidgets(
+        'offers the status action and Klasifikasikan when the state is $state',
+        (tester) async {
+          await _open(tester, _repo(_state(state)));
 
-        expect(actionButtons(), findsOneWidget);
-        expect(find.byType(TextField), findsNothing);
-      });
+          expect(find.text('Tandai Diproses'), findsOneWidget);
+          expect(find.text('Klasifikasikan'), findsOneWidget);
+          expect(find.text('Ubah'), findsNothing);
+          expect(find.byType(TextField), findsNothing);
+        },
+      );
     }
 
     testWidgets(
-      'offers only the status action when the AI result is withheld',
+      'offers the status action and Klasifikasikan when the AI result is '
+      'withheld',
       (tester) async {
         await _open(tester, _repo(_withheld()));
 
-        expect(actionButtons(), findsOneWidget);
+        expect(actionButtons(), findsNWidgets(2));
+        expect(find.text('Tandai Diproses'), findsOneWidget);
+        expect(find.text('Klasifikasikan'), findsOneWidget);
+        expect(find.text('Ubah'), findsNothing);
         expect(find.byType(TextField), findsNothing);
       },
     );
+
+    testWidgets('offers Ubah on a manual classification', (tester) async {
+      await _open(tester, _repo(_manual()));
+
+      expect(find.text('Ubah'), findsOneWidget);
+      expect(find.text('Klasifikasikan'), findsNothing);
+    });
   });
 
   group('AI classification', () {
