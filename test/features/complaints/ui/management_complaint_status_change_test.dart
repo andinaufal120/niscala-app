@@ -600,8 +600,9 @@ void main() {
     });
   });
 
-  group('while the change is in flight', () {
-    /// Opens the sheet and confirms with the request held by [gate].
+  group('dismissing the sheet while the change is in flight', () {
+    /// Opens the complaint from the list, then confirms with the request held
+    /// by [gate].
     Future<FakeComplaintRepository> inFlight(
       WidgetTester tester,
       Completer<void> gate, {
@@ -609,61 +610,98 @@ void main() {
     }) async {
       final repo = _repo()..changeStatusScript.gate = gate;
       if (failure != null) repo.changeStatusScript.queue.add(failure);
-      await _open(tester, repo);
+      await pumpComplaintApp(tester, repo, role: UserRole.owner);
+      await tester.tap(
+        find.text('Keran air di kamar mandi bocor sejak kemarin.'),
+      );
+      await tester.pumpAndSettle();
+      expect(currentPath(tester), '/keluhan/c1');
       await _openSheet(tester, _markInProgress);
       await tester.tap(_button(_confirmInProgress));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
       expect(repo.statusCalls, 1);
+      expect(_inSheet(find.byType(CircularProgressIndicator)), findsOneWidget);
       return repo;
     }
 
-    Future<void> tryBack(WidgetTester tester) async {
+    Future<void> pumpFor(WidgetTester tester, int milliseconds) async {
+      for (var i = 0; i < milliseconds ~/ 100; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    Future<void> back(WidgetTester tester) async {
       await tester.binding.handlePopRoute();
-      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+      await pumpFor(tester, 600);
     }
 
-    Future<void> tryBarrier(WidgetTester tester) async {
+    Future<void> barrier(WidgetTester tester) async {
       await tester.tapAt(const Offset(2, 2));
-      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+      await pumpFor(tester, 600);
     }
 
-    Future<void> tryDrag(WidgetTester tester) async {
+    Future<void> drag(WidgetTester tester) async {
       await tester.drag(_sheet(), const Offset(0, 600), warnIfMissed: false);
-      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+      await pumpFor(tester, 600);
     }
 
-    final attempts = <String, Future<void> Function(WidgetTester)>{
-      'the Android back action': tryBack,
-      'a tap on the barrier': tryBarrier,
-      'a drag down': tryDrag,
+    final dismissals = <String, Future<void> Function(WidgetTester)>{
+      'the Android back action': back,
+      'a tap on the barrier': barrier,
+      'a drag down': drag,
     };
 
-    for (final entry in attempts.entries) {
-      testWidgets('${entry.key} leaves the sheet open', (tester) async {
+    for (final entry in dismissals.entries) {
+      testWidgets('${entry.key} closes the sheet', (tester) async {
         final gate = Completer<void>();
         final repo = await inFlight(tester, gate);
 
         await entry.value(tester);
 
-        expect(_sheet(), findsOneWidget);
-        expect(
-          _inSheet(find.byType(CircularProgressIndicator)),
-          findsOneWidget,
-        );
+        expect(_sheet(), findsNothing);
         expect(repo.statusCalls, 1);
-        expect(_stepsStatus(tester), ComplaintStatus.new_);
+        expect(tester.takeException(), isNull);
 
         gate.complete();
-        await tester.pumpAndSettle();
+        await pumpFor(tester, 600);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('${entry.key} still lets a success update the detail', (
+        tester,
+      ) async {
+        final gate = Completer<void>();
+        final repo = await inFlight(tester, gate);
+        await entry.value(tester);
+
+        gate.complete();
+        await pumpFor(tester, 600);
 
         expect(_sheet(), findsNothing);
         expect(repo.statusCalls, 1);
         expect(_stepsStatus(tester), ComplaintStatus.inProgress);
         expect(_button(_markDone), findsOneWidget);
+        expect(find.text(_markInProgress), findsNothing);
+        expect(tester.takeException(), isNull);
       });
 
-      testWidgets('${entry.key} cannot dismiss it before a conflict ends it', (
+      testWidgets('${entry.key} still lets a success refresh the list', (
+        tester,
+      ) async {
+        final gate = Completer<void>();
+        final repo = await inFlight(tester, gate);
+        final listCallsBefore = repo.listCalls;
+        await entry.value(tester);
+
+        gate.complete();
+        await pumpFor(tester, 600);
+
+        expect(repo.listCalls, greaterThan(listCallsBefore));
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('${entry.key} still lets a conflict reload the detail', (
         tester,
       ) async {
         final gate = Completer<void>();
@@ -672,42 +710,20 @@ void main() {
           status: ComplaintStatus.inProgress,
           classificationState: ComplaintClassificationState.notClassified,
         );
-
         await entry.value(tester);
-
-        expect(_sheet(), findsOneWidget);
         expect(find.text(_conflictMessage), findsNothing);
 
         gate.complete();
-        await _pumpBriefly(tester);
-
-        expect(_sheet(), findsNothing);
-        expect(find.text(_conflictMessage), findsOneWidget);
-        expect(repo.getCalls, 2);
-        expect(_stepsStatus(tester), ComplaintStatus.inProgress);
-      });
-
-      testWidgets('${entry.key} dismisses the sheet again after a failure', (
-        tester,
-      ) async {
-        final gate = Completer<void>();
-        final repo = await inFlight(
-          tester,
-          gate,
-          failure: const ApiFailure.network(),
-        );
-        gate.complete();
-        await tester.pumpAndSettle();
-        expect(
-          _inSheet(find.text(messageOfCode('NETWORK_ERROR'))),
-          findsOneWidget,
-        );
-
-        await entry.value(tester);
+        await pumpFor(tester, 600);
 
         expect(_sheet(), findsNothing);
         expect(repo.statusCalls, 1);
-        expect(_stepsStatus(tester), ComplaintStatus.new_);
+        expect(repo.getCalls, 2);
+        expect(_stepsStatus(tester), ComplaintStatus.inProgress);
+        expect(_button(_markDone), findsOneWidget);
+        expect(find.text(_conflictMessage), findsOneWidget);
+        expect(find.textContaining('COMPLAINT_STATUS_NOT_NEXT'), findsNothing);
+        expect(tester.takeException(), isNull);
       });
     }
   });
@@ -731,7 +747,7 @@ void main() {
         }
         final cardAt = chain.indexWhere((node) => node.id == card.id);
         final live = chain.indexWhere(
-          (node) => containsSemantics(isLiveRegion: true).matches(node, {}),
+          (node) => node.getSemanticsData().flagsCollection.isLiveRegion,
         );
 
         expect(live, isNonNegative, reason: 'no live region around the steps');
