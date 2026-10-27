@@ -359,6 +359,176 @@ void main() {
     });
   });
 
+  group('changeStatus', () {
+    test(
+      'posts the status and note and returns the updated complaint',
+      () async {
+        final h = _Harness(
+          (_) => _ok(
+            _complaintJson(
+              id: 'c1',
+              status: 'inProgress',
+              statusChanges: [
+                {
+                  'status': 'inProgress',
+                  'changedAt': '2026-10-20T08:00:00Z',
+                  'handlingNote': 'Tukang datang besok pagi.',
+                },
+              ],
+            ),
+          ),
+        );
+
+        final c = await h.repository.changeStatus(
+          'c1',
+          ComplaintStatus.inProgress,
+          handlingNote: 'Tukang datang besok pagi.',
+        );
+
+        expect(h.request.method, 'POST');
+        expect(h.request.url.path, '/complaints/c1/status-changes');
+        expect(h.body['status'], 'inProgress');
+        expect(h.body['handlingNote'], 'Tukang datang besok pagi.');
+        expect(c.id, 'c1');
+        expect(c.status, ComplaintStatus.inProgress);
+        expect(
+          c.statusChanges.single.handlingNote,
+          'Tukang datang besok pagi.',
+        );
+        expect(c.statusChanges.single.changedAt, DateTime.utc(2026, 10, 20, 8));
+      },
+    );
+
+    test('sends the wire value done for the done status', () async {
+      final h = _Harness((_) => _ok(_complaintJson(status: 'done')));
+
+      final c = await h.repository.changeStatus('c1', ComplaintStatus.done);
+
+      expect(h.body['status'], 'done');
+      expect(c.status, ComplaintStatus.done);
+    });
+
+    test('puts the complaint id in the path', () async {
+      final h = _Harness((_) => _ok(_complaintJson(id: 'c42')));
+
+      await h.repository.changeStatus('c42', ComplaintStatus.inProgress);
+
+      expect(h.request.url.path, '/complaints/c42/status-changes');
+    });
+
+    test('sends no note when none is given', () async {
+      final h = _Harness((_) => _ok(_complaintJson(status: 'inProgress')));
+
+      await h.repository.changeStatus('c1', ComplaintStatus.inProgress);
+
+      expect(h.body['handlingNote'], isNull);
+    });
+
+    for (final blank in ['', '   ', ' \n\t ']) {
+      test('sends no note for the blank note ${jsonEncode(blank)}', () async {
+        final h = _Harness((_) => _ok(_complaintJson(status: 'inProgress')));
+
+        await h.repository.changeStatus(
+          'c1',
+          ComplaintStatus.inProgress,
+          handlingNote: blank,
+        );
+
+        expect(h.body['handlingNote'], isNull);
+      });
+    }
+
+    test('trims the note before sending it', () async {
+      final h = _Harness((_) => _ok(_complaintJson(status: 'inProgress')));
+
+      await h.repository.changeStatus(
+        'c1',
+        ComplaintStatus.inProgress,
+        handlingNote: '  Tukang datang besok pagi.\n',
+      );
+
+      expect(h.body['handlingNote'], 'Tukang datang besok pagi.');
+    });
+
+    test('keeps line breaks inside the note', () async {
+      final h = _Harness((_) => _ok(_complaintJson(status: 'inProgress')));
+
+      await h.repository.changeStatus(
+        'c1',
+        ComplaintStatus.inProgress,
+        handlingNote: 'Baris satu\nBaris dua',
+      );
+
+      expect(h.body['handlingNote'], 'Baris satu\nBaris dua');
+    });
+
+    test('keeps the code, field and status of a conflict', () async {
+      final h = _Harness(
+        (_) => _error(409, 'COMPLAINT_STATUS_NOT_NEXT', field: 'status'),
+      );
+
+      await expectLater(
+        h.repository.changeStatus('c1', ComplaintStatus.done),
+        throwsA(
+          _failure('COMPLAINT_STATUS_NOT_NEXT', field: 'status', status: 409),
+        ),
+      );
+    });
+
+    test('converts a not found response to an ApiFailure', () async {
+      final h = _Harness((_) => _error(404, 'COMPLAINT_NOT_FOUND'));
+
+      await expectLater(
+        h.repository.changeStatus('nope', ComplaintStatus.inProgress),
+        throwsA(_failure('COMPLAINT_NOT_FOUND', status: 404)),
+      );
+    });
+
+    test('converts a forbidden response to an ApiFailure', () async {
+      final h = _Harness((_) => _error(403, 'FORBIDDEN'));
+
+      await expectLater(
+        h.repository.changeStatus('c1', ComplaintStatus.inProgress),
+        throwsA(_failure('FORBIDDEN', status: 403)),
+      );
+    });
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(const SocketException('no route'));
+
+      await expectLater(
+        h.repository.changeStatus('c1', ComplaintStatus.inProgress),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+
+    test('converts a client exception to a network failure', () async {
+      final h = _Harness.failing(http.ClientException('broken'));
+
+      await expectLater(
+        h.repository.changeStatus('c1', ComplaintStatus.inProgress),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+
+    test('maps a server error without a body to INTERNAL_ERROR', () async {
+      final h = _Harness((_) => http.Response('', 500));
+
+      await expectLater(
+        h.repository.changeStatus('c1', ComplaintStatus.inProgress),
+        throwsA(_failure('INTERNAL_ERROR', status: 500)),
+      );
+    });
+
+    test('sends exactly one request', () async {
+      final h = _Harness((_) => _ok(_complaintJson(status: 'inProgress')));
+
+      await h.repository.changeStatus('c1', ComplaintStatus.inProgress);
+
+      expect(h.requests, hasLength(1));
+    });
+  });
+
   group('submit', () {
     test('posts the description and returns the saved complaint', () async {
       final h = _Harness(

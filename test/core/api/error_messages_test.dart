@@ -37,6 +37,9 @@ const _table = {
   'ROOM_NOT_FOUND': 'Kamar tidak ditemukan.',
   'ROOM_NOT_VACANT': 'Kamar sudah terisi.',
   'TENANT_NOT_FOUND': 'Penyewa tidak ditemukan.',
+  'COMPLAINT_NOT_FOUND': 'Keluhan tidak ditemukan.',
+  'COMPLAINT_STATUS_NOT_NEXT':
+      'Status keluhan sudah diubah oleh pengguna lain.',
   'FORBIDDEN': 'Anda tidak memiliki akses untuk tindakan ini.',
   'ACCESS_TOKEN_INVALID': 'Sesi Anda telah berakhir. Silakan masuk lagi.',
   'REFRESH_TOKEN_INVALID': 'Sesi Anda telah berakhir. Silakan masuk lagi.',

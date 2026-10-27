@@ -869,7 +869,12 @@ Complaint makeComplaint({
 /// [submitState] when set) only when the call succeeds, and appends it to
 /// [complaints]. Script failures and gates per method with the `*Script`
 /// fields. Every call is also appended to [calls] in order, as `list`,
-/// `get:<id>` or `submit`.
+/// `get:<id>`, `submit` or `status:<id>`.
+///
+/// [changeStatus] moves the complaint to the asked status only when the call
+/// succeeds, and appends a status change at [statusChangedAt] carrying the
+/// handling note. Every call is recorded in [statusChanged] as given, before
+/// the script is consulted.
 class FakeComplaintRepository implements ComplaintRepository {
   FakeComplaintRepository({List<Complaint>? complaints})
     : complaints = complaints ?? [];
@@ -878,10 +883,16 @@ class FakeComplaintRepository implements ComplaintRepository {
 
   final calls = <String>[];
   final submitted = <String>[];
+  final statusChanged =
+      <({String id, ComplaintStatus status, String? handlingNote})>[];
 
   final listScript = CallScript();
   final getScript = CallScript();
   final submitScript = CallScript();
+  final changeStatusScript = CallScript();
+
+  /// The time of the status change that [changeStatus] records.
+  static final statusChangedAt = DateTime.utc(2026, 10, 20, 8);
 
   /// The classification state of a complaint saved by [submit]. Null means
   /// classified: [submitClassification] is returned instead.
@@ -894,6 +905,47 @@ class FakeComplaintRepository implements ComplaintRepository {
   int get listCalls => calls.where((c) => c == 'list').length;
   int get getCalls => calls.where((c) => c.startsWith('get:')).length;
   int get submitCalls => calls.where((c) => c == 'submit').length;
+  int get statusCalls => calls.where((c) => c.startsWith('status:')).length;
+
+  @override
+  Future<Complaint> changeStatus(
+    String complaintId,
+    ComplaintStatus status, {
+    String? handlingNote,
+  }) async {
+    calls.add('status:$complaintId');
+    statusChanged.add((
+      id: complaintId,
+      status: status,
+      handlingNote: handlingNote,
+    ));
+    final failure = await changeStatusScript.next();
+    if (failure != null) throw failure;
+    final index = complaints.indexWhere((c) => c.id == complaintId);
+    if (index < 0) throw const ApiFailure(code: 'COMPLAINT_NOT_FOUND');
+    final old = complaints[index];
+    return complaints[index] = Complaint(
+      id: old.id,
+      description: old.description,
+      status: status,
+      classification: old.classification,
+      classificationState: old.classificationState,
+      classificationWithheld: old.classificationWithheld,
+      createdAt: old.createdAt,
+      hasPhoto: old.hasPhoto,
+      property: old.property,
+      room: old.room,
+      statusChanges: [
+        ...old.statusChanges,
+        ComplaintStatusChange(
+          status: status,
+          changedAt: statusChangedAt,
+          handlingNote: handlingNote,
+        ),
+      ],
+      tenantName: old.tenantName,
+    );
+  }
 
   @override
   Future<List<ComplaintSummary>> list() async {
