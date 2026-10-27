@@ -11,6 +11,7 @@ import 'package:niscala/features/auth/ui/activation_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/register_owner_screen.dart';
 import 'package:niscala/features/account/ui/active_sessions_screen.dart';
+import 'package:niscala/features/account/ui/change_password_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
 import 'package:niscala/features/complaints/ui/complaint_form_screen.dart';
 import 'package:niscala/features/complaints/ui/management_complaint_detail_screen.dart';
@@ -56,12 +57,14 @@ const _managementRoutes = {
   '/pembayaran',
   '/akun',
   '/akun/perangkat',
+  '/akun/kata-sandi',
 };
 const _tenantRoutes = {
   _tenantHome,
   '/penyewa/keluhan',
   '/penyewa/akun',
   '/penyewa/akun/perangkat',
+  '/penyewa/akun/kata-sandi',
 };
 
 /// [root] itself or any location below it.
@@ -142,6 +145,31 @@ StatefulShellBranch _nestedBranch(
     GoRoute(path: path, builder: (context, state) => screen, routes: routes),
   ],
 );
+
+/// The Akun tab of a role and its sub-pages. The tab reads the notice that a
+/// sub-page passes with `extra`, such as the result of a password change.
+StatefulShellBranch _accountBranch(String path, {bool showLease = false}) =>
+    StatefulShellBranch(
+      routes: [
+        GoRoute(
+          path: path,
+          builder: (context, state) => AccountScreen(
+            showLease: showLease,
+            notice: state.extra as String?,
+          ),
+          routes: [
+            _subPage(
+              path: 'perangkat',
+              builder: (context, state) => const ActiveSessionsScreen(),
+            ),
+            _subPage(
+              path: 'kata-sandi',
+              builder: (context, state) => const ChangePasswordScreen(),
+            ),
+          ],
+        ),
+      ],
+    );
 
 /// The rooms of a property: the list, the add form, and one room with its edit
 /// form. The add route comes before `:roomId` so it is not read as a room id.
@@ -305,12 +333,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           _branch('/pembayaran', const PlaceholderScreen(title: 'Pembayaran')),
           _propertiesBranch(),
-          _nestedBranch('/akun', const AccountScreen(), [
-            _subPage(
-              path: 'perangkat',
-              builder: (context, state) => const ActiveSessionsScreen(),
-            ),
-          ]),
+          _accountBranch('/akun'),
         ],
       ),
       StatefulShellRoute(
@@ -352,12 +375,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                   ReceiptViewScreen(billId: state.pathParameters['id']!),
             ),
           ]),
-          _nestedBranch('/penyewa/akun', const AccountScreen(showLease: true), [
-            _subPage(
-              path: 'perangkat',
-              builder: (context, state) => const ActiveSessionsScreen(),
-            ),
-          ]),
+          _accountBranch('/penyewa/akun', showLease: true),
         ],
       ),
     ],
