@@ -633,13 +633,14 @@ void main() {
       await _open(tester, repo);
       await _openSheet(tester, _markInProgress);
       await tester.enterText(_field(), _note);
+      final listCallsBefore = repo.listCalls;
 
       await _confirm(tester, _confirmInProgress);
 
       expect(repo.complaints.single.status, ComplaintStatus.new_);
       expect(_stepsStatus(tester), ComplaintStatus.new_);
       expect(tester.widget<TextField>(_field()).controller?.text, _note);
-      expect(repo.listCalls, 0);
+      expect(repo.listCalls, listCallsBefore);
     });
 
     testWidgets('lets the user retry and then succeeds', (tester) async {
