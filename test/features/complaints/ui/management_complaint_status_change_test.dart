@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
@@ -596,6 +597,150 @@ void main() {
       final repo = await conflict(tester);
 
       expect(repo.statusCalls, 1);
+    });
+  });
+
+  group('while the change is in flight', () {
+    /// Opens the sheet and confirms with the request held by [gate].
+    Future<FakeComplaintRepository> inFlight(
+      WidgetTester tester,
+      Completer<void> gate, {
+      ApiFailure? failure,
+    }) async {
+      final repo = _repo()..changeStatusScript.gate = gate;
+      if (failure != null) repo.changeStatusScript.queue.add(failure);
+      await _open(tester, repo);
+      await _openSheet(tester, _markInProgress);
+      await tester.tap(_button(_confirmInProgress));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(repo.statusCalls, 1);
+      return repo;
+    }
+
+    Future<void> tryBack(WidgetTester tester) async {
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    }
+
+    Future<void> tryBarrier(WidgetTester tester) async {
+      await tester.tapAt(const Offset(2, 2));
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    }
+
+    Future<void> tryDrag(WidgetTester tester) async {
+      await tester.drag(_sheet(), const Offset(0, 600), warnIfMissed: false);
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    }
+
+    final attempts = <String, Future<void> Function(WidgetTester)>{
+      'the Android back action': tryBack,
+      'a tap on the barrier': tryBarrier,
+      'a drag down': tryDrag,
+    };
+
+    for (final entry in attempts.entries) {
+      testWidgets('${entry.key} leaves the sheet open', (tester) async {
+        final gate = Completer<void>();
+        final repo = await inFlight(tester, gate);
+
+        await entry.value(tester);
+
+        expect(_sheet(), findsOneWidget);
+        expect(
+          _inSheet(find.byType(CircularProgressIndicator)),
+          findsOneWidget,
+        );
+        expect(repo.statusCalls, 1);
+        expect(_stepsStatus(tester), ComplaintStatus.new_);
+
+        gate.complete();
+        await tester.pumpAndSettle();
+
+        expect(_sheet(), findsNothing);
+        expect(repo.statusCalls, 1);
+        expect(_stepsStatus(tester), ComplaintStatus.inProgress);
+        expect(_button(_markDone), findsOneWidget);
+      });
+
+      testWidgets('${entry.key} cannot dismiss it before a conflict ends it', (
+        tester,
+      ) async {
+        final gate = Completer<void>();
+        final repo = await inFlight(tester, gate, failure: _notNext);
+        repo.complaints[0] = makeComplaint(
+          status: ComplaintStatus.inProgress,
+          classificationState: ComplaintClassificationState.notClassified,
+        );
+
+        await entry.value(tester);
+
+        expect(_sheet(), findsOneWidget);
+        expect(find.text(_conflictMessage), findsNothing);
+
+        gate.complete();
+        await _pumpBriefly(tester);
+
+        expect(_sheet(), findsNothing);
+        expect(find.text(_conflictMessage), findsOneWidget);
+        expect(repo.getCalls, 2);
+        expect(_stepsStatus(tester), ComplaintStatus.inProgress);
+      });
+
+      testWidgets('${entry.key} dismisses the sheet again after a failure', (
+        tester,
+      ) async {
+        final gate = Completer<void>();
+        final repo = await inFlight(
+          tester,
+          gate,
+          failure: const ApiFailure.network(),
+        );
+        gate.complete();
+        await tester.pumpAndSettle();
+        expect(
+          _inSheet(find.text(messageOfCode('NETWORK_ERROR'))),
+          findsOneWidget,
+        );
+
+        await entry.value(tester);
+
+        expect(_sheet(), findsNothing);
+        expect(repo.statusCalls, 1);
+        expect(_stepsStatus(tester), ComplaintStatus.new_);
+      });
+    }
+  });
+
+  group('the status card', () {
+    testWidgets('is a live region so a screen reader announces changes', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      try {
+        await _open(tester, _repo(ComplaintStatus.inProgress));
+
+        final card = tester.getSemantics(sectionCardOf('Status'));
+        final chain = <SemanticsNode>[];
+        for (
+          SemanticsNode? node = tester.getSemantics(statusSteps());
+          node != null;
+          node = node.parent
+        ) {
+          chain.add(node);
+        }
+        final cardAt = chain.indexWhere((node) => node.id == card.id);
+        final live = chain.indexWhere(
+          (node) => containsSemantics(isLiveRegion: true).matches(node, {}),
+        );
+
+        expect(live, isNonNegative, reason: 'no live region around the steps');
+        if (cardAt >= 0) {
+          expect(live, lessThanOrEqualTo(cardAt));
+        }
+      } finally {
+        handle.dispose();
+      }
     });
   });
 
