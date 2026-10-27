@@ -4,8 +4,8 @@ import 'package:niscala/core/api/api_providers.dart';
 import 'package:niscala/core/api/device_info.dart';
 import 'package:niscala_api/api.dart';
 
-/// Invitation activation. Every method throws an `ApiFailure` when the call
-/// fails.
+/// Invitation activation and acceptance. Every method throws an `ApiFailure`
+/// when the call fails.
 abstract interface class InvitationRepository {
   /// Reports what the invitation [token] is for and whether it is still valid.
   Future<InvitationPreview> preview(String token);
@@ -18,6 +18,13 @@ abstract interface class InvitationRepository {
     required String password,
     List<EmergencyContact>? emergencyContacts,
   });
+
+  /// Reports whether the signed-in account can accept the invitation [token],
+  /// and why not when it cannot.
+  Future<InvitationAcceptancePreview> previewAcceptance(String token);
+
+  /// Adds the properties of the invitation [token] to the signed-in account.
+  Future<void> accept(String token);
 }
 
 final invitationRepositoryProvider = Provider<InvitationRepository>((ref) {
@@ -59,6 +66,18 @@ class ApiInvitationRepository implements InvitationRepository {
       return (await invitations.activateInvitationWithPassword(input))!;
     });
   }
+
+  @override
+  Future<InvitationAcceptancePreview> previewAcceptance(String token) =>
+      _guard(() async {
+        return (await invitations.previewInvitationAcceptance(
+          TokenInput(token: token),
+        ))!;
+      });
+
+  @override
+  Future<void> accept(String token) =>
+      _guard(() => invitations.acceptInvitation(TokenInput(token: token)));
 
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {

@@ -7,6 +7,7 @@ import 'package:niscala/core/shell/app_shell.dart';
 import 'package:niscala/core/shell/fading_tab_stack.dart';
 import 'package:niscala/core/widgets/loading_screen.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
+import 'package:niscala/features/auth/ui/accept_invitation_screen.dart';
 import 'package:niscala/features/auth/ui/activation_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/register_owner_screen.dart';
@@ -58,6 +59,7 @@ const _managementRoutes = {
   '/akun',
   '/akun/perangkat',
   '/akun/kata-sandi',
+  '/akun/undangan',
 };
 const _tenantRoutes = {
   _tenantHome,
@@ -165,6 +167,10 @@ StatefulShellBranch _accountBranch(String path, {bool showLease = false}) =>
             _subPage(
               path: 'kata-sandi',
               builder: (context, state) => const ChangePasswordScreen(),
+            ),
+            _subPage(
+              path: 'undangan',
+              builder: (context, state) => const AcceptInvitationScreen(),
             ),
           ],
         ),
