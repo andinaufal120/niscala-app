@@ -316,16 +316,16 @@ Every tenant is listed with:
 ### 8.3 Owner only (Pemilik Kost)
 
 **UC-27 Add manager** (FR-22) · *Properti → [property] → Pengelola → Tambah Pengelola (Managers → Add)*
-Fields: name, email, and at least one property. The email must not be registered already. An invitation is emailed. If sending fails, the account is saved as *Belum Terkirim* and can be resent in UC-29.
+Fields: name (the Manager's full name), optional nickname (this Owner's own name for the Manager), phone number (WhatsApp, the same rule as UC-18) and at least one property of the Owner, no property twice. Email is not entered here; the Manager types their own during activation (§7). On save the Manager is *Belum Diaktifkan* and an **invitation link** is shown, to share by copying, WhatsApp or QR code as in UC-18. The app shows the nickname when set, otherwise the name. A property that is unknown or not the Owner's is a field error on that property.
 
 **UC-28 View managers** (FR-22) · *Properti → [property] → Pengelola (Managers)*
-List with name, email, assigned properties and account status. The empty state includes the *Tambah Pengelola* button.
+List with nickname or name, phone, email (once set), assigned properties and account status, limited to the property the screen was opened from. Detail adds, while the Manager is not *Aktif*, the invitation: when it expires, and its link to share again while it is unused and not expired. The empty state includes the *Tambah Pengelola* button.
 
 **UC-29 Edit manager** (FR-22) · *[manager] → Ubah (Edit)*
-Change name, email or assigned properties, with at least one property. Access to properties that were removed is revoked. Alternative: *Kirim Ulang Undangan (Resend invitation)* for accounts that are not yet active.
+Change name, nickname, phone or assigned properties, with at least one property. Access to properties that were removed is revoked. The name can be changed only while the Manager is *Belum Diaktifkan*; for an *Aktif* Manager the name is shown but not editable. Alternative: *Buat Ulang Tautan Undangan (Regenerate invitation link)* for a Manager who is not yet *Aktif*; it creates a new link, invalidates the old one and shows the new one for sharing.
 
 **UC-30 Delete manager** (FR-22) · *[manager] → Hapus (Delete)*
-Soft delete: assignments are revoked and active sessions end. The manager's action history is kept.
+Asks for confirmation. Revokes this Owner's property assignments for the Manager. A Manager who also works for another Owner keeps that access; otherwise their sessions end. The Manager's action history is kept.
 
 **UC-31 Choose subscription plan** (FR-23, FR-25) · *Akun → Langganan (Account → Subscription)*
 Shows the current status and the available plans (features, price). With an active plan, also show the end date and offer renewal or a plan change. Pick a plan → order summary → confirm → order *Menunggu Pembayaran* → UC-32.
@@ -430,4 +430,5 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 24-10-2026 | Tenant *Beranda* content defined in §6a: greeting, first active bill with its upload or pay-cash action, link to *Riwayat*, latest complaint, and the no-lease message. | NKMA-98 |
 | 27-10-2026 | Interim acceptance of a Manager invitation with an existing account: the signed-in Manager pastes the link in *Akun*, until U-4 is decided (§7). | NKMA-102 |
 | 27-10-2026 | U-22 decided: a Manager sees the same dashboard as an Owner, limited to the assigned properties. | NKMA-45 |
+| 27-10-2026 | UC-27 to UC-30 rewritten to match the backend: a Manager is added with name, optional nickname, phone and properties and shown an invitation link (no email is sent); the name is editable only before activation; deleting revokes this Owner's assignments. | NKMA-46 |
 | 02-11-2026 | Push message format added to §9 (shared with the backend): high priority, localization keys `notification_<type>_title` and `_body`, and data `notificationId` and `type`; the app provides a title and a body string for every notification type. | NKMA-106 |
