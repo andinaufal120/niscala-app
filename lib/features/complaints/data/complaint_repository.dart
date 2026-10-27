@@ -12,6 +12,14 @@ abstract interface class ComplaintRepository {
 
   Future<Complaint> get(String complaintId);
 
+  /// Moves a complaint to [status], which must be its next status. A blank
+  /// [handlingNote] is sent as none; otherwise it is sent trimmed.
+  Future<Complaint> changeStatus(
+    String complaintId,
+    ComplaintStatus status, {
+    String? handlingNote,
+  });
+
   /// Saves a complaint as the calling tenant. The returned complaint may still
   /// be unclassified; the AI classification runs in the background.
   Future<Complaint> submit(String description);
@@ -49,6 +57,22 @@ class ApiComplaintRepository implements ComplaintRepository {
   @override
   Future<Complaint> get(String complaintId) => _guard(() async {
     return (await complaints.getComplaint(complaintId))!;
+  });
+
+  @override
+  Future<Complaint> changeStatus(
+    String complaintId,
+    ComplaintStatus status, {
+    String? handlingNote,
+  }) => _guard(() async {
+    final note = handlingNote?.trim();
+    return (await complaints.changeComplaintStatus(
+      complaintId,
+      ComplaintStatusChangeInput(
+        status: status,
+        handlingNote: note == null || note.isEmpty ? null : note,
+      ),
+    ))!;
   });
 
   @override
