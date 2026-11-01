@@ -1481,6 +1481,17 @@
             "title": "Name",
             "type": "string"
           },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname"
+          },
           "phone": {
             "description": "Indonesian mobile number; returned as digits starting with 08.",
             "title": "Phone",
@@ -1520,6 +1531,18 @@
             "minLength": 1,
             "title": "Name",
             "type": "string"
+          },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How the Owner calls the Manager; blank means none.",
+            "title": "Nickname"
           },
           "phone": {
             "description": "Indonesian mobile number; returned as digits starting with 08.",
@@ -1672,6 +1695,17 @@
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname"
           },
           "phone": {
             "description": "Indonesian mobile number; returned as digits starting with 08.",
@@ -4420,10 +4454,35 @@
   },
   "info": {
     "title": "Niscala API",
-    "version": "0.1.0"
+    "version": "0.3.0"
   },
   "openapi": "3.1.0",
   "paths": {
+    "/auth/email-changes": {
+      "post": {
+        "description": "Make the email of an emailed change link the account's login email.",
+        "operationId": "confirm_email_change",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Confirm Email Change",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/auth/email-verification": {
       "post": {
         "description": "Email a new 6-digit verification code to the caller's account.",

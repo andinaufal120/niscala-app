@@ -36,6 +36,11 @@ void main() {
       // TODO
     });
 
+    // String nickname
+    test('to test the property `nickname`', () async {
+      // TODO
+    });
+
     // Indonesian mobile number; returned as digits starting with 08.
     // String phone
     test('to test the property `phone`', () async {

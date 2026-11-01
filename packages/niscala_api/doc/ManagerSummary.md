@@ -12,6 +12,7 @@ Name | Type | Description | Notes
 **email** | **String** |  | [optional] 
 **id** | **String** |  | 
 **name** | **String** |  | 
+**nickname** | **String** |  | [optional] 
 **phone** | **String** | Indonesian mobile number; returned as digits starting with 08. | 
 **properties** | [**List<ManagerProperty>**](ManagerProperty.md) |  | [default to const []]
 
