@@ -331,12 +331,14 @@ void main() {
       expect(find.text('Alasan penolakan'), findsNothing);
     });
 
-    testWidgets('is read only: it offers no payment action', (tester) async {
+    testWidgets('a bill awaiting verification offers only the review actions', (
+      tester,
+    ) async {
       await _open(tester, _repo(_awaiting(), receipt: true));
 
+      expect(find.text('Verifikasi'), findsOneWidget);
+      expect(find.text('Tolak'), findsOneWidget);
       for (final text in [
-        'Verifikasi',
-        'Tolak',
         'Ubah Status',
         'Catat Pembayaran Tunai',
         'Transfer sekarang',
