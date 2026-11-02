@@ -151,6 +151,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             busy: _busy,
                             onPressed: _submit,
                           ),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton(
+                              onPressed: () => context.go('/lupa-kata-sandi'),
+                              child: const Text('Lupa kata sandi?'),
+                            ),
+                          ),
                         ],
                       ),
                       Column(
