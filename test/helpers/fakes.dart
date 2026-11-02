@@ -15,6 +15,7 @@ import 'package:niscala/features/auth/data/invitation_repository.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
 import 'package:niscala/features/dashboard/data/dashboard_repository.dart';
 import 'package:niscala/features/lease/data/lease_repository.dart';
+import 'package:niscala/features/managers/data/manager_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
 import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
@@ -727,6 +728,251 @@ class FakeTenantRepository implements TenantRepository {
     );
     (_byProperty[propertyId] ??= []).add(tenant);
     return tenant;
+  }
+}
+
+/// A [ManagerProperty] with sensible defaults: Kos Melati.
+ManagerProperty makeManagerProperty({
+  String id = 'p1',
+  String name = 'Kos Melati',
+  String address = 'Jl. Melati 1, Bandung',
+}) => ManagerProperty(id: id, name: name, address: address);
+
+/// The properties of the Owner as a manager lists them: `p1` Kos Melati, `p2`
+/// Kos Mawar and `p3` Kos Anggrek.
+List<ManagerProperty> makeManagerCatalog() => [
+  makeManagerProperty(),
+  makeManagerProperty(
+    id: 'p2',
+    name: 'Kos Mawar',
+    address: 'Jl. Mawar 2, Bandung',
+  ),
+  makeManagerProperty(
+    id: 'p3',
+    name: 'Kos Anggrek',
+    address: 'Jl. Anggrek 3, Bandung',
+  ),
+];
+
+/// A manager invitation that is still valid. Created 18 Okt 2026, valid until
+/// 25 Okt 2026. An expired invitation has no link unless [url] is given.
+ManagerInvitation makeManagerInvitation({
+  DateTime? createdAt,
+  DateTime? expiresAt,
+  bool expired = false,
+  String? url,
+  bool withoutUrl = false,
+}) => ManagerInvitation(
+  createdAt: createdAt ?? DateTime.utc(2026, 10, 18, 12),
+  expiresAt: expiresAt ?? DateTime.utc(2026, 10, 25, 12),
+  expired: expired,
+  url: withoutUrl || (expired && url == null)
+      ? null
+      : url ?? 'https://niscala.example/undangan/abc123',
+);
+
+/// A [Manager] with sensible defaults: not activated, no email, assigned to
+/// Kos Melati, with a valid invitation.
+///
+/// Without [invitation] a not activated manager gets [makeManagerInvitation]
+/// and an active one gets none. Set [withoutInvitation] to force none.
+Manager makeManager({
+  String id = 'm1',
+  String name = 'Rina Putri',
+  String? nickname,
+  String phone = '081255204471',
+  String? email,
+  ManagerAccountStatus accountStatus = ManagerAccountStatus.notActivated,
+  ManagerInvitation? invitation,
+  bool withoutInvitation = false,
+  List<ManagerProperty>? properties,
+}) => Manager(
+  id: id,
+  name: name,
+  nickname: nickname,
+  phone: phone,
+  email: email,
+  accountStatus: accountStatus,
+  invitation: withoutInvitation
+      ? null
+      : invitation ??
+            (accountStatus == ManagerAccountStatus.notActivated
+                ? makeManagerInvitation()
+                : null),
+  properties: properties ?? [makeManagerProperty()],
+);
+
+/// The list entry of [manager].
+ManagerSummary managerSummaryOf(Manager manager) => ManagerSummary(
+  id: manager.id,
+  name: manager.name,
+  nickname: manager.nickname,
+  phone: manager.phone,
+  email: manager.email,
+  accountStatus: manager.accountStatus,
+  properties: manager.properties,
+);
+
+/// A [ManagerRepository] that keeps the managers in memory and records its
+/// calls.
+///
+/// [list] returns summaries of the [managers] assigned to the property (all of
+/// them without a property). [create] adds a not activated manager only when
+/// the call succeeds, with the invitation url
+/// `https://niscala.example/undangan/<id>` (none when
+/// [createWithoutInvitation] is set); its properties come from [catalog].
+/// [update] replaces name, nickname, phone and properties of a manager.
+/// [delete] removes it. [regenerateInvitation] fails with
+/// `MANAGER_ALREADY_ACTIVE` for an active manager and otherwise gives the
+/// manager a new valid invitation with the url
+/// `https://niscala.example/undangan/<id>-<n>`, where n counts the
+/// regenerations. [get], [update], [delete] and [regenerateInvitation] fail
+/// with `MANAGER_NOT_FOUND` for an unknown id. Script failures and gates per
+/// method with the `*Script` fields. Every call is also appended to [calls] in
+/// order, as `list:<propertyId>` (empty without a property), `get:<id>`,
+/// `create`, `update:<id>`, `delete:<id>` or `regenerate:<id>`.
+class FakeManagerRepository implements ManagerRepository {
+  FakeManagerRepository({
+    List<Manager>? managers,
+    List<ManagerProperty>? catalog,
+  }) : managers = managers ?? [],
+       catalog = catalog ?? makeManagerCatalog();
+
+  final List<Manager> managers;
+  final List<ManagerProperty> catalog;
+
+  /// Whether [create] returns a manager without an invitation.
+  bool createWithoutInvitation = false;
+
+  final calls = <String>[];
+  final created = <ManagerInput>[];
+  final updated = <({String id, ManagerInput input})>[];
+  final deleted = <String>[];
+
+  final listScript = CallScript();
+  final getScript = CallScript();
+  final createScript = CallScript();
+  final updateScript = CallScript();
+  final deleteScript = CallScript();
+  final regenerateScript = CallScript();
+
+  var _nextId = 1;
+  var _regenerations = 0;
+
+  int get listCalls => calls.where((c) => c.startsWith('list:')).length;
+  int get getCalls => calls.where((c) => c.startsWith('get:')).length;
+  int get regenerateCalls =>
+      calls.where((c) => c.startsWith('regenerate:')).length;
+
+  int _indexOf(String id) {
+    final index = managers.indexWhere((m) => m.id == id);
+    if (index < 0) throw const ApiFailure(code: 'MANAGER_NOT_FOUND');
+    return index;
+  }
+
+  List<ManagerProperty> _propertiesOf(List<String> ids) => [
+    for (final id in ids)
+      catalog.firstWhere(
+        (p) => p.id == id,
+        orElse: () => makeManagerProperty(id: id, name: id, address: ''),
+      ),
+  ];
+
+  @override
+  Future<List<ManagerSummary>> list({String? propertyId}) async {
+    calls.add('list:${propertyId ?? ''}');
+    final failure = await listScript.next();
+    if (failure != null) throw failure;
+    return [
+      for (final m in managers)
+        if (propertyId == null || m.properties.any((p) => p.id == propertyId))
+          managerSummaryOf(m),
+    ];
+  }
+
+  @override
+  Future<Manager> get(String managerId) async {
+    calls.add('get:$managerId');
+    final failure = await getScript.next();
+    if (failure != null) throw failure;
+    return managers[_indexOf(managerId)];
+  }
+
+  @override
+  Future<Manager> create(ManagerInput input) async {
+    calls.add('create');
+    created.add(input);
+    final failure = await createScript.next();
+    if (failure != null) throw failure;
+    final id = 'new-${_nextId++}';
+    final manager = Manager(
+      id: id,
+      name: input.name,
+      nickname: input.nickname,
+      phone: input.phone,
+      accountStatus: ManagerAccountStatus.notActivated,
+      invitation: createWithoutInvitation
+          ? null
+          : makeManagerInvitation(url: 'https://niscala.example/undangan/$id'),
+      properties: _propertiesOf(input.propertyIds),
+    );
+    managers.add(manager);
+    return manager;
+  }
+
+  @override
+  Future<Manager> update(String managerId, ManagerInput input) async {
+    calls.add('update:$managerId');
+    updated.add((id: managerId, input: input));
+    final failure = await updateScript.next();
+    if (failure != null) throw failure;
+    final index = _indexOf(managerId);
+    final old = managers[index];
+    return managers[index] = Manager(
+      id: old.id,
+      name: input.name,
+      nickname: input.nickname,
+      phone: input.phone,
+      email: old.email,
+      accountStatus: old.accountStatus,
+      invitation: old.invitation,
+      properties: _propertiesOf(input.propertyIds),
+    );
+  }
+
+  @override
+  Future<void> delete(String managerId) async {
+    calls.add('delete:$managerId');
+    deleted.add(managerId);
+    final failure = await deleteScript.next();
+    if (failure != null) throw failure;
+    managers.removeAt(_indexOf(managerId));
+  }
+
+  @override
+  Future<ManagerInvitation> regenerateInvitation(String managerId) async {
+    calls.add('regenerate:$managerId');
+    final failure = await regenerateScript.next();
+    if (failure != null) throw failure;
+    final index = _indexOf(managerId);
+    final old = managers[index];
+    if (old.accountStatus == ManagerAccountStatus.active) {
+      throw const ApiFailure(code: 'MANAGER_ALREADY_ACTIVE');
+    }
+    final invitation = makeManagerInvitation(
+      url: 'https://niscala.example/undangan/$managerId-${++_regenerations}',
+    );
+    managers[index] = Manager(
+      id: old.id,
+      name: old.name,
+      nickname: old.nickname,
+      phone: old.phone,
+      email: old.email,
+      accountStatus: old.accountStatus,
+      invitation: invitation,
+      properties: old.properties,
+    );
+    return invitation;
   }
 }
 
@@ -1659,6 +1905,7 @@ Widget buildTestApp({
   PropertyRepository? properties,
   RoomRepository? rooms,
   TenantRepository? tenants,
+  ManagerRepository? managers,
   ComplaintRepository? complaints,
   RentBillRepository? rentBills,
   LeaseRepository? leases,
@@ -1681,6 +1928,9 @@ Widget buildTestApp({
       roomRepositoryProvider.overrideWithValue(rooms ?? FakeRoomRepository()),
       tenantRepositoryProvider.overrideWithValue(
         tenants ?? FakeTenantRepository(),
+      ),
+      managerRepositoryProvider.overrideWithValue(
+        managers ?? FakeManagerRepository(),
       ),
       complaintRepositoryProvider.overrideWithValue(
         complaints ?? FakeComplaintRepository(),

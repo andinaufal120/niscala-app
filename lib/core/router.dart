@@ -21,6 +21,11 @@ import 'package:niscala/features/complaints/ui/tenant_complaint_detail_screen.da
 import 'package:niscala/features/complaints/ui/tenant_complaint_list_screen.dart';
 import 'package:niscala/features/dashboard/ui/occupancy_dashboard_screen.dart';
 import 'package:niscala/features/home/ui/tenant_home_screen.dart';
+import 'package:niscala/features/managers/ui/manager_detail_screen.dart';
+import 'package:niscala/features/managers/ui/manager_form_screen.dart';
+import 'package:niscala/features/managers/ui/manager_invitation_qr_screen.dart';
+import 'package:niscala/features/managers/ui/manager_invitation_share_screen.dart';
+import 'package:niscala/features/managers/ui/manager_list_screen.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
@@ -74,6 +79,15 @@ const _tenantRoutes = {
 bool _isUnder(String location, String root) =>
     location == root || location.startsWith('$root/');
 
+/// The manager screens of a property, `/properti/:id/pengelola` and below. Only
+/// the Owner manages managers.
+bool _isManagerScreen(String location) {
+  final segments = location.split('/');
+  return segments.length > 3 &&
+      segments[1] == 'properti' &&
+      segments[3] == 'pengelola';
+}
+
 /// Where [location] must be redirected for the session, or null to stay.
 String? redirectFor(SessionState session, String location) {
   switch (session) {
@@ -93,6 +107,9 @@ String? redirectFor(SessionState session, String location) {
       }
       if (role == UserRole.admin) {
         return location == _admin ? null : _admin;
+      }
+      if (role == UserRole.manager && _isManagerScreen(location)) {
+        return _managementHome;
       }
       final allowed =
           _managementRoutes.contains(location) ||
@@ -257,8 +274,63 @@ List<RouteBase> _tenantScreenRoutes() => [
   ),
 ];
 
+/// The managers of a property (Owner only): the add form, the list, and one
+/// manager with its edit form and invitation screens.
+///
+/// The add form is not nested under the list, so opening it does not load the
+/// list; its Kembali goes back to the list explicitly. It comes first, so that
+/// `pengelola/tambah` is not read as a manager id.
+List<RouteBase> _managerScreenRoutes() => [
+  _subPage(
+    path: 'pengelola/tambah',
+    builder: (context, state) =>
+        ManagerFormScreen(propertyId: state.pathParameters['propertyId']!),
+  ),
+  _subPage(
+    path: 'pengelola',
+    builder: (context, state) =>
+        ManagerListScreen(propertyId: state.pathParameters['propertyId']!),
+    routes: [
+      _subPage(
+        path: ':managerId',
+        builder: (context, state) => ManagerDetailScreen(
+          propertyId: state.pathParameters['propertyId']!,
+          managerId: state.pathParameters['managerId']!,
+        ),
+        routes: [
+          _subPage(
+            path: 'ubah',
+            builder: (context, state) => ManagerFormScreen(
+              propertyId: state.pathParameters['propertyId']!,
+              managerId: state.pathParameters['managerId'],
+            ),
+          ),
+          _subPage(
+            path: 'undangan',
+            builder: (context, state) => ManagerInvitationShareScreen(
+              propertyId: state.pathParameters['propertyId']!,
+              managerId: state.pathParameters['managerId']!,
+              isNew: state.uri.queryParameters['baru'] == '1',
+            ),
+            routes: [
+              _subPage(
+                path: 'qr',
+                builder: (context, state) => ManagerInvitationQrScreen(
+                  propertyId: state.pathParameters['propertyId']!,
+                  managerId: state.pathParameters['managerId']!,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  ),
+];
+
 /// The Properti tab. The list is the tab root; the add form, the detail and the
-/// room and tenant routes of a property are sub-pages shown above the shell.
+/// room, tenant and manager routes of a property are sub-pages shown above the
+/// shell.
 StatefulShellBranch _propertiesBranch() => StatefulShellBranch(
   routes: [
     GoRoute(
@@ -283,6 +355,7 @@ StatefulShellBranch _propertiesBranch() => StatefulShellBranch(
             ),
             ..._roomRoutes(),
             ..._tenantScreenRoutes(),
+            ..._managerScreenRoutes(),
           ],
         ),
       ],
