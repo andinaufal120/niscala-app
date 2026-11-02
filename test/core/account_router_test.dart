@@ -58,6 +58,46 @@ void main() {
     }
   });
 
+  group('the accept invitation page', () {
+    const path = '/akun/undangan';
+
+    for (final role in [UserRole.owner, UserRole.manager]) {
+      test('may be opened by a $role at its management path', () {
+        expect(redirectFor(_signedIn(role), path), isNull);
+      });
+
+      test('sends a $role from the tenant account path to the home', () {
+        expect(
+          redirectFor(_signedIn(role), '/penyewa/akun/undangan'),
+          '/beranda',
+        );
+      });
+    }
+
+    test('sends a tenant to the tenant home', () {
+      expect(redirectFor(_signedIn(UserRole.tenant), path), '/penyewa/beranda');
+    });
+
+    test('sends an admin to the admin home', () {
+      expect(redirectFor(_signedIn(UserRole.admin), path), '/admin');
+    });
+
+    test('sends a signed out user to sign in', () {
+      expect(redirectFor(const SignedOut(), path), '/masuk');
+    });
+
+    test('sends a user who is still loading to loading', () {
+      expect(redirectFor(const SessionLoading(), path), '/memuat');
+    });
+
+    test('sends an unverified manager to verification', () {
+      expect(
+        redirectFor(_signedIn(UserRole.manager, verified: false), path),
+        '/verifikasi-email',
+      );
+    });
+  });
+
   group('the change password page', () {
     const managementPath = '/akun/kata-sandi';
     const tenantPath = '/penyewa/akun/kata-sandi';

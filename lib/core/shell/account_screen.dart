@@ -47,6 +47,9 @@ class AccountScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // The password row is only offered to accounts that have a local password.
     final hasPassword = ref.watch(meProvider).value?.hasPassword ?? false;
+    // The role of the session decides the rows, so they do not wait for the
+    // profile to load.
+    final isManager = ref.watch(currentRoleProvider) == UserRole.manager;
     final notice = this.notice;
     return Scaffold(
       body: Column(
@@ -67,6 +70,18 @@ class AccountScreen extends ConsumerWidget {
                   const SizedBox(height: NiscalaSpacing.l),
                   if (showLease) ...[
                     const LeaseCard(),
+                    const SizedBox(height: NiscalaSpacing.l),
+                  ],
+                  if (isManager) ...[
+                    SectionCard(
+                      title: 'Undangan',
+                      child: ActionCardRow(
+                        icon: Icons.mail_outline,
+                        title: 'Terima undangan pengelola',
+                        subtitle: 'Masukkan tautan undangan dari pemilik kost',
+                        onTap: () => _openSubPage(context, ref, 'undangan'),
+                      ),
+                    ),
                     const SizedBox(height: NiscalaSpacing.l),
                   ],
                   SectionCard(

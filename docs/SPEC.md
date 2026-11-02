@@ -203,7 +203,7 @@ Login and sign-up are preconditions, not use cases. All use cases assume a valid
     - a session ended by the user or by Admin stops working within 15 minutes at most.
 <!-- shared:end -->
 
-Until U-4 is decided, the login screen offers *Aktifkan dengan tautan undangan (Activate with invitation link)*: the user pastes the link, the app takes its last path segment as the token, shows the invitation preview and activates with a local password. A local-password account confirms its email with a 6-digit code before using other features.
+Until U-4 is decided, the login screen offers *Aktifkan dengan tautan undangan (Activate with invitation link)*: the user pastes the link, the app takes its last path segment as the token, shows the invitation preview and activates with a local password. A local-password account confirms its email with a 6-digit code before using other features. Likewise, a signed-in Manager accepts a Manager invitation with their existing account from *Akun → Terima Undangan Pengelola (Accept manager invitation)*: they paste the link, the app shows who invited them, the properties and the account that will accept, or the reason the link cannot be accepted, and they confirm. Accepting adds the properties of that Owner to the account and keeps those from other Owners.
 
 ## 8. Use cases
 
@@ -429,4 +429,5 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 23-10-2026 | UC-04 defines *Tagihan aktif* (unpaid, awaiting verification or rejected, including overdue bills) and *Riwayat* (paid); UC-05 shows the upload action only for bills the API marks as uploadable and names the file and bill-state errors. | NKMA-57, NKMA-58 |
 | 23-10-2026 | UC-05 no longer limits receipt upload to the current period; the upload action follows the API's uploadable flag alone, so overdue bills from earlier periods can be uploaded. | NKMA-57, NKMA-58 |
 | 24-10-2026 | Tenant *Beranda* content defined in §6a: greeting, first active bill with its upload or pay-cash action, link to *Riwayat*, latest complaint, and the no-lease message. | NKMA-98 |
+| 27-10-2026 | Interim acceptance of a Manager invitation with an existing account: the signed-in Manager pastes the link in *Akun*, until U-4 is decided (§7). | NKMA-102 |
 | 02-11-2026 | Push message format added to §9 (shared with the backend): high priority, localization keys `notification_<type>_title` and `_body`, and data `notificationId` and `type`; the app provides a title and a body string for every notification type. | NKMA-106 |

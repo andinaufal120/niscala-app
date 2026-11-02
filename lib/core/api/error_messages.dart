@@ -1,6 +1,16 @@
 import 'package:niscala/core/api/api_failure.dart';
 
-const _fallback = 'Terjadi kesalahan. Coba lagi.';
+/// The message for an error without a known code. Also the only generic text a
+/// screen shows.
+const genericErrorMessage = 'Terjadi kesalahan. Coba lagi.';
+
+/// The message for an invitation link that has passed its expiry date. The
+/// activation and acceptance screens show it for a link that is checked.
+const invitationExpiredMessage =
+    'Tautan undangan sudah kedaluwarsa. Minta pemilik kost membuat tautan baru.';
+
+/// The message for an invitation link that has already been used.
+const invitationUsedMessage = 'Tautan undangan ini sudah dipakai.';
 
 const _sessionEnded = 'Sesi Anda telah berakhir. Silakan masuk lagi.';
 
@@ -67,6 +77,12 @@ const _messages = {
   'TOO_MANY_ATTEMPTS':
       'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.',
   'INVITATION_NOT_FOUND': 'Undangan tidak ditemukan. Periksa tautan Anda.',
+  'INVITATION_EXPIRED': invitationExpiredMessage,
+  'INVITATION_USED': invitationUsedMessage,
+  'INVITATION_ROLE_MISMATCH':
+      'Undangan ini untuk peran lain. Akun Anda tidak dapat menerimanya.',
+  'TENANT_HAS_ACTIVE_LEASE': 'Akun ini masih memiliki masa sewa aktif.',
+  'MANAGER_ALREADY_ADDED': 'Anda sudah menjadi pengelola untuk pemilik ini.',
   'NO_ACTIVE_LEASE':
       'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.',
   'COMPLAINT_NOT_FOUND': 'Keluhan tidak ditemukan.',
@@ -89,7 +105,7 @@ const _messages = {
 
 /// The Indonesian message for an API error code. Unknown codes get the generic
 /// message.
-String _errorMessage(String code) => _messages[code] ?? _fallback;
+String _errorMessage(String code) => _messages[code] ?? genericErrorMessage;
 
 /// The labels of the person form fields on screens where a person is named
 /// differently from a property. Passed as the [labels] of [validationMessage]
@@ -111,7 +127,7 @@ String validationMessage(String? field, {Map<String, String>? labels}) {
 /// failure gets the message of its field, with [labels] applied. Anything
 /// other than an [ApiFailure] gets the generic message.
 String errorMessageFor(Object error, {Map<String, String>? labels}) {
-  if (error is! ApiFailure) return _fallback;
+  if (error is! ApiFailure) return genericErrorMessage;
   if (error.code == 'VALIDATION_FAILED') {
     return validationMessage(error.field, labels: labels);
   }

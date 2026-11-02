@@ -11,13 +11,10 @@ import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/auth/data/invitation_repository.dart';
 import 'package:niscala/features/auth/invitation_link.dart';
 import 'package:niscala/features/auth/ui/auth_widgets.dart';
+import 'package:niscala/features/auth/ui/invitation_link_field.dart';
 import 'package:niscala/features/tenants/ui/emergency_contact_fields.dart';
 import 'package:niscala_api/api.dart';
 
-const _linkRequired = 'Tempel tautan undangan dari pemilik kost.';
-const _expiredMessage =
-    'Tautan undangan sudah kedaluwarsa. Minta pemilik kost membuat tautan baru.';
-const _usedMessage = 'Tautan undangan ini sudah dipakai.';
 const _contactsHelper = 'Isi 2 sampai 4 kontak.';
 const _contactsMinimum = 'Isi minimal 2 kontak darurat.';
 const _minimumContacts = 2;
@@ -48,7 +45,7 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
     if (_busy) return;
     final token = invitationTokenFromLink(_link.text);
     if (token == null) {
-      setState(() => _linkError = _linkRequired);
+      setState(() => _linkError = invitationLinkRequiredMessage);
       return;
     }
     setState(() {
@@ -79,8 +76,8 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
   }
 
   String _statusMessage(InvitationLinkStatus status) {
-    if (status == InvitationLinkStatus.expired) return _expiredMessage;
-    if (status == InvitationLinkStatus.used) return _usedMessage;
+    if (status == InvitationLinkStatus.expired) return invitationExpiredMessage;
+    if (status == InvitationLinkStatus.used) return invitationUsedMessage;
     return errorMessageFor(status);
   }
 
@@ -97,17 +94,7 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
       appBar: _activationAppBar(context),
       children: [
         if (_banner != null) ...[FormMessage(_banner!), formGap],
-        LabeledField(
-          label: 'Tautan undangan',
-          required: true,
-          helper: 'Tempel tautan yang dibagikan pemilik kost.',
-          child: TextField(
-            controller: _link,
-            decoration: InputDecoration(errorText: _linkError),
-            keyboardType: TextInputType.url,
-            autocorrect: false,
-          ),
-        ),
+        InvitationLinkField(controller: _link, error: _linkError),
         formGap,
         BusyButton(label: 'Lanjut', busy: _busy, onPressed: _checkLink),
       ],

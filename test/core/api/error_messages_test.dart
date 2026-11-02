@@ -47,6 +47,10 @@ const _table = {
   'PASSWORD_UNCHANGED': 'Kata sandi baru harus berbeda dari yang sekarang.',
   'TOO_MANY_ATTEMPTS':
       'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.',
+  'INVITATION_ROLE_MISMATCH':
+      'Undangan ini untuk peran lain. Akun Anda tidak dapat menerimanya.',
+  'TENANT_HAS_ACTIVE_LEASE': 'Akun ini masih memiliki masa sewa aktif.',
+  'MANAGER_ALREADY_ADDED': 'Anda sudah menjadi pengelola untuk pemilik ini.',
   'FORBIDDEN': 'Anda tidak memiliki akses untuk tindakan ini.',
   'ACCESS_TOKEN_INVALID': 'Sesi Anda telah berakhir. Silakan masuk lagi.',
   'REFRESH_TOKEN_INVALID': 'Sesi Anda telah berakhir. Silakan masuk lagi.',
