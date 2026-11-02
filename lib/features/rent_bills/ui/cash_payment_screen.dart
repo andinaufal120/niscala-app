@@ -9,7 +9,7 @@ import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
-import 'package:niscala/core/widgets/labeled_field.dart';
+import 'package:niscala/core/widgets/tappable_date_field.dart';
 import 'package:niscala/features/rent_bills/data/management_rent_bill_repository.dart';
 import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
 import 'package:niscala/features/rent_bills/payment_labels.dart';
@@ -188,15 +188,12 @@ class _CashPaymentScreenState extends ConsumerState<CashPaymentScreen> {
   }
 
   List<Widget> _form(String billId, String propertyId) => [
-    LabeledField(
+    TappableDateField(
       label: 'Tanggal diterima',
       required: true,
-      child: TextField(
-        controller: _receivedOnText,
-        readOnly: true,
-        onTap: _pickDate,
-        decoration: InputDecoration(errorText: _dateError),
-      ),
+      controller: _receivedOnText,
+      onTap: _pickDate,
+      errorText: _dateError,
     ),
     formGap,
     CheckboxListTile(
