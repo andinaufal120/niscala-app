@@ -63,6 +63,8 @@ const _messages = {
   'NO_ACTIVE_LEASE':
       'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.',
   'COMPLAINT_NOT_FOUND': 'Keluhan tidak ditemukan.',
+  'COMPLAINT_STATUS_NOT_NEXT':
+      'Status keluhan sudah diubah oleh pengguna lain.',
   'RECEIPT_TYPE_INVALID': 'Bukti transfer harus berupa gambar JPG atau PNG.',
   'RECEIPT_TOO_LARGE': 'Ukuran bukti transfer maksimal 5 MB.',
   'RENT_BILL_NOT_UPLOADABLE':

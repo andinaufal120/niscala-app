@@ -210,11 +210,14 @@ void main() {
     });
   });
 
-  group('read only', () {
-    testWidgets('offers no action on a classified complaint', (tester) async {
+  group('classification actions', () {
+    testWidgets('offers only the status action on a classified complaint', (
+      tester,
+    ) async {
       await _open(tester, _repo(_ai()));
 
-      expect(actionButtons(), findsNothing);
+      expect(actionButtons(), findsOneWidget);
+      expect(find.text('Tandai Diproses'), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
       expect(find.text('Ubah Status'), findsNothing);
     });
@@ -223,22 +226,25 @@ void main() {
       ComplaintClassificationState.awaitingClassification,
       ComplaintClassificationState.notClassified,
     ]) {
-      testWidgets('offers no action when the state is $state', (tester) async {
+      testWidgets('offers only the status action when the state is $state', (
+        tester,
+      ) async {
         await _open(tester, _repo(_state(state)));
 
-        expect(actionButtons(), findsNothing);
+        expect(actionButtons(), findsOneWidget);
         expect(find.byType(TextField), findsNothing);
       });
     }
 
-    testWidgets('offers no action when the AI result is withheld', (
-      tester,
-    ) async {
-      await _open(tester, _repo(_withheld()));
+    testWidgets(
+      'offers only the status action when the AI result is withheld',
+      (tester) async {
+        await _open(tester, _repo(_withheld()));
 
-      expect(actionButtons(), findsNothing);
-      expect(find.byType(TextField), findsNothing);
-    });
+        expect(actionButtons(), findsOneWidget);
+        expect(find.byType(TextField), findsNothing);
+      },
+    );
   });
 
   group('AI classification', () {
