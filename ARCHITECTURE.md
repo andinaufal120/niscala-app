@@ -53,7 +53,7 @@ Riverpod 3 (no code generation) for state and dependency injection, `go_router` 
 | tenant                           | tenant shell, `/penyewa/beranda` and siblings                   |
 | admin                            | `/admin`                                                        |
 
-Each shell is a `StatefulShellRoute` with a bottom navigation bar (SPEC §6a). Tabs whose feature is not built yet show `PlaceholderScreen`.
+Each shell is a `StatefulShellRoute` with a bottom navigation bar (SPEC §6a).
 
 ## 5. UI conventions
 
