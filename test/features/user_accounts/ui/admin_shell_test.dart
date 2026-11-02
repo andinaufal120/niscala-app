@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
 import 'package:niscala/core/widgets/screen_header.dart';

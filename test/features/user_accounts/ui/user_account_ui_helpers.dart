@@ -67,15 +67,19 @@ Future<void> pumpUserAccountApp(
     useTallScreen(tester);
     await tester.pumpWidget(app);
   }
-  await tester.pumpAndSettle();
-  goTo(tester, path);
-  if (settle) {
-    await tester.pumpAndSettle();
-  } else {
-    for (var i = 0; i < 5; i++) {
-      await tester.pump(const Duration(milliseconds: 100));
+  Future<void> advance() async {
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
     }
   }
+
+  await advance();
+  goTo(tester, path);
+  await advance();
 }
 
 /// The card of the account row whose name is [name].
