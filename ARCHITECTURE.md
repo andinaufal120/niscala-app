@@ -12,6 +12,7 @@ lib/
   core/
     api/                     # HTTP client, error mapping, providers for the generated client
     session/                 # tokens, secure storage, session state
+    push/                    # FCM token registration and opened pushes, behind PushMessaging
     shell/                   # bottom-navigation shells and the account screen
     widgets/                 # shared widgets (status badge, empty/error states, dialogs)
     router.dart              # routes and the role-based redirect
@@ -27,7 +28,7 @@ test/                        # mirrors lib/; shared helpers in test/helpers/
 
 ## 2. Stack
 
-Riverpod 3 (no code generation) for state and dependency injection, `go_router` for navigation, `flutter_secure_storage` for tokens, `device_info_plus` for the device sent at login, `intl` with `flutter_localizations` for Indonesian formatting. Plus Jakarta Sans is bundled under `assets/fonts/`; the app fetches no fonts at run time.
+Riverpod 3 (no code generation) for state and dependency injection, `go_router` for navigation, `flutter_secure_storage` for tokens, `device_info_plus` for the device sent at login, `firebase_messaging` for push (FCM, Android; `android/app/google-services.json` is local and not committed), `intl` with `flutter_localizations` for Indonesian formatting. Plus Jakarta Sans is bundled under `assets/fonts/`; the app fetches no fonts at run time.
 
 ## 3. The API boundary
 
