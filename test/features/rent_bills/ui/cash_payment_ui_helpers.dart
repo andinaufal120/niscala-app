@@ -220,7 +220,12 @@ Future<void> recordCash(
 /// picks the 15th and confirms. Returns the day picked.
 Future<DateTime> pickDateInPreviousMonthOfField(WidgetTester tester) async {
   await press(tester, dateField());
-  await tester.tap(find.byIcon(Icons.chevron_left));
+  await tester.tap(
+    find.descendant(
+      of: find.byType(DatePickerDialog),
+      matching: find.byIcon(Icons.chevron_left),
+    ),
+  );
   await tester.pumpAndSettle();
   await tester.tap(find.text('15').last);
   await tester.pumpAndSettle();
