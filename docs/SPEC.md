@@ -245,7 +245,7 @@ List of payments awaiting verification → detail with tenant, room, period, amo
 Pick a tenant with an unpaid bill (*Belum Bayar* or *Ditolak*) → pick the period → enter the date received → confirm the cash was received → *Lunas*, method *Tunai*. An invalid date gets a field error. Only management can start this flow.
 
 **UC-09 Change payment status manually** (FR-08, FR-11) · *Pembayaran → [payment] → Ubah Status (Change status)*
-Choose *Belum Bayar*, *Lunas* or *Ditolak* and enter a **required** reason. Choosing the current status or leaving the reason empty gets a field error.
+Choose *Belum Bayar*, *Lunas* or *Ditolak* and enter a **required** reason. Choosing the current status or leaving the reason empty gets a field error. Choosing *Lunas* also asks for the payment method and the date received (not after today).
 
 **UC-10 Add property** (FR-12, FR-21) · **Owner only** · *Properti → Tambah Properti (Properties → Add)*
 Fields: name and address, both required, and an optional bank account (bank name, account number, account holder name). The name must be unique within the Owner's account (the error comes from the API). Adding past the plan's property limit is rejected (`PROPERTY_LIMIT_REACHED`); the app shows the Indonesian message.
@@ -434,3 +434,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 02-11-2026 | Push message format added to §9 (shared with the backend): high priority, localization keys `notification_<type>_title` and `_body`, and data `notificationId` and `type`; the app provides a title and a body string for every notification type. | NKMA-106 |
 | 02-11-2026 | UC-02 description limited to 2000 characters after trimming, matching the backend.                              | NKMA-105   |
 | 02-11-2026 | UC-25 picks a date, not a period, because billing periods are per tenant.                                       | NKMA-62    |
+| 02-11-2026 | UC-09 *Lunas* asks for method and date received, as the API requires.                                          | NKMA-61    |
