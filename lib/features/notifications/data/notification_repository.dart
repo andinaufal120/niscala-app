@@ -24,6 +24,10 @@ abstract interface class NotificationRepository {
   Future<NotificationSettings> updateSettings(
     List<NotificationSettingItem> items,
   );
+
+  /// Registers the push token of this device for the current session,
+  /// replacing the token registered before.
+  Future<void> registerPushToken(String token);
 }
 
 final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
@@ -77,6 +81,11 @@ class ApiNotificationRepository implements NotificationRepository {
       NotificationSettingsInput(items: items),
     ))!;
   });
+
+  @override
+  Future<void> registerPushToken(String token) => _guard(
+    () => notifications.registerPushToken(PushTokenInput(token: token)),
+  );
 
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {

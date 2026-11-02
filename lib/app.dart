@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:niscala/core/push/push_coordinator.dart';
 import 'package:niscala/core/router.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/theme.dart';
@@ -16,6 +17,8 @@ class _NiscalaAppState extends ConsumerState<NiscalaApp> {
   @override
   void initState() {
     super.initState();
+    // Started before the session is restored, so no session change is missed.
+    ref.read(pushCoordinatorProvider);
     ref.read(sessionControllerProvider.notifier).restore();
   }
 

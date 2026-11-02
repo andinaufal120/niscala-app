@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Title and body of the push for each notification type. The push carries
+         only the keys, so the texts are generic and do not name any person or amount. -->
+    <string name="notification_billIssued_title">Tagihan baru terbit</string>
+    <string name="notification_billIssued_body">Buka aplikasi untuk melihat rincian tagihan Anda.</string>
+    <string name="notification_dueDateReminder_title">Tagihan hampir jatuh tempo</string>
+    <string name="notification_dueDateReminder_body">Buka aplikasi untuk melihat tagihan yang akan segera jatuh tempo.</string>
+    <string name="notification_billOverdue_title">Tagihan lewat jatuh tempo</string>
+    <string name="notification_billOverdue_body">Buka aplikasi untuk melihat tagihan yang belum dibayar.</string>
+    <string name="notification_paymentStatusChanged_title">Status pembayaran diubah</string>
+    <string name="notification_paymentStatusChanged_body">Buka aplikasi untuk melihat status pembayaran terbaru.</string>
+    <string name="notification_complaintStatusChanged_title">Status keluhan diubah</string>
+    <string name="notification_complaintStatusChanged_body">Buka aplikasi untuk melihat perkembangan keluhan.</string>
+    <string name="notification_complaintSubmitted_title">Keluhan baru</string>
+    <string name="notification_complaintSubmitted_body">Buka aplikasi untuk melihat keluhan yang baru masuk.</string>
+    <string name="notification_receiptUploaded_title">Bukti transfer baru</string>
+    <string name="notification_receiptUploaded_body">Buka aplikasi untuk memeriksa bukti transfer yang diunggah.</string>
+    <string name="notification_cashPaymentRecorded_title">Pembayaran tunai dicatat</string>
+    <string name="notification_cashPaymentRecorded_body">Buka aplikasi untuk melihat pembayaran tunai yang dicatat.</string>
+    <string name="notification_tenantActivated_title">Penyewa mengaktifkan akun</string>
+    <string name="notification_tenantActivated_body">Buka aplikasi untuk melihat data penyewa.</string>
+    <string name="notification_managerActivated_title">Pengelola mengaktifkan akun</string>
+    <string name="notification_managerActivated_body">Buka aplikasi untuk melihat data pengelola.</string>
+</resources>
