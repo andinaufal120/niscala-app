@@ -219,6 +219,205 @@ void main() {
     });
   });
 
+  group('maximum length', () {
+    final exact = 'a' * 2000;
+    final tooLong = 'a' * 2001;
+
+    testWidgets('a description of exactly 2000 characters is sent', (
+      tester,
+    ) async {
+      final repo = FakeComplaintRepository();
+      await _open(tester, repo);
+      await _write(tester, exact);
+
+      await _submit(tester);
+
+      expect(repo.submitted, [exact]);
+      expect(currentPath(tester), '/penyewa/keluhan/new-1');
+    });
+
+    testWidgets('a description of 2001 characters is a field error', (
+      tester,
+    ) async {
+      final repo = FakeComplaintRepository();
+      await _open(tester, repo);
+      await _write(tester, tooLong);
+
+      await _submit(tester);
+
+      expect(_error(tester), isNotNull);
+      expect(repo.submitCalls, 0);
+      expect(repo.complaints, isEmpty);
+      expect(currentPath(tester), '/penyewa/keluhan/baru');
+    });
+
+    testWidgets('the too long error names the limit of 2000 characters', (
+      tester,
+    ) async {
+      await _open(tester, FakeComplaintRepository());
+      await _write(tester, tooLong);
+
+      await _submit(tester);
+
+      expect(_error(tester), contains('2000'));
+      expect(find.text(_error(tester)!), findsOneWidget);
+    });
+
+    testWidgets('the too long error differs from the too short error', (
+      tester,
+    ) async {
+      await _open(tester, FakeComplaintRepository());
+      await _write(tester, 'pendek');
+      await _submit(tester);
+      final tooShortError = _error(tester);
+
+      await _write(tester, tooLong);
+      await _submit(tester);
+
+      expect(_error(tester), isNotNull);
+      expect(_error(tester), isNot(tooShortError));
+    });
+
+    testWidgets(
+      'spaces around 2000 characters do not count towards the limit',
+      (tester) async {
+        final repo = FakeComplaintRepository();
+        await _open(tester, repo);
+        await _write(tester, '     $exact     \n ');
+
+        await _submit(tester);
+
+        expect(repo.submitCalls, 1);
+        expect(repo.submitted.single.trim(), exact);
+        expect(currentPath(tester), '/penyewa/keluhan/new-1');
+      },
+    );
+
+    testWidgets('spaces around 2001 characters still exceed the limit', (
+      tester,
+    ) async {
+      final repo = FakeComplaintRepository();
+      await _open(tester, repo);
+      await _write(tester, '  $tooLong  ');
+
+      await _submit(tester);
+
+      expect(_error(tester), isNotNull);
+      expect(repo.submitCalls, 0);
+    });
+
+    testWidgets('an over-long description is kept in full in the field', (
+      tester,
+    ) async {
+      await _open(tester, FakeComplaintRepository());
+      await _write(tester, tooLong);
+
+      await _submit(tester);
+
+      expect(labeledTextField(tester, _label).controller!.text, tooLong);
+    });
+
+    testWidgets('typing more than 2000 characters is not cut off', (
+      tester,
+    ) async {
+      await _open(tester, FakeComplaintRepository());
+
+      await _write(tester, 'a' * 2500);
+
+      expect(labeledTextField(tester, _label).controller!.text, 'a' * 2500);
+    });
+
+    testWidgets('shortening the text to the limit and resubmitting sends it', (
+      tester,
+    ) async {
+      final repo = FakeComplaintRepository();
+      await _open(tester, repo);
+      await _write(tester, tooLong);
+      await _submit(tester);
+      expect(_error(tester), isNotNull);
+
+      await _write(tester, exact);
+      await _submit(tester);
+
+      expect(repo.submitted, [exact]);
+      expect(find.byType(ComplaintFormScreen), findsNothing);
+    });
+
+    testWidgets('the button works again after the too long error', (
+      tester,
+    ) async {
+      await _open(tester, FakeComplaintRepository());
+      await _write(tester, tooLong);
+
+      await _submit(tester);
+
+      expect(busyButton(), findsNothing);
+      expect(
+        tester.widget<ButtonStyleButton>(buttonLabelled(_send)).onPressed,
+        isNotNull,
+      );
+    });
+
+    testWidgets('the too long error clears an earlier banner', (tester) async {
+      final repo = FakeComplaintRepository()
+        ..submitScript.queue.add(const ApiFailure.network());
+      await _open(tester, repo);
+      await _write(tester, _valid);
+      await _submit(tester);
+
+      await _write(tester, tooLong);
+      await _submit(tester);
+
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
+      expect(_error(tester), isNotNull);
+    });
+
+    testWidgets('keeps the too long error on the field node', (tester) async {
+      await _open(tester, FakeComplaintRepository());
+      await _write(tester, tooLong);
+      await _submit(tester);
+
+      expectFieldNode(tester, _label, error: _error(tester)!);
+    });
+
+    testWidgets('an API field error on a long description keeps the text', (
+      tester,
+    ) async {
+      final repo = FakeComplaintRepository()
+        ..submitScript.queue.add(
+          const ApiFailure(code: 'VALIDATION_FAILED', field: 'description'),
+        );
+      await _open(tester, repo);
+      await _write(tester, exact);
+
+      await _submit(tester);
+
+      expect(_error(tester), 'Keluhan tidak valid.');
+      expect(labeledTextField(tester, _label).controller!.text, exact);
+      expect(find.text('Keluhan tidak valid.'), findsOneWidget);
+      expect(currentPath(tester), '/penyewa/keluhan/baru');
+    });
+
+    testWidgets('meets the guidelines with the too long error', (tester) async {
+      await _open(tester, FakeComplaintRepository());
+      await _write(tester, tooLong);
+      await _submit(tester);
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+
+    testWidgets('fits at large text size with the too long error', (
+      tester,
+    ) async {
+      await _open(tester, FakeComplaintRepository(), largeText: true);
+      await _write(tester, tooLong);
+      await _submit(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(_error(tester), isNotNull);
+    });
+  });
+
   group('success', () {
     testWidgets('saves the description and opens the new complaint at once', (
       tester,
