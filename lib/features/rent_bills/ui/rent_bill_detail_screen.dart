@@ -14,10 +14,12 @@ import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/rent_bills/data/management_rent_bill_repository.dart';
 import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
 import 'package:niscala/features/rent_bills/payment_labels.dart';
+import 'package:niscala/features/rent_bills/ui/payment_status_change_sheet.dart';
 import 'package:niscala/features/rent_bills/ui/receipt_rejection_sheet.dart';
 import 'package:niscala_api/api.dart';
 
 const _notAwaitingVerificationCode = 'RENT_BILL_NOT_AWAITING_VERIFICATION';
+const _changeLabel = 'Ubah Status';
 
 /// One bill: its amount, status and payment, its receipt and the history of its
 /// status changes. A bill awaiting verification can be verified or rejected.
@@ -110,6 +112,7 @@ class _RentBillDetailScreenState extends ConsumerState<RentBillDetailScreen> {
     ref.invalidate(tenantRentBillsProvider);
     ref.invalidate(awaitingVerificationProvider);
     ref.invalidate(paymentOverviewProvider);
+    ref.invalidate(payableRentBillsProvider);
   }
 
   Future<void> _askRejection() => showModalBottomSheet<void>(
@@ -119,20 +122,89 @@ class _RentBillDetailScreenState extends ConsumerState<RentBillDetailScreen> {
     builder: (_) => ReceiptRejectionSheet(onConfirm: _reject),
   );
 
+  Future<void> _askChange(RentBill bill) => showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (_) => PaymentStatusChangeSheet(
+      current: bill.payment.status,
+      onConfirm: _changeStatus,
+    ),
+  );
+
+  /// Sends the status change. A failure is rethrown for the sheet to show.
+  Future<void> _changeStatus({
+    required PaymentStatus status,
+    required String reason,
+    PaymentMethod? method,
+    DateTime? receivedOn,
+  }) async {
+    await ref
+        .read(managementRentBillRepositoryProvider)
+        .changePaymentStatus(
+          widget.billId,
+          status: status,
+          reason: reason,
+          method: method,
+          receivedOn: receivedOn,
+        );
+    _reviewed();
+  }
+
+  /// The actions of a loaded bill, or none while it loads or fails.
+  Widget? _footer(RentBill? loaded) {
+    if (loaded == null) return null;
+    final changeButton = OutlinedButton(
+      onPressed: () => _askChange(loaded),
+      child: const Text(_changeLabel),
+    );
+    final status = loaded.payment.status;
+    if (status == PaymentStatus.awaitingVerification) {
+      return ActionFooter(
+        primary: BusyButton(
+          label: 'Verifikasi',
+          busy: _verifying,
+          onPressed: _askVerification,
+        ),
+        secondary: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            OutlinedButton(
+              onPressed: _verifying ? null : _askRejection,
+              child: const Text('Tolak'),
+            ),
+            const SizedBox(height: NiscalaSpacing.s),
+            changeButton,
+          ],
+        ),
+      );
+    }
+    if (status == PaymentStatus.paid) {
+      return ActionFooter(
+        primary: FilledButton(
+          onPressed: () => _askChange(loaded),
+          child: const Text(_changeLabel),
+        ),
+      );
+    }
+    // Unpaid or rejected: the cash payment is the other action.
+    return ActionFooter(
+      primary: FilledButton(
+        onPressed: () => context.push(
+          '/pembayaran/tunai?properti=${loaded.property.id}'
+          '&tagihan=${loaded.id}',
+        ),
+        child: const Text('Catat Pembayaran Tunai'),
+      ),
+      secondary: changeButton,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bill = ref.watch(rentBillDetailProvider(widget.billId));
     final loaded = bill.value;
-    final awaiting =
-        loaded != null &&
-        loaded.payment.status == PaymentStatus.awaitingVerification;
-    // A bill that can still be paid in cash, shown only once it is loaded.
-    final payable =
-        loaded != null &&
-            (loaded.payment.status == PaymentStatus.unpaid ||
-                loaded.payment.status == PaymentStatus.rejected)
-        ? loaded
-        : null;
     return Scaffold(
       appBar: const DetailAppBar(title: 'Detail Tagihan'),
       body: bill.when(
@@ -172,29 +244,7 @@ class _RentBillDetailScreenState extends ConsumerState<RentBillDetailScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: awaiting
-          ? ActionFooter(
-              primary: BusyButton(
-                label: 'Verifikasi',
-                busy: _verifying,
-                onPressed: _askVerification,
-              ),
-              secondary: OutlinedButton(
-                onPressed: _verifying ? null : _askRejection,
-                child: const Text('Tolak'),
-              ),
-            )
-          : payable != null
-          ? ActionFooter(
-              primary: FilledButton(
-                onPressed: () => context.push(
-                  '/pembayaran/tunai?properti=${payable.property.id}'
-                  '&tagihan=${payable.id}',
-                ),
-                child: const Text('Catat Pembayaran Tunai'),
-              ),
-            )
-          : null,
+      bottomNavigationBar: _footer(loaded),
     );
   }
 }
