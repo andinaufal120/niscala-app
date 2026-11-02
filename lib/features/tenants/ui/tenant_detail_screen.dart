@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/failure_dialog.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
@@ -15,7 +17,8 @@ import 'package:niscala/features/tenants/ui/tenant_widgets.dart';
 import 'package:niscala_api/api.dart';
 
 /// One tenant with the lease, the invitation and the other data kept about
-/// them. The tenant is read-only here.
+/// them. A tenant who has not activated can get a new invitation link, and any
+/// tenant can be edited.
 class TenantDetailScreen extends ConsumerWidget {
   const TenantDetailScreen({
     super.key,
@@ -49,7 +52,6 @@ class TenantDetailScreen extends ConsumerWidget {
   Widget _details(BuildContext context, Tenant t) {
     final theme = Theme.of(context);
     final lease = t.lease;
-    final invitation = t.invitation;
     final email = t.email;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(NiscalaSpacing.gutter),
@@ -75,34 +77,9 @@ class TenantDetailScreen extends ConsumerWidget {
               ],
             ),
           ),
-          if (t.accountStatus == TenantAccountStatus.notActivated &&
-              invitation != null) ...[
+          if (t.accountStatus == TenantAccountStatus.notActivated) ...[
             formGap,
-            SectionCard(
-              child: invitation.expired
-                  ? Text(
-                      'Tautan undangan kedaluwarsa pada '
-                      '${formatDate(invitation.expiresAt)} tanpa digunakan.',
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Tautan undangan dibuat '
-                          '${formatDate(invitation.createdAt)} '
-                          'dan belum digunakan. Berlaku hingga '
-                          '${formatDate(invitation.expiresAt)}.',
-                        ),
-                        const SizedBox(height: 8),
-                        FilledButton.tonal(
-                          onPressed: () => context.go(
-                            '/properti/$propertyId/penyewa/$tenantId/undangan',
-                          ),
-                          child: const Text('Bagikan tautan yang ada'),
-                        ),
-                      ],
-                    ),
-            ),
+            SectionCard(child: _invitation(context, t.invitation)),
           ],
           formGap,
           SectionCard(
@@ -172,10 +149,106 @@ class TenantDetailScreen extends ConsumerWidget {
               ],
             ),
           ),
+          formGap,
+          OutlinedButton(
+            onPressed: () =>
+                context.go('/properti/$propertyId/penyewa/$tenantId/ubah'),
+            child: const Text('Ubah Data Penyewa'),
+          ),
         ],
       ),
     );
   }
+
+  /// The invitation of a tenant who has not activated: when it was made or
+  /// when it ended, the share action while the link is valid, and the action
+  /// to make a new link.
+  Widget _invitation(BuildContext context, TenantInvitation? invitation) {
+    final url = invitation?.url;
+    final shareable = invitation != null && !invitation.expired && url != null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (invitation != null)
+          Text(
+            invitation.expired
+                ? 'Tautan undangan kedaluwarsa pada '
+                      '${formatDate(invitation.expiresAt)} tanpa digunakan.'
+                : 'Tautan undangan dibuat '
+                      '${formatDate(invitation.createdAt)} '
+                      'dan belum digunakan. Berlaku hingga '
+                      '${formatDate(invitation.expiresAt)}.',
+          ),
+        if (shareable) ...[
+          const SizedBox(height: 8),
+          FilledButton.tonal(
+            onPressed: () =>
+                context.go('/properti/$propertyId/penyewa/$tenantId/undangan'),
+            child: const Text('Bagikan tautan yang ada'),
+          ),
+        ],
+        const SizedBox(height: 8),
+        _RegenerateInvitationButton(propertyId: propertyId, tenantId: tenantId),
+      ],
+    );
+  }
+}
+
+/// Makes a new invitation link for the tenant. The button is disabled while the
+/// request is in flight.
+///
+/// On success the detail is reloaded and the share screen opens with the new
+/// link. On failure the message is shown in a dialog and the old link stays.
+class _RegenerateInvitationButton extends ConsumerStatefulWidget {
+  const _RegenerateInvitationButton({
+    required this.propertyId,
+    required this.tenantId,
+  });
+
+  final String propertyId;
+  final String tenantId;
+
+  @override
+  ConsumerState<_RegenerateInvitationButton> createState() =>
+      _RegenerateInvitationButtonState();
+}
+
+class _RegenerateInvitationButtonState
+    extends ConsumerState<_RegenerateInvitationButton> {
+  var _busy = false;
+
+  Future<void> _regenerate() async {
+    setState(() => _busy = true);
+    try {
+      await ref
+          .read(tenantRepositoryProvider)
+          .regenerateInvitation(widget.tenantId);
+    } on ApiFailure catch (failure) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      if (failure.code == 'TENANT_NOT_FOUND') {
+        ref.invalidate(tenantDetailProvider(widget.tenantId));
+      }
+      await showFailureDialog(
+        context,
+        title: 'Tautan belum bisa dibuat',
+        message: errorMessageFor(failure),
+      );
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _busy = false);
+    ref.invalidate(tenantDetailProvider(widget.tenantId));
+    context.go(
+      '/properti/${widget.propertyId}/penyewa/${widget.tenantId}/undangan',
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => OutlinedButton(
+    onPressed: _busy ? null : _regenerate,
+    child: const Text('Buat Ulang Tautan Undangan'),
+  );
 }
 
 String _dateOrDash(DateTime? date) => date == null ? '-' : formatDate(date);
