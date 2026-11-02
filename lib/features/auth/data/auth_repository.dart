@@ -33,6 +33,10 @@ abstract interface class AuthRepository {
     required String token,
     required String newPassword,
   });
+
+  /// Makes the new email of an emailed change link the login email of its
+  /// account. Signs nobody in.
+  Future<void> confirmEmailChange(String token);
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -124,6 +128,11 @@ class ApiAuthRepository implements AuthRepository {
     await auth.resetPassword(
       PasswordResetInput(token: token, newPassword: newPassword),
     );
+  });
+
+  @override
+  Future<void> confirmEmailChange(String token) => _guard(() async {
+    await auth.confirmEmailChange(TokenInput(token: token));
   });
 
   Future<T> _guard<T>(Future<T> Function() call) async {

@@ -23,6 +23,10 @@ abstract interface class UserAccountRepository {
   });
 
   Future<UserAccount> get(String userAccountId);
+
+  /// Saves the name, email and status of the account and returns it. A new
+  /// email stays pending until its link is confirmed.
+  Future<UserAccount> update(String userAccountId, UserAccountInput input);
 }
 
 final userAccountRepositoryProvider = Provider<UserAccountRepository>((ref) {
@@ -76,6 +80,12 @@ class ApiUserAccountRepository implements UserAccountRepository {
   Future<UserAccount> get(String userAccountId) => _guard(() async {
     return (await userAccounts.getUserAccount(userAccountId))!;
   });
+
+  @override
+  Future<UserAccount> update(String userAccountId, UserAccountInput input) =>
+      _guard(() async {
+        return (await userAccounts.updateUserAccount(userAccountId, input))!;
+      });
 
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {

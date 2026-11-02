@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
 import 'package:niscala/core/tokens.dart';
@@ -11,8 +12,8 @@ import 'package:niscala/features/user_accounts/data/user_account_repository.dart
 import 'package:niscala/features/user_accounts/status_labels.dart';
 import 'package:niscala_api/api.dart';
 
-/// One account with its login details and what it is linked to. An Admin
-/// only reads accounts, so the screen has no actions.
+/// One account with its login details and what it is linked to. The only
+/// action is Ubah, which opens the edit form of the account.
 class UserAccountDetailScreen extends ConsumerWidget {
   const UserAccountDetailScreen({super.key, required this.accountId});
 
@@ -70,6 +71,14 @@ class _Details extends StatelessWidget {
             SectionCard(
               title: 'Sewa',
               child: _Lease(account: account),
+            ),
+          ],
+          // A deleted account cannot be changed, so it offers no edit.
+          if (account.status != UserAccountStatus.deleted) ...[
+            formGap,
+            OutlinedButton(
+              onPressed: () => context.go('/admin/${account.id}/ubah'),
+              child: const Text('Ubah'),
             ),
           ],
         ],
