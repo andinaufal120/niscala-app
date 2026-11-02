@@ -52,7 +52,7 @@ Riverpod 3 (no code generation) for state and dependency injection, `go_router` 
 | signed in, email not verified    | `/verifikasi-email`                                             |
 | owner or manager                 | management shell, `/beranda` and siblings                       |
 | tenant                           | tenant shell, `/penyewa/beranda` and siblings                   |
-| admin                            | `/admin`                                                        |
+| admin                            | admin layout, `/admin` (user accounts), `/admin/:accountId`     |
 
 Each shell is a `StatefulShellRoute` with a bottom navigation bar (SPEC §6a).
 
