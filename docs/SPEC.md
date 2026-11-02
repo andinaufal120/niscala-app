@@ -228,8 +228,9 @@ The screen shows the property's bank account and the amount to transfer. Pick an
 If the property has no bank account, the transfer and upload actions are hidden and the tenant is told to pay cash to management.
 The upload action is shown only when the API marks the bill as uploadable. This includes overdue bills from earlier periods: whether a bill belongs to the current period does not affect the action. A file of the wrong type or over the size limit, and a bill that is no longer uploadable, show their own Indonesian message mapped from the error code.
 
-**UC-06 View notifications** (FR-08) · Tenant · *Notifikasi (Notifications)*
-In-app list only, newest first, unread ones marked. Two types: due-date reminder and payment-status change. Opening one marks it read and shows type, period and status, with a path to UC-04. Empty state if none.
+**UC-06 View notifications** (FR-08) · Tenant, Owner, Manager · *Akun → Notifikasi (Account → Notifications)*
+In-app list, newest first, unread ones marked, with the unread count and *Tandai semua dibaca (Mark all read)*. The API decides which notification types each role receives. Opening one marks it read and shows the facts it carries (period, amount, status and reason; complaint and handling note; tenant, room, property), with a path to the related bill or complaint. Empty state if none.
+*Pengaturan Notifikasi (Notification settings)*: one push switch per category the API returns for the role; the new-complaint category also has a scope (all urgencies or high urgency only). Settings control push only; every notification still appears in the list.
 
 ### 8.2 Management (Pemilik Kost and Pengelola Kost)
 
@@ -435,3 +436,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 02-11-2026 | UC-02 description limited to 2000 characters after trimming, matching the backend.                              | NKMA-105   |
 | 02-11-2026 | UC-25 picks a date, not a period, because billing periods are per tenant.                                       | NKMA-62    |
 | 02-11-2026 | UC-09 *Lunas* asks for method and date received, as the API requires.                                          | NKMA-61    |
+| 02-11-2026 | UC-06 covers Tenant, Owner and Manager, every notification type the API sends, and notification settings.       | NKMA-104   |
