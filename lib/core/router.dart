@@ -10,6 +10,7 @@ import 'package:niscala/core/widgets/placeholder_screen.dart';
 import 'package:niscala/features/auth/ui/activation_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/register_owner_screen.dart';
+import 'package:niscala/features/account/ui/active_sessions_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
 import 'package:niscala/features/complaints/ui/complaint_form_screen.dart';
 import 'package:niscala/features/complaints/ui/management_complaint_detail_screen.dart';
@@ -49,8 +50,19 @@ const _tenantPayments = '/penyewa/pembayaran';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 const _signedOutRoutes = {_signIn, '/daftar', '/aktivasi'};
-const _managementRoutes = {_managementHome, '/keluhan', '/pembayaran', '/akun'};
-const _tenantRoutes = {_tenantHome, '/penyewa/keluhan', '/penyewa/akun'};
+const _managementRoutes = {
+  _managementHome,
+  '/keluhan',
+  '/pembayaran',
+  '/akun',
+  '/akun/perangkat',
+};
+const _tenantRoutes = {
+  _tenantHome,
+  '/penyewa/keluhan',
+  '/penyewa/akun',
+  '/penyewa/akun/perangkat',
+};
 
 /// [root] itself or any location below it.
 bool _isUnder(String location, String root) =>
@@ -293,7 +305,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
           _branch('/pembayaran', const PlaceholderScreen(title: 'Pembayaran')),
           _propertiesBranch(),
-          _branch('/akun', const AccountScreen()),
+          _nestedBranch('/akun', const AccountScreen(), [
+            _subPage(
+              path: 'perangkat',
+              builder: (context, state) => const ActiveSessionsScreen(),
+            ),
+          ]),
         ],
       ),
       StatefulShellRoute(
@@ -335,7 +352,12 @@ final routerProvider = Provider<GoRouter>((ref) {
                   ReceiptViewScreen(billId: state.pathParameters['id']!),
             ),
           ]),
-          _branch('/penyewa/akun', const AccountScreen(showLease: true)),
+          _nestedBranch('/penyewa/akun', const AccountScreen(showLease: true), [
+            _subPage(
+              path: 'perangkat',
+              builder: (context, state) => const ActiveSessionsScreen(),
+            ),
+          ]),
         ],
       ),
     ],

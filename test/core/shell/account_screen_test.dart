@@ -4,12 +4,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/core/widgets/danger_button.dart';
 import 'package:niscala/core/widgets/screen_header.dart';
+import 'package:niscala/features/account/data/account_repository.dart';
 
 import '../../helpers/a11y.dart';
 import '../../helpers/fakes.dart';
 
 Widget screen({Future<void> Function()? logout}) => ProviderScope(
-  overrides: [logoutProvider.overrideWithValue(logout ?? () async {})],
+  overrides: [
+    logoutProvider.overrideWithValue(logout ?? () async {}),
+    accountRepositoryProvider.overrideWithValue(FakeAccountRepository()),
+  ],
   child: themedApp(const AccountScreen()),
 );
 
