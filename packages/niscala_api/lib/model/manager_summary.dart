@@ -17,6 +17,7 @@ class ManagerSummary {
     this.email,
     required this.id,
     required this.name,
+    this.nickname,
     required this.phone,
     this.properties = const [],
   });
@@ -29,6 +30,8 @@ class ManagerSummary {
 
   String name;
 
+  String? nickname;
+
   /// Indonesian mobile number; returned as digits starting with 08.
   String phone;
 
@@ -40,6 +43,7 @@ class ManagerSummary {
     other.email == email &&
     other.id == id &&
     other.name == name &&
+    other.nickname == nickname &&
     other.phone == phone &&
     _deepEquality.equals(other.properties, properties);
 
@@ -50,11 +54,12 @@ class ManagerSummary {
     (email == null ? 0 : email!.hashCode) +
     (id.hashCode) +
     (name.hashCode) +
+    (nickname == null ? 0 : nickname!.hashCode) +
     (phone.hashCode) +
     (properties.hashCode);
 
   @override
-  String toString() => 'ManagerSummary[accountStatus=$accountStatus, email=$email, id=$id, name=$name, phone=$phone, properties=$properties]';
+  String toString() => 'ManagerSummary[accountStatus=$accountStatus, email=$email, id=$id, name=$name, nickname=$nickname, phone=$phone, properties=$properties]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -66,6 +71,11 @@ class ManagerSummary {
     }
       json[r'id'] = this.id;
       json[r'name'] = this.name;
+    if (this.nickname != null) {
+      json[r'nickname'] = this.nickname;
+    } else {
+      json[r'nickname'] = null;
+    }
       json[r'phone'] = this.phone;
       json[r'properties'] = this.properties;
     return json;
@@ -94,6 +104,7 @@ class ManagerSummary {
         email: mapValueOfType<String>(json, r'email'),
         id: mapValueOfType<String>(json, r'id')!,
         name: mapValueOfType<String>(json, r'name')!,
+        nickname: mapValueOfType<String>(json, r'nickname'),
         phone: mapValueOfType<String>(json, r'phone')!,
         properties: ManagerProperty.listFromJson(json[r'properties']),
       );

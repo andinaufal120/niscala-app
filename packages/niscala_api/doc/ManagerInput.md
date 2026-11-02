@@ -9,6 +9,7 @@ import 'package:niscala_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **String** |  | 
+**nickname** | **String** |  | [optional] 
 **phone** | **String** | Indonesian mobile number; returned as digits starting with 08. | 
 **propertyIds** | **List<String>** | Properties of the Owner the Manager may access; at least one, no duplicates. | [default to const []]
 

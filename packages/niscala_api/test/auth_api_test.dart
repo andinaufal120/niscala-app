@@ -26,6 +26,15 @@ void main() {
       // TODO
     });
 
+    // Confirm Email Change
+    //
+    // Make the email of an emailed change link the account's login email.
+    //
+    //Future confirmEmailChange(TokenInput tokenInput) async
+    test('test confirmEmailChange', () async {
+      // TODO
+    });
+
     // Login
     //
     // Log in with email and password and start a session.

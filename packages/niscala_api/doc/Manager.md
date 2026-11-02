@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **id** | **String** |  | 
 **invitation** | [**ManagerInvitation**](ManagerInvitation.md) |  | [optional] 
 **name** | **String** |  | 
+**nickname** | **String** |  | [optional] 
 **phone** | **String** | Indonesian mobile number; returned as digits starting with 08. | 
 **properties** | [**List<ManagerProperty>**](ManagerProperty.md) |  | [default to const []]
 

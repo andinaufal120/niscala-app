@@ -14,11 +14,14 @@ class ManagerInput {
   /// Returns a new [ManagerInput] instance.
   ManagerInput({
     required this.name,
+    this.nickname,
     required this.phone,
     this.propertyIds = const [],
   });
 
   String name;
+
+  String? nickname;
 
   /// Indonesian mobile number; returned as digits starting with 08.
   String phone;
@@ -29,6 +32,7 @@ class ManagerInput {
   @override
   bool operator ==(Object other) => identical(this, other) || other is ManagerInput &&
     other.name == name &&
+    other.nickname == nickname &&
     other.phone == phone &&
     _deepEquality.equals(other.propertyIds, propertyIds);
 
@@ -36,15 +40,21 @@ class ManagerInput {
   int get hashCode =>
     // ignore: unnecessary_parenthesis
     (name.hashCode) +
+    (nickname == null ? 0 : nickname!.hashCode) +
     (phone.hashCode) +
     (propertyIds.hashCode);
 
   @override
-  String toString() => 'ManagerInput[name=$name, phone=$phone, propertyIds=$propertyIds]';
+  String toString() => 'ManagerInput[name=$name, nickname=$nickname, phone=$phone, propertyIds=$propertyIds]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
       json[r'name'] = this.name;
+    if (this.nickname != null) {
+      json[r'nickname'] = this.nickname;
+    } else {
+      json[r'nickname'] = null;
+    }
       json[r'phone'] = this.phone;
       json[r'propertyIds'] = this.propertyIds;
     return json;
@@ -70,6 +80,7 @@ class ManagerInput {
 
       return ManagerInput(
         name: mapValueOfType<String>(json, r'name')!,
+        nickname: mapValueOfType<String>(json, r'nickname'),
         phone: mapValueOfType<String>(json, r'phone')!,
         propertyIds: json[r'propertyIds'] is Iterable
             ? (json[r'propertyIds'] as Iterable).cast<String>().toList(growable: false)

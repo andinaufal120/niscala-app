@@ -18,6 +18,7 @@ class Manager {
     required this.id,
     this.invitation,
     required this.name,
+    this.nickname,
     required this.phone,
     this.properties = const [],
   });
@@ -32,6 +33,8 @@ class Manager {
 
   String name;
 
+  String? nickname;
+
   /// Indonesian mobile number; returned as digits starting with 08.
   String phone;
 
@@ -44,6 +47,7 @@ class Manager {
     other.id == id &&
     other.invitation == invitation &&
     other.name == name &&
+    other.nickname == nickname &&
     other.phone == phone &&
     _deepEquality.equals(other.properties, properties);
 
@@ -55,11 +59,12 @@ class Manager {
     (id.hashCode) +
     (invitation == null ? 0 : invitation!.hashCode) +
     (name.hashCode) +
+    (nickname == null ? 0 : nickname!.hashCode) +
     (phone.hashCode) +
     (properties.hashCode);
 
   @override
-  String toString() => 'Manager[accountStatus=$accountStatus, email=$email, id=$id, invitation=$invitation, name=$name, phone=$phone, properties=$properties]';
+  String toString() => 'Manager[accountStatus=$accountStatus, email=$email, id=$id, invitation=$invitation, name=$name, nickname=$nickname, phone=$phone, properties=$properties]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -76,6 +81,11 @@ class Manager {
       json[r'invitation'] = null;
     }
       json[r'name'] = this.name;
+    if (this.nickname != null) {
+      json[r'nickname'] = this.nickname;
+    } else {
+      json[r'nickname'] = null;
+    }
       json[r'phone'] = this.phone;
       json[r'properties'] = this.properties;
     return json;
@@ -105,6 +115,7 @@ class Manager {
         id: mapValueOfType<String>(json, r'id')!,
         invitation: ManagerInvitation.fromJson(json[r'invitation']),
         name: mapValueOfType<String>(json, r'name')!,
+        nickname: mapValueOfType<String>(json, r'nickname'),
         phone: mapValueOfType<String>(json, r'phone')!,
         properties: ManagerProperty.listFromJson(json[r'properties']),
       );

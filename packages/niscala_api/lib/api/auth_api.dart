@@ -72,6 +72,54 @@ class AuthApi {
     return null;
   }
 
+  /// Confirm Email Change
+  ///
+  /// Make the email of an emailed change link the account's login email.
+  ///
+  /// Note: This method returns the HTTP [Response].
+  ///
+  /// Parameters:
+  ///
+  /// * [TokenInput] tokenInput (required):
+  Future<Response> confirmEmailChangeWithHttpInfo(TokenInput tokenInput,) async {
+    // ignore: prefer_const_declarations
+    final path = r'/auth/email-changes';
+
+    // ignore: prefer_final_locals
+    Object? postBody = tokenInput;
+
+    final queryParams = <QueryParam>[];
+    final headerParams = <String, String>{};
+    final formParams = <String, String>{};
+
+    const contentTypes = <String>['application/json'];
+
+
+    return apiClient.invokeAPI(
+      path,
+      'POST',
+      queryParams,
+      postBody,
+      headerParams,
+      formParams,
+      contentTypes.isEmpty ? null : contentTypes.first,
+    );
+  }
+
+  /// Confirm Email Change
+  ///
+  /// Make the email of an emailed change link the account's login email.
+  ///
+  /// Parameters:
+  ///
+  /// * [TokenInput] tokenInput (required):
+  Future<void> confirmEmailChange(TokenInput tokenInput,) async {
+    final response = await confirmEmailChangeWithHttpInfo(tokenInput,);
+    if (response.statusCode >= HttpStatus.badRequest) {
+      throw ApiException(response.statusCode, await _decodeBodyBytes(response));
+    }
+  }
+
   /// Login
   ///
   /// Log in with email and password and start a session.
