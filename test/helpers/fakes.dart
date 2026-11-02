@@ -640,7 +640,16 @@ TenantSummary makeTenantSummary({
 /// invitation url `https://niscala.example/undangan/<id>` (none when
 /// [createWithoutInvitation] is set). Script failures and gates per method
 /// with the `*Script` fields. Every call is also appended to [calls] in order,
-/// as `list:<propertyId>`, `get:<id>` or `create:<propertyId>`.
+/// as `list:<propertyId>`, `get:<id>`, `create:<propertyId>`, `update:<id>` or
+/// `regenerate:<id>`.
+///
+/// [update] replaces name, phone, occupation, emergency contacts and the lease
+/// of a tenant only when the call succeeds; the room, the account status, the
+/// email, the invitation and the next bill date stay as they were.
+/// [regenerateInvitation] gives the tenant a new valid invitation with the url
+/// `https://niscala.example/undangan/<id>-<n>`, where n counts the
+/// regenerations, only when the call succeeds. [update] and
+/// [regenerateInvitation] fail with `TENANT_NOT_FOUND` for an unknown id.
 class FakeTenantRepository implements TenantRepository {
   FakeTenantRepository({
     List<Tenant>? tenants,
@@ -657,15 +666,88 @@ class FakeTenantRepository implements TenantRepository {
 
   final calls = <String>[];
   final created = <({String propertyId, NewTenantInput input})>[];
+  final updated = <({String id, TenantInput input})>[];
 
   final listScript = CallScript();
   final getScript = CallScript();
   final createScript = CallScript();
+  final updateScript = CallScript();
+  final regenerateScript = CallScript();
 
   var _nextId = 1;
+  var _regenerations = 0;
 
   int get listCalls => calls.where((c) => c.startsWith('list:')).length;
   int get getCalls => calls.where((c) => c.startsWith('get:')).length;
+  int get updateCalls => calls.where((c) => c.startsWith('update:')).length;
+  int get regenerateCalls =>
+      calls.where((c) => c.startsWith('regenerate:')).length;
+
+  /// Replaces the tenant with the id by [change] of it, or fails with
+  /// `TENANT_NOT_FOUND`.
+  Tenant _change(String tenantId, Tenant Function(Tenant old) change) {
+    for (final list in _byProperty.values) {
+      final index = list.indexWhere((t) => t.id == tenantId);
+      if (index >= 0) return list[index] = change(list[index]);
+    }
+    throw const ApiFailure(code: 'TENANT_NOT_FOUND');
+  }
+
+  @override
+  Future<Tenant> update(String tenantId, TenantInput input) async {
+    calls.add('update:$tenantId');
+    updated.add((id: tenantId, input: input));
+    final failure = await updateScript.next();
+    if (failure != null) throw failure;
+    return _change(tenantId, (old) {
+      final lease = input.lease ?? LeaseInput();
+      return Tenant(
+        id: old.id,
+        name: input.name,
+        phone: input.phone,
+        email: old.email,
+        occupation: input.occupation,
+        accountStatus: old.accountStatus,
+        invitation: old.invitation,
+        emergencyContacts: input.emergencyContacts,
+        room: old.room,
+        lease: Lease(
+          billingCycle: lease.billingCycle,
+          startDate: lease.startDate,
+          endDate: lease.endDate,
+          nextBillDate: old.lease.nextBillDate,
+          gracePeriodDays: lease.gracePeriodDays,
+          rent: lease.rent ?? old.lease.rent,
+        ),
+      );
+    });
+  }
+
+  @override
+  Future<TenantInvitation> regenerateInvitation(String tenantId) async {
+    calls.add('regenerate:$tenantId');
+    final failure = await regenerateScript.next();
+    if (failure != null) throw failure;
+    final invitation = makeTenantInvitation(
+      url: 'https://niscala.example/undangan/$tenantId-${++_regenerations}',
+    );
+    _change(
+      tenantId,
+      (old) => Tenant(
+        id: old.id,
+        name: old.name,
+        phone: old.phone,
+        email: old.email,
+        occupation: old.occupation,
+        accountStatus: old.accountStatus,
+        invitation: invitation,
+        emergencyContacts: old.emergencyContacts,
+        room: old.room,
+        lease: old.lease,
+      ),
+    );
+    return invitation;
+  }
 
   @override
   Future<List<TenantSummary>> list(String propertyId) async {

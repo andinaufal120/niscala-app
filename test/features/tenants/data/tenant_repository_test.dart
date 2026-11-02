@@ -139,6 +139,31 @@ NewTenantInput _input({
       ),
 );
 
+TenantInput _updateInput() => TenantInput(
+  name: 'Budi Santoso',
+  phone: '0812-5520-4471',
+  occupation: 'Karyawan swasta',
+  emergencyContacts: [
+    EmergencyContact(
+      name: 'Siti Rahma',
+      relationship: 'Ibu',
+      phone: '081355512345',
+    ),
+    EmergencyContact(
+      name: 'Joko',
+      relationship: 'Kakak',
+      phone: '081355512346',
+    ),
+  ],
+  lease: LeaseInput(
+    startDate: DateTime.utc(2026, 1, 1),
+    endDate: DateTime.utc(2026, 12, 31),
+    billingCycle: BillingCycle.quarterly,
+    rent: 2100000,
+    gracePeriodDays: 3,
+  ),
+);
+
 void main() {
   group('list', () {
     test('gets the tenants of the property and unwraps the items', () async {
@@ -405,6 +430,214 @@ void main() {
 
       await expectLater(
         h.repository.create('p1', _input()),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+  });
+
+  group('update', () {
+    test('puts the full input to the tenant without a room', () async {
+      final h = _Harness((_) => _ok(_tenantJson()));
+
+      final result = await h.repository.update('t1', _updateInput());
+
+      expect(h.request.method, 'PUT');
+      expect(h.request.url.path, '/tenants/t1');
+      expect(h.body.containsKey('roomId'), isFalse);
+      expect(h.body['name'], 'Budi Santoso');
+      expect(h.body['phone'], '0812-5520-4471');
+      expect(h.body['occupation'], 'Karyawan swasta');
+      expect(h.body['emergencyContacts'], [
+        {'name': 'Siti Rahma', 'relationship': 'Ibu', 'phone': '081355512345'},
+        {'name': 'Joko', 'relationship': 'Kakak', 'phone': '081355512346'},
+      ]);
+      final lease = h.body['lease'] as Map<String, dynamic>;
+      expect(lease['startDate'], '2026-01-01');
+      expect(lease['endDate'], '2026-12-31');
+      expect(lease['billingCycle'], 'quarterly');
+      expect(lease['rent'], 2100000);
+      expect(lease['rent'], isA<int>());
+      expect(lease['gracePeriodDays'], 3);
+      expect(result.id, 't1');
+    });
+
+    test('returns the updated tenant with lease and contacts', () async {
+      final h = _Harness((_) => _ok(_tenantJson()));
+
+      final result = await h.repository.update('t1', _updateInput());
+
+      expect(result.name, 'Budi Santoso');
+      expect(result.room.number, '08');
+      expect(result.emergencyContacts, hasLength(2));
+      expect(result.lease.billingCycle, BillingCycle.quarterly);
+      expect(result.lease.rent, 2100000);
+      expect(result.lease.gracePeriodDays, 3);
+    });
+
+    test('sends open dates, no contacts and no occupation as null', () async {
+      final h = _Harness((_) => _ok(_tenantJson()));
+
+      await h.repository.update(
+        't1',
+        TenantInput(
+          name: 'Budi Santoso',
+          phone: '081255204471',
+          lease: LeaseInput(
+            billingCycle: BillingCycle.monthly,
+            rent: 750000,
+            gracePeriodDays: 0,
+          ),
+        ),
+      );
+
+      expect(h.body['emergencyContacts'], isEmpty);
+      expect(h.body['occupation'], isNull);
+      final lease = h.body['lease'] as Map<String, dynamic>;
+      expect(lease['startDate'], isNull);
+      expect(lease['endDate'], isNull);
+      expect(lease['billingCycle'], 'monthly');
+    });
+
+    test('keeps the code and status of a tenant that is gone', () async {
+      final h = _Harness((_) => _error(404, 'TENANT_NOT_FOUND'));
+
+      await expectLater(
+        h.repository.update('t1', _updateInput()),
+        throwsA(_failure('TENANT_NOT_FOUND', status: 404)),
+      );
+    });
+
+    test('keeps the field of a phone validation error', () async {
+      final h = _Harness(
+        (_) => _error(400, 'VALIDATION_FAILED', field: 'phone'),
+      );
+
+      await expectLater(
+        h.repository.update('t1', _updateInput()),
+        throwsA(_failure('VALIDATION_FAILED', field: 'phone', status: 400)),
+      );
+    });
+
+    test('keeps the nested field of a lease validation error', () async {
+      final h = _Harness(
+        (_) => _error(400, 'VALIDATION_FAILED', field: 'lease.endDate'),
+      );
+
+      await expectLater(
+        h.repository.update('t1', _updateInput()),
+        throwsA(
+          _failure('VALIDATION_FAILED', field: 'lease.endDate', status: 400),
+        ),
+      );
+    });
+
+    test('keeps the field of an emergency contact validation error', () async {
+      final h = _Harness(
+        (_) => _error(400, 'VALIDATION_FAILED', field: 'emergencyContacts'),
+      );
+
+      await expectLater(
+        h.repository.update('t1', _updateInput()),
+        throwsA(
+          _failure(
+            'VALIDATION_FAILED',
+            field: 'emergencyContacts',
+            status: 400,
+          ),
+        ),
+      );
+    });
+
+    test('keeps the code of a read-only property error', () async {
+      final h = _Harness((_) => _error(403, 'PROPERTY_READ_ONLY'));
+
+      await expectLater(
+        h.repository.update('t1', _updateInput()),
+        throwsA(_failure('PROPERTY_READ_ONLY', status: 403)),
+      );
+    });
+
+    test('keeps the code of a forbidden error', () async {
+      final h = _Harness((_) => _error(403, 'FORBIDDEN'));
+
+      await expectLater(
+        h.repository.update('t1', _updateInput()),
+        throwsA(_failure('FORBIDDEN', status: 403)),
+      );
+    });
+
+    test('converts a server error to an ApiFailure', () async {
+      final h = _Harness((_) => _error(500, 'INTERNAL_ERROR'));
+
+      await expectLater(
+        h.repository.update('t1', _updateInput()),
+        throwsA(_failure('INTERNAL_ERROR', status: 500)),
+      );
+    });
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(const SocketException('no route'));
+
+      await expectLater(
+        h.repository.update('t1', _updateInput()),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+  });
+
+  group('regenerateInvitation', () {
+    test('posts to the invitation of the tenant and maps the result', () async {
+      final h = _Harness(
+        (_) => _ok({
+          'createdAt': '2026-10-20T08:00:00Z',
+          'expired': false,
+          'expiresAt': '2026-10-27T08:00:00Z',
+          'url': 'https://niscala.example/undangan/new456',
+        }),
+      );
+
+      final result = await h.repository.regenerateInvitation('t1');
+
+      expect(h.request.method, 'POST');
+      expect(h.request.url.path, '/tenants/t1/invitation');
+      expect(result.url, 'https://niscala.example/undangan/new456');
+      expect(result.expired, isFalse);
+      expect(result.createdAt.toUtc().day, 20);
+      expect(result.expiresAt.toUtc().day, 27);
+    });
+
+    test('keeps the code and status of a tenant that is gone', () async {
+      final h = _Harness((_) => _error(404, 'TENANT_NOT_FOUND'));
+
+      await expectLater(
+        h.repository.regenerateInvitation('t1'),
+        throwsA(_failure('TENANT_NOT_FOUND', status: 404)),
+      );
+    });
+
+    test('keeps the code of a forbidden error', () async {
+      final h = _Harness((_) => _error(403, 'FORBIDDEN'));
+
+      await expectLater(
+        h.repository.regenerateInvitation('t1'),
+        throwsA(_failure('FORBIDDEN', status: 403)),
+      );
+    });
+
+    test('converts a server error to an ApiFailure', () async {
+      final h = _Harness((_) => _error(500, 'INTERNAL_ERROR'));
+
+      await expectLater(
+        h.repository.regenerateInvitation('t1'),
+        throwsA(_failure('INTERNAL_ERROR', status: 500)),
+      );
+    });
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(http.ClientException('broken'));
+
+      await expectLater(
+        h.repository.regenerateInvitation('t1'),
         throwsA(_failure('NETWORK_ERROR')),
       );
     });
