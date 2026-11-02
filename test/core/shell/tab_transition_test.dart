@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/shell/account_screen.dart';
-import 'package:niscala/core/widgets/placeholder_screen.dart';
 import 'package:niscala/features/complaints/ui/management_complaint_list_screen.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_list_screen.dart';
+import 'package:niscala/features/dashboard/ui/occupancy_dashboard_screen.dart';
+import 'package:niscala/features/home/ui/tenant_home_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
 import 'package:niscala_api/api.dart';
 
@@ -76,7 +77,7 @@ final _switches = <_Switch>[
     role: UserRole.owner,
     from: 'Beranda',
     to: 'Akun',
-    fromScreen: find.byType(PlaceholderScreen),
+    fromScreen: find.byType(OccupancyDashboardScreen),
     toScreen: find.byType(AccountScreen),
   ),
   (
@@ -84,7 +85,7 @@ final _switches = <_Switch>[
     role: UserRole.owner,
     from: 'Beranda',
     to: 'Keluhan',
-    fromScreen: find.byType(PlaceholderScreen),
+    fromScreen: find.byType(OccupancyDashboardScreen),
     toScreen: find.byType(ManagementComplaintListScreen),
   ),
   (
@@ -92,7 +93,7 @@ final _switches = <_Switch>[
     role: UserRole.manager,
     from: 'Beranda',
     to: 'Properti',
-    fromScreen: find.byType(PlaceholderScreen),
+    fromScreen: find.byType(OccupancyDashboardScreen),
     toScreen: find.byType(PropertyListScreen),
   ),
   (
@@ -100,7 +101,7 @@ final _switches = <_Switch>[
     role: UserRole.tenant,
     from: 'Beranda',
     to: 'Akun',
-    fromScreen: find.byType(PlaceholderScreen),
+    fromScreen: find.byType(TenantHomeScreen),
     toScreen: find.byType(AccountScreen),
   ),
   (
@@ -108,7 +109,7 @@ final _switches = <_Switch>[
     role: UserRole.tenant,
     from: 'Beranda',
     to: 'Keluhan',
-    fromScreen: find.byType(PlaceholderScreen),
+    fromScreen: find.byType(TenantHomeScreen),
     toScreen: find.byType(TenantComplaintListScreen),
   ),
 ];
@@ -157,6 +158,7 @@ void main() {
         tester,
       ) async {
         await _pumpShell(tester, s.role);
+        expect(s.fromScreen, findsOneWidget);
 
         await _switchTo(tester, s.to);
         await tester.pumpAndSettle();
@@ -174,6 +176,7 @@ void main() {
           tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
         );
         await _pumpShell(tester, s.role);
+        expect(s.fromScreen, findsOneWidget);
 
         await _switchTo(tester, s.to);
         await tester.pump();
@@ -184,6 +187,7 @@ void main() {
 
     testWidgets('going back fades the first tab in again', (tester) async {
       await _pumpShell(tester, UserRole.owner);
+      expect(find.byType(OccupancyDashboardScreen), findsOneWidget);
       await _switchTo(tester, 'Akun');
       await tester.pumpAndSettle();
 
@@ -191,11 +195,11 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      _expectFadingIn(tester, find.byType(PlaceholderScreen));
+      _expectFadingIn(tester, find.byType(OccupancyDashboardScreen));
       await tester.pumpAndSettle();
       _expectSwitched(
         tester,
-        find.byType(PlaceholderScreen),
+        find.byType(OccupancyDashboardScreen),
         find.byType(AccountScreen),
       );
     });

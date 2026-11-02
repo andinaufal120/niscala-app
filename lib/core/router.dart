@@ -19,6 +19,7 @@ import 'package:niscala/features/complaints/ui/management_complaint_detail_scree
 import 'package:niscala/features/complaints/ui/management_complaint_list_screen.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_detail_screen.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_list_screen.dart';
+import 'package:niscala/features/dashboard/ui/occupancy_dashboard_screen.dart';
 import 'package:niscala/features/home/ui/tenant_home_screen.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
@@ -324,7 +325,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
         navigatorContainerBuilder: _fadingTabs,
         branches: [
-          _branch(_managementHome, const PlaceholderScreen(title: 'Beranda')),
+          _branch(_managementHome, const OccupancyDashboardScreen()),
           _nestedBranch(
             _managementComplaints,
             const ManagementComplaintListScreen(),

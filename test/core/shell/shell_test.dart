@@ -8,6 +8,7 @@ import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
+import 'package:niscala/features/dashboard/ui/occupancy_dashboard_screen.dart';
 import 'package:niscala/features/home/ui/tenant_home_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
 import 'package:niscala/features/rent_bills/ui/tenant_payments_screen.dart';
@@ -123,17 +124,44 @@ void main() {
       });
     }
 
-    testWidgets('shows placeholders for tabs that are not built yet', (
+    testWidgets('shows a placeholder for the tab that is not built yet', (
       tester,
     ) async {
       await pumpShell(tester, UserRole.owner);
 
-      for (final label in ['Beranda', 'Pembayaran']) {
-        await tester.tap(navLabel(label));
+      await tester.tap(navLabel('Pembayaran'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PlaceholderScreen), findsOneWidget);
+      expect(find.text('Fitur ini belum tersedia'), findsOneWidget);
+    });
+
+    for (final role in [UserRole.owner, UserRole.manager]) {
+      testWidgets('shows the occupancy dashboard on the home tab of a $role', (
+        tester,
+      ) async {
+        await pumpShell(tester, role);
+
+        expect(find.byType(OccupancyDashboardScreen), findsOneWidget);
+        expect(find.byType(PlaceholderScreen), findsNothing);
+        expect(find.text('Fitur ini belum tersedia'), findsNothing);
+
+        await tester.tap(navLabel('Akun'));
         await tester.pumpAndSettle();
-        expect(find.byType(PlaceholderScreen), findsOneWidget);
-        expect(find.text('Fitur ini belum tersedia'), findsOneWidget);
-      }
+        await tester.tap(navLabel('Beranda'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(OccupancyDashboardScreen), findsOneWidget);
+        expect(find.byType(PlaceholderScreen), findsNothing);
+      });
+    }
+
+    testWidgets('does not show the occupancy dashboard to a tenant', (
+      tester,
+    ) async {
+      await pumpShell(tester, UserRole.tenant);
+
+      expect(find.byType(OccupancyDashboardScreen), findsNothing);
     });
 
     testWidgets('the management Keluhan tab keeps the header Keluhan', (

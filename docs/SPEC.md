@@ -291,7 +291,7 @@ Alternative: *Buat Ulang Tautan Undangan (Regenerate invitation link)* for an un
 Soft delete: the lease ends, account access is revoked and the room becomes *Kosong*. Payment and complaint history is kept.
 
 **UC-22 Occupancy dashboard** (FR-14) · *Beranda (Home)*
-Per property: occupied count, vacant count, occupancy percentage and each room's status. With several properties, show a summary of all of them first, then per-property detail. All figures come from the API. A Manager sees a restricted version (content: U-22).
+Per property: occupied count, vacant count, occupancy percentage and each room's status. With several properties, show a summary of all of them first, then per-property detail. All figures come from the API. A Manager sees the same view, limited to the assigned properties.
 
 **UC-23 Complaint list with AI classification** (FR-15, FR-25) · *Keluhan (Complaints)*
 Complaints across accessible properties, sorted by urgency, then time; default filter *Semua (All)*. Shows category, urgency and suggested action when available. Unclassified complaints show their classification state instead. Without an active subscription, hide AI classification results and show the subscription note; manual classifications (UC-36) are still shown.
@@ -400,7 +400,6 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | U-4   | Invitation and password-reset link handling: how a link opens the app (Android App Links / deep link) and what happens if the app is not installed. | UC-18, UC-20, FR-01, NFR-11 |
 | U-9   | The complete list of error codes, and declaring them in the OpenAPI document.                                                    | §6, §7              |
 | U-16  | Complaint category list (the prototype list is placeholder data).                                                                | UC-02, UC-23, UC-36 |
-| U-22  | Content of the Manager's restricted dashboard.                                                                                   | UC-22               |
 
 ## 11. Changelog
 
@@ -430,4 +429,5 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 23-10-2026 | UC-05 no longer limits receipt upload to the current period; the upload action follows the API's uploadable flag alone, so overdue bills from earlier periods can be uploaded. | NKMA-57, NKMA-58 |
 | 24-10-2026 | Tenant *Beranda* content defined in §6a: greeting, first active bill with its upload or pay-cash action, link to *Riwayat*, latest complaint, and the no-lease message. | NKMA-98 |
 | 27-10-2026 | Interim acceptance of a Manager invitation with an existing account: the signed-in Manager pastes the link in *Akun*, until U-4 is decided (§7). | NKMA-102 |
+| 27-10-2026 | U-22 decided: a Manager sees the same dashboard as an Owner, limited to the assigned properties. | NKMA-45 |
 | 02-11-2026 | Push message format added to §9 (shared with the backend): high priority, localization keys `notification_<type>_title` and `_body`, and data `notificationId` and `type`; the app provides a title and a body string for every notification type. | NKMA-106 |
