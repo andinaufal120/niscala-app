@@ -1764,6 +1764,22 @@ String overviewKey(String propertyId, DateTime date) =>
 /// [reviewedAt], and replace the bill of the same id in the entries of
 /// [items] and [itemsOnDate]. The list passed as `bills` can be shared with a
 /// `FakeRentBillRepository`, so that both see the change.
+///
+/// [changePaymentStatus] is recorded as `change:<id>` in [calls] and in
+/// [statusChangeRequests], then validates like the backend, in this order,
+/// after the scripted outcome: a bill that is not in [bills] fails with
+/// `RENT_BILL_NOT_FOUND` (404); a blank reason with `REASON_REQUIRED` (422,
+/// field `reason`); the status the bill already has with `STATUS_UNCHANGED`
+/// (422, field `status`); awaiting verification as the target with
+/// `VALIDATION_FAILED` (422, field `status`); a paid target without a method or
+/// without a date received with `VALIDATION_FAILED` (422, field `method` or
+/// `receivedOn`); a date received after today with `RECEIVED_ON_IN_FUTURE`
+/// (422, field `receivedOn`). On success the bill takes the new status: paid
+/// carries the method and the calendar day received and no rejection reason,
+/// rejected carries the reason as its rejection reason, unpaid carries neither.
+/// A status change made by [reviewerName] at [reviewedAt], carrying the reason
+/// (and the method for paid), is appended, and the bill is replaced in the
+/// overview entries as the review methods do.
 class FakeManagementRentBillRepository implements ManagementRentBillRepository {
   FakeManagementRentBillRepository({
     Map<String, List<PaymentOverviewItem>>? items,
@@ -1793,9 +1809,25 @@ class FakeManagementRentBillRepository implements ManagementRentBillRepository {
   final verifyScript = CallScript();
   final rejectScript = CallScript();
   final cashScript = CallScript();
+  final changeScript = CallScript();
 
-  /// The time and the person of every successful verification, rejection or
-  /// cash payment.
+  /// The arguments of every [changePaymentStatus] call, in order, whether it
+  /// succeeded or not.
+  final statusChangeRequests =
+      <
+        ({
+          String id,
+          PaymentStatus status,
+          String reason,
+          PaymentMethod? method,
+          DateTime? receivedOn,
+        })
+      >[];
+
+  int get changeCalls => calls.where((c) => c.startsWith('change:')).length;
+
+  /// The time and the person of every successful verification, rejection, cash
+  /// payment or manual status change.
   DateTime reviewedAt = DateTime.utc(2026, 11, 7, 12);
   String reviewerName = 'Siti Pemilik';
 
@@ -1874,7 +1906,9 @@ class FakeManagementRentBillRepository implements ManagementRentBillRepository {
       statusChanges: [...old.statusChanges, change],
       isCurrent: old.isCurrent,
       canUploadReceipt:
-          change.status == PaymentStatus.rejected && old.bankAccount != null,
+          (change.status == PaymentStatus.rejected ||
+              change.status == PaymentStatus.unpaid) &&
+          old.bankAccount != null,
     );
     bills[index] = updated;
     for (final entries in [...items.values, ...itemsOnDate.values]) {
@@ -1962,6 +1996,84 @@ class FakeManagementRentBillRepository implements ManagementRentBillRepository {
       ),
       from: const {PaymentStatus.unpaid, PaymentStatus.rejected},
       conflictCode: 'RENT_BILL_NOT_PAYABLE',
+    );
+  }
+
+  @override
+  Future<RentBill> changePaymentStatus(
+    String billId, {
+    required PaymentStatus status,
+    required String reason,
+    PaymentMethod? method,
+    DateTime? receivedOn,
+  }) async {
+    calls.add('change:$billId');
+    statusChangeRequests.add((
+      id: billId,
+      status: status,
+      reason: reason,
+      method: method,
+      receivedOn: receivedOn,
+    ));
+    final failure = await changeScript.next();
+    if (failure != null) throw failure;
+    final old = bills.firstWhere(
+      (b) => b.id == billId,
+      orElse: () =>
+          throw const ApiFailure(code: 'RENT_BILL_NOT_FOUND', statusCode: 404),
+    );
+    ApiFailure invalid(String field) =>
+        ApiFailure(code: 'VALIDATION_FAILED', field: field, statusCode: 422);
+    if (reason.trim().isEmpty) {
+      throw const ApiFailure(
+        code: 'REASON_REQUIRED',
+        field: 'reason',
+        statusCode: 422,
+      );
+    }
+    if (status == old.payment.status) {
+      throw const ApiFailure(
+        code: 'STATUS_UNCHANGED',
+        field: 'status',
+        statusCode: 422,
+      );
+    }
+    if (status == PaymentStatus.awaitingVerification) throw invalid('status');
+    final paid = status == PaymentStatus.paid;
+    if (paid && method == null) throw invalid('method');
+    if (paid && receivedOn == null) throw invalid('receivedOn');
+    DateTime? paidOn;
+    if (paid) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final day = DateTime(receivedOn!.year, receivedOn.month, receivedOn.day);
+      if (day.isAfter(today)) {
+        throw const ApiFailure(
+          code: 'RECEIVED_ON_IN_FUTURE',
+          field: 'receivedOn',
+          statusCode: 422,
+        );
+      }
+      paidOn = DateTime.utc(day.year, day.month, day.day);
+    }
+    return _review(
+      billId,
+      (old) => Payment(
+        status: status,
+        hasReceipt: old.payment.hasReceipt,
+        rejectionReason: status == PaymentStatus.rejected ? reason : null,
+        method: paid ? method : null,
+        paidOn: paidOn,
+      ),
+      PaymentStatusChange(
+        status: status,
+        changedAt: reviewedAt,
+        actorName: reviewerName,
+        manual: true,
+        method: paid ? method : null,
+        reason: reason,
+      ),
+      from: PaymentStatus.values.toSet(),
     );
   }
 
