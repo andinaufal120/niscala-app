@@ -17,6 +17,13 @@ abstract interface class AccountRepository {
 
   /// Signs out every device of the caller except the current one.
   Future<void> endOtherSessions();
+
+  /// Replaces the caller's password after the API checks [currentPassword].
+  /// Returns whether the caller has other devices signed in.
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
 }
 
 final accountRepositoryProvider = Provider<AccountRepository>((ref) {
@@ -67,6 +74,20 @@ class ApiAccountRepository implements AccountRepository {
 
   @override
   Future<void> endOtherSessions() => _guard(sessionsApi.endMyOtherSessions);
+
+  @override
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) => _guard(() async {
+    final result = await accountApi.changeMyPassword(
+      PasswordChangeInput(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      ),
+    );
+    return result!.hasOtherSessions;
+  });
 
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {

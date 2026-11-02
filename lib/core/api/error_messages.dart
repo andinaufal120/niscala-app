@@ -62,6 +62,10 @@ const _messages = {
   'SESSION_NOT_FOUND': 'Perangkat ini sudah keluar atau tidak ditemukan.',
   'SESSION_IS_CURRENT':
       'Perangkat yang sedang dipakai keluar lewat tombol Keluar.',
+  'CURRENT_PASSWORD_INCORRECT': 'Kata sandi saat ini salah.',
+  'PASSWORD_UNCHANGED': 'Kata sandi baru harus berbeda dari yang sekarang.',
+  'TOO_MANY_ATTEMPTS':
+      'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.',
   'INVITATION_NOT_FOUND': 'Undangan tidak ditemukan. Periksa tautan Anda.',
   'NO_ACTIVE_LEASE':
       'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.',

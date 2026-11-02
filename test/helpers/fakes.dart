@@ -1326,7 +1326,12 @@ Session makeSession({
 /// [endSession] fails with `SESSION_NOT_FOUND` for an unknown id and with
 /// `SESSION_IS_CURRENT` for the current session. Script failures and gates per
 /// method with the `*Script` fields. Every call is also appended to [calls] in
-/// order, as `me`, `sessions`, `end:<id>` or `endOthers`.
+/// order, as `me`, `sessions`, `end:<id>`, `endOthers` or `changePassword`.
+///
+/// [changePassword] records the passwords it receives in [passwordChanges] and
+/// returns whether the account has other devices, unless [hasOtherSessions]
+/// says otherwise. It does not check the current password: script
+/// `changePasswordScript` to fail it.
 class FakeAccountRepository implements AccountRepository {
   FakeAccountRepository({Account? account, List<Session>? devices})
     : account = account ?? makeAccount(),
@@ -1350,6 +1355,17 @@ class FakeAccountRepository implements AccountRepository {
   final sessionsScript = CallScript();
   final endScript = CallScript();
   final endOthersScript = CallScript();
+  final changePasswordScript = CallScript();
+
+  /// The passwords of every [changePassword] call, in order.
+  final passwordChanges = <({String currentPassword, String newPassword})>[];
+
+  /// What [changePassword] returns. Null means: whether [devices] holds a
+  /// device other than the current one.
+  bool? hasOtherSessions;
+
+  int get changePasswordCalls =>
+      calls.where((c) => c == 'changePassword').length;
 
   int get meCalls => calls.where((c) => c == 'me').length;
   int get sessionsCalls => calls.where((c) => c == 'sessions').length;
@@ -1393,6 +1409,21 @@ class FakeAccountRepository implements AccountRepository {
     final failure = await endOthersScript.next();
     if (failure != null) throw failure;
     devices.removeWhere((s) => !s.isCurrent);
+  }
+
+  @override
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    calls.add('changePassword');
+    passwordChanges.add((
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    ));
+    final failure = await changePasswordScript.next();
+    if (failure != null) throw failure;
+    return hasOtherSessions ?? devices.any((s) => !s.isCurrent);
   }
 }
 
