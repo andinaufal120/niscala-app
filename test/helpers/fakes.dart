@@ -17,6 +17,7 @@ import 'package:niscala/features/dashboard/data/dashboard_repository.dart';
 import 'package:niscala/features/lease/data/lease_repository.dart';
 import 'package:niscala/features/managers/data/manager_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
+import 'package:niscala/features/rent_bills/data/management_rent_bill_repository.dart';
 import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
 import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
@@ -1507,12 +1508,19 @@ BankAccount makeBankAccount() => BankAccount(
 /// current period ([isCurrent]). Without
 /// [hasReceipt] only a bill awaiting verification has a receipt. The default
 /// bank account is BCA 1234567890 of Siti Pemilik; set [withoutBankAccount] for
-/// none.
+/// none. The bill belongs to tenant `t1` in room `r1` of property `p1` unless
+/// given. [statusChanges] is oldest first.
 RentBill makeRentBill({
   String id = 'b1',
+  String propertyId = 'p1',
+  String tenantId = 't1',
+  String roomId = 'r1',
   String tenantName = 'Budi Santoso',
   String roomNumber = '08',
   String propertyName = 'Kos Melati',
+  PaymentMethod? method,
+  DateTime? paidOn,
+  List<PaymentStatusChange> statusChanges = const [],
   int amount = 800000,
   DateTime? periodStart,
   DateTime? periodEnd,
@@ -1541,14 +1549,35 @@ RentBill makeRentBill({
       status: status,
       hasReceipt: hasReceipt ?? status == PaymentStatus.awaitingVerification,
       rejectionReason: rejectionReason,
+      method: method,
+      paidOn: paidOn,
     ),
-    property: PropertyRef(id: 'p1', name: propertyName),
-    room: RoomRef(id: 'r1', number: roomNumber),
-    tenant: TenantRef(id: 't1', name: tenantName),
+    property: PropertyRef(id: propertyId, name: propertyName),
+    room: RoomRef(id: roomId, number: roomNumber),
+    tenant: TenantRef(id: tenantId, name: tenantName),
+    statusChanges: statusChanges,
     isCurrent: isCurrent,
     canUploadReceipt: canUploadReceipt ?? (account != null && open),
   );
 }
+
+/// A [PaymentStatusChange] with sensible defaults: a manual change to
+/// [status] by Siti Pemilik on 6 Nov 2026 at 03:00 UTC.
+PaymentStatusChange makePaymentStatusChange({
+  PaymentStatus status = PaymentStatus.paid,
+  DateTime? changedAt,
+  String? actorName = 'Siti Pemilik',
+  bool manual = true,
+  PaymentMethod? method,
+  String? reason,
+}) => PaymentStatusChange(
+  status: status,
+  changedAt: changedAt ?? DateTime.utc(2026, 11, 6, 3),
+  actorName: actorName,
+  manual: manual,
+  method: method,
+  reason: reason,
+);
 
 /// The list entry of [bill].
 RentBillSummary rentBillSummaryOf(RentBill bill) => RentBillSummary(
@@ -1682,6 +1711,107 @@ class FakeRentBillRepository implements RentBillRepository {
     final failure = await receiptScript.next();
     if (failure != null) throw failure;
     return receipts[id] ?? (throw const ApiFailure(code: 'RECEIPT_NOT_FOUND'));
+  }
+}
+
+/// A [PaymentOverviewItem] with sensible defaults: Budi Santoso (tenant `t1`)
+/// in room 08. Without [bill] the tenant has no bill on the date.
+PaymentOverviewItem makeOverviewItem({
+  String tenantId = 't1',
+  String tenantName = 'Budi Santoso',
+  String roomId = 'r1',
+  String roomNumber = '08',
+  RentBillSummary? bill,
+}) => PaymentOverviewItem(
+  tenant: TenantRef(id: tenantId, name: tenantName),
+  room: RoomRef(id: roomId, number: roomNumber),
+  bill: bill,
+);
+
+/// The key under which [FakeManagementRentBillRepository.itemsOnDate] holds the
+/// items of [propertyId] on the calendar day [date].
+String overviewKey(String propertyId, DateTime date) =>
+    '$propertyId@${date.year}-${date.month}-${date.day}';
+
+/// A [ManagementRentBillRepository] that answers from memory and records its
+/// calls.
+///
+/// [overview] returns the entry of [items] for the property, or the entry of
+/// [itemsOnDate] (see [overviewKey]) when the call asks for a date that has
+/// one, and fails with `PROPERTY_NOT_FOUND` for a property in neither. The
+/// returned overview carries the asked date, or today. [list] returns summaries
+/// of the [bills] that match the property, the tenant and the statuses asked
+/// for (all of them when not asked), in their order. Script failures and gates
+/// per method with the `*Script` fields. Every call is also appended to
+/// [calls] in order, as `overview:<propertyId>` or
+/// `bills:<propertyId>:<tenantId>`.
+class FakeManagementRentBillRepository implements ManagementRentBillRepository {
+  FakeManagementRentBillRepository({
+    Map<String, List<PaymentOverviewItem>>? items,
+    Map<String, List<PaymentOverviewItem>>? itemsOnDate,
+    List<RentBill>? bills,
+  }) : items = items ?? {},
+       itemsOnDate = itemsOnDate ?? {},
+       bills = bills ?? [];
+
+  final Map<String, List<PaymentOverviewItem>> items;
+  final Map<String, List<PaymentOverviewItem>> itemsOnDate;
+  final List<RentBill> bills;
+
+  final calls = <String>[];
+
+  /// The date of every [overview] call, in order; null when it asked for none.
+  final overviewDates = <DateTime?>[];
+
+  /// The arguments of every [list] call, in order.
+  final listed =
+      <
+        ({String? propertyId, String? tenantId, List<PaymentStatus>? statuses})
+      >[];
+
+  final overviewScript = CallScript();
+  final listScript = CallScript();
+
+  int get overviewCalls => calls.where((c) => c.startsWith('overview:')).length;
+  int get listCalls => calls.where((c) => c.startsWith('bills:')).length;
+
+  @override
+  Future<PaymentOverview> overview(String propertyId, {DateTime? date}) async {
+    calls.add('overview:$propertyId');
+    overviewDates.add(date);
+    final failure = await overviewScript.next();
+    if (failure != null) throw failure;
+    final onDate = date == null
+        ? null
+        : itemsOnDate[overviewKey(propertyId, date)];
+    final found = onDate ?? items[propertyId];
+    if (found == null) throw const ApiFailure(code: 'PROPERTY_NOT_FOUND');
+    return PaymentOverview(date: date ?? DateTime.now(), items: List.of(found));
+  }
+
+  @override
+  Future<List<RentBillSummary>> list({
+    String? propertyId,
+    String? tenantId,
+    List<PaymentStatus>? statuses,
+  }) async {
+    calls.add('bills:${propertyId ?? ''}:${tenantId ?? ''}');
+    listed.add((
+      propertyId: propertyId,
+      tenantId: tenantId,
+      statuses: statuses == null ? null : List.of(statuses),
+    ));
+    final failure = await listScript.next();
+    if (failure != null) throw failure;
+    return [
+      for (final b in bills)
+        if ((propertyId == null || b.property.id == propertyId) &&
+            (tenantId == null || b.tenant.id == tenantId) &&
+            (statuses == null ||
+                statuses.isEmpty ||
+                statuses.contains(b.payment.status)))
+          rentBillSummaryOf(b),
+    ];
   }
 }
 
@@ -2014,6 +2144,7 @@ Widget buildTestApp({
   ManagerRepository? managers,
   ComplaintRepository? complaints,
   RentBillRepository? rentBills,
+  ManagementRentBillRepository? managementRentBills,
   LeaseRepository? leases,
   AccountRepository? accounts,
   DashboardRepository? dashboard,
@@ -2043,6 +2174,9 @@ Widget buildTestApp({
       ),
       rentBillRepositoryProvider.overrideWithValue(
         rentBills ?? FakeRentBillRepository(),
+      ),
+      managementRentBillRepositoryProvider.overrideWithValue(
+        managementRentBills ?? FakeManagementRentBillRepository(),
       ),
       leaseRepositoryProvider.overrideWithValue(
         leases ?? FakeLeaseRepository(),
