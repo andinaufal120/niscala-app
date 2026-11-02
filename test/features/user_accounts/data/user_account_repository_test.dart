@@ -286,6 +286,129 @@ void main() {
     });
   });
 
+  group('update', () {
+    UserAccountInput input({
+      String name = 'Budi Baru',
+      String email = 'baru@example.com',
+      EditableAccountStatus status = EditableAccountStatus.active,
+    }) => UserAccountInput(name: name, email: email, status: status);
+
+    test('puts the full input and returns the saved account', () async {
+      final h = _Harness(
+        (_) =>
+            _ok({..._accountJson(), 'name': 'Budi Baru', 'status': 'inactive'}),
+      );
+
+      final result = await h.repository.update(
+        'u1',
+        input(status: EditableAccountStatus.inactive),
+      );
+
+      expect(h.request.method, 'PUT');
+      expect(h.request.url.path, '/user-accounts/u1');
+      expect(h.request.headers['content-type'], contains('application/json'));
+      expect(jsonDecode(h.request.body), {
+        'name': 'Budi Baru',
+        'email': 'baru@example.com',
+        'status': 'inactive',
+      });
+      expect(result.id, 'u1');
+      expect(result.name, 'Budi Baru');
+      expect(result.status, UserAccountStatus.inactive);
+      expect(result.pendingEmail, 'baru@example.com');
+      expect(result.pendingEmailExpiresAt!.toUtc().day, 25);
+    });
+
+    test('sends an active status as its wire value', () async {
+      final h = _Harness((_) => _ok(_accountJson()));
+
+      await h.repository.update('u7', input());
+
+      expect(h.request.url.path, '/user-accounts/u7');
+      expect(jsonDecode(h.request.body)['status'], 'active');
+    });
+
+    test('sends the name and email untouched', () async {
+      final h = _Harness((_) => _ok(_accountJson()));
+
+      await h.repository.update(
+        'u1',
+        input(name: 'Budi  Baru', email: 'Budi.Baru@Example.com'),
+      );
+
+      final body = jsonDecode(h.request.body);
+      expect(body['name'], 'Budi  Baru');
+      expect(body['email'], 'Budi.Baru@Example.com');
+    });
+
+    test('sends exactly one request', () async {
+      final h = _Harness((_) => _ok(_accountJson()));
+
+      await h.repository.update('u1', input());
+
+      expect(h.requests, hasLength(1));
+    });
+
+    test('keeps the code, field and status of a taken email', () async {
+      final h = _Harness(
+        (_) => _error(409, 'EMAIL_ALREADY_REGISTERED', field: 'email'),
+      );
+
+      await expectLater(
+        h.repository.update('u1', input()),
+        throwsA(
+          _failure('EMAIL_ALREADY_REGISTERED', field: 'email', status: 409),
+        ),
+      );
+    });
+
+    final conflicts = {
+      'CANNOT_MODIFY_OWN_ACCOUNT': 409,
+      'USER_ACCOUNT_DELETED': 409,
+      'USER_ACCOUNT_NOT_FOUND': 404,
+      'FORBIDDEN': 403,
+    };
+    for (final entry in conflicts.entries) {
+      test('keeps the code and status of ${entry.key}', () async {
+        final h = _Harness((_) => _error(entry.value, entry.key));
+
+        await expectLater(
+          h.repository.update('u1', input()),
+          throwsA(_failure(entry.key, status: entry.value)),
+        );
+      });
+    }
+
+    test('keeps the field of a validation error', () async {
+      final h = _Harness(
+        (_) => _error(422, 'VALIDATION_FAILED', field: 'name'),
+      );
+
+      await expectLater(
+        h.repository.update('u1', input(name: '')),
+        throwsA(_failure('VALIDATION_FAILED', field: 'name', status: 422)),
+      );
+    });
+
+    test('maps a server error without a body to INTERNAL_ERROR', () async {
+      final h = _Harness((_) => http.Response('', 500));
+
+      await expectLater(
+        h.repository.update('u1', input()),
+        throwsA(_failure('INTERNAL_ERROR', status: 500)),
+      );
+    });
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(const SocketException('no route'));
+
+      await expectLater(
+        h.repository.update('u1', input()),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+  });
+
   group('providers', () {
     ProviderContainer containerWith(FakeUserAccountRepository repo) {
       final container = ProviderContainer(
