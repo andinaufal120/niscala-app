@@ -53,6 +53,9 @@ const _table = {
   'MANAGER_ALREADY_ADDED': 'Anda sudah menjadi pengelola untuk pemilik ini.',
   'COMPLAINT_CATEGORY_INVALID':
       'Kategori tidak valid. Pilih kategori dari daftar.',
+  'RENT_BILL_NOT_PAYABLE':
+      'Tagihan ini tidak bisa dibayar tunai karena statusnya sudah berubah.',
+  'RECEIVED_ON_IN_FUTURE': 'Tanggal diterima tidak boleh lebih dari hari ini.',
   'FORBIDDEN': 'Anda tidak memiliki akses untuk tindakan ini.',
   'ACCESS_TOKEN_INVALID': 'Sesi Anda telah berakhir. Silakan masuk lagi.',
   'REFRESH_TOKEN_INVALID': 'Sesi Anda telah berakhir. Silakan masuk lagi.',
@@ -100,6 +103,15 @@ void main() {
         const ApiFailure(code: 'VALIDATION_FAILED', field: 'email'),
       ),
       'Email tidak valid.',
+    );
+  });
+
+  test('names the date received in a validation failure', () {
+    expect(
+      errorMessageFor(
+        const ApiFailure(code: 'VALIDATION_FAILED', field: 'receivedOn'),
+      ),
+      'Tanggal diterima tidak valid.',
     );
   });
 
