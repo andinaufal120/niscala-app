@@ -129,7 +129,7 @@ void main() {
 
         expect(find.byType(RentBillDetailScreen), findsOneWidget);
         expect(appBarTitle('Detail Tagihan'), findsOneWidget);
-        expect(currentPath(tester), billPath('d1'));
+        expect(currentUri(tester).path, billPath('d1'));
       });
     }
 

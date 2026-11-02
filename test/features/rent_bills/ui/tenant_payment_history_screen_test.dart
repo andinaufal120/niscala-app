@@ -484,7 +484,7 @@ void main() {
 
       await pressBack(tester);
 
-      expect(currentPath(tester), overviewPath);
+      expect(currentUri(tester).path, overviewPath);
       expect(find.byType(PaymentOverviewScreen), findsOneWidget);
       expect(find.byType(NavigationBar), findsOneWidget);
     });
@@ -522,7 +522,7 @@ void main() {
       await tester.tap(find.text('Rp810.000'));
       await tester.pumpAndSettle();
 
-      expect(currentPath(tester), billPath('h2'));
+      expect(currentUri(tester).path, billPath('h2'));
       expect(find.byType(RentBillDetailScreen), findsOneWidget);
       expect(find.byType(NavigationBar), findsNothing);
     });
@@ -549,7 +549,7 @@ void main() {
       await pressBack(tester);
       await pressBack(tester);
 
-      expect(currentPath(tester), overviewPath);
+      expect(currentUri(tester).path, overviewPath);
       expect(find.byType(PaymentOverviewScreen), findsOneWidget);
     });
   });

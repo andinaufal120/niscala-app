@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:niscala/core/format.dart';
 import 'package:niscala/core/router.dart';
@@ -22,13 +23,19 @@ String billPath(String billId) => '/pembayaran/tagihan/$billId';
 /// Makes the Indonesian date formats available to [formatDate].
 Future<void> initializeIndonesianDates() => initializeDateFormatting('id');
 
-/// The full location the app is on, query included.
-Uri currentUri(WidgetTester tester) =>
-    containerOf(tester)
-        .read(routerProvider)
-        .routerDelegate
-        .currentConfiguration
-        .uri;
+/// The full location of the page on top, query included.
+///
+/// A pushed page leaves `currentConfiguration.uri` at the location below it;
+/// the location of the page on top is then the one of the last match, which is
+/// an imperative match.
+Uri currentUri(WidgetTester tester) {
+  final configuration = containerOf(tester)
+      .read(routerProvider)
+      .routerDelegate
+      .currentConfiguration;
+  final last = configuration.last;
+  return last is ImperativeRouteMatch ? last.matches.uri : configuration.uri;
+}
 
 /// Two properties of the caller: `p1` Kos Melati and `p2` Kos Mawar.
 FakePropertyRepository twoProperties() => FakePropertyRepository(

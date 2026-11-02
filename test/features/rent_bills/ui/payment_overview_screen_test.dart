@@ -38,6 +38,7 @@ Future<void> _open(
   FakeManagementRentBillRepository? management,
   FakePropertyRepository? properties,
   UserRole role = UserRole.owner,
+  String path = overviewPath,
   bool settle = true,
   bool largeText = false,
 }) => pumpManagementPayments(
@@ -45,6 +46,7 @@ Future<void> _open(
   management: management,
   properties: properties,
   role: role,
+  path: path,
   settle: settle,
   largeText: largeText,
 );
@@ -62,7 +64,7 @@ void main() {
 
         expect(find.byType(PaymentOverviewScreen), findsOneWidget);
         expect(find.byType(PlaceholderScreen), findsNothing);
-        expect(currentPath(tester), overviewPath);
+        expect(currentUri(tester).path, overviewPath);
       });
     }
 
@@ -79,7 +81,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(currentPath(tester), overviewPath);
+      expect(currentUri(tester).path, overviewPath);
       expect(find.byType(PaymentOverviewScreen), findsOneWidget);
     });
 
@@ -316,7 +318,7 @@ void main() {
       await chooseProperty(tester, current: 'Kos Melati', target: 'Kos Mawar');
 
       expect(management.calls, ['overview:p1', 'overview:p2']);
-      expect(currentPath(tester), overviewPath);
+      expect(currentUri(tester).path, overviewPath);
       expect(find.text('Lina'), findsOneWidget);
       expect(find.text('Budi Santoso'), findsNothing);
     });
@@ -482,6 +484,7 @@ void main() {
             tenantId: 't9',
             tenantName: 'Penyewa Lama',
             roomNumber: '99',
+            bill: rentBillSummaryOf(makeRentBill(id: 'old', tenantId: 't9')),
           ),
         ];
       await _open(tester, management: management);
