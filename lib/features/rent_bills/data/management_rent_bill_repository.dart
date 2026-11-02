@@ -25,6 +25,11 @@ abstract interface class ManagementRentBillRepository {
   /// Rejects the transfer receipt of the bill with [reason], sent as given.
   /// Returns the bill as the API has it after the change.
   Future<RentBill> rejectReceipt(String billId, String reason);
+
+  /// Records that the bill was paid in cash, with [receivedOn] as the day the
+  /// money was received. Only the calendar day of [receivedOn] is sent. Returns
+  /// the bill as the API has it after the change.
+  Future<RentBill> recordCashPayment(String billId, DateTime receivedOn);
 }
 
 final managementRentBillRepositoryProvider =
@@ -72,6 +77,21 @@ final awaitingVerificationProvider =
       retry: (_, _) => null,
     );
 
+/// The bills of one property that can be paid in cash: unpaid or rejected.
+/// Released when no screen watches it, so each opening of the payment flow
+/// loads the bills again. Failures are not retried in the background, see
+/// [paymentOverviewProvider].
+final payableRentBillsProvider = FutureProvider.autoDispose
+    .family<List<RentBillSummary>, String>(
+      (ref, propertyId) => ref
+          .watch(managementRentBillRepositoryProvider)
+          .list(
+            propertyId: propertyId,
+            statuses: [PaymentStatus.unpaid, PaymentStatus.rejected],
+          ),
+      retry: (_, _) => null,
+    );
+
 class ApiManagementRentBillRepository implements ManagementRentBillRepository {
   ApiManagementRentBillRepository({required this.rentBills});
 
@@ -113,6 +133,21 @@ class ApiManagementRentBillRepository implements ManagementRentBillRepository {
       ReceiptRejectionInput(reason: reason),
     ))!,
   );
+
+  @override
+  Future<RentBill> recordCashPayment(String billId, DateTime receivedOn) =>
+      _guard(
+        () async => (await rentBills.recordCashPayment(
+          billId,
+          CashPaymentInput(
+            receivedOn: DateTime.utc(
+              receivedOn.year,
+              receivedOn.month,
+              receivedOn.day,
+            ),
+          ),
+        ))!,
+      );
 
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
@@ -125,6 +126,13 @@ class _RentBillDetailScreenState extends ConsumerState<RentBillDetailScreen> {
     final awaiting =
         loaded != null &&
         loaded.payment.status == PaymentStatus.awaitingVerification;
+    // A bill that can still be paid in cash, shown only once it is loaded.
+    final payable =
+        loaded != null &&
+            (loaded.payment.status == PaymentStatus.unpaid ||
+                loaded.payment.status == PaymentStatus.rejected)
+        ? loaded
+        : null;
     return Scaffold(
       appBar: const DetailAppBar(title: 'Detail Tagihan'),
       body: bill.when(
@@ -174,6 +182,16 @@ class _RentBillDetailScreenState extends ConsumerState<RentBillDetailScreen> {
               secondary: OutlinedButton(
                 onPressed: _verifying ? null : _askRejection,
                 child: const Text('Tolak'),
+              ),
+            )
+          : payable != null
+          ? ActionFooter(
+              primary: FilledButton(
+                onPressed: () => context.push(
+                  '/pembayaran/tunai?properti=${payable.property.id}'
+                  '&tagihan=${payable.id}',
+                ),
+                child: const Text('Catat Pembayaran Tunai'),
               ),
             )
           : null,
