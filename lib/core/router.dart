@@ -6,7 +6,6 @@ import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/core/shell/app_shell.dart';
 import 'package:niscala/core/shell/fading_tab_stack.dart';
 import 'package:niscala/core/widgets/loading_screen.dart';
-import 'package:niscala/core/widgets/placeholder_screen.dart';
 import 'package:niscala/features/auth/ui/accept_invitation_screen.dart';
 import 'package:niscala/features/auth/ui/activation_screen.dart';
 import 'package:niscala/features/auth/ui/forgot_password_screen.dart';
@@ -51,6 +50,8 @@ import 'package:niscala/features/tenants/ui/invitation_share_screen.dart';
 import 'package:niscala/features/tenants/ui/tenant_detail_screen.dart';
 import 'package:niscala/features/tenants/ui/tenant_form_screen.dart';
 import 'package:niscala/features/tenants/ui/tenant_list_screen.dart';
+import 'package:niscala/features/user_accounts/ui/user_account_detail_screen.dart';
+import 'package:niscala/features/user_accounts/ui/user_account_list_screen.dart';
 import 'package:niscala_api/api.dart';
 
 const _loading = '/memuat';
@@ -126,7 +127,7 @@ String? redirectFor(SessionState session, String location) {
         return allowed ? null : _tenantHome;
       }
       if (role == UserRole.admin) {
-        return location == _admin ? null : _admin;
+        return _isUnder(location, _admin) ? null : _admin;
       }
       if (role == UserRole.manager && _isManagerScreen(location)) {
         return _managementHome;
@@ -165,9 +166,6 @@ GoRoute _subPage({
       MaterialPage<void>(key: state.pageKey, child: builder(context, state)),
   routes: routes,
 );
-
-GoRoute _placeholder(String path, String title) =>
-    _screen(path, PlaceholderScreen(title: title));
 
 StatefulShellBranch _branch(String path, Widget screen) => StatefulShellBranch(
   routes: [GoRoute(path: path, builder: (context, state) => screen)],
@@ -434,7 +432,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       _screen('/lupa-kata-sandi', const ForgotPasswordScreen()),
       _screen('/atur-ulang-kata-sandi', const ResetPasswordScreen()),
       _screen(_verifyEmail, const VerifyEmailScreen()),
-      _placeholder(_admin, 'Admin'),
+      GoRoute(
+        path: _admin,
+        builder: (context, state) => const UserAccountListScreen(),
+        routes: [
+          _subPage(
+            path: ':accountId',
+            builder: (context, state) => UserAccountDetailScreen(
+              accountId: state.pathParameters['accountId']!,
+            ),
+          ),
+        ],
+      ),
       StatefulShellRoute(
         builder: (context, state, shell) => AppShell(
           navigationShell: shell,

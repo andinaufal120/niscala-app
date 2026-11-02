@@ -99,6 +99,7 @@ const _messages = {
   'MANAGER_ALREADY_ADDED': 'Anda sudah menjadi pengelola untuk pemilik ini.',
   'NO_ACTIVE_LEASE':
       'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.',
+  'USER_ACCOUNT_NOT_FOUND': 'Akun pengguna tidak ditemukan.',
   'COMPLAINT_NOT_FOUND': 'Keluhan tidak ditemukan.',
   'COMPLAINT_STATUS_NOT_NEXT':
       'Status keluhan sudah diubah oleh pengguna lain.',
