@@ -376,6 +376,18 @@ Endpoints: see the backend's OpenAPI document. The app keeps its copy in `api/op
 
 The response shape of `/health` is undecided (see U-1 in §10).
 
+### Push message
+
+*Shared with niscala-api.*
+
+<!-- shared:begin -->
+A push is a Firebase Cloud Messaging message to the device's FCM registration token (Android only), sent for a notification (UC-06) after the event that caused it is saved.
+
+- It has high priority and carries Android localization keys instead of text: `notification_<type>_title` and `notification_<type>_body`, where `<type>` is the notification type codeName (`notification_receiptUploaded_title`). The Android system shows the Indonesian text from the app's string resources, also when the app is not running. The API sends no title or body text.
+- Its data has two string entries: `notificationId` (the UUID of the notification in `GET /notifications`) and `type` (the notification type codeName). The app opens the notification with them.
+- The app MUST provide a title and a body string for every notification type, including the types the API does not create yet.
+<!-- shared:end -->
+
 ## 10. Undecided — do not implement by assumption
 
 When work touches one of these items, stop and raise it in Plan mode. Items that also affect the backend are listed in its `docs/SPEC.md` §10 with the same ID.
@@ -417,3 +429,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 23-10-2026 | UC-04 defines *Tagihan aktif* (unpaid, awaiting verification or rejected, including overdue bills) and *Riwayat* (paid); UC-05 shows the upload action only for bills the API marks as uploadable and names the file and bill-state errors. | NKMA-57, NKMA-58 |
 | 23-10-2026 | UC-05 no longer limits receipt upload to the current period; the upload action follows the API's uploadable flag alone, so overdue bills from earlier periods can be uploaded. | NKMA-57, NKMA-58 |
 | 24-10-2026 | Tenant *Beranda* content defined in §6a: greeting, first active bill with its upload or pay-cash action, link to *Riwayat*, latest complaint, and the no-lease message. | NKMA-98 |
+| 02-11-2026 | Push message format added to §9 (shared with the backend): high priority, localization keys `notification_<type>_title` and `_body`, and data `notificationId` and `type`; the app provides a title and a body string for every notification type. | NKMA-106 |
