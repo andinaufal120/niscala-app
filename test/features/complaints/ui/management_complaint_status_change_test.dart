@@ -123,7 +123,8 @@ void main() {
 
       expect(find.text(_markInProgress), findsNothing);
       expect(find.text(_markDone), findsNothing);
-      expect(actionButtons(), findsNothing);
+      expect(actionButtons(), findsOneWidget);
+      expect(find.text('Klasifikasikan'), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
     });
 
@@ -483,7 +484,8 @@ void main() {
       expect(_stepsStatus(tester), ComplaintStatus.done);
       expect(find.text(_markInProgress), findsNothing);
       expect(find.text(_markDone), findsNothing);
-      expect(actionButtons(), findsNothing);
+      expect(actionButtons(), findsOneWidget);
+      expect(find.text('Klasifikasikan'), findsOneWidget);
     });
 
     testWidgets('refreshes the complaint list', (tester) async {

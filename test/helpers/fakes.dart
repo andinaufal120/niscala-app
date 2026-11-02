@@ -872,17 +872,20 @@ class FakeInvitationRepository implements InvitationRepository {
 }
 
 /// A [ComplaintClassification] with sensible defaults. Without
-/// [classifiedByName] it is an AI result.
+/// [classifiedByName] it is an AI result. [originalAiClassification] is the AI
+/// result that a manual classification replaced.
 ComplaintClassification makeComplaintClassification({
   String category = 'Pipa dan air',
   ComplaintUrgency urgency = ComplaintUrgency.medium,
   String? suggestedAction = 'Panggil tukang ledeng.',
   String? classifiedByName,
+  AiComplaintClassification? originalAiClassification,
 }) => ComplaintClassification(
   category: category,
   urgency: urgency,
   suggestedAction: suggestedAction,
   classifiedByName: classifiedByName,
+  originalAiClassification: originalAiClassification,
 );
 
 /// A [Complaint] with sensible defaults: new, from Budi Santoso in room 08 of
@@ -931,6 +934,13 @@ Complaint makeComplaint({
 /// succeeds, and appends a status change at [statusChangedAt] carrying the
 /// handling note. Every call is recorded in [statusChanged] as given, before
 /// the script is consulted.
+///
+/// [categories] returns [categoryList] and is recorded as `categories` in
+/// [calls]. [classify] records the call in [classified] as given, then, when it
+/// succeeds, sets a manual classification by [classifierName] with no suggested
+/// action and no classification state, and keeps the AI result it replaces as
+/// the original AI classification. Asking for the values the complaint already
+/// has changes nothing, as the API does. It is recorded as `classify:<id>`.
 class FakeComplaintRepository implements ComplaintRepository {
   FakeComplaintRepository({List<Complaint>? complaints})
     : complaints = complaints ?? [];
@@ -941,11 +951,21 @@ class FakeComplaintRepository implements ComplaintRepository {
   final submitted = <String>[];
   final statusChanged =
       <({String id, ComplaintStatus status, String? handlingNote})>[];
+  final classified =
+      <({String id, String category, ComplaintUrgency urgency})>[];
 
   final listScript = CallScript();
   final getScript = CallScript();
   final submitScript = CallScript();
   final changeStatusScript = CallScript();
+  final categoriesScript = CallScript();
+  final classifyScript = CallScript();
+
+  /// The categories that [categories] returns.
+  List<String> categoryList = ['Pipa dan air', 'Listrik', 'Furnitur'];
+
+  /// The name of the management user that [classify] records as its author.
+  String classifierName = 'Siti Pemilik';
 
   /// The time of the status change that [changeStatus] records.
   static final statusChangedAt = DateTime.utc(2026, 10, 20, 8);
@@ -962,6 +982,65 @@ class FakeComplaintRepository implements ComplaintRepository {
   int get getCalls => calls.where((c) => c.startsWith('get:')).length;
   int get submitCalls => calls.where((c) => c == 'submit').length;
   int get statusCalls => calls.where((c) => c.startsWith('status:')).length;
+  int get categoriesCalls => calls.where((c) => c == 'categories').length;
+  int get classifyCalls => calls.where((c) => c.startsWith('classify:')).length;
+
+  @override
+  Future<List<String>> categories() async {
+    calls.add('categories');
+    final failure = await categoriesScript.next();
+    if (failure != null) throw failure;
+    return List.of(categoryList);
+  }
+
+  @override
+  Future<Complaint> classify(
+    String complaintId, {
+    required String category,
+    required ComplaintUrgency urgency,
+  }) async {
+    calls.add('classify:$complaintId');
+    classified.add((id: complaintId, category: category, urgency: urgency));
+    final failure = await classifyScript.next();
+    if (failure != null) throw failure;
+    final index = complaints.indexWhere((c) => c.id == complaintId);
+    if (index < 0) throw const ApiFailure(code: 'COMPLAINT_NOT_FOUND');
+    final old = complaints[index];
+    final current = old.classification;
+    if (current != null &&
+        current.category == category &&
+        current.urgency == urgency) {
+      return old;
+    }
+    final original =
+        current?.originalAiClassification ??
+        (current != null && current.classifiedByName == null
+            ? AiComplaintClassification(
+                category: current.category,
+                suggestedAction: current.suggestedAction ?? '',
+                urgency: current.urgency,
+              )
+            : null);
+    return complaints[index] = Complaint(
+      id: old.id,
+      description: old.description,
+      status: old.status,
+      classification: ComplaintClassification(
+        category: category,
+        urgency: urgency,
+        classifiedByName: classifierName,
+        originalAiClassification: original,
+      ),
+      classificationState: null,
+      classificationWithheld: false,
+      createdAt: old.createdAt,
+      hasPhoto: old.hasPhoto,
+      property: old.property,
+      room: old.room,
+      statusChanges: old.statusChanges,
+      tenantName: old.tenantName,
+    );
+  }
 
   @override
   Future<Complaint> changeStatus(

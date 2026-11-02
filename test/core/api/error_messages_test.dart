@@ -51,6 +51,8 @@ const _table = {
       'Undangan ini untuk peran lain. Akun Anda tidak dapat menerimanya.',
   'TENANT_HAS_ACTIVE_LEASE': 'Akun ini masih memiliki masa sewa aktif.',
   'MANAGER_ALREADY_ADDED': 'Anda sudah menjadi pengelola untuk pemilik ini.',
+  'COMPLAINT_CATEGORY_INVALID':
+      'Kategori tidak valid. Pilih kategori dari daftar.',
   'FORBIDDEN': 'Anda tidak memiliki akses untuk tindakan ini.',
   'ACCESS_TOKEN_INVALID': 'Sesi Anda telah berakhir. Silakan masuk lagi.',
   'REFRESH_TOKEN_INVALID': 'Sesi Anda telah berakhir. Silakan masuk lagi.',
