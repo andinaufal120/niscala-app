@@ -30,7 +30,7 @@ Future<void> openDatePickerThroughSemantics(
       hasLength(1),
       reason: 'exactly one node announcing "$label" must offer the tap action',
     );
-    tester.binding.pipelineOwner.semanticsOwner!.performAction(
+    tester.binding.renderViews.first.owner!.semanticsOwner!.performAction(
       nodes.single.id,
       SemanticsAction.tap,
     );

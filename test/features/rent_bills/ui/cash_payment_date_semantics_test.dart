@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala_api/api.dart';
 
 import '../../../helpers/date_picker_semantics.dart';
-import '../../../helpers/fakes.dart';
 import '../../../helpers/semantics.dart';
 import 'cash_payment_ui_helpers.dart';
 
