@@ -18,7 +18,7 @@ import 'user_account_ui_helpers.dart';
 const _name = 'Nama lengkap (wajib)';
 const _email = 'Email (wajib)';
 const _note =
-    'Email baru baru berlaku setelah tautan yang dikirim ke alamat itu '
+    'Email baru berlaku setelah tautan yang dikirim ke alamat itu '
     'dikonfirmasi.';
 
 FakeUserAccountRepository _repo([List<UserAccount>? accounts]) =>

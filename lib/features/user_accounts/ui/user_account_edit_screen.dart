@@ -15,7 +15,7 @@ import 'package:niscala_api/api.dart';
 
 const _nameRequired = 'Nama wajib diisi.';
 const _emailNote =
-    'Email baru baru berlaku setelah tautan yang dikirim ke alamat itu '
+    'Email baru berlaku setelah tautan yang dikirim ke alamat itu '
     'dikonfirmasi.';
 
 /// Edits the name, email and status of the account [accountId]. The form is
