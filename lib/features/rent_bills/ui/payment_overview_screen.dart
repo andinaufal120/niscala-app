@@ -126,6 +126,13 @@ class _PaymentOverviewScreenState extends ConsumerState<PaymentOverviewScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: NiscalaSpacing.s),
+              OutlinedButton(
+                onPressed: () => context.push(
+                  '/pembayaran/verifikasi?properti=${property.id}',
+                ),
+                child: const Text('Menunggu Verifikasi'),
+              ),
             ],
           ),
         ),

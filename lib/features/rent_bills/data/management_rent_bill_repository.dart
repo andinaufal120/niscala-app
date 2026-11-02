@@ -17,6 +17,14 @@ abstract interface class ManagementRentBillRepository {
     String? tenantId,
     List<PaymentStatus>? statuses,
   });
+
+  /// Accepts the transfer receipt of the bill, which then becomes paid. Returns
+  /// the bill as the API has it after the change.
+  Future<RentBill> verifyReceipt(String billId);
+
+  /// Rejects the transfer receipt of the bill with [reason], sent as given.
+  /// Returns the bill as the API has it after the change.
+  Future<RentBill> rejectReceipt(String billId, String reason);
 }
 
 final managementRentBillRepositoryProvider =
@@ -51,6 +59,19 @@ final tenantRentBillsProvider =
       retry: (_, _) => null,
     );
 
+/// The bills of one property that await verification. Failures are not retried
+/// in the background, see [paymentOverviewProvider].
+final awaitingVerificationProvider =
+    FutureProvider.family<List<RentBillSummary>, String>(
+      (ref, propertyId) => ref
+          .watch(managementRentBillRepositoryProvider)
+          .list(
+            propertyId: propertyId,
+            statuses: [PaymentStatus.awaitingVerification],
+          ),
+      retry: (_, _) => null,
+    );
+
 class ApiManagementRentBillRepository implements ManagementRentBillRepository {
   ApiManagementRentBillRepository({required this.rentBills});
 
@@ -80,6 +101,18 @@ class ApiManagementRentBillRepository implements ManagementRentBillRepository {
     );
     return response!.items;
   });
+
+  @override
+  Future<RentBill> verifyReceipt(String billId) =>
+      _guard(() async => (await rentBills.verifyReceipt(billId))!);
+
+  @override
+  Future<RentBill> rejectReceipt(String billId, String reason) => _guard(
+    () async => (await rentBills.rejectReceipt(
+      billId,
+      ReceiptRejectionInput(reason: reason),
+    ))!,
+  );
 
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {
