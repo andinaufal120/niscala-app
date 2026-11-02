@@ -8,7 +8,7 @@ import 'package:niscala_api/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**description** | **String** | At least 10 characters, counted after trimming. | 
+**description** | **String** | 10 to 2000 characters, counted after trimming. | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

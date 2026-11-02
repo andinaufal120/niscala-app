@@ -522,7 +522,8 @@
         "description": "Fields set when submitting a complaint.",
         "properties": {
           "description": {
-            "description": "At least 10 characters, counted after trimming.",
+            "description": "10 to 2000 characters, counted after trimming.",
+            "maxLength": 2000,
             "minLength": 10,
             "title": "Description",
             "type": "string"
@@ -4454,7 +4455,7 @@
   },
   "info": {
     "title": "Niscala API",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "openapi": "3.1.0",
   "paths": {

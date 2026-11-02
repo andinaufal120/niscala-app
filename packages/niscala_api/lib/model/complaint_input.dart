@@ -16,7 +16,7 @@ class ComplaintInput {
     required this.description,
   });
 
-  /// At least 10 characters, counted after trimming.
+  /// 10 to 2000 characters, counted after trimming.
   String description;
 
   @override
