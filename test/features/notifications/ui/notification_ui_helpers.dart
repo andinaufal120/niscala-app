@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide Notification;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:niscala/core/router.dart';
 import 'package:niscala_api/api.dart';
 
@@ -54,6 +55,19 @@ Future<void> pumpNotificationApp(
       await tester.pump(const Duration(milliseconds: 100));
     }
   }
+}
+
+/// The path of the page on top. A pushed page leaves `currentConfiguration.uri`
+/// at the location below it, so the last match is read, which is an imperative
+/// match for a pushed page.
+String pushedPath(WidgetTester tester) {
+  final configuration = containerOf(tester)
+      .read(routerProvider)
+      .routerDelegate
+      .currentConfiguration;
+  final last = configuration.last;
+  return (last is ImperativeRouteMatch ? last.matches.uri : configuration.uri)
+      .path;
 }
 
 /// Goes back one page of the router, as a link that was pushed does.

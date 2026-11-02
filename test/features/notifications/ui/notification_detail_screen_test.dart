@@ -485,7 +485,7 @@ void main() {
           await tester.tap(buttonLabelled('Lihat tagihan'));
           await tester.pumpAndSettle();
 
-          expect(currentPath(tester), '/pembayaran/tagihan/b1');
+          expect(pushedPath(tester), '/pembayaran/tagihan/b1');
         });
       }
     }
@@ -538,7 +538,13 @@ void main() {
         await tester.tap(buttonLabelled('Lihat keluhan'));
         await tester.pumpAndSettle();
 
-        expect(currentPath(tester), '/keluhan/c1');
+        expect(pushedPath(tester), '/keluhan/c1');
+
+        popRoute(tester);
+        await tester.pumpAndSettle();
+
+        expect(currentPath(tester), notificationPath(role, 'n1'));
+        expect(appBarTitle('Detail Notifikasi'), findsOneWidget);
       });
     }
 
@@ -554,7 +560,13 @@ void main() {
       await tester.tap(buttonLabelled('Lihat keluhan'));
       await tester.pumpAndSettle();
 
-      expect(currentPath(tester), '/penyewa/keluhan/c1');
+      expect(pushedPath(tester), '/penyewa/keluhan/c1');
+
+      popRoute(tester);
+      await tester.pumpAndSettle();
+
+      expect(currentPath(tester), notificationPath(_tenant, 'n1'));
+      expect(appBarTitle('Detail Notifikasi'), findsOneWidget);
     });
 
     for (final type in [
