@@ -2619,6 +2619,12 @@ UserAccount makeUserAccount({
 /// trimmed and the email is lowercased. A different email does not replace the
 /// current one: it becomes the pending email, valid until [pendingExpiresAt].
 /// The current email cancels a pending email.
+///
+/// [delete] is recorded as `delete:<id>` in [calls] and its id in [deleted],
+/// whether it succeeded or not. After the scripted outcome it fails with
+/// `USER_ACCOUNT_NOT_FOUND` (404) for an unknown id and with
+/// `USER_ACCOUNT_DELETED` (409) for a deleted account. Otherwise it marks the
+/// account deleted and keeps the rest of it, as the API does.
 class FakeUserAccountRepository implements UserAccountRepository {
   FakeUserAccountRepository({List<UserAccount>? accounts})
     : accounts = accounts ?? [];
@@ -2631,14 +2637,49 @@ class FakeUserAccountRepository implements UserAccountRepository {
   final calls = <String>[];
   final listed = <({String? email, UserRole? role, bool includeDeleted})>[];
   final updated = <({String id, UserAccountInput input})>[];
+  final deleted = <String>[];
 
   final listScript = CallScript();
   final getScript = CallScript();
   final updateScript = CallScript();
+  final deleteScript = CallScript();
 
   int get listCalls => calls.where((c) => c == 'list').length;
   int get getCalls => calls.where((c) => c.startsWith('get:')).length;
   int get updateCalls => calls.where((c) => c.startsWith('update:')).length;
+  int get deleteCalls => calls.where((c) => c.startsWith('delete:')).length;
+
+  @override
+  Future<void> delete(String id) async {
+    calls.add('delete:$id');
+    deleted.add(id);
+    final failure = await deleteScript.next();
+    if (failure != null) throw failure;
+    final index = accounts.indexWhere((a) => a.id == id);
+    if (index < 0) {
+      throw const ApiFailure(code: 'USER_ACCOUNT_NOT_FOUND', statusCode: 404);
+    }
+    final old = accounts[index];
+    if (old.status == UserAccountStatus.deleted) {
+      throw const ApiFailure(code: 'USER_ACCOUNT_DELETED', statusCode: 409);
+    }
+    accounts[index] = makeUserAccount(
+      id: old.id,
+      name: old.name,
+      email: old.email,
+      role: old.role,
+      status: UserAccountStatus.deleted,
+      activeLeaseCount: old.activeLeaseCount,
+      registeredAt: old.registeredAt,
+      lastLoginAt: old.lastLoginAt,
+      neverLoggedIn: old.lastLoginAt == null,
+      loginMethods: old.loginMethods,
+      pendingEmail: old.pendingEmail,
+      pendingEmailExpiresAt: old.pendingEmailExpiresAt,
+      properties: old.properties,
+      tenancy: old.tenancy,
+    );
+  }
 
   @override
   Future<UserAccount> update(String id, UserAccountInput input) async {

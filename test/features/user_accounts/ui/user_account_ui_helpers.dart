@@ -46,7 +46,8 @@ List<UserAccount> sampleUserAccounts() => [
 /// With [settle] false only a few frames are pumped, so a held `gate` keeps
 /// the screen in its loading state. With [largeText] the display is 360 x 640
 /// dp at text scale 2.0 and the test fails on any overflow. [logout] replaces
-/// the logout of the app.
+/// the logout of the app. [me] is the account of the signed-in user; without it
+/// that account has the id `account-1`, which none of the listed accounts has.
 Future<void> pumpUserAccountApp(
   WidgetTester tester,
   FakeUserAccountRepository accounts, {
@@ -55,10 +56,12 @@ Future<void> pumpUserAccountApp(
   bool settle = true,
   bool largeText = false,
   Future<void> Function()? logout,
+  FakeAccountRepository? me,
 }) async {
   final app = buildTestApp(
     store: InMemorySessionStore(storedSession(role: role)),
     userAccounts: accounts,
+    accounts: me,
     logout: logout,
   );
   if (largeText) {
