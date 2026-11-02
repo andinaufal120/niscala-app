@@ -29,7 +29,10 @@ import 'package:niscala/features/managers/ui/manager_list_screen.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
+import 'package:niscala/features/rent_bills/ui/payment_overview_screen.dart';
 import 'package:niscala/features/rent_bills/ui/receipt_view_screen.dart';
+import 'package:niscala/features/rent_bills/ui/rent_bill_detail_screen.dart';
+import 'package:niscala/features/rent_bills/ui/tenant_payment_history_screen.dart';
 import 'package:niscala/features/rent_bills/ui/tenant_payments_screen.dart';
 import 'package:niscala/features/rent_bills/ui/upload_receipt_screen.dart';
 import 'package:niscala/features/rooms/ui/room_detail_screen.dart';
@@ -52,6 +55,7 @@ const _propertyRoot = '/properti';
 const _managementComplaints = '/keluhan';
 const _tenantComplaints = '/penyewa/keluhan';
 const _tenantPayments = '/penyewa/pembayaran';
+const _managementPayments = '/pembayaran';
 
 /// The navigator of the whole app. Sub-pages are shown on it, above the tab
 /// shell, so they cover the bottom navigation bar. Tab roots stay in the shell.
@@ -61,7 +65,6 @@ const _signedOutRoutes = {_signIn, '/daftar', '/aktivasi'};
 const _managementRoutes = {
   _managementHome,
   '/keluhan',
-  '/pembayaran',
   '/akun',
   '/akun/perangkat',
   '/akun/kata-sandi',
@@ -113,6 +116,7 @@ String? redirectFor(SessionState session, String location) {
       }
       final allowed =
           _managementRoutes.contains(location) ||
+          _isUnder(location, _managementPayments) ||
           _isUnder(location, _propertyRoot) ||
           _isUnder(location, _managementComplaints);
       return allowed ? null : _managementHome;
@@ -418,7 +422,21 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          _branch('/pembayaran', const PlaceholderScreen(title: 'Pembayaran')),
+          _nestedBranch(_managementPayments, const PaymentOverviewScreen(), [
+            _subPage(
+              path: 'penyewa/:tenantId',
+              builder: (context, state) => TenantPaymentHistoryScreen(
+                tenantId: state.pathParameters['tenantId']!,
+                propertyId: state.uri.queryParameters['properti'],
+              ),
+            ),
+            _subPage(
+              path: 'tagihan/:rentBillId',
+              builder: (context, state) => RentBillDetailScreen(
+                billId: state.pathParameters['rentBillId']!,
+              ),
+            ),
+          ]),
           _propertiesBranch(),
           _accountBranch('/akun'),
         ],
