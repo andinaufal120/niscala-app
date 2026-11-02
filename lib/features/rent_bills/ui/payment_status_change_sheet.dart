@@ -5,6 +5,7 @@ import 'package:niscala/core/format.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
+import 'package:niscala/core/widgets/tappable_date_field.dart';
 import 'package:niscala/features/rent_bills/payment_labels.dart';
 import 'package:niscala_api/api.dart';
 
@@ -252,15 +253,12 @@ class _PaymentStatusChangeSheetState extends State<PaymentStatusChangeSheet> {
                     if (_methodError != null)
                       _Note(_methodError!, color: theme.colorScheme.error),
                     formGap,
-                    LabeledField(
+                    TappableDateField(
                       label: 'Tanggal diterima',
                       required: true,
-                      child: TextField(
-                        controller: _receivedOnText,
-                        readOnly: true,
-                        onTap: _pickDate,
-                        decoration: InputDecoration(errorText: _dateError),
-                      ),
+                      controller: _receivedOnText,
+                      onTap: _pickDate,
+                      errorText: _dateError,
                     ),
                   ],
                   if (_banner != null) ...[formGap, FormMessage(_banner!)],
