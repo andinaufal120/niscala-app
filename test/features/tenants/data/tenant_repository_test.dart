@@ -585,6 +585,101 @@ void main() {
     });
   });
 
+  group('delete', () {
+    test('sends a DELETE to the tenant and completes on no content', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await h.repository.delete('t1');
+
+      expect(h.request.method, 'DELETE');
+      expect(h.request.url.path, '/tenants/t1');
+      expect(h.request.body, isEmpty);
+    });
+
+    test('sends one request only', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await h.repository.delete('t9');
+
+      expect(h.requests, hasLength(1));
+      expect(h.request.url.path, '/tenants/t9');
+    });
+
+    test('keeps the code and status of a tenant that is gone', () async {
+      final h = _Harness((_) => _error(404, 'TENANT_NOT_FOUND'));
+
+      await expectLater(
+        h.repository.delete('t1'),
+        throwsA(_failure('TENANT_NOT_FOUND', status: 404)),
+      );
+    });
+
+    test('keeps the code of a read-only room error', () async {
+      final h = _Harness((_) => _error(403, 'ROOM_READ_ONLY'));
+
+      await expectLater(
+        h.repository.delete('t1'),
+        throwsA(_failure('ROOM_READ_ONLY', status: 403)),
+      );
+    });
+
+    test('keeps the code of a read-only property error', () async {
+      final h = _Harness((_) => _error(403, 'PROPERTY_READ_ONLY'));
+
+      await expectLater(
+        h.repository.delete('t1'),
+        throwsA(_failure('PROPERTY_READ_ONLY', status: 403)),
+      );
+    });
+
+    test('keeps the code of a forbidden error', () async {
+      final h = _Harness((_) => _error(403, 'FORBIDDEN'));
+
+      await expectLater(
+        h.repository.delete('t1'),
+        throwsA(_failure('FORBIDDEN', status: 403)),
+      );
+    });
+
+    test('keeps the field of a validation error', () async {
+      final h = _Harness(
+        (_) => _error(400, 'VALIDATION_FAILED', field: 'phone'),
+      );
+
+      await expectLater(
+        h.repository.delete('t1'),
+        throwsA(_failure('VALIDATION_FAILED', field: 'phone', status: 400)),
+      );
+    });
+
+    test('converts a server error to an ApiFailure', () async {
+      final h = _Harness((_) => _error(500, 'INTERNAL_ERROR'));
+
+      await expectLater(
+        h.repository.delete('t1'),
+        throwsA(_failure('INTERNAL_ERROR', status: 500)),
+      );
+    });
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(const SocketException('no route'));
+
+      await expectLater(
+        h.repository.delete('t1'),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+
+    test('converts a client exception to a network failure', () async {
+      final h = _Harness.failing(http.ClientException('broken'));
+
+      await expectLater(
+        h.repository.delete('t1'),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+  });
+
   group('regenerateInvitation', () {
     test('posts to the invitation of the tenant and maps the result', () async {
       final h = _Harness(

@@ -83,6 +83,7 @@ Future<void> pumpTenantApp(
   FakeTenantRepository tenants, {
   FakeRoomRepository? rooms,
   FakePropertyRepository? properties,
+  FakeDashboardRepository? dashboard,
   UserRole role = UserRole.owner,
   String path = '/properti/p1/penyewa',
   bool settle = true,
@@ -94,6 +95,7 @@ Future<void> pumpTenantApp(
     properties: properties ?? propertiesWithMelati(),
     rooms: rooms ?? FakeRoomRepository(rooms: tenantRooms()),
     tenants: tenants,
+    dashboard: dashboard,
     invitationSharer: sharer?.call,
   );
   if (largeText) {
