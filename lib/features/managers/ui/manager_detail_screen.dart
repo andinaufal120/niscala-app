@@ -10,6 +10,7 @@ import 'package:niscala/core/widgets/confirm_dialog.dart';
 import 'package:niscala/core/widgets/danger_button.dart';
 import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/failure_dialog.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/managers/data/manager_repository.dart';
@@ -59,7 +60,7 @@ class _ManagerDetailScreenState extends ConsumerState<ManagerDetailScreen> {
       if (isStaleManagerFailure(failure)) {
         ref.invalidate(managerDetailProvider(manager.id));
       }
-      await showManagerFailure(
+      await showFailureDialog(
         context,
         title: 'Pengelola belum bisa dihapus',
         message: errorMessageFor(failure),

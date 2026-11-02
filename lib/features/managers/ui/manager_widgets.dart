@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/tokens.dart';
+import 'package:niscala/core/widgets/failure_dialog.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/managers/data/manager_repository.dart';
 import 'package:niscala_api/api.dart';
@@ -36,25 +37,6 @@ String? shareableLinkOf(ManagerInvitation? invitation) =>
 bool isStaleManagerFailure(ApiFailure failure) =>
     failure.code == 'MANAGER_NOT_FOUND' ||
     failure.code == 'MANAGER_ALREADY_ACTIVE';
-
-/// Shows why a manager action failed. The dialog stays until the user closes it.
-Future<void> showManagerFailure(
-  BuildContext context, {
-  required String title,
-  required String message,
-}) => showDialog<void>(
-  context: context,
-  builder: (context) => AlertDialog(
-    title: Text(title),
-    content: Text(message),
-    actions: [
-      FilledButton(
-        onPressed: () => Navigator.of(context).pop(),
-        child: const Text('Mengerti'),
-      ),
-    ],
-  ),
-);
 
 /// Makes a new invitation link for a manager who is not active yet. The button
 /// is disabled while the request is in flight.
@@ -93,7 +75,7 @@ class _RegenerateInvitationButtonState
       if (isStaleManagerFailure(failure)) {
         ref.invalidate(managerDetailProvider(widget.managerId));
       }
-      await showManagerFailure(
+      await showFailureDialog(
         context,
         title: 'Tautan belum bisa dibuat',
         message: errorMessageFor(failure),
