@@ -409,6 +409,113 @@ void main() {
     });
   });
 
+  group('delete', () {
+    test('sends DELETE for the account and accepts 204', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await h.repository.delete('u1');
+
+      expect(h.request.method, 'DELETE');
+      expect(h.request.url.path, '/user-accounts/u1');
+      expect(h.request.url.query, isEmpty);
+    });
+
+    test('puts the id of the account in the path', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await h.repository.delete('u7');
+
+      expect(h.request.url.path, '/user-accounts/u7');
+    });
+
+    test('sends no body', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await h.repository.delete('u1');
+
+      expect(h.request.body, isEmpty);
+    });
+
+    test('sends exactly one request', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await h.repository.delete('u1');
+
+      expect(h.requests, hasLength(1));
+    });
+
+    test('completes with no value', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await expectLater(h.repository.delete('u1'), completion(isNull));
+    });
+
+    final failures = {
+      'OWNER_HAS_ACTIVE_LEASE': 409,
+      'TENANT_HAS_ACTIVE_LEASE': 409,
+      'CANNOT_MODIFY_OWN_ACCOUNT': 409,
+      'USER_ACCOUNT_DELETED': 409,
+      'USER_ACCOUNT_NOT_FOUND': 404,
+      'FORBIDDEN': 403,
+    };
+    for (final entry in failures.entries) {
+      test('keeps the code and status of ${entry.key}', () async {
+        final h = _Harness((_) => _error(entry.value, entry.key));
+
+        await expectLater(
+          h.repository.delete('u1'),
+          throwsA(_failure(entry.key, status: entry.value)),
+        );
+      });
+    }
+
+    test('maps a server error without a body to INTERNAL_ERROR', () async {
+      final h = _Harness((_) => http.Response('', 500));
+
+      await expectLater(
+        h.repository.delete('u1'),
+        throwsA(_failure('INTERNAL_ERROR', status: 500)),
+      );
+    });
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(const SocketException('no route'));
+
+      await expectLater(
+        h.repository.delete('u1'),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+
+    test('converts a client error to a network failure', () async {
+      final h = _Harness.failing(http.ClientException('broken'));
+
+      await expectLater(
+        h.repository.delete('u1'),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+  });
+
+  group('fake', () {
+    test('delete marks the account deleted and keeps the rest', () async {
+      final repo = FakeUserAccountRepository(
+        accounts: [
+          makeUserAccount(),
+          makeUserAccount(id: 'u2', name: 'Siti'),
+        ],
+      );
+
+      await repo.delete('u1');
+
+      expect(repo.deleted, ['u1']);
+      expect(repo.calls, ['delete:u1']);
+      expect((await repo.get('u1')).status, UserAccountStatus.deleted);
+      expect((await repo.get('u1')).name, 'Budi Santoso');
+      expect((await repo.get('u2')).status, UserAccountStatus.active);
+    });
+  });
+
   group('providers', () {
     ProviderContainer containerWith(FakeUserAccountRepository repo) {
       final container = ProviderContainer(

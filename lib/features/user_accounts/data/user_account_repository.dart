@@ -27,6 +27,10 @@ abstract interface class UserAccountRepository {
   /// Saves the name, email and status of the account and returns it. A new
   /// email stays pending until its link is confirmed.
   Future<UserAccount> update(String userAccountId, UserAccountInput input);
+
+  /// Soft-deletes the account and ends its sessions. The account stays
+  /// readable with the status deleted.
+  Future<void> delete(String userAccountId);
 }
 
 final userAccountRepositoryProvider = Provider<UserAccountRepository>((ref) {
@@ -86,6 +90,10 @@ class ApiUserAccountRepository implements UserAccountRepository {
       _guard(() async {
         return (await userAccounts.updateUserAccount(userAccountId, input))!;
       });
+
+  @override
+  Future<void> delete(String userAccountId) =>
+      _guard(() => userAccounts.deleteUserAccount(userAccountId));
 
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {

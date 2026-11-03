@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
+import 'package:niscala/core/navigation.dart';
 import 'package:niscala/core/tokens.dart';
+import 'package:niscala/core/widgets/confirm_dialog.dart';
+import 'package:niscala/core/widgets/danger_button.dart';
 import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/failure_dialog.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
+import 'package:niscala/features/account/data/account_repository.dart';
 import 'package:niscala/features/user_accounts/data/user_account_repository.dart';
 import 'package:niscala/features/user_accounts/status_labels.dart';
 import 'package:niscala_api/api.dart';
@@ -39,15 +45,22 @@ class UserAccountDetailScreen extends ConsumerWidget {
   }
 }
 
-class _Details extends StatelessWidget {
+class _Details extends ConsumerWidget {
   const _Details({required this.account});
 
   final UserAccount account;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final role = account.role;
     final showsProperties = role == UserRole.owner || role == UserRole.manager;
+    // Until the signed-in account is known, the delete action stays hidden, so
+    // an admin never sees it on their own account.
+    final signedInId = ref.watch(meProvider).value?.id;
+    final canDelete =
+        account.status != UserAccountStatus.deleted &&
+        signedInId != null &&
+        account.id != signedInId;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(NiscalaSpacing.gutter),
       child: Column(
@@ -81,10 +94,71 @@ class _Details extends StatelessWidget {
               child: const Text('Ubah'),
             ),
           ],
+          if (canDelete) ...[
+            const SizedBox(height: 8),
+            _DeleteAccountButton(account: account),
+          ],
         ],
       ),
     );
   }
+}
+
+/// Deletes the account after confirmation. The button is disabled while the
+/// request is in flight.
+///
+/// On success the account detail is reloaded and the list of accounts opens. On
+/// failure the message is shown in a dialog; an account that is gone or already
+/// deleted is reloaded, so the detail shows its current state.
+class _DeleteAccountButton extends ConsumerStatefulWidget {
+  const _DeleteAccountButton({required this.account});
+
+  final UserAccount account;
+
+  @override
+  ConsumerState<_DeleteAccountButton> createState() =>
+      _DeleteAccountButtonState();
+}
+
+class _DeleteAccountButtonState extends ConsumerState<_DeleteAccountButton> {
+  var _busy = false;
+
+  Future<void> _delete() async {
+    final account = widget.account;
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Hapus ${account.name}?',
+      message: '${account.email}. Hapus akun ini? Semua sesinya akan diakhiri.',
+      confirmLabel: 'Hapus',
+    );
+    if (!confirmed || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      await ref.read(userAccountRepositoryProvider).delete(account.id);
+    } on ApiFailure catch (failure) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      if (failure.code == 'USER_ACCOUNT_DELETED' ||
+          failure.code == 'USER_ACCOUNT_NOT_FOUND') {
+        ref.invalidate(userAccountDetailProvider(account.id));
+      }
+      await showFailureDialog(
+        context,
+        title: 'Akun belum bisa dihapus',
+        message: errorMessageFor(failure),
+      );
+      return;
+    }
+    if (!mounted) return;
+    ref.invalidate(userAccountDetailProvider(account.id));
+    ref.invalidate(userAccountListProvider);
+    leavePageTo(context, '/admin');
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      DangerButton(label: 'Hapus Akun', onPressed: _busy ? null : _delete);
 }
 
 /// The name, email, role and status of the account.

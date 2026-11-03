@@ -96,6 +96,8 @@ const _messages = {
   'INVITATION_ROLE_MISMATCH':
       'Undangan ini untuk peran lain. Akun Anda tidak dapat menerimanya.',
   'TENANT_HAS_ACTIVE_LEASE': 'Akun ini masih memiliki masa sewa aktif.',
+  'OWNER_HAS_ACTIVE_LEASE':
+      'Pemilik ini masih memiliki properti dengan masa sewa aktif.',
   'MANAGER_ALREADY_ADDED': 'Anda sudah menjadi pengelola untuk pemilik ini.',
   'NO_ACTIVE_LEASE':
       'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.',
