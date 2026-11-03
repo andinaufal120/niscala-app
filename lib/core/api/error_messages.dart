@@ -57,6 +57,11 @@ const _messages = {
   'PASSWORD_TOO_COMMON': 'Kata sandi terlalu umum. Pilih kata sandi lain.',
   'PASSWORD_INCORRECT': 'Kata sandi salah.',
   'PASSWORD_NOT_SET': 'Akun ini belum memiliki kata sandi.',
+  'PASSWORD_RESET_NOT_FOUND': 'Tautan atur ulang tidak ditemukan atau tidak berlaku. Minta tautan baru.',
+  'PASSWORD_RESET_USED':
+      'Tautan atur ulang ini sudah dipakai atau diganti. Minta tautan baru.',
+  'PASSWORD_RESET_EXPIRED':
+      'Tautan atur ulang sudah kedaluwarsa. Minta tautan baru.',
   'REAUTHENTICATION_REQUIRED': 'Masukkan kata sandi Anda untuk melanjutkan.',
   'PROPERTY_NAME_TAKEN': 'Nama properti sudah dipakai.',
   'PROPERTY_LIMIT_REACHED':

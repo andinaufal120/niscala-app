@@ -205,6 +205,8 @@ Login and sign-up are preconditions, not use cases. All use cases assume a valid
 
 Until U-4 is decided, the login screen offers *Aktifkan dengan tautan undangan (Activate with invitation link)*: the user pastes the link, the app takes its last path segment as the token, shows the invitation preview and activates with a local password. A local-password account confirms its email with a 6-digit code before using other features. Likewise, a signed-in Manager accepts a Manager invitation with their existing account from *Akun → Terima Undangan Pengelola (Accept manager invitation)*: they paste the link, the app shows who invited them, the properties and the account that will accept, or the reason the link cannot be accepted, and they confirm. Accepting adds the properties of that Owner to the account and keeps those from other Owners.
 
+Until U-4 is decided, the login screen also offers *Lupa kata sandi? (Forgot password)*: the user enters their email, the app requests a reset link and shows the same confirmation whether or not the email is registered. *Atur ulang dengan tautan (Reset with link)* takes a pasted reset link, reads its `token` query parameter, shows the account email from the preview and sets a new password under the same rules and strength meter as UC-38. A completed reset ends every session, so the user logs in again.
+
 ## 8. Use cases
 
 Format: actor · entry point · flow · outcomes. Menu names are *Indonesian (English)*.
@@ -437,3 +439,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 02-11-2026 | UC-25 picks a date, not a period, because billing periods are per tenant.                                       | NKMA-62    |
 | 02-11-2026 | UC-09 *Lunas* asks for method and date received, as the API requires.                                          | NKMA-61    |
 | 02-11-2026 | UC-06 covers Tenant, Owner and Manager, every notification type the API sends, and notification settings.       | NKMA-104   |
+| 03-11-2026 | Interim password reset by pasted link, until U-4 is decided (§7).                                              | NKMA-103   |

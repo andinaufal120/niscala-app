@@ -9,7 +9,9 @@ import 'package:niscala/core/widgets/loading_screen.dart';
 import 'package:niscala/core/widgets/placeholder_screen.dart';
 import 'package:niscala/features/auth/ui/accept_invitation_screen.dart';
 import 'package:niscala/features/auth/ui/activation_screen.dart';
+import 'package:niscala/features/auth/ui/forgot_password_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
+import 'package:niscala/features/auth/ui/reset_password_screen.dart';
 import 'package:niscala/features/auth/ui/register_owner_screen.dart';
 import 'package:niscala/features/account/ui/active_sessions_screen.dart';
 import 'package:niscala/features/account/ui/change_password_screen.dart';
@@ -69,7 +71,13 @@ const _tenantNotifications = '/penyewa/akun/notifikasi';
 /// shell, so they cover the bottom navigation bar. Tab roots stay in the shell.
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
-const _signedOutRoutes = {_signIn, '/daftar', '/aktivasi'};
+const _signedOutRoutes = {
+  _signIn,
+  '/daftar',
+  '/aktivasi',
+  '/lupa-kata-sandi',
+  '/atur-ulang-kata-sandi',
+};
 const _managementRoutes = {
   _managementHome,
   '/keluhan',
@@ -423,6 +431,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       _screen(_signIn, const LoginScreen()),
       _screen('/daftar', const RegisterOwnerScreen()),
       _screen('/aktivasi', const ActivationScreen()),
+      _screen('/lupa-kata-sandi', const ForgotPasswordScreen()),
+      _screen('/atur-ulang-kata-sandi', const ResetPasswordScreen()),
       _screen(_verifyEmail, const VerifyEmailScreen()),
       _placeholder(_admin, 'Admin'),
       StatefulShellRoute(

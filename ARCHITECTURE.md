@@ -48,7 +48,7 @@ Riverpod 3 (no code generation) for state and dependency injection, `go_router` 
 | Session                          | Goes to                                                         |
 |----------------------------------|-----------------------------------------------------------------|
 | loading                          | `/memuat`                                                       |
-| signed out                       | `/masuk` (auth routes `/masuk`, `/daftar`, `/aktivasi` stay put) |
+| signed out                       | `/masuk` (auth routes `/masuk`, `/daftar`, `/aktivasi`, `/lupa-kata-sandi`, `/atur-ulang-kata-sandi` stay put) |
 | signed in, email not verified    | `/verifikasi-email`                                             |
 | owner or manager                 | management shell, `/beranda` and siblings                       |
 | tenant                           | tenant shell, `/penyewa/beranda` and siblings                   |

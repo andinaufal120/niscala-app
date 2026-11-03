@@ -21,6 +21,18 @@ abstract interface class AuthRepository {
   Future<DateTime> sendEmailVerification();
 
   Future<Account> confirmEmail(String code);
+
+  /// Emails a password-reset link. Completes the same way for every email.
+  Future<void> requestPasswordReset(String email);
+
+  /// Checks a password-reset token and returns the email of its account.
+  Future<String> previewPasswordReset(String token);
+
+  /// Sets a new password with a reset token. The password is sent untrimmed.
+  Future<void> resetPassword({
+    required String token,
+    required String newPassword,
+  });
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
@@ -92,6 +104,26 @@ class ApiAuthRepository implements AuthRepository {
   @override
   Future<Account> confirmEmail(String code) => _guard(() async {
     return (await auth.confirmEmail(EmailConfirmationInput(code: code)))!;
+  });
+
+  @override
+  Future<void> requestPasswordReset(String email) => _guard(() async {
+    await auth.requestPasswordReset(PasswordResetRequestInput(email: email));
+  });
+
+  @override
+  Future<String> previewPasswordReset(String token) => _guard(() async {
+    return (await auth.previewPasswordReset(TokenInput(token: token)))!.email;
+  });
+
+  @override
+  Future<void> resetPassword({
+    required String token,
+    required String newPassword,
+  }) => _guard(() async {
+    await auth.resetPassword(
+      PasswordResetInput(token: token, newPassword: newPassword),
+    );
   });
 
   Future<T> _guard<T>(Future<T> Function() call) async {

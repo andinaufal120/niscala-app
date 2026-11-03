@@ -189,6 +189,55 @@ class FakeAuthRepository implements AuthRepository {
     if (confirmFailure != null) throw confirmFailure!;
     return confirmResult;
   }
+
+  /// The email of every [requestPasswordReset] call, in order.
+  final passwordResetRequests = <String>[];
+
+  /// The token of every [previewPasswordReset] call, in order.
+  final passwordResetPreviews = <String>[];
+
+  /// The arguments of every [resetPassword] call, in order.
+  final passwordResets = <({String token, String newPassword})>[];
+
+  /// The email that [previewPasswordReset] returns.
+  String passwordResetPreviewEmail = 'budi@example.com';
+
+  ApiFailure? requestPasswordResetFailure;
+  ApiFailure? previewPasswordResetFailure;
+  ApiFailure? resetPasswordFailure;
+
+  /// Holds [requestPasswordReset], [previewPasswordReset] or [resetPassword]
+  /// in flight until it completes.
+  Completer<void>? requestPasswordResetGate;
+  Completer<void>? previewPasswordResetGate;
+  Completer<void>? resetPasswordGate;
+
+  @override
+  Future<void> requestPasswordReset(String email) async {
+    passwordResetRequests.add(email);
+    await requestPasswordResetGate?.future;
+    if (requestPasswordResetFailure != null) throw requestPasswordResetFailure!;
+  }
+
+  @override
+  Future<String> previewPasswordReset(String token) async {
+    passwordResetPreviews.add(token);
+    await previewPasswordResetGate?.future;
+    if (previewPasswordResetFailure != null) {
+      throw previewPasswordResetFailure!;
+    }
+    return passwordResetPreviewEmail;
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    passwordResets.add((token: token, newPassword: newPassword));
+    await resetPasswordGate?.future;
+    if (resetPasswordFailure != null) throw resetPasswordFailure!;
+  }
 }
 
 /// Scripts the outcome of one repository method.

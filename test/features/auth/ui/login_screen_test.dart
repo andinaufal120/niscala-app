@@ -54,13 +54,16 @@ void main() {
       expect(find.text('Daftar'), findsOneWidget);
     });
 
-    testWidgets('has no Google button and no forgotten password link yet', (
-      tester,
-    ) async {
+    testWidgets('has no Google button', (tester) async {
       await pumpLogin(tester, auth);
 
       expect(find.textContaining('Google'), findsNothing);
-      expect(find.textContaining('Lupa'), findsNothing);
+    });
+
+    testWidgets('offers the forgotten password link', (tester) async {
+      await pumpLogin(tester, auth);
+
+      expect(buttonLabelled('Lupa kata sandi?'), findsOneWidget);
     });
 
     testWidgets('shows no error and no banner before the first submit', (
