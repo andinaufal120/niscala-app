@@ -17,6 +17,10 @@ abstract interface class TenantRepository {
 
   /// Gives a tenant a new invitation link. The old link stops working.
   Future<TenantInvitation> regenerateInvitation(String tenantId);
+
+  /// Ends the tenant's lease, revokes their access and frees the room. The
+  /// payment and complaint history is kept.
+  Future<void> delete(String tenantId);
 }
 
 final tenantRepositoryProvider = Provider<TenantRepository>((ref) {
@@ -69,6 +73,10 @@ class ApiTenantRepository implements TenantRepository {
       _guard(() async {
         return (await tenants.regenerateTenantInvitation(tenantId))!;
       });
+
+  @override
+  Future<void> delete(String tenantId) =>
+      _guard(() => tenants.deleteTenant(tenantId));
 
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {

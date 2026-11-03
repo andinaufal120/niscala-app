@@ -640,8 +640,10 @@ TenantSummary makeTenantSummary({
 /// invitation url `https://niscala.example/undangan/<id>` (none when
 /// [createWithoutInvitation] is set). Script failures and gates per method
 /// with the `*Script` fields. Every call is also appended to [calls] in order,
-/// as `list:<propertyId>`, `get:<id>`, `create:<propertyId>`, `update:<id>` or
-/// `regenerate:<id>`.
+/// as `list:<propertyId>`, `get:<id>`, `create:<propertyId>`, `update:<id>`,
+/// `delete:<id>` or `regenerate:<id>`. [delete] removes the tenant from its
+/// property only when the call succeeds, and fails with `TENANT_NOT_FOUND` for
+/// an unknown id.
 ///
 /// [update] replaces name, phone, occupation, emergency contacts and the lease
 /// of a tenant only when the call succeeds; the room, the account status, the
@@ -673,6 +675,10 @@ class FakeTenantRepository implements TenantRepository {
   final createScript = CallScript();
   final updateScript = CallScript();
   final regenerateScript = CallScript();
+  final deleteScript = CallScript();
+
+  /// The ids of every [delete] call, in order, whether it succeeded or not.
+  final deleted = <String>[];
 
   var _nextId = 1;
   var _regenerations = 0;
@@ -680,6 +686,24 @@ class FakeTenantRepository implements TenantRepository {
   int get listCalls => calls.where((c) => c.startsWith('list:')).length;
   int get getCalls => calls.where((c) => c.startsWith('get:')).length;
   int get updateCalls => calls.where((c) => c.startsWith('update:')).length;
+  int get deleteCalls => calls.where((c) => c.startsWith('delete:')).length;
+
+  @override
+  Future<void> delete(String tenantId) async {
+    calls.add('delete:$tenantId');
+    deleted.add(tenantId);
+    final failure = await deleteScript.next();
+    if (failure != null) throw failure;
+    for (final list in _byProperty.values) {
+      final index = list.indexWhere((t) => t.id == tenantId);
+      if (index >= 0) {
+        list.removeAt(index);
+        return;
+      }
+    }
+    throw const ApiFailure(code: 'TENANT_NOT_FOUND');
+  }
+
   int get regenerateCalls =>
       calls.where((c) => c.startsWith('regenerate:')).length;
 

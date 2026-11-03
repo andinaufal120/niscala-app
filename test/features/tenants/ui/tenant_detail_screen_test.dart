@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
+import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
+import 'package:niscala/core/widgets/danger_button.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/rooms/ui/room_detail_screen.dart';
@@ -95,6 +97,33 @@ Future<void> _open(
   settle: settle,
   largeText: largeText,
 );
+
+const _delete = 'Hapus Penyewa';
+const _deleteFailureTitle = 'Penyewa belum bisa dihapus';
+
+/// Budi (active, t1), Sari (not activated, t2) and Dewi (active, t3).
+FakeTenantRepository _sampleRepo() =>
+    FakeTenantRepository(tenants: sampleTenants());
+
+Finder _dialog() => find.byType(AlertDialog);
+
+Finder _inDialog(Finder finder) =>
+    find.descendant(of: _dialog(), matching: finder);
+
+Future<void> _askToDelete(WidgetTester tester) =>
+    tapVisible(tester, find.text(_delete));
+
+Future<void> _confirmDelete(WidgetTester tester) async {
+  await tester.tap(_inDialog(find.text('Hapus')));
+  await tester.pumpAndSettle();
+}
+
+/// Closes a failure dialog with its last button.
+Future<void> _closeFailureDialog(WidgetTester tester) async {
+  if (_dialog().evaluate().isEmpty) return;
+  await tester.tap(find.descendant(of: _dialog(), matching: anyButton()).last);
+  await tester.pumpAndSettle();
+}
 
 void main() {
   group('header', () {
@@ -402,12 +431,9 @@ void main() {
       expect(find.text('-'), findsOneWidget);
     });
 
-    testWidgets('offers no delete, payment pattern or AI section', (
-      tester,
-    ) async {
+    testWidgets('offers no payment pattern or AI section', (tester) async {
       await _open(tester, _repo());
 
-      expect(find.textContaining('Hapus'), findsNothing);
       expect(find.textContaining('pola pembayaran'), findsNothing);
       expect(find.textContaining('AI'), findsNothing);
     });
@@ -767,6 +793,492 @@ void main() {
     });
   });
 
+  group('delete', () {
+    /// Opens the detail of Budi by tapping him in the tenant list.
+    Future<void> openFromList(
+      WidgetTester tester,
+      FakeTenantRepository repo,
+    ) async {
+      await pumpTenantApp(tester, repo);
+      await tester.tap(find.text('Budi Santoso'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Hapus Penyewa is a danger button of at least 48 dp', (
+      tester,
+    ) async {
+      await _open(tester, _sampleRepo());
+
+      expect(find.text(_delete), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(DangerButton),
+          matching: find.text(_delete),
+        ),
+        findsOneWidget,
+      );
+      expectTargetSize(tester, _delete);
+    });
+
+    testWidgets('is offered for a tenant who has not activated', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expect(find.text(_delete), findsOneWidget);
+    });
+
+    testWidgets('is offered when the invitation has expired', (tester) async {
+      final tenant = _notActivated(
+        invitation: makeTenantInvitation(expired: true),
+      );
+      await _open(tester, _repo(tenant));
+
+      expect(find.text(_delete), findsOneWidget);
+    });
+
+    testWidgets('is offered to a manager', (tester) async {
+      await _open(tester, _sampleRepo(), role: UserRole.manager);
+
+      expect(find.text(_delete), findsOneWidget);
+    });
+
+    testWidgets('is not offered while loading', (tester) async {
+      final loading = _repo()..getScript.gate = Completer<void>();
+      await _open(tester, loading, settle: false);
+
+      expect(find.text(_delete), findsNothing);
+    });
+
+    testWidgets('is not offered when the tenant failed to load', (
+      tester,
+    ) async {
+      final repo = _repo()..getScript.always = const ApiFailure.network();
+      await _open(tester, repo);
+
+      expect(find.text(_delete), findsNothing);
+    });
+
+    testWidgets('is not offered for a tenant that does not exist', (
+      tester,
+    ) async {
+      await _open(tester, FakeTenantRepository());
+
+      expect(find.text(_delete), findsNothing);
+    });
+
+    testWidgets('always asks for confirmation naming the tenant', (
+      tester,
+    ) async {
+      final repo = _sampleRepo();
+      await _open(tester, repo);
+
+      await _askToDelete(tester);
+
+      expect(_dialog(), findsOneWidget);
+      expect(_inDialog(find.text('Hapus Budi Santoso?')), findsOneWidget);
+      expect(_inDialog(find.text('Batal')), findsOneWidget);
+      expect(_inDialog(find.text('Hapus')), findsOneWidget);
+      expect(repo.deleted, isEmpty);
+      expect(repo.deleteCalls, 0);
+    });
+
+    testWidgets('asks for confirmation for a tenant who has not activated', (
+      tester,
+    ) async {
+      final repo = _repo();
+      await _open(tester, repo);
+
+      await _askToDelete(tester);
+
+      expect(_inDialog(find.text('Hapus Budi Santoso?')), findsOneWidget);
+      expect(repo.deleted, isEmpty);
+    });
+
+    testWidgets(
+      'the confirmation says what happens to lease, room and history',
+      (tester) async {
+        await _open(tester, _sampleRepo());
+
+        await _askToDelete(tester);
+
+        final message = tester
+            .widgetList<Text>(_inDialog(find.byType(Text)))
+            .map((text) => text.data ?? '')
+            .join(' ')
+            .toLowerCase();
+        expect(message, contains('masa sewa'));
+        expect(message, contains('kosong'));
+        expect(message, contains('riwayat'));
+      },
+    );
+
+    testWidgets('Batal makes no call and keeps the detail unchanged', (
+      tester,
+    ) async {
+      final repo = _sampleRepo();
+      await _open(tester, repo);
+      final loadsBefore = repo.getCalls;
+      await _askToDelete(tester);
+
+      await tester.tap(_inDialog(find.text('Batal')));
+      await tester.pumpAndSettle();
+
+      expect(_dialog(), findsNothing);
+      expect(repo.deleted, isEmpty);
+      expect(repo.calls, isNot(contains('delete:t1')));
+      expect(repo.tenants, hasLength(3));
+      expect(repo.getCalls, loadsBefore);
+      expect(currentPath(tester), '/properti/p1/penyewa/t1');
+      expect(find.byType(TenantDetailScreen), findsOneWidget);
+      expect(find.text('Budi Santoso'), findsOneWidget);
+      expect(find.text(_delete), findsOneWidget);
+    });
+
+    testWidgets('dismissing the dialog makes no call', (tester) async {
+      final repo = _sampleRepo();
+      await _open(tester, repo);
+      await _askToDelete(tester);
+
+      await tester.tapAt(const Offset(2, 2));
+      await tester.pumpAndSettle();
+
+      expect(_dialog(), findsNothing);
+      expect(repo.deleted, isEmpty);
+      expect(currentPath(tester), '/properti/p1/penyewa/t1');
+    });
+
+    testWidgets('can be asked again after cancelling', (tester) async {
+      final repo = _sampleRepo();
+      await _open(tester, repo);
+      await _askToDelete(tester);
+      await tester.tap(_inDialog(find.text('Batal')));
+      await tester.pumpAndSettle();
+
+      await _askToDelete(tester);
+      await _confirmDelete(tester);
+
+      expect(repo.deleted, ['t1']);
+    });
+
+    testWidgets('confirming deletes the tenant and returns to the list', (
+      tester,
+    ) async {
+      final repo = _sampleRepo();
+      await _open(tester, repo);
+      await _askToDelete(tester);
+
+      await _confirmDelete(tester);
+
+      expect(repo.deleted, ['t1']);
+      expect(repo.calls, contains('delete:t1'));
+      expect(currentPath(tester), '/properti/p1/penyewa');
+      expect(find.byType(TenantListScreen), findsOneWidget);
+      expect(find.byType(TenantDetailScreen), findsNothing);
+      expect(find.text('Budi Santoso'), findsNothing);
+      expect(find.text('Sari Wulandari'), findsOneWidget);
+      expect(find.text('Dewi Lestari'), findsOneWidget);
+    });
+
+    testWidgets('a tenant who has not activated can be deleted', (
+      tester,
+    ) async {
+      final repo = _sampleRepo();
+      await pumpTenantApp(tester, repo, path: '/properti/p1/penyewa/t2');
+      await _askToDelete(tester);
+
+      await _confirmDelete(tester);
+
+      expect(repo.deleted, ['t2']);
+      expect(currentPath(tester), '/properti/p1/penyewa');
+      expect(find.text('Sari Wulandari'), findsNothing);
+      expect(find.text('Budi Santoso'), findsOneWidget);
+    });
+
+    testWidgets('a manager can delete a tenant', (tester) async {
+      final repo = _sampleRepo();
+      await _open(tester, repo, role: UserRole.manager);
+      await _askToDelete(tester);
+
+      await _confirmDelete(tester);
+
+      expect(repo.deleted, ['t1']);
+      expect(currentPath(tester), '/properti/p1/penyewa');
+    });
+
+    testWidgets('the tenant list is reloaded and no longer shows the tenant', (
+      tester,
+    ) async {
+      final repo = _sampleRepo();
+      await openFromList(tester, repo);
+      final loadsBefore = repo.listCalls;
+      expect(loadsBefore, greaterThanOrEqualTo(1));
+      await _askToDelete(tester);
+
+      await _confirmDelete(tester);
+
+      expect(repo.listCalls, greaterThan(loadsBefore));
+      expect(find.byType(TenantListScreen), findsOneWidget);
+      expect(find.text('Budi Santoso'), findsNothing);
+      expect(find.text('Sari Wulandari'), findsOneWidget);
+    });
+
+    testWidgets('the tenant list is reloaded when the detail was opened '
+        'directly', (tester) async {
+      final repo = _sampleRepo();
+      await pumpTenantApp(tester, repo, path: '/properti/p1/penyewa');
+      final loadsBefore = repo.listCalls;
+      goTo(tester, '/properti/p1/penyewa/t1');
+      await tester.pumpAndSettle();
+      await _askToDelete(tester);
+
+      await _confirmDelete(tester);
+
+      expect(repo.listCalls, greaterThan(loadsBefore));
+      expect(find.text('Budi Santoso'), findsNothing);
+    });
+
+    testWidgets('deleting the last tenant shows the empty list', (
+      tester,
+    ) async {
+      final repo = FakeTenantRepository(tenants: [sampleTenants().first]);
+      await openFromList(tester, repo);
+      await _askToDelete(tester);
+
+      await _confirmDelete(tester);
+
+      expect(find.byType(TenantListScreen), findsOneWidget);
+      expect(find.text('Budi Santoso'), findsNothing);
+      expect(find.text('Tambah Penyewa'), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('the rooms of the property are reloaded', (tester) async {
+      final repo = _sampleRepo();
+      final rooms = FakeRoomRepository(rooms: tenantRooms());
+      await pumpTenantApp(
+        tester,
+        repo,
+        rooms: rooms,
+        path: '/properti/p1/kamar',
+      );
+      goTo(tester, '/properti/p1/kamar/r1');
+      await tester.pumpAndSettle();
+      final listLoads = rooms.listCalls;
+      final getLoads = rooms.getCalls;
+      goTo(tester, '/properti/p1/penyewa/t1');
+      await tester.pumpAndSettle();
+      await _askToDelete(tester);
+      await _confirmDelete(tester);
+
+      goTo(tester, '/properti/p1/kamar');
+      await tester.pumpAndSettle();
+      expect(rooms.listCalls, greaterThan(listLoads));
+      goTo(tester, '/properti/p1/kamar/r1');
+      await tester.pumpAndSettle();
+      expect(rooms.getCalls, greaterThan(getLoads));
+    });
+
+    testWidgets('the occupancy dashboard is reloaded', (tester) async {
+      final repo = _sampleRepo();
+      final dashboard = FakeDashboardRepository();
+      await pumpTenantApp(tester, repo, dashboard: dashboard, path: '/beranda');
+      final loads = dashboard.calls;
+      goTo(tester, '/properti/p1/penyewa/t1');
+      await tester.pumpAndSettle();
+      await _askToDelete(tester);
+      await _confirmDelete(tester);
+
+      goTo(tester, '/beranda');
+      await tester.pumpAndSettle();
+
+      expect(dashboard.calls, greaterThan(loads));
+    });
+
+    testWidgets('nothing is reloaded or left when the delete is cancelled', (
+      tester,
+    ) async {
+      final repo = _sampleRepo();
+      final dashboard = FakeDashboardRepository();
+      await pumpTenantApp(tester, repo, dashboard: dashboard, path: '/beranda');
+      final loads = dashboard.calls;
+      goTo(tester, '/properti/p1/penyewa/t1');
+      await tester.pumpAndSettle();
+      await _askToDelete(tester);
+      await tester.tap(_inDialog(find.text('Batal')));
+      await tester.pumpAndSettle();
+
+      goTo(tester, '/beranda');
+      await tester.pumpAndSettle();
+
+      expect(dashboard.calls, loads);
+    });
+
+    testWidgets('a second tap while it is in flight sends one request', (
+      tester,
+    ) async {
+      final gate = Completer<void>();
+      final repo = _sampleRepo()..deleteScript.gate = gate;
+      await _open(tester, repo);
+      await _askToDelete(tester);
+
+      await tester.tap(_inDialog(find.text('Hapus')));
+      await tester.pump();
+      await tester.tap(find.text(_delete), warnIfMissed: false);
+      await tester.pump();
+
+      expect(_dialog(), findsNothing);
+      expect(repo.deleted, ['t1']);
+      expect(currentPath(tester), '/properti/p1/penyewa/t1');
+
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(repo.deleted, ['t1']);
+      expect(currentPath(tester), '/properti/p1/penyewa');
+    });
+
+    testWidgets('stays on the detail until the delete is done', (tester) async {
+      final gate = Completer<void>();
+      final repo = _sampleRepo()..deleteScript.gate = gate;
+      await _open(tester, repo);
+      await _askToDelete(tester);
+      await tester.tap(_inDialog(find.text('Hapus')));
+      await tester.pump();
+
+      expect(find.byType(TenantDetailScreen), findsOneWidget);
+      expect(find.byType(TenantListScreen), findsNothing);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TenantListScreen), findsOneWidget);
+    });
+
+    testWidgets('a tenant that is already gone shows the message and reloads', (
+      tester,
+    ) async {
+      final repo = _sampleRepo();
+      await _open(tester, repo);
+      await _askToDelete(tester);
+      repo.tenants.removeWhere((t) => t.id == 't1');
+
+      await _confirmDelete(tester);
+
+      expect(find.text('Penyewa tidak ditemukan.'), findsAtLeastNWidgets(1));
+      expect(repo.getCalls, 2);
+    });
+
+    const failureCodes = [
+      'ROOM_READ_ONLY',
+      'PROPERTY_READ_ONLY',
+      'FORBIDDEN',
+      'INTERNAL_ERROR',
+      'NETWORK_ERROR',
+    ];
+    for (final code in failureCodes) {
+      testWidgets('$code shows its Indonesian message and changes nothing', (
+        tester,
+      ) async {
+        final repo = _sampleRepo()
+          ..deleteScript.queue.add(
+            code == 'NETWORK_ERROR'
+                ? const ApiFailure.network()
+                : ApiFailure(code: code),
+          );
+        await _open(tester, repo);
+        await _askToDelete(tester);
+
+        await _confirmDelete(tester);
+
+        expect(find.text(_deleteFailureTitle), findsOneWidget);
+        expect(find.text(messageOfCode(code)), findsOneWidget);
+        expect(currentPath(tester), '/properti/p1/penyewa/t1');
+        expect(find.byType(TenantDetailScreen), findsOneWidget);
+        expect(repo.tenants, hasLength(3));
+        expect(find.text('Budi Santoso'), findsOneWidget);
+        expect(find.text('Rp750.000 / bulan'), findsOneWidget);
+      });
+    }
+
+    for (final code in ['ROOM_READ_ONLY', 'PROPERTY_READ_ONLY']) {
+      testWidgets('$code has its own message, not the generic one', (
+        tester,
+      ) async {
+        final repo = _sampleRepo()
+          ..deleteScript.queue.add(ApiFailure(code: code));
+        await _open(tester, repo);
+        await _askToDelete(tester);
+
+        await _confirmDelete(tester);
+
+        final message = messageOfCode(code);
+        expect(message, isNotEmpty);
+        expect(message, isNot(genericErrorMessage));
+        expect(find.text(message), findsOneWidget);
+        expect(find.text(genericErrorMessage), findsNothing);
+      });
+    }
+
+    testWidgets('an unknown error code shows the generic message', (
+      tester,
+    ) async {
+      final repo = _sampleRepo()
+        ..deleteScript.queue.add(const ApiFailure(code: 'SOMETHING_NEW'));
+      await _open(tester, repo);
+      await _askToDelete(tester);
+
+      await _confirmDelete(tester);
+
+      expect(find.text(_deleteFailureTitle), findsOneWidget);
+      expect(find.text(genericErrorMessage), findsOneWidget);
+    });
+
+    testWidgets('a failure message stays on screen', (tester) async {
+      final repo = _sampleRepo()
+        ..deleteScript.queue.add(const ApiFailure(code: 'INTERNAL_ERROR'));
+      await _open(tester, repo);
+      await _askToDelete(tester);
+      await _confirmDelete(tester);
+
+      await tester.pump(const Duration(seconds: 30));
+      await tester.pumpAndSettle();
+
+      expect(find.text(messageOfCode('INTERNAL_ERROR')), findsOneWidget);
+    });
+
+    testWidgets('the list still shows the tenant after a failed delete', (
+      tester,
+    ) async {
+      final repo = _sampleRepo()
+        ..deleteScript.queue.add(const ApiFailure.network());
+      await openFromList(tester, repo);
+      await _askToDelete(tester);
+      await _confirmDelete(tester);
+      await _closeFailureDialog(tester);
+
+      await pressBack(tester);
+
+      expect(currentPath(tester), '/properti/p1/penyewa');
+      expect(find.text('Budi Santoso'), findsOneWidget);
+    });
+
+    testWidgets('can be tried again after a failure', (tester) async {
+      final repo = _sampleRepo()
+        ..deleteScript.queue.add(const ApiFailure.network());
+      await _open(tester, repo);
+      await _askToDelete(tester);
+      await _confirmDelete(tester);
+      await _closeFailureDialog(tester);
+
+      await _askToDelete(tester);
+      await _confirmDelete(tester);
+
+      expect(repo.deleted, ['t1', 't1']);
+      expect(currentPath(tester), '/properti/p1/penyewa');
+      expect(find.text('Budi Santoso'), findsNothing);
+    });
+  });
+
   group('loading and failure', () {
     testWidgets('shows a progress indicator labelled Memuat while loading', (
       tester,
@@ -1025,6 +1537,47 @@ void main() {
 
     for (final large in [false, true]) {
       final suffix = large ? 'fits at large text size' : 'meets the guidelines';
+
+      testWidgets('$suffix on the delete confirmation', (tester) async {
+        await _open(tester, _sampleRepo(), largeText: large);
+        await _askToDelete(tester);
+
+        if (large) {
+          expect(tester.takeException(), isNull);
+        } else {
+          await expectMeetsA11yGuidelines(tester);
+        }
+      });
+
+      testWidgets('$suffix after a failed delete', (tester) async {
+        final repo = _sampleRepo()
+          ..deleteScript.queue.add(const ApiFailure.network());
+        await _open(tester, repo, largeText: large);
+        await _askToDelete(tester);
+        await _confirmDelete(tester);
+
+        if (large) {
+          expect(tester.takeException(), isNull);
+        } else {
+          await expectMeetsA11yGuidelines(tester);
+        }
+      });
+
+      testWidgets('$suffix after a read-only failure of the delete', (
+        tester,
+      ) async {
+        final repo = _sampleRepo()
+          ..deleteScript.queue.add(const ApiFailure(code: 'ROOM_READ_ONLY'));
+        await _open(tester, repo, largeText: large);
+        await _askToDelete(tester);
+        await _confirmDelete(tester);
+
+        if (large) {
+          expect(tester.takeException(), isNull);
+        } else {
+          await expectMeetsA11yGuidelines(tester);
+        }
+      });
 
       testWidgets('$suffix after a failed regeneration', (tester) async {
         final repo = _repo()

@@ -4,21 +4,30 @@ import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
+import 'package:niscala/core/navigation.dart';
 import 'package:niscala/core/tokens.dart';
+import 'package:niscala/core/widgets/confirm_dialog.dart';
+import 'package:niscala/core/widgets/danger_button.dart';
 import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/failure_dialog.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
+import 'package:niscala/features/dashboard/data/dashboard_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
+import 'package:niscala/features/rooms/data/room_repository.dart';
 import 'package:niscala/features/tenants/data/tenant_repository.dart';
 import 'package:niscala/features/tenants/tenant_format.dart';
 import 'package:niscala/features/tenants/ui/tenant_widgets.dart';
 import 'package:niscala_api/api.dart';
 
+const _deleteMessage =
+    'Masa sewa penyewa ini akan berakhir dan aksesnya ke akun dicabut. Kamar '
+    'akan menjadi kosong. Riwayat pembayaran dan keluhan tetap disimpan.';
+
 /// One tenant with the lease, the invitation and the other data kept about
 /// them. A tenant who has not activated can get a new invitation link, and any
-/// tenant can be edited.
+/// tenant can be edited or deleted.
 class TenantDetailScreen extends ConsumerWidget {
   const TenantDetailScreen({
     super.key,
@@ -155,6 +164,8 @@ class TenantDetailScreen extends ConsumerWidget {
                 context.go('/properti/$propertyId/penyewa/$tenantId/ubah'),
             child: const Text('Ubah Data Penyewa'),
           ),
+          const SizedBox(height: 8),
+          _DeleteTenantButton(propertyId: propertyId, tenant: t),
         ],
       ),
     );
@@ -249,6 +260,65 @@ class _RegenerateInvitationButtonState
     onPressed: _busy ? null : _regenerate,
     child: const Text('Buat Ulang Tautan Undangan'),
   );
+}
+
+/// Deletes the tenant after confirmation. The button is disabled while the
+/// request is in flight.
+///
+/// On success the lists and the dashboard that show the tenant are reloaded and
+/// the tenant list of the property opens. On failure the message is shown in a
+/// dialog; a tenant that no longer exists is reloaded.
+class _DeleteTenantButton extends ConsumerStatefulWidget {
+  const _DeleteTenantButton({required this.propertyId, required this.tenant});
+
+  final String propertyId;
+  final Tenant tenant;
+
+  @override
+  ConsumerState<_DeleteTenantButton> createState() =>
+      _DeleteTenantButtonState();
+}
+
+class _DeleteTenantButtonState extends ConsumerState<_DeleteTenantButton> {
+  var _busy = false;
+
+  Future<void> _delete() async {
+    final tenant = widget.tenant;
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Hapus ${tenant.name}?',
+      message: _deleteMessage,
+      confirmLabel: 'Hapus',
+    );
+    if (!confirmed || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      await ref.read(tenantRepositoryProvider).delete(tenant.id);
+    } on ApiFailure catch (failure) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      if (failure.code == 'TENANT_NOT_FOUND') {
+        ref.invalidate(tenantDetailProvider(tenant.id));
+      }
+      await showFailureDialog(
+        context,
+        title: 'Penyewa belum bisa dihapus',
+        message: errorMessageFor(failure),
+      );
+      return;
+    }
+    if (!mounted) return;
+    ref.invalidate(tenantListProvider(widget.propertyId));
+    ref.invalidate(roomListProvider(widget.propertyId));
+    ref.invalidate(roomDetailProvider(tenant.room.id));
+    ref.invalidate(occupancyDashboardProvider);
+    leavePageTo(context, '/properti/${widget.propertyId}/penyewa');
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      DangerButton(label: 'Hapus Penyewa', onPressed: _busy ? null : _delete);
 }
 
 String _dateOrDash(DateTime? date) => date == null ? '-' : formatDate(date);
