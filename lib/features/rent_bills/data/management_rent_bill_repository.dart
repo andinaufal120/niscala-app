@@ -30,6 +30,18 @@ abstract interface class ManagementRentBillRepository {
   /// money was received. Only the calendar day of [receivedOn] is sent. Returns
   /// the bill as the API has it after the change.
   Future<RentBill> recordCashPayment(String billId, DateTime receivedOn);
+
+  /// Sets the payment status of the bill by hand, with the [reason] sent as
+  /// given. [method] and [receivedOn] are sent only for [PaymentStatus.paid];
+  /// for it, only the calendar day of [receivedOn] is sent. Returns the bill as
+  /// the API has it after the change.
+  Future<RentBill> changePaymentStatus(
+    String billId, {
+    required PaymentStatus status,
+    required String reason,
+    PaymentMethod? method,
+    DateTime? receivedOn,
+  });
 }
 
 final managementRentBillRepositoryProvider =
@@ -149,6 +161,29 @@ class ApiManagementRentBillRepository implements ManagementRentBillRepository {
         ))!,
       );
 
+  @override
+  Future<RentBill> changePaymentStatus(
+    String billId, {
+    required PaymentStatus status,
+    required String reason,
+    PaymentMethod? method,
+    DateTime? receivedOn,
+  }) => _guard(() async {
+    final paid = status == PaymentStatus.paid;
+    final day = receivedOn;
+    return (await rentBills.changePaymentStatus(
+      billId,
+      PaymentStatusChangeInput(
+        status: _statusInput(status),
+        reason: reason,
+        method: paid ? method : null,
+        receivedOn: paid && day != null
+            ? DateTime.utc(day.year, day.month, day.day)
+            : null,
+      ),
+    ))!;
+  });
+
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {
       return await call();
@@ -156,4 +191,14 @@ class ApiManagementRentBillRepository implements ManagementRentBillRepository {
       throw toApiFailure(error);
     }
   }
+}
+
+/// The wire value of [status]. Awaiting verification has none: it is set by
+/// uploading a receipt, not by hand.
+PaymentStatusChangeInputStatusEnum _statusInput(PaymentStatus status) {
+  final input = PaymentStatusChangeInputStatusEnum.fromJson(status.value);
+  if (input == null) {
+    throw ArgumentError.value(status, 'status', 'cannot be set by hand');
+  }
+  return input;
 }

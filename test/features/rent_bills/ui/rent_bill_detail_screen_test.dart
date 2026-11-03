@@ -331,40 +331,44 @@ void main() {
       expect(find.text('Alasan penolakan'), findsNothing);
     });
 
-    testWidgets('a bill awaiting verification offers only the review actions', (
-      tester,
-    ) async {
-      await _open(tester, _repo(_awaiting(), receipt: true));
+    testWidgets(
+      'a bill awaiting verification offers the review actions and the status change',
+      (tester) async {
+        await _open(tester, _repo(_awaiting(), receipt: true));
 
-      expect(find.text('Verifikasi'), findsOneWidget);
-      expect(find.text('Tolak'), findsOneWidget);
-      for (final text in [
-        'Ubah Status',
-        'Catat Pembayaran Tunai',
-        'Transfer sekarang',
-        'Unggah Bukti',
-        'Unggah ulang bukti',
-        'Bayar tunai ke pengelola kost',
-      ]) {
-        expect(find.text(text), findsNothing, reason: text);
-      }
-    });
+        expect(find.text('Verifikasi'), findsOneWidget);
+        expect(find.text('Tolak'), findsOneWidget);
+        expect(find.text('Ubah Status'), findsOneWidget);
+        for (final text in [
+          'Catat Pembayaran Tunai',
+          'Transfer sekarang',
+          'Unggah Bukti',
+          'Unggah ulang bukti',
+          'Bayar tunai ke pengelola kost',
+        ]) {
+          expect(find.text(text), findsNothing, reason: text);
+        }
+      },
+    );
 
-    testWidgets('an unpaid bill offers only the cash payment', (tester) async {
-      await _open(tester, _repo(_unpaid()));
+    testWidgets(
+      'an unpaid bill offers the cash payment and the status change',
+      (tester) async {
+        await _open(tester, _repo(_unpaid()));
 
-      expect(find.text('Catat Pembayaran Tunai'), findsOneWidget);
-      for (final text in [
-        'Verifikasi',
-        'Tolak',
-        'Ubah Status',
-        'Transfer sekarang',
-        'Unggah Bukti',
-        'Bayar tunai ke pengelola kost',
-      ]) {
-        expect(find.text(text), findsNothing, reason: text);
-      }
-    });
+        expect(find.text('Catat Pembayaran Tunai'), findsOneWidget);
+        expect(find.text('Ubah Status'), findsOneWidget);
+        for (final text in [
+          'Verifikasi',
+          'Tolak',
+          'Transfer sekarang',
+          'Unggah Bukti',
+          'Bayar tunai ke pengelola kost',
+        ]) {
+          expect(find.text(text), findsNothing, reason: text);
+        }
+      },
+    );
   });
 
   group('status history', () {
