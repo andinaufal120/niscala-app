@@ -35,6 +35,7 @@ const _fieldLabels = {
   'description': 'Keluhan',
   'file': 'Bukti transfer',
   'reason': 'Alasan penolakan',
+  'receivedOn': 'Tanggal diterima',
 };
 
 const _messages = {
@@ -107,6 +108,9 @@ const _messages = {
   'RENT_BILL_NOT_FOUND': 'Tagihan tidak ditemukan.',
   'RENT_BILL_NOT_AWAITING_VERIFICATION':
       'Status pembayaran sudah diubah oleh pengguna lain.',
+  'RENT_BILL_NOT_PAYABLE':
+      'Tagihan ini tidak bisa dibayar tunai karena statusnya sudah berubah.',
+  'RECEIVED_ON_IN_FUTURE': 'Tanggal diterima tidak boleh lebih dari hari ini.',
   'RECEIPT_NOT_FOUND': 'Bukti transfer tidak ditemukan.',
   'FORBIDDEN': 'Anda tidak memiliki akses untuk tindakan ini.',
   'ACCESS_TOKEN_INVALID': _sessionEnded,

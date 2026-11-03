@@ -350,14 +350,14 @@ void main() {
       }
     });
 
-    testWidgets('an unpaid bill is read only too', (tester) async {
+    testWidgets('an unpaid bill offers only the cash payment', (tester) async {
       await _open(tester, _repo(_unpaid()));
 
+      expect(find.text('Catat Pembayaran Tunai'), findsOneWidget);
       for (final text in [
         'Verifikasi',
         'Tolak',
         'Ubah Status',
-        'Catat Pembayaran Tunai',
         'Transfer sekarang',
         'Unggah Bukti',
         'Bayar tunai ke pengelola kost',

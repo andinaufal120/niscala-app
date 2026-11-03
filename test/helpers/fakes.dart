@@ -1744,7 +1744,15 @@ String overviewKey(String propertyId, DateTime date) =>
 /// for (all of them when not asked), in their order. Script failures and gates
 /// per method with the `*Script` fields. Every call is also appended to
 /// [calls] in order, as `overview:<propertyId>`, `bills:<propertyId>:<tenantId>`,
-/// `verify:<id>` or `reject:<id>`.
+/// `verify:<id>`, `reject:<id>` or `cash:<id>`.
+///
+/// [recordCashPayment] changes the bill in [bills] only when the call
+/// succeeds, after the scripted outcome: a bill that is not in [bills] fails
+/// with `RENT_BILL_NOT_FOUND` (404), and a bill that is neither unpaid nor
+/// rejected fails with `RENT_BILL_NOT_PAYABLE` (409). It makes the bill paid in
+/// cash on the calendar day of the date received, without a receipt, appends a
+/// status change made by [reviewerName] at [reviewedAt] and replaces the bill
+/// in the overview entries, as the review methods do.
 ///
 /// [verifyReceipt] and [rejectReceipt] change the bill in [bills] only when the
 /// call succeeds, after the scripted outcome: a bill that is not in [bills]
@@ -1784,8 +1792,10 @@ class FakeManagementRentBillRepository implements ManagementRentBillRepository {
   final listScript = CallScript();
   final verifyScript = CallScript();
   final rejectScript = CallScript();
+  final cashScript = CallScript();
 
-  /// The time and the person of every successful verification or rejection.
+  /// The time and the person of every successful verification, rejection or
+  /// cash payment.
   DateTime reviewedAt = DateTime.utc(2026, 11, 7, 12);
   String reviewerName = 'Siti Pemilik';
 
@@ -1795,6 +1805,37 @@ class FakeManagementRentBillRepository implements ManagementRentBillRepository {
 
   /// The arguments of every [rejectReceipt] call, in order.
   final rejected = <({String id, String reason})>[];
+
+  /// The arguments of every [recordCashPayment] call, in order, whether it
+  /// succeeded or not.
+  final cashPayments = <({String id, DateTime receivedOn})>[];
+
+  int get cashCalls => calls.where((c) => c.startsWith('cash:')).length;
+
+  /// How many [list] calls asked for exactly the payable statuses.
+  int get payableListCalls => listed
+      .where(
+        (call) =>
+            call.statuses != null &&
+            call.statuses!.length == 2 &&
+            call.statuses!.contains(PaymentStatus.unpaid) &&
+            call.statuses!.contains(PaymentStatus.rejected),
+      )
+      .length;
+
+  /// How many [list] calls asked for exactly the bills awaiting verification.
+  int get verificationListCalls => listed
+      .where(
+        (call) =>
+            call.statuses != null &&
+            call.statuses!.length == 1 &&
+            call.statuses!.single == PaymentStatus.awaitingVerification,
+      )
+      .length;
+
+  /// How many [list] calls asked for the bills of the tenant.
+  int tenantListCalls(String tenantId) =>
+      listed.where((call) => call.tenantId == tenantId).length;
 
   int get overviewCalls => calls.where((c) => c.startsWith('overview:')).length;
   int get listCalls => calls.where((c) => c.startsWith('bills:')).length;
@@ -1806,18 +1847,17 @@ class FakeManagementRentBillRepository implements ManagementRentBillRepository {
   RentBill _review(
     String id,
     Payment Function(RentBill old) payment,
-    PaymentStatusChange change,
-  ) {
+    PaymentStatusChange change, {
+    Set<PaymentStatus> from = const {PaymentStatus.awaitingVerification},
+    String conflictCode = 'RENT_BILL_NOT_AWAITING_VERIFICATION',
+  }) {
     final index = bills.indexWhere((b) => b.id == id);
     if (index < 0) {
       throw const ApiFailure(code: 'RENT_BILL_NOT_FOUND', statusCode: 404);
     }
     final old = bills[index];
-    if (old.payment.status != PaymentStatus.awaitingVerification) {
-      throw const ApiFailure(
-        code: 'RENT_BILL_NOT_AWAITING_VERIFICATION',
-        statusCode: 409,
-      );
+    if (!from.contains(old.payment.status)) {
+      throw ApiFailure(code: conflictCode, statusCode: 409);
     }
     final updated = RentBill(
       id: old.id,
@@ -1896,6 +1936,32 @@ class FakeManagementRentBillRepository implements ManagementRentBillRepository {
         manual: true,
         reason: reason,
       ),
+    );
+  }
+
+  @override
+  Future<RentBill> recordCashPayment(String billId, DateTime receivedOn) async {
+    calls.add('cash:$billId');
+    cashPayments.add((id: billId, receivedOn: receivedOn));
+    final failure = await cashScript.next();
+    if (failure != null) throw failure;
+    return _review(
+      billId,
+      (old) => Payment(
+        status: PaymentStatus.paid,
+        hasReceipt: false,
+        method: PaymentMethod.cash,
+        paidOn: DateTime.utc(receivedOn.year, receivedOn.month, receivedOn.day),
+      ),
+      PaymentStatusChange(
+        status: PaymentStatus.paid,
+        changedAt: reviewedAt,
+        actorName: reviewerName,
+        manual: true,
+        method: PaymentMethod.cash,
+      ),
+      from: const {PaymentStatus.unpaid, PaymentStatus.rejected},
+      conflictCode: 'RENT_BILL_NOT_PAYABLE',
     );
   }
 

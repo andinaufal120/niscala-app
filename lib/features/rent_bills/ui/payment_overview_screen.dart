@@ -68,84 +68,93 @@ class _PaymentOverviewScreenState extends ConsumerState<PaymentOverviewScreen> {
     );
   }
 
-  /// The property chooser and date control above the tenants of [property].
+  /// The property chooser, date control and entries above the tenants of
+  /// [property]. The header and the list scroll together, so every entry stays
+  /// reachable at large text sizes.
   Widget _overview(List<PropertySummary> properties, PropertySummary property) {
     final theme = Theme.of(context);
     final request = (propertyId: property.id, date: _date);
     final overview = ref.watch(paymentOverviewProvider(request));
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            NiscalaSpacing.gutter,
-            NiscalaSpacing.s,
-            NiscalaSpacing.gutter,
-            NiscalaSpacing.s,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('Properti', style: theme.textTheme.labelMedium),
-              const SizedBox(height: NiscalaSpacing.xs),
-              OutlinedButton(
-                onPressed: () => _chooseProperty(properties, property),
-                child: Text(property.name),
-              ),
-              const SizedBox(height: NiscalaSpacing.m),
-              ExcludeSemantics(
-                child: Text('Tanggal', style: theme.textTheme.labelMedium),
-              ),
-              const SizedBox(height: NiscalaSpacing.xs),
-              // The visible text is the date alone, so the spoken label starts
-              // with it, as the label-in-name rule asks.
-              Semantics(
-                button: true,
-                label: '${formatDate(_date)}, Tanggal',
-                onTap: _pickDate,
-                child: ExcludeSemantics(
-                  child: OutlinedButton.icon(
-                    onPressed: _pickDate,
-                    icon: const Icon(Icons.calendar_today_outlined),
-                    label: Text(formatDate(_date)),
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              NiscalaSpacing.gutter,
+              NiscalaSpacing.s,
+              NiscalaSpacing.gutter,
+              NiscalaSpacing.s,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Properti', style: theme.textTheme.labelMedium),
+                const SizedBox(height: NiscalaSpacing.xs),
+                OutlinedButton(
+                  onPressed: () => _chooseProperty(properties, property),
+                  child: Text(property.name),
+                ),
+                const SizedBox(height: NiscalaSpacing.m),
+                ExcludeSemantics(
+                  child: Text('Tanggal', style: theme.textTheme.labelMedium),
+                ),
+                const SizedBox(height: NiscalaSpacing.xs),
+                // The visible text is the date alone, so the spoken label starts
+                // with it, as the label-in-name rule asks.
+                Semantics(
+                  button: true,
+                  label: '${formatDate(_date)}, Tanggal',
+                  onTap: _pickDate,
+                  child: ExcludeSemantics(
+                    child: OutlinedButton.icon(
+                      onPressed: _pickDate,
+                      icon: const Icon(Icons.calendar_today_outlined),
+                      label: Text(formatDate(_date)),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: NiscalaSpacing.m),
-              FilterChipRow(
-                chips: [
-                  ChoiceChip(
-                    label: const Text('Belum lunas'),
-                    selected: _unpaidOnly,
-                    onSelected: (_) => setState(() => _unpaidOnly = true),
-                  ),
-                  ChoiceChip(
-                    label: const Text('Semua'),
-                    selected: !_unpaidOnly,
-                    onSelected: (_) => setState(() => _unpaidOnly = false),
-                  ),
-                ],
-              ),
-              const SizedBox(height: NiscalaSpacing.s),
-              OutlinedButton(
-                onPressed: () => context.push(
-                  '/pembayaran/verifikasi?properti=${property.id}',
+                const SizedBox(height: NiscalaSpacing.m),
+                FilterChipRow(
+                  chips: [
+                    ChoiceChip(
+                      label: const Text('Belum lunas'),
+                      selected: _unpaidOnly,
+                      onSelected: (_) => setState(() => _unpaidOnly = true),
+                    ),
+                    ChoiceChip(
+                      label: const Text('Semua'),
+                      selected: !_unpaidOnly,
+                      onSelected: (_) => setState(() => _unpaidOnly = false),
+                    ),
+                  ],
                 ),
-                child: const Text('Menunggu Verifikasi'),
-              ),
-            ],
+                const SizedBox(height: NiscalaSpacing.s),
+                OutlinedButton(
+                  onPressed: () => context.push(
+                    '/pembayaran/verifikasi?properti=${property.id}',
+                  ),
+                  child: const Text('Menunggu Verifikasi'),
+                ),
+                const SizedBox(height: NiscalaSpacing.s),
+                OutlinedButton(
+                  onPressed: () =>
+                      context.push('/pembayaran/tunai?properti=${property.id}'),
+                  child: const Text('Catat Pembayaran Tunai'),
+                ),
+              ],
+            ),
           ),
         ),
-        Expanded(
-          child: overview.when(
-            skipLoadingOnReload: true,
-            loading: _loading,
-            error: (error, _) => ErrorView(
+        overview.when(
+          skipLoadingOnReload: true,
+          loading: () => _fill(_loading()),
+          error: (error, _) => _fill(
+            ErrorView(
               message: errorMessageFor(error),
               onRetry: () => ref.invalidate(paymentOverviewProvider(request)),
             ),
-            data: (payments) => _rows(payments.items, property.id),
           ),
+          data: (payments) => _rows(payments.items, property.id),
         ),
       ],
     );
@@ -153,32 +162,40 @@ class _PaymentOverviewScreenState extends ConsumerState<PaymentOverviewScreen> {
 
   Widget _rows(List<PaymentOverviewItem> items, String propertyId) {
     if (items.isEmpty) {
-      return const EmptyState(message: 'Belum ada penyewa di properti ini.');
+      return _fill(
+        const EmptyState(message: 'Belum ada penyewa di properti ini.'),
+      );
     }
     final shown = [
       for (final item in items)
         if (!_unpaidOnly || _isUnpaid(item)) item,
     ];
     if (shown.isEmpty) {
-      return const EmptyState(
-        message: 'Tidak ada tagihan yang belum lunas pada tanggal ini.',
+      return _fill(
+        const EmptyState(
+          message: 'Tidak ada tagihan yang belum lunas pada tanggal ini.',
+        ),
       );
     }
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(
-        NiscalaSpacing.gutter,
-        NiscalaSpacing.xs,
-        NiscalaSpacing.gutter,
-        NiscalaSpacing.gutter,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (final item in shown) ...[
-            _PaymentRow(item: item, propertyId: propertyId),
-            const SizedBox(height: NiscalaSpacing.s),
+    // Every row is built, not only those near the viewport, so each one can be
+    // reached at large text sizes.
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          NiscalaSpacing.gutter,
+          NiscalaSpacing.xs,
+          NiscalaSpacing.gutter,
+          NiscalaSpacing.gutter,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final item in shown) ...[
+              _PaymentRow(item: item, propertyId: propertyId),
+              const SizedBox(height: NiscalaSpacing.s),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -230,6 +247,11 @@ class _PaymentOverviewScreenState extends ConsumerState<PaymentOverviewScreen> {
 
 Widget _loading() =>
     const Center(child: CircularProgressIndicator(semanticsLabel: 'Memuat'));
+
+/// A sliver that fills the rest of the scrolling area with [child], for the
+/// states that take the place of the list.
+Widget _fill(Widget child) =>
+    SliverFillRemaining(hasScrollBody: false, child: child);
 
 DateTime _today() {
   final now = DateTime.now();
