@@ -25,6 +25,7 @@ import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
 import 'package:niscala/features/tenants/data/invitation_sharing.dart';
 import 'package:niscala/features/tenants/data/tenant_repository.dart';
+import 'package:niscala/features/user_accounts/data/user_account_repository.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/session/session_store.dart';
 import 'package:niscala/core/theme.dart';
@@ -2531,6 +2532,126 @@ class FakeDashboardRepository implements DashboardRepository {
   }
 }
 
+/// A [UserAccountSummary] with sensible defaults: Budi Santoso, an active
+/// tenant.
+UserAccountSummary makeUserAccountSummary({
+  String id = 'u1',
+  String name = 'Budi Santoso',
+  String email = 'budi@example.com',
+  UserRole role = UserRole.tenant,
+  UserAccountStatus status = UserAccountStatus.active,
+}) => UserAccountSummary(
+  id: id,
+  name: name,
+  email: email,
+  role: role,
+  status: status,
+);
+
+/// A [UserAccount] with sensible defaults: Budi Santoso, an active tenant with
+/// a password, registered on 18 Okt 2026 and last signed in on 19 Okt 2026
+/// (both at 12:00 UTC), with no pending email, properties or tenancy.
+///
+/// Set [neverLoggedIn] to leave out the last login.
+UserAccount makeUserAccount({
+  String id = 'u1',
+  String name = 'Budi Santoso',
+  String email = 'budi@example.com',
+  UserRole role = UserRole.tenant,
+  UserAccountStatus status = UserAccountStatus.active,
+  int activeLeaseCount = 0,
+  DateTime? registeredAt,
+  DateTime? lastLoginAt,
+  bool neverLoggedIn = false,
+  List<LoginMethod> loginMethods = const [LoginMethod.password],
+  String? pendingEmail,
+  DateTime? pendingEmailExpiresAt,
+  List<AccountPropertyRef> properties = const [],
+  AccountTenancy? tenancy,
+}) => UserAccount(
+  id: id,
+  name: name,
+  email: email,
+  role: role,
+  status: status,
+  activeLeaseCount: activeLeaseCount,
+  registeredAt: registeredAt ?? DateTime.utc(2026, 10, 18, 12),
+  lastLoginAt: neverLoggedIn
+      ? null
+      : lastLoginAt ?? DateTime.utc(2026, 10, 19, 12),
+  loginMethods: loginMethods,
+  pendingEmail: pendingEmail,
+  pendingEmailExpiresAt: pendingEmailExpiresAt,
+  properties: properties,
+  tenancy: tenancy,
+);
+
+/// A [UserAccountRepository] that keeps the accounts in memory and records its
+/// calls.
+///
+/// [list] filters like the API: [email] matches any part of the email without
+/// regard to case, [role] matches the role, and deleted accounts are left out
+/// unless [includeDeleted] is set. It returns summaries in the order of
+/// [accounts]. [get] returns the account with the id or fails with
+/// `USER_ACCOUNT_NOT_FOUND`. Script failures and gates per method with the
+/// `*Script` fields. Every call is appended to [calls] in order, as `list` or
+/// `get:<id>`, and every [list] call to [listed] as given.
+class FakeUserAccountRepository implements UserAccountRepository {
+  FakeUserAccountRepository({List<UserAccount>? accounts})
+    : accounts = accounts ?? [];
+
+  final List<UserAccount> accounts;
+
+  final calls = <String>[];
+  final listed = <({String? email, UserRole? role, bool includeDeleted})>[];
+
+  final listScript = CallScript();
+  final getScript = CallScript();
+
+  int get listCalls => calls.where((c) => c == 'list').length;
+  int get getCalls => calls.where((c) => c.startsWith('get:')).length;
+
+  @override
+  Future<List<UserAccountSummary>> list({
+    String? email,
+    UserRole? role,
+    bool includeDeleted = false,
+  }) async {
+    calls.add('list');
+    listed.add((email: email, role: role, includeDeleted: includeDeleted));
+    final failure = await listScript.next();
+    if (failure != null) throw failure;
+    return [
+      for (final a in accounts)
+        if ((email == null ||
+                a.email.toLowerCase().contains(email.toLowerCase())) &&
+            (role == null || a.role == role) &&
+            (includeDeleted || a.status != UserAccountStatus.deleted))
+          makeUserAccountSummary(
+            id: a.id,
+            name: a.name,
+            email: a.email,
+            role: a.role,
+            status: a.status,
+          ),
+    ];
+  }
+
+  @override
+  Future<UserAccount> get(String id) async {
+    calls.add('get:$id');
+    final failure = await getScript.next();
+    if (failure != null) throw failure;
+    return accounts.firstWhere(
+      (a) => a.id == id,
+      orElse: () => throw const ApiFailure(
+        code: 'USER_ACCOUNT_NOT_FOUND',
+        statusCode: 404,
+      ),
+    );
+  }
+}
+
 /// The bill facts of a notification: November 2026 (1 to 30 Nov), Rp800.000,
 /// due 5 Nov 2026, unpaid, no reason and no method, not overdue.
 NotificationRentBill makeNotificationRentBill({
@@ -2888,6 +3009,7 @@ Widget buildTestApp({
   AccountRepository? accounts,
   DashboardRepository? dashboard,
   NotificationRepository? notifications,
+  UserAccountRepository? userAccounts,
   PushMessaging? push,
   ReceiptPicker? receiptPicker,
   Future<void> Function(String text)? invitationSharer,
@@ -2930,6 +3052,9 @@ Widget buildTestApp({
       ),
       notificationRepositoryProvider.overrideWithValue(
         notifications ?? FakeNotificationRepository(),
+      ),
+      userAccountRepositoryProvider.overrideWithValue(
+        userAccounts ?? FakeUserAccountRepository(),
       ),
       pushMessagingProvider.overrideWithValue(push ?? FakePushMessaging()),
       receiptPickerProvider.overrideWithValue(

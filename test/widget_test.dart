@@ -98,7 +98,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(headerTitle('Admin'), findsOneWidget);
+    expect(headerTitle('Akun Pengguna'), findsOneWidget);
     expect(find.byType(AppBar), findsNothing);
     expect(find.byType(NavigationBar), findsNothing);
   });

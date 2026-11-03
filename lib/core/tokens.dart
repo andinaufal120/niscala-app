@@ -112,6 +112,7 @@ class NiscalaTokens extends ThemeExtension<NiscalaTokens> {
     this.roomVacant = _neutral,
     this.tenantNotActivated = _warning,
     this.tenantActive = _good,
+    this.accountDeleted = _neutral,
     this.category = _soft,
     this.readOnly = _warning,
   });
@@ -133,6 +134,7 @@ class NiscalaTokens extends ThemeExtension<NiscalaTokens> {
   final BadgeColors roomVacant;
   final BadgeColors tenantNotActivated;
   final BadgeColors tenantActive;
+  final BadgeColors accountDeleted;
   final BadgeColors category;
   final BadgeColors readOnly;
 
@@ -159,6 +161,7 @@ class NiscalaTokens extends ThemeExtension<NiscalaTokens> {
     BadgeColors? roomVacant,
     BadgeColors? tenantNotActivated,
     BadgeColors? tenantActive,
+    BadgeColors? accountDeleted,
     BadgeColors? category,
     BadgeColors? readOnly,
   }) => NiscalaTokens(
@@ -183,6 +186,7 @@ class NiscalaTokens extends ThemeExtension<NiscalaTokens> {
     roomVacant: roomVacant ?? this.roomVacant,
     tenantNotActivated: tenantNotActivated ?? this.tenantNotActivated,
     tenantActive: tenantActive ?? this.tenantActive,
+    accountDeleted: accountDeleted ?? this.accountDeleted,
     category: category ?? this.category,
     readOnly: readOnly ?? this.readOnly,
   );

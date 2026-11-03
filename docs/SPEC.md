@@ -171,6 +171,7 @@ These apply to every use case below. Use cases do not repeat them.
 Bottom navigation:
 - Management: *Beranda*, *Keluhan*, *Pembayaran*, *Properti*, *Akun*.
 - Tenant: *Beranda*, *Keluhan*, *Pembayaran*, *Akun*.
+- Admin: no bottom navigation; *Akun Pengguna (User accounts)* (UC-33) is the home screen, with *Keluar (Log out)* in its header.
 
 Tenant *Beranda*: a greeting with the tenant's name and their property and room; the first bill of *Tagihan aktif* (UC-04) with amount, due date, days overdue when the API reports them, and the UC-05 upload action or the pay-cash note; a link to *Riwayat*; the latest complaint with its status and handling note, and *Ajukan Keluhan* (UC-02) for a tenant with an active lease. Without an active lease it shows the UC-01 message to contact management.
 
@@ -440,3 +441,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 02-11-2026 | UC-09 *Lunas* asks for method and date received, as the API requires.                                          | NKMA-61    |
 | 02-11-2026 | UC-06 covers Tenant, Owner and Manager, every notification type the API sends, and notification settings.       | NKMA-104   |
 | 03-11-2026 | Interim password reset by pasted link, until U-4 is decided (§7).                                              | NKMA-103   |
+| 03-11-2026 | Admin navigation defined (§6a).                                                                                | NKMA-81    |
