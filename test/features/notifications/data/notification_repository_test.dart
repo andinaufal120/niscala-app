@@ -341,6 +341,65 @@ void main() {
     });
   });
 
+  group('registerPushToken', () {
+    test('puts the token to the push token path and returns without a '
+        'body', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await h.repository.registerPushToken('fcm-token-1');
+
+      expect(h.request.method, 'PUT');
+      expect(h.request.url.path, '/me/push-token');
+      expect(h.body, {'token': 'fcm-token-1'});
+    });
+
+    test('sends the token unchanged', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await h.repository.registerPushToken('abc:APA91b-_/+=xyz');
+
+      expect(h.body, {'token': 'abc:APA91b-_/+=xyz'});
+    });
+
+    test('keeps the code and status of a forbidden error', () async {
+      final h = _Harness((_) => _error(403, 'FORBIDDEN'));
+
+      await expectLater(
+        h.repository.registerPushToken('fcm-token-1'),
+        throwsA(_failure('FORBIDDEN', status: 403)),
+      );
+    });
+
+    test('keeps the code, field and status of a validation error', () async {
+      final h = _Harness(
+        (_) => _error(422, 'VALIDATION_ERROR', field: 'token'),
+      );
+
+      await expectLater(
+        h.repository.registerPushToken(''),
+        throwsA(_failure('VALIDATION_ERROR', field: 'token', status: 422)),
+      );
+    });
+
+    test('converts a server error to an ApiFailure', () async {
+      final h = _Harness((_) => _error(500, 'INTERNAL_ERROR'));
+
+      await expectLater(
+        h.repository.registerPushToken('fcm-token-1'),
+        throwsA(_failure('INTERNAL_ERROR', status: 500)),
+      );
+    });
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(const SocketException('no route'));
+
+      await expectLater(
+        h.repository.registerPushToken('fcm-token-1'),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+  });
+
   group('settings', () {
     test('gets the settings of the categories of the caller', () async {
       final h = _Harness(

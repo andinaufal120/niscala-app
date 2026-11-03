@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/app.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/push/push_messaging.dart';
 import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/features/account/data/account_repository.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
@@ -2657,6 +2658,14 @@ class FakeNotificationRepository implements NotificationRepository {
   final markAllReadScript = CallScript();
   final settingsScript = CallScript();
   final updateSettingsScript = CallScript();
+  final registerPushTokenScript = CallScript();
+
+  /// The token of every [registerPushToken] call, in order, whether it
+  /// succeeded or not.
+  final registeredTokens = <String>[];
+
+  int get registerPushTokenCalls =>
+      calls.where((c) => c.startsWith('registerPushToken:')).length;
 
   int get listCalls => calls.where((c) => c == 'list').length;
   int get markReadCalls => calls.where((c) => c.startsWith('markRead:')).length;
@@ -2710,6 +2719,14 @@ class FakeNotificationRepository implements NotificationRepository {
   }
 
   @override
+  Future<void> registerPushToken(String token) async {
+    calls.add('registerPushToken:$token');
+    registeredTokens.add(token);
+    final failure = await registerPushTokenScript.next();
+    if (failure != null) throw failure;
+  }
+
+  @override
   Future<NotificationSettings> settings() async {
     calls.add('settings');
     final failure = await settingsScript.next();
@@ -2734,7 +2751,75 @@ class FakeNotificationRepository implements NotificationRepository {
   }
 }
 
+/// A [PushMessaging] that never touches Firebase. It answers from fields,
+/// counts its calls, and emits the events that a test triggers.
+///
+/// [requestPermission] returns [permissionGranted]; [token] returns
+/// [currentToken]; [initialOpened] returns [initial]. The streams are broadcast
+/// streams, so an event that no one listens to is dropped, as with Firebase.
+/// [refreshTokenTo] makes [currentToken] the new token and emits it. [open]
+/// emits a tapped push and [receiveForeground] a message that arrived while the
+/// app is open.
+class FakePushMessaging implements PushMessaging {
+  FakePushMessaging({
+    this.permissionGranted = true,
+    this.currentToken,
+    this.initial,
+  });
+
+  bool permissionGranted;
+  String? currentToken;
+  PushOpened? initial;
+
+  var permissionRequests = 0;
+  var tokenReads = 0;
+  var initialOpenedReads = 0;
+
+  final _tokenRefreshes = StreamController<String>.broadcast();
+  final _opened = StreamController<PushOpened>.broadcast();
+  final _foreground = StreamController<void>.broadcast();
+
+  @override
+  Future<bool> requestPermission() async {
+    permissionRequests++;
+    return permissionGranted;
+  }
+
+  @override
+  Future<String?> token() async {
+    tokenReads++;
+    return currentToken;
+  }
+
+  @override
+  Stream<String> get onTokenRefresh => _tokenRefreshes.stream;
+
+  @override
+  Stream<PushOpened> get onOpened => _opened.stream;
+
+  @override
+  Future<PushOpened?> initialOpened() async {
+    initialOpenedReads++;
+    return initial;
+  }
+
+  @override
+  Stream<void> get onForegroundMessage => _foreground.stream;
+
+  void refreshTokenTo(String token) {
+    currentToken = token;
+    _tokenRefreshes.add(token);
+  }
+
+  void open(PushOpened push) => _opened.add(push);
+
+  void receiveForeground() => _foreground.add(null);
+}
+
 /// The whole app with a fake session store and no network.
+///
+/// Without [push] the app gets a [FakePushMessaging] that grants the permission
+/// and has no token, so nothing is registered.
 ///
 /// Without [invitationSharer] sharing does nothing.
 Widget buildTestApp({
@@ -2754,6 +2839,7 @@ Widget buildTestApp({
   AccountRepository? accounts,
   DashboardRepository? dashboard,
   NotificationRepository? notifications,
+  PushMessaging? push,
   ReceiptPicker? receiptPicker,
   Future<void> Function(String text)? invitationSharer,
 }) {
@@ -2796,6 +2882,7 @@ Widget buildTestApp({
       notificationRepositoryProvider.overrideWithValue(
         notifications ?? FakeNotificationRepository(),
       ),
+      pushMessagingProvider.overrideWithValue(push ?? FakePushMessaging()),
       receiptPickerProvider.overrideWithValue(
         receiptPicker ?? FakeReceiptPicker(),
       ),
