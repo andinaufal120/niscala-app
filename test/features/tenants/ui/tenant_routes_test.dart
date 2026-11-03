@@ -75,6 +75,33 @@ void main() {
       expect(repo.calls, contains('get:t2'));
     });
 
+    testWidgets('.../:tenantId/ubah shows the edit form of the tenant', (
+      tester,
+    ) async {
+      final repo = _repo();
+      await pumpTenantApp(tester, repo, path: '/properti/p1/penyewa/t2/ubah');
+
+      final form = tester.widget<TenantFormScreen>(
+        find.byType(TenantFormScreen),
+      );
+      expect(form.propertyId, 'p1');
+      expect(form.tenantId, 't2');
+      expect(form.preselectedRoomId, isNull);
+      expect(find.byType(TenantDetailScreen), findsNothing);
+      expect(repo.calls, contains('get:t2'));
+    });
+
+    testWidgets('.../tambah is still the add form, not a tenant id', (
+      tester,
+    ) async {
+      await pumpTenantApp(tester, _repo(), path: '/properti/p1/penyewa/tambah');
+
+      final form = tester.widget<TenantFormScreen>(
+        find.byType(TenantFormScreen),
+      );
+      expect(form.tenantId, isNull);
+    });
+
     testWidgets('.../undangan shows the share screen for an existing link', (
       tester,
     ) async {
@@ -124,6 +151,7 @@ void main() {
       '/properti/p1/penyewa',
       '/properti/p1/penyewa/tambah',
       '/properti/p1/penyewa/t2',
+      '/properti/p1/penyewa/t2/ubah',
       '/properti/p1/penyewa/t2/undangan',
       '/properti/p1/penyewa/t2/undangan/qr',
     ]) {
@@ -179,6 +207,21 @@ void main() {
       expect(find.byType(TenantListScreen), findsOneWidget);
     });
 
+    testWidgets('Kembali from the edit form returns to the tenant detail', (
+      tester,
+    ) async {
+      await pumpTenantApp(
+        tester,
+        _repo(),
+        path: '/properti/p1/penyewa/t2/ubah',
+      );
+
+      await pressBack(tester);
+
+      expect(currentPath(tester), '/properti/p1/penyewa/t2');
+      expect(find.byType(TenantDetailScreen), findsOneWidget);
+    });
+
     testWidgets('Kembali from the QR screen returns to the share screen', (
       tester,
     ) async {
@@ -200,12 +243,25 @@ void main() {
 
         expect(find.byType(TenantListScreen), findsOneWidget);
       });
+
+      testWidgets('a $role may open the edit form', (tester) async {
+        await pumpTenantApp(
+          tester,
+          _repo(),
+          role: role,
+          path: '/properti/p1/penyewa/t2/ubah',
+        );
+
+        expect(find.byType(TenantFormScreen), findsOneWidget);
+        expect(currentPath(tester), '/properti/p1/penyewa/t2/ubah');
+      });
     }
 
     for (final path in [
       '/properti/p1/penyewa',
       '/properti/p1/penyewa/tambah',
       '/properti/p1/penyewa/t2',
+      '/properti/p1/penyewa/t2/ubah',
       '/properti/p1/penyewa/t2/undangan',
       '/properti/p1/penyewa/t2/undangan/qr',
     ]) {

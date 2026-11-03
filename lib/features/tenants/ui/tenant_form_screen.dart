@@ -24,21 +24,33 @@ const _contactsHelper =
     'aktivasi.';
 const _contactsCount = 'Isi minimal 2 kontak darurat, atau kosongkan semuanya.';
 const _endBeforeStart = 'Tanggal berakhir tidak boleh sebelum tanggal mulai.';
+const _nextBillHint =
+    'Perubahan tarif sewa atau siklus penagihan berlaku mulai tagihan '
+    'berikutnya.';
 
-/// Adds a tenant to a vacant room of the property. [preselectedRoomId] chooses
-/// the room when it is one of the vacant rooms.
+/// Adds a tenant to a vacant room of the property, or edits the tenant
+/// [tenantId]. The room of a tenant cannot change, so an edit shows it without
+/// a room picker.
 class TenantFormScreen extends ConsumerWidget {
   const TenantFormScreen({
     super.key,
     required this.propertyId,
     this.preselectedRoomId,
+    this.tenantId,
   });
 
   final String propertyId;
+
+  /// Chooses the room of a new tenant when it is one of the vacant rooms.
   final String? preselectedRoomId;
+
+  /// The tenant to edit, or null to add one.
+  final String? tenantId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final id = tenantId;
+    if (id != null) return _editPage(ref, id);
     final rooms = ref.watch(roomListProvider(propertyId));
     return Scaffold(
       appBar: const DetailAppBar(title: 'Tambah Penyewa'),
@@ -62,18 +74,59 @@ class TenantFormScreen extends ConsumerWidget {
       ),
     );
   }
+
+  /// Loads the tenant to edit before its form is shown. The rooms are not
+  /// needed, because a tenant keeps the room it has.
+  Widget _editPage(WidgetRef ref, String id) {
+    final tenant = ref.watch(tenantDetailProvider(id));
+    return Scaffold(
+      appBar: const DetailAppBar(title: 'Ubah Data Penyewa'),
+      body: tenant.when(
+        skipLoadingOnReload: true,
+        loading: () => const Center(
+          child: CircularProgressIndicator(semanticsLabel: 'Memuat'),
+        ),
+        error: (error, _) => ErrorView(
+          message: errorMessageFor(error),
+          onRetry: () => ref.invalidate(tenantDetailProvider(id)),
+        ),
+        data: (t) => _TenantForm(
+          propertyId: propertyId,
+          vacantRooms: const [],
+          preselectedRoomId: null,
+          tenant: t,
+        ),
+      ),
+    );
+  }
 }
+
+/// The calendar day of [date] as a UTC date, the form a picked date takes.
+DateTime _utcDay(DateTime date) =>
+    DateTime.utc(date.year, date.month, date.day);
+
+String _dateText(DateTime? date) => date == null ? '' : formatDate(date);
+
+EmergencyContactDraft _draftOf(EmergencyContact contact) =>
+    EmergencyContactDraft()
+      ..name.text = contact.name
+      ..relationship.text = contact.relationship
+      ..phone.text = contact.phone;
 
 class _TenantForm extends ConsumerStatefulWidget {
   const _TenantForm({
     required this.propertyId,
     required this.vacantRooms,
     required this.preselectedRoomId,
+    this.tenant,
   });
 
   final String propertyId;
   final List<RoomSummary> vacantRooms;
   final String? preselectedRoomId;
+
+  /// The tenant being edited, or null when adding one.
+  final Tenant? tenant;
 
   @override
   ConsumerState<_TenantForm> createState() => _TenantFormState();
@@ -106,14 +159,39 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
   String? _rentError;
   String? _banner;
 
+  bool get _editing => widget.tenant != null;
+
   @override
   void initState() {
     super.initState();
-    final preselected = widget.preselectedRoomId;
-    _roomId = widget.vacantRooms.any((room) => room.id == preselected)
-        ? preselected
-        : null;
+    final tenant = widget.tenant;
+    if (tenant == null) {
+      final preselected = widget.preselectedRoomId;
+      _roomId = widget.vacantRooms.any((room) => room.id == preselected)
+          ? preselected
+          : null;
+    } else {
+      _fillFrom(tenant);
+    }
     _applyRentDefault();
+  }
+
+  /// Fills the fields with the values of the tenant being edited.
+  void _fillFrom(Tenant tenant) {
+    final lease = tenant.lease;
+    final start = lease.startDate;
+    final end = lease.endDate;
+    _name.text = tenant.name;
+    _phone.text = tenant.phone;
+    _occupation.text = tenant.occupation ?? '';
+    _startDate = start == null ? null : _utcDay(start);
+    _endDate = end == null ? null : _utcDay(end);
+    _start.text = _dateText(_startDate);
+    _end.text = _dateText(_endDate);
+    _cycle = lease.billingCycle;
+    _grace.text = '${lease.gracePeriodDays}';
+    _rent.text = '${lease.rent}';
+    _contacts.addAll(tenant.emergencyContacts.map(_draftOf));
   }
 
   @override
@@ -143,9 +221,10 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
   }
 
   /// A monthly rent starts at the base rate of the chosen room. Other cycles
-  /// start empty. Nothing changes once the user has typed a rent.
+  /// start empty. Nothing changes once the user has typed a rent, and a tenant
+  /// being edited keeps the rent of its lease.
   void _applyRentDefault() {
-    if (_rentEdited) return;
+    if (_editing || _rentEdited) return;
     final room = _room;
     _rent.text = room != null && _cycle == BillingCycle.monthly
         ? '${room.baseRate}'
@@ -200,6 +279,7 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
 
   Future<void> _submit() async {
     if (_busy) return;
+    final tenant = widget.tenant;
     final roomId = _roomId;
     final name = _name.text.trim();
     final phone = _phone.text.trim();
@@ -209,7 +289,7 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
     final start = _startDate;
     final end = _endDate;
 
-    final roomError = roomId == null ? 'Pilih kamar.' : null;
+    final roomError = tenant == null && roomId == null ? 'Pilih kamar.' : null;
     final nameError = name.isEmpty ? 'Nama wajib diisi.' : null;
     final phoneError = phone.isEmpty
         ? 'Nomor telepon wajib diisi.'
@@ -248,33 +328,50 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
     });
     if (!valid) return;
 
-    final input = NewTenantInput(
-      roomId: roomId!,
-      name: name,
-      phone: phone,
-      occupation: occupation.isEmpty ? null : occupation,
-      emergencyContacts: [
-        for (final draft in _contacts)
-          EmergencyContact(
-            name: draft.name.text.trim(),
-            relationship: draft.relationship.text.trim(),
-            phone: draft.phone.text.trim(),
-          ),
-      ],
-      lease: LeaseInput(
-        startDate: start,
-        endDate: end,
-        billingCycle: _cycle,
-        rent: rent!,
-        gracePeriodDays: int.tryParse(_grace.text.trim()) ?? 0,
-      ),
+    final occupationValue = occupation.isEmpty ? null : occupation;
+    final contacts = [
+      for (final draft in _contacts)
+        EmergencyContact(
+          name: draft.name.text.trim(),
+          relationship: draft.relationship.text.trim(),
+          phone: draft.phone.text.trim(),
+        ),
+    ];
+    final lease = LeaseInput(
+      startDate: start,
+      endDate: end,
+      billingCycle: _cycle,
+      rent: rent!,
+      gracePeriodDays: int.tryParse(_grace.text.trim()) ?? 0,
     );
-    await _send(input);
+    if (tenant == null) {
+      await _create(
+        NewTenantInput(
+          roomId: roomId!,
+          name: name,
+          phone: phone,
+          occupation: occupationValue,
+          emergencyContacts: contacts,
+          lease: lease,
+        ),
+      );
+    } else {
+      await _update(
+        tenant.id,
+        TenantInput(
+          name: name,
+          phone: phone,
+          occupation: occupationValue,
+          emergencyContacts: contacts,
+          lease: lease,
+        ),
+      );
+    }
   }
 
   /// Sends the new tenant. On success the share screen opens in place of the
   /// form, marked as new.
-  Future<void> _send(NewTenantInput input) async {
+  Future<void> _create(NewTenantInput input) async {
     try {
       final tenant = await ref
           .read(tenantRepositoryProvider)
@@ -285,6 +382,20 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
       context.go(
         '/properti/${widget.propertyId}/penyewa/${tenant.id}/undangan?baru=1',
       );
+    } on ApiFailure catch (failure) {
+      if (mounted) _showFailure(failure);
+    }
+  }
+
+  /// Saves the edited tenant. On success the detail opens in place of the form,
+  /// and the lists and the detail are reloaded.
+  Future<void> _update(String tenantId, TenantInput input) async {
+    try {
+      await ref.read(tenantRepositoryProvider).update(tenantId, input);
+      if (!mounted) return;
+      ref.invalidate(tenantDetailProvider(tenantId));
+      ref.invalidate(tenantListProvider(widget.propertyId));
+      context.go('/properti/${widget.propertyId}/penyewa/$tenantId');
     } on ApiFailure catch (failure) {
       if (mounted) _showFailure(failure);
     }
@@ -317,7 +428,8 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final noRooms = widget.vacantRooms.isEmpty;
+    final tenant = widget.tenant;
+    final noRooms = tenant == null && widget.vacantRooms.isEmpty;
     return Column(
       children: [
         Expanded(
@@ -327,31 +439,37 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (_banner != null) ...[FormMessage(_banner!), formGap],
-                if (noRooms) ...[
-                  Text(
-                    'Tidak ada kamar kosong. Tambahkan kamar terlebih dahulu.',
-                    style: theme.textTheme.bodyLarge,
+                if (tenant == null) ...[
+                  if (noRooms) ...[
+                    Text(
+                      'Tidak ada kamar kosong. Tambahkan kamar terlebih dahulu.',
+                      style: theme.textTheme.bodyLarge,
+                    ),
+                    formGap,
+                  ],
+                  LabeledField(
+                    label: 'Kamar',
+                    required: true,
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _roomId,
+                      isExpanded: true,
+                      decoration: InputDecoration(errorText: _roomError),
+                      items: [
+                        for (final room in widget.vacantRooms)
+                          DropdownMenuItem(
+                            value: room.id,
+                            child: Text('Kamar ${room.number}'),
+                          ),
+                      ],
+                      onChanged: noRooms ? null : _chooseRoom,
+                    ),
                   ),
                   formGap,
+                ] else ...[
+                  Text('Kamar', style: theme.textTheme.labelLarge),
+                  Text('Kamar ${tenant.room.number}'),
+                  formGap,
                 ],
-                LabeledField(
-                  label: 'Kamar',
-                  required: true,
-                  child: DropdownButtonFormField<String>(
-                    initialValue: _roomId,
-                    isExpanded: true,
-                    decoration: InputDecoration(errorText: _roomError),
-                    items: [
-                      for (final room in widget.vacantRooms)
-                        DropdownMenuItem(
-                          value: room.id,
-                          child: Text('Kamar ${room.number}'),
-                        ),
-                    ],
-                    onChanged: noRooms ? null : _chooseRoom,
-                  ),
-                ),
-                formGap,
                 LabeledField(
                   label: 'Nama lengkap',
                   required: true,
@@ -422,6 +540,10 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
                   child: Text('Masa sewa', style: theme.textTheme.titleSmall),
                 ),
                 const SizedBox(height: 8),
+                if (tenant != null) ...[
+                  Text(_nextBillHint, style: theme.textTheme.bodyMedium),
+                  const SizedBox(height: 8),
+                ],
                 LabeledField(
                   label: 'Tanggal mulai',
                   required: false,
@@ -498,7 +620,7 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
         ),
         ActionFooter(
           primary: BusyButton(
-            label: 'Simpan Penyewa',
+            label: tenant == null ? 'Simpan Penyewa' : 'Simpan Perubahan',
             busy: _busy,
             onPressed: noRooms ? null : _submit,
           ),

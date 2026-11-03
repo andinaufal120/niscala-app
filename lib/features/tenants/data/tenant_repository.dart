@@ -10,6 +10,13 @@ abstract interface class TenantRepository {
   Future<Tenant> get(String tenantId);
 
   Future<Tenant> create(String propertyId, NewTenantInput input);
+
+  /// Replaces the editable fields of a tenant. The room and the account status
+  /// do not change.
+  Future<Tenant> update(String tenantId, TenantInput input);
+
+  /// Gives a tenant a new invitation link. The old link stops working.
+  Future<TenantInvitation> regenerateInvitation(String tenantId);
 }
 
 final tenantRepositoryProvider = Provider<TenantRepository>((ref) {
@@ -50,6 +57,17 @@ class ApiTenantRepository implements TenantRepository {
   Future<Tenant> create(String propertyId, NewTenantInput input) =>
       _guard(() async {
         return (await tenants.createTenant(propertyId, input))!;
+      });
+
+  @override
+  Future<Tenant> update(String tenantId, TenantInput input) => _guard(() async {
+    return (await tenants.updateTenant(tenantId, input))!;
+  });
+
+  @override
+  Future<TenantInvitation> regenerateInvitation(String tenantId) =>
+      _guard(() async {
+        return (await tenants.regenerateTenantInvitation(tenantId))!;
       });
 
   Future<T> _guard<T>(Future<T> Function() call) async {

@@ -3,17 +3,23 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
+import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/rooms/ui/room_detail_screen.dart';
 import 'package:niscala/features/tenants/ui/invitation_share_screen.dart';
 import 'package:niscala/features/tenants/ui/tenant_detail_screen.dart';
+import 'package:niscala/features/tenants/ui/tenant_form_screen.dart';
 import 'package:niscala/features/tenants/ui/tenant_list_screen.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
+import '../../../helpers/fields.dart';
 import 'tenant_ui_helpers.dart';
+
+const _edit = 'Ubah Data Penyewa';
+const _regenerate = 'Buat Ulang Tautan Undangan';
 
 const _created =
     'Tautan undangan dibuat 18 Okt 2026 dan belum digunakan. '
@@ -396,17 +402,368 @@ void main() {
       expect(find.text('-'), findsOneWidget);
     });
 
-    testWidgets('offers no edit, delete, payment pattern or AI section', (
+    testWidgets('offers no delete, payment pattern or AI section', (
       tester,
     ) async {
       await _open(tester, _repo());
 
-      expect(find.text('Ubah'), findsNothing);
-      expect(find.textContaining('Ubah Data'), findsNothing);
       expect(find.textContaining('Hapus'), findsNothing);
-      expect(find.textContaining('Buat Ulang'), findsNothing);
       expect(find.textContaining('pola pembayaran'), findsNothing);
       expect(find.textContaining('AI'), findsNothing);
+    });
+  });
+
+  group('edit', () {
+    testWidgets('Ubah Data Penyewa is at least 48 dp and opens the form', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expect(find.text(_edit), findsOneWidget);
+      expectTargetSize(tester, _edit);
+
+      await tapVisible(tester, find.text(_edit));
+
+      expect(currentPath(tester), '/properti/p1/penyewa/t1/ubah');
+      final form = tester.widget<TenantFormScreen>(
+        find.byType(TenantFormScreen),
+      );
+      expect(form.propertyId, 'p1');
+      expect(form.tenantId, 't1');
+    });
+
+    testWidgets('is offered for an active tenant too', (tester) async {
+      await _open(tester, _repo(_active()));
+
+      expect(find.text(_edit), findsOneWidget);
+
+      await tapVisible(tester, find.text(_edit));
+
+      expect(currentPath(tester), '/properti/p1/penyewa/t1/ubah');
+    });
+
+    testWidgets('is offered when the invitation has expired', (tester) async {
+      final tenant = _notActivated(
+        invitation: makeTenantInvitation(expired: true),
+      );
+      await _open(tester, _repo(tenant));
+
+      expect(find.text(_edit), findsOneWidget);
+    });
+
+    testWidgets('a manager can edit the tenant', (tester) async {
+      await _open(tester, _repo(), role: UserRole.manager);
+
+      expect(find.text(_edit), findsOneWidget);
+
+      await tapVisible(tester, find.text(_edit));
+
+      expect(find.byType(TenantFormScreen), findsOneWidget);
+    });
+
+    testWidgets('Kembali from the edit form reaches the tenant again', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+      await tapVisible(tester, find.text(_edit));
+
+      await pressBack(tester);
+
+      expect(currentPath(tester), '/properti/p1/penyewa/t1');
+      expect(find.byType(TenantDetailScreen), findsOneWidget);
+      expect(find.byType(TenantFormScreen), findsNothing);
+    });
+
+    testWidgets('the detail shows the saved data after an edit', (
+      tester,
+    ) async {
+      final repo = _repo();
+      await _open(tester, repo);
+      await tapVisible(tester, find.text(_edit));
+      await typeInto(tester, 'Nama lengkap (wajib)', 'Budi Hartono');
+      await typeInto(tester, 'Nomor telepon (wajib)', '081300000001');
+      await typeInto(tester, 'Tarif sewa per siklus (wajib)', '900000');
+      await tapVisible(
+        tester,
+        find.descendant(
+          of: find.byType(ActionFooter),
+          matching: find.byType(FilledButton),
+        ),
+      );
+
+      expect(currentPath(tester), '/properti/p1/penyewa/t1');
+      expect(find.text('Budi Hartono'), findsOneWidget);
+      expect(find.text('Budi Santoso'), findsNothing);
+      expect(find.textContaining('081300000001'), findsOneWidget);
+      expect(find.text('Rp900.000 / bulan'), findsOneWidget);
+      expect(find.text('Rp750.000 / bulan'), findsNothing);
+      expect(repo.getCalls, greaterThanOrEqualTo(2));
+    });
+  });
+
+  group('regenerating the link', () {
+    Finder dialog() => find.byType(AlertDialog);
+
+    Future<void> closeFailureDialog(WidgetTester tester) async {
+      if (dialog().evaluate().isEmpty) return;
+      await tester.tap(
+        find.descendant(of: dialog(), matching: anyButton()).last,
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a valid invitation offers to regenerate the link', (
+      tester,
+    ) async {
+      await _open(tester, _repo());
+
+      expect(find.text(_regenerate), findsOneWidget);
+      expect(find.text('Bagikan tautan yang ada'), findsOneWidget);
+      expectTargetSize(tester, _regenerate);
+    });
+
+    testWidgets('an expired invitation offers to regenerate the link', (
+      tester,
+    ) async {
+      final tenant = _notActivated(
+        invitation: makeTenantInvitation(expired: true),
+      );
+      await _open(tester, _repo(tenant));
+
+      expect(find.text(_regenerate), findsOneWidget);
+      expectTargetSize(tester, _regenerate);
+    });
+
+    testWidgets('a not activated tenant without invitation can regenerate', (
+      tester,
+    ) async {
+      final tenant = makeTenant(withoutInvitation: true);
+      await _open(tester, _repo(tenant));
+
+      expect(find.text(_regenerate), findsOneWidget);
+      expect(find.text('Bagikan tautan yang ada'), findsNothing);
+    });
+
+    testWidgets('an invitation without a link offers to regenerate', (
+      tester,
+    ) async {
+      final tenant = makeTenant(invitation: makeTenantInvitation(url: null));
+      await _open(tester, _repo(tenant));
+
+      expect(find.text(_regenerate), findsOneWidget);
+    });
+
+    testWidgets('an active tenant cannot regenerate a link', (tester) async {
+      await _open(tester, _repo(_active()));
+
+      expect(find.text(_regenerate), findsNothing);
+    });
+
+    testWidgets('an active tenant with a used invitation cannot either', (
+      tester,
+    ) async {
+      final tenant = makeTenant(
+        accountStatus: TenantAccountStatus.active,
+        invitation: makeTenantInvitation(),
+      );
+      await _open(tester, _repo(tenant));
+
+      expect(find.text(_regenerate), findsNothing);
+    });
+
+    testWidgets('a manager can regenerate the link', (tester) async {
+      final repo = _repo();
+      await _open(tester, repo, role: UserRole.manager);
+
+      await tapVisible(tester, find.text(_regenerate));
+
+      expect(repo.regenerateCalls, 1);
+    });
+
+    testWidgets('asks the backend for a new link without asking anything', (
+      tester,
+    ) async {
+      final repo = _repo();
+      await _open(tester, repo);
+
+      await tapVisible(tester, find.text(_regenerate));
+
+      expect(repo.calls, contains('regenerate:t1'));
+      expect(repo.regenerateCalls, 1);
+      expect(dialog(), findsNothing);
+    });
+
+    testWidgets('then shows the new link on the share screen', (tester) async {
+      await _open(tester, _repo());
+
+      await tapVisible(tester, find.text(_regenerate));
+
+      expect(currentPath(tester), '/properti/p1/penyewa/t1/undangan');
+      final share = tester.widget<InvitationShareScreen>(
+        find.byType(InvitationShareScreen),
+      );
+      expect(share.propertyId, 'p1');
+      expect(share.tenantId, 't1');
+      expect(share.isNew, isFalse);
+      expect(
+        tester.widget<SelectableText>(find.byType(SelectableText)).data,
+        'https://niscala.example/undangan/t1-1',
+      );
+    });
+
+    testWidgets('an expired invitation gets a link to share', (tester) async {
+      final tenant = _notActivated(
+        invitation: makeTenantInvitation(expired: true),
+      );
+      await _open(tester, _repo(tenant));
+
+      await tapVisible(tester, find.text(_regenerate));
+
+      expect(currentPath(tester), '/properti/p1/penyewa/t1/undangan');
+      expect(
+        tester.widget<SelectableText>(find.byType(SelectableText)).data,
+        'https://niscala.example/undangan/t1-1',
+      );
+    });
+
+    testWidgets('Kembali shows the detail with the new invitation', (
+      tester,
+    ) async {
+      final tenant = _notActivated(
+        invitation: makeTenantInvitation(expired: true),
+      );
+      await _open(tester, _repo(tenant));
+      await tapVisible(tester, find.text(_regenerate));
+
+      await pressBack(tester);
+
+      expect(currentPath(tester), '/properti/p1/penyewa/t1');
+      expect(find.text(_created), findsOneWidget);
+      expect(find.text(_expired), findsNothing);
+      expect(find.text('Bagikan tautan yang ada'), findsOneWidget);
+    });
+
+    testWidgets('a second tap while it is in flight sends one request', (
+      tester,
+    ) async {
+      final repo = _repo()..regenerateScript.gate = Completer<void>();
+      await _open(tester, repo);
+
+      await tester.ensureVisible(find.text(_regenerate));
+      await tester.pump();
+      await tester.tap(find.text(_regenerate));
+      await tester.pump();
+      if (find.text(_regenerate).evaluate().isNotEmpty) {
+        await tester.tap(find.text(_regenerate), warnIfMissed: false);
+        await tester.pump();
+      }
+
+      expect(repo.regenerateCalls, 1);
+      expect(find.byType(TenantDetailScreen), findsOneWidget);
+    });
+
+    testWidgets('stays on the detail until the new link arrives', (
+      tester,
+    ) async {
+      final gate = Completer<void>();
+      final repo = _repo()..regenerateScript.gate = gate;
+      await _open(tester, repo);
+      await tester.ensureVisible(find.text(_regenerate));
+      await tester.pump();
+      await tester.tap(find.text(_regenerate));
+      await tester.pump();
+
+      expect(find.byType(InvitationShareScreen), findsNothing);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(InvitationShareScreen), findsOneWidget);
+    });
+
+    testWidgets('a failure shows its message and keeps the old link', (
+      tester,
+    ) async {
+      final repo = _repo()
+        ..regenerateScript.queue.add(const ApiFailure.network());
+      await _open(tester, repo);
+
+      await tapVisible(tester, find.text(_regenerate));
+
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
+      expect(currentPath(tester), '/properti/p1/penyewa/t1');
+      expect(find.byType(InvitationShareScreen), findsNothing);
+      expect(find.text('Bagikan tautan yang ada'), findsOneWidget);
+      expect(find.text(_created), findsOneWidget);
+      expect(repo.tenants.first.invitation!.url, contains('abc123'));
+    });
+
+    testWidgets('after a failure the old link is still the one shared', (
+      tester,
+    ) async {
+      final repo = _repo()
+        ..regenerateScript.queue.add(const ApiFailure.network());
+      await _open(tester, repo);
+      await tapVisible(tester, find.text(_regenerate));
+      await closeFailureDialog(tester);
+
+      await tapVisible(tester, find.text('Bagikan tautan yang ada'));
+
+      expect(
+        tester.widget<SelectableText>(find.byType(SelectableText)).data,
+        'https://niscala.example/undangan/abc123',
+      );
+    });
+
+    testWidgets('a failure message stays on screen', (tester) async {
+      final repo = _repo()
+        ..regenerateScript.queue.add(const ApiFailure(code: 'INTERNAL_ERROR'));
+      await _open(tester, repo);
+      await tapVisible(tester, find.text(_regenerate));
+
+      await tester.pump(const Duration(seconds: 30));
+      await tester.pumpAndSettle();
+
+      expect(find.text(messageOfCode('INTERNAL_ERROR')), findsOneWidget);
+    });
+
+    testWidgets('an unknown error code shows the generic message', (
+      tester,
+    ) async {
+      final repo = _repo()
+        ..regenerateScript.queue.add(const ApiFailure(code: 'SOMETHING_NEW'));
+      await _open(tester, repo);
+
+      await tapVisible(tester, find.text(_regenerate));
+
+      expect(find.text('Terjadi kesalahan. Coba lagi.'), findsOneWidget);
+    });
+
+    testWidgets('can be tried again after a failure', (tester) async {
+      final repo = _repo()
+        ..regenerateScript.queue.add(const ApiFailure.network());
+      await _open(tester, repo);
+      await tapVisible(tester, find.text(_regenerate));
+      await closeFailureDialog(tester);
+
+      await tapVisible(tester, find.text(_regenerate));
+
+      expect(repo.regenerateCalls, 2);
+      expect(find.byType(InvitationShareScreen), findsOneWidget);
+    });
+
+    testWidgets('a tenant that is gone shows the message and reloads', (
+      tester,
+    ) async {
+      final repo = _repo();
+      await _open(tester, repo);
+      repo.tenants.removeWhere((t) => t.id == 't1');
+
+      await tapVisible(tester, find.text(_regenerate));
+
+      expect(find.text('Penyewa tidak ditemukan.'), findsAtLeastNWidgets(1));
+      expect(repo.getCalls, 2);
+      expect(find.byType(InvitationShareScreen), findsNothing);
     });
   });
 
@@ -420,6 +777,8 @@ void main() {
       expectLoading(tester);
       expect(find.text('Budi Santoso'), findsNothing);
       expect(find.text('Masa sewa'), findsNothing);
+      expect(find.text(_edit), findsNothing);
+      expect(find.text(_regenerate), findsNothing);
     });
 
     testWidgets('shows the message of a tenant that does not exist', (
@@ -432,6 +791,8 @@ void main() {
       expect(find.text(messageOfCode('TENANT_NOT_FOUND')), findsOneWidget);
       expect(find.text('Penyewa tidak ditemukan.'), findsOneWidget);
       expect(find.text('Masa sewa'), findsNothing);
+      expect(find.text(_edit), findsNothing);
+      expect(find.text(_regenerate), findsNothing);
     });
 
     testWidgets('shows the Indonesian message of a network failure', (
@@ -637,6 +998,10 @@ void main() {
             repo: () => FakeTenantRepository(),
             role: UserRole.owner,
           ),
+          'a not activated tenant without invitation': (
+            repo: () => _repo(makeTenant(withoutInvitation: true)),
+            role: UserRole.owner,
+          ),
         };
 
     for (final entry in states.entries) {
@@ -655,6 +1020,23 @@ void main() {
         );
 
         expect(tester.takeException(), isNull);
+      });
+    }
+
+    for (final large in [false, true]) {
+      final suffix = large ? 'fits at large text size' : 'meets the guidelines';
+
+      testWidgets('$suffix after a failed regeneration', (tester) async {
+        final repo = _repo()
+          ..regenerateScript.queue.add(const ApiFailure.network());
+        await _open(tester, repo, largeText: large);
+        await tapVisible(tester, find.text(_regenerate));
+
+        if (large) {
+          expect(tester.takeException(), isNull);
+        } else {
+          await expectMeetsA11yGuidelines(tester);
+        }
       });
     }
 

@@ -228,9 +228,9 @@ List<RouteBase> _roomRoutes() => [
   ),
 ];
 
-/// The tenants of a property: the list, the add form, one tenant, and the
-/// invitation screens of that tenant. The add route comes before `:tenantId`,
-/// as for rooms.
+/// The tenants of a property: the list, the add form, one tenant with its edit
+/// form, and the invitation screens of that tenant. The add route comes before
+/// `:tenantId`, as for rooms.
 List<RouteBase> _tenantScreenRoutes() => [
   _subPage(
     path: 'penyewa',
@@ -251,6 +251,13 @@ List<RouteBase> _tenantScreenRoutes() => [
           tenantId: state.pathParameters['tenantId']!,
         ),
         routes: [
+          _subPage(
+            path: 'ubah',
+            builder: (context, state) => TenantFormScreen(
+              propertyId: state.pathParameters['propertyId']!,
+              tenantId: state.pathParameters['tenantId'],
+            ),
+          ),
           _subPage(
             path: 'undangan',
             builder: (context, state) => InvitationShareScreen(
