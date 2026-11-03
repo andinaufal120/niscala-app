@@ -141,6 +141,13 @@ class _PaymentOverviewScreenState extends ConsumerState<PaymentOverviewScreen> {
                       context.push('/pembayaran/tunai?properti=${property.id}'),
                   child: const Text('Catat Pembayaran Tunai'),
                 ),
+                const SizedBox(height: NiscalaSpacing.s),
+                OutlinedButton(
+                  onPressed: () => context.push(
+                    '/pembayaran/risiko?properti=${property.id}',
+                  ),
+                  child: const Text('Risiko Pembayaran'),
+                ),
               ],
             ),
           ),

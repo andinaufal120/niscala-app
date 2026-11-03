@@ -31,6 +31,7 @@ import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
 import 'package:niscala/features/rent_bills/ui/cash_payment_screen.dart';
 import 'package:niscala/features/rent_bills/ui/payment_overview_screen.dart';
+import 'package:niscala/features/rent_bills/ui/payment_pattern_screen.dart';
 import 'package:niscala/features/rent_bills/ui/payment_verification_list_screen.dart';
 import 'package:niscala/features/rent_bills/ui/receipt_view_screen.dart';
 import 'package:niscala/features/rent_bills/ui/rent_bill_detail_screen.dart';
@@ -436,6 +437,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               builder: (context, state) => CashPaymentScreen(
                 propertyId: state.uri.queryParameters['properti'],
                 billId: state.uri.queryParameters['tagihan'],
+              ),
+            ),
+            _subPage(
+              path: 'risiko',
+              builder: (context, state) => PaymentPatternScreen(
+                propertyId: state.uri.queryParameters['properti'],
               ),
             ),
             _subPage(

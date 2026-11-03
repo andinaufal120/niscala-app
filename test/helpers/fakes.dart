@@ -1728,6 +1728,33 @@ PaymentOverviewItem makeOverviewItem({
   bill: bill,
 );
 
+/// A [PaymentPattern] with sensible defaults: Budi Santoso (tenant `t1`) in room
+/// 08, on time for 5 of 6 counted bills, 1 day late on average, no arrears, not
+/// at risk, without a summary and with the summary not withheld.
+PaymentPattern makePaymentPattern({
+  String tenantId = 't1',
+  String tenantName = 'Budi Santoso',
+  String roomId = 'r1',
+  String roomNumber = '08',
+  int onTimeCount = 5,
+  int countedBillCount = 6,
+  int averageDaysLate = 1,
+  int arrears = 0,
+  bool atRisk = false,
+  String? summary,
+  bool summaryWithheld = false,
+}) => PaymentPattern(
+  tenant: TenantRef(id: tenantId, name: tenantName),
+  room: RoomRef(id: roomId, number: roomNumber),
+  onTimeCount: onTimeCount,
+  countedBillCount: countedBillCount,
+  averageDaysLate: averageDaysLate,
+  arrears: arrears,
+  atRisk: atRisk,
+  summary: summary,
+  summaryWithheld: summaryWithheld,
+);
+
 /// The key under which [FakeManagementRentBillRepository.itemsOnDate] holds the
 /// items of [propertyId] on the calendar day [date].
 String overviewKey(String propertyId, DateTime date) =>
@@ -1780,20 +1807,42 @@ String overviewKey(String propertyId, DateTime date) =>
 /// A status change made by [reviewerName] at [reviewedAt], carrying the reason
 /// (and the method for paid), is appended, and the bill is replaced in the
 /// overview entries as the review methods do.
+///
+/// [paymentPatterns] returns the entry of [patterns] for the property, in
+/// order, and fails with `PROPERTY_NOT_FOUND` for a property without one. It is
+/// recorded as `patterns:<propertyId>` in [calls] and scripted with
+/// [patternsScript].
 class FakeManagementRentBillRepository implements ManagementRentBillRepository {
   FakeManagementRentBillRepository({
     Map<String, List<PaymentOverviewItem>>? items,
     Map<String, List<PaymentOverviewItem>>? itemsOnDate,
     List<RentBill>? bills,
+    Map<String, List<PaymentPattern>>? patterns,
   }) : items = items ?? {},
        itemsOnDate = itemsOnDate ?? {},
-       bills = bills ?? [];
+       bills = bills ?? [],
+       patterns = patterns ?? {};
 
   final Map<String, List<PaymentOverviewItem>> items;
   final Map<String, List<PaymentOverviewItem>> itemsOnDate;
   final List<RentBill> bills;
+  final Map<String, List<PaymentPattern>> patterns;
 
   final calls = <String>[];
+
+  final patternsScript = CallScript();
+
+  int get patternCalls => calls.where((c) => c.startsWith('patterns:')).length;
+
+  @override
+  Future<List<PaymentPattern>> paymentPatterns(String propertyId) async {
+    calls.add('patterns:$propertyId');
+    final failure = await patternsScript.next();
+    if (failure != null) throw failure;
+    final found = patterns[propertyId];
+    if (found == null) throw const ApiFailure(code: 'PROPERTY_NOT_FOUND');
+    return List.of(found);
+  }
 
   /// The date of every [overview] call, in order; null when it asked for none.
   final overviewDates = <DateTime?>[];

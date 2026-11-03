@@ -42,6 +42,10 @@ abstract interface class ManagementRentBillRepository {
     PaymentMethod? method,
     DateTime? receivedOn,
   });
+
+  /// The payment pattern of each tenant of [propertyId], in the order the API
+  /// returns them.
+  Future<List<PaymentPattern>> paymentPatterns(String propertyId);
 }
 
 final managementRentBillRepositoryProvider =
@@ -86,6 +90,17 @@ final awaitingVerificationProvider =
             propertyId: propertyId,
             statuses: [PaymentStatus.awaitingVerification],
           ),
+      retry: (_, _) => null,
+    );
+
+/// The payment patterns of one property. Released when no screen watches it, so
+/// each opening of the screen asks for them again. Failures are not retried in
+/// the background, see [paymentOverviewProvider].
+final paymentPatternsProvider = FutureProvider.autoDispose
+    .family<List<PaymentPattern>, String>(
+      (ref, propertyId) => ref
+          .watch(managementRentBillRepositoryProvider)
+          .paymentPatterns(propertyId),
       retry: (_, _) => null,
     );
 
@@ -183,6 +198,11 @@ class ApiManagementRentBillRepository implements ManagementRentBillRepository {
       ),
     ))!;
   });
+
+  @override
+  Future<List<PaymentPattern>> paymentPatterns(String propertyId) => _guard(
+    () async => (await rentBills.getPaymentPatterns(propertyId))!.items,
+  );
 
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {

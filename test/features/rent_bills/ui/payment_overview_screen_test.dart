@@ -1061,7 +1061,11 @@ void main() {
     testWidgets('keeps every row reachable at large text size', (tester) async {
       await _open(tester, largeText: true);
 
-      await tester.ensureVisible(find.text('Wati'));
+      await tester.scrollUntilVisible(
+        find.text('Wati'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
