@@ -11,6 +11,7 @@ import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
+import 'package:niscala/core/widgets/tappable_date_field.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
 import 'package:niscala/features/tenants/data/tenant_repository.dart';
 import 'package:niscala/features/tenants/tenant_format.dart';
@@ -544,25 +545,19 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
                   Text(_nextBillHint, style: theme.textTheme.bodyMedium),
                   const SizedBox(height: 8),
                 ],
-                LabeledField(
+                TappableDateField(
                   label: 'Tanggal mulai',
                   required: false,
-                  child: TextField(
-                    controller: _start,
-                    readOnly: true,
-                    onTap: () => _pickDate(start: true),
-                  ),
+                  controller: _start,
+                  onTap: () => _pickDate(start: true),
                 ),
                 formGap,
-                LabeledField(
+                TappableDateField(
                   label: 'Tanggal berakhir',
                   required: false,
-                  child: TextField(
-                    controller: _end,
-                    readOnly: true,
-                    onTap: () => _pickDate(start: false),
-                    decoration: InputDecoration(errorText: _endError),
-                  ),
+                  controller: _end,
+                  onTap: () => _pickDate(start: false),
+                  errorText: _endError,
                 ),
                 formGap,
                 LabeledField(
