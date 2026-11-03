@@ -16,7 +16,7 @@ void main() {
   // final instance = ComplaintInput();
 
   group('test ComplaintInput', () {
-    // At least 10 characters, counted after trimming.
+    // 10 to 2000 characters, counted after trimming.
     // String description
     test('to test the property `description`', () async {
       // TODO
