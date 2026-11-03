@@ -13,7 +13,9 @@ import 'package:niscala/features/complaints/data/complaint_repository.dart';
 const _helper = 'Ceritakan masalahnya, minimal 10 karakter.';
 const _required = 'Deskripsi keluhan wajib diisi.';
 const _tooShort = 'Tulis minimal 10 karakter.';
+const _tooLong = 'Keluhan terlalu panjang. Maksimal 2000 karakter.';
 const _minLength = 10;
+const _maxLength = 2000;
 
 /// Submits a complaint. On success the detail screen opens at once, while the
 /// AI classification may still be running.
@@ -48,6 +50,8 @@ class _ComplaintFormScreenState extends ConsumerState<ComplaintFormScreen> {
         ? _required
         : text.length < _minLength
         ? _tooShort
+        : text.length > _maxLength
+        ? _tooLong
         : null;
     setState(() {
       _descriptionError = error;

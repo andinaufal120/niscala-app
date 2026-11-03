@@ -215,7 +215,7 @@ Format: actor · entry point · flow · outcomes. Menu names are *Indonesian (En
 Shows room number, property address, lease start and end dates, rent, room dimensions and facilities. If there is no room or lease → message to contact management.
 
 **UC-02 Submit maintenance complaint** (FR-03, FR-04, FR-25, FR-28) · Tenant with an active lease · *Keluhan (Complaints)* tab → complaint list → new complaint
-Free-text description → submit → confirmation. An empty or too-short description gets a field error (at least 10 characters after trimming). After saving, the complaint is *Baru* and its classification state is one of: classified, *Sedang Diklasifikasi* (the AI has not finished yet), *Menunggu Klasifikasi*, or *Belum Diklasifikasi*. The app shows the confirmation as soon as the save succeeds; it does not wait for the AI.
+Free-text description → submit → confirmation. An empty, too-short or too-long description gets a field error (10 to 2000 characters after trimming). After saving, the complaint is *Baru* and its classification state is one of: classified, *Sedang Diklasifikasi* (the AI has not finished yet), *Menunggu Klasifikasi*, or *Belum Diklasifikasi*. The app shows the confirmation as soon as the save succeeds; it does not wait for the AI.
 
 **UC-03 View complaint status and history** (FR-05) · Tenant · *Keluhan (Complaints)* tab
 List of own complaints, opening on the *Aktif (Active)* filter (*Baru* and *Diproses*). Each shows its status and marks complaints still *Sedang Diklasifikasi*, *Menunggu Klasifikasi* or *Belum Diklasifikasi*. Detail shows category and urgency if classified, and the handling note of each status change. Empty state if none.
@@ -432,3 +432,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 27-10-2026 | U-22 decided: a Manager sees the same dashboard as an Owner, limited to the assigned properties. | NKMA-45 |
 | 27-10-2026 | UC-27 to UC-30 rewritten to match the backend: a Manager is added with name, optional nickname, phone and properties and shown an invitation link (no email is sent); the name is editable only before activation; deleting revokes this Owner's assignments. | NKMA-46 |
 | 02-11-2026 | Push message format added to §9 (shared with the backend): high priority, localization keys `notification_<type>_title` and `_body`, and data `notificationId` and `type`; the app provides a title and a body string for every notification type. | NKMA-106 |
+| 02-11-2026 | UC-02 description limited to 2000 characters after trimming, matching the backend.                              | NKMA-105   |
