@@ -304,7 +304,7 @@ Offers only the next status (*Baru* → *Diproses*, *Diproses* → *Selesai*) an
 Set category and urgency on a complaint that is *Menunggu Klasifikasi* or *Belum Diklasifikasi*, or correct an AI classification (category list: U-16). Available without an active subscription; it is not an AI feature. A later AI result never overwrites the manual values. Submitting the current values changes nothing.
 
 **UC-25 Payment status of all tenants** (FR-17) · *Pembayaran (Payments)*
-Pick a property and a period (default: current) → list of tenants with room, amount and status; default filter *Belum lunas (Unpaid)*, meaning every status except *Lunas*. Selecting a tenant shows their payment history.
+Pick a property and a date (default: today) → each tenant with room and the bill whose period contains that date, with amount and status, or a note that no bill covers that date; default filter *Belum lunas (Unpaid)*, meaning every status except *Lunas*. Selecting a tenant shows their payment history.
 
 **UC-26 Payment-pattern summary** (FR-18, FR-19, FR-25, FR-28) · *Pembayaran → Risiko Pembayaran (Payments → Payment risk)*
 Every tenant is listed with:
@@ -433,3 +433,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 27-10-2026 | UC-27 to UC-30 rewritten to match the backend: a Manager is added with name, optional nickname, phone and properties and shown an invitation link (no email is sent); the name is editable only before activation; deleting revokes this Owner's assignments. | NKMA-46 |
 | 02-11-2026 | Push message format added to §9 (shared with the backend): high priority, localization keys `notification_<type>_title` and `_body`, and data `notificationId` and `type`; the app provides a title and a body string for every notification type. | NKMA-106 |
 | 02-11-2026 | UC-02 description limited to 2000 characters after trimming, matching the backend.                              | NKMA-105   |
+| 02-11-2026 | UC-25 picks a date, not a period, because billing periods are per tenant.                                       | NKMA-62    |

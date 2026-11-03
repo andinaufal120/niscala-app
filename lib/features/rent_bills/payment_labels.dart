@@ -22,6 +22,12 @@ final paymentStatusStyles = <PaymentStatus, PaymentBadgeStyle>{
   PaymentStatus.rejected: (label: 'Ditolak', colors: (t) => t.paymentRejected),
 };
 
+/// The text of each payment method, as the user reads it.
+final paymentMethodLabels = <PaymentMethod, String>{
+  PaymentMethod.transfer: 'Transfer',
+  PaymentMethod.cash: 'Tunai',
+};
+
 /// A payment status as a text badge.
 class PaymentBadge extends StatelessWidget {
   PaymentBadge(this.status, {super.key})

@@ -124,18 +124,6 @@ void main() {
       });
     }
 
-    testWidgets('shows a placeholder for the tab that is not built yet', (
-      tester,
-    ) async {
-      await pumpShell(tester, UserRole.owner);
-
-      await tester.tap(navLabel('Pembayaran'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(PlaceholderScreen), findsOneWidget);
-      expect(find.text('Fitur ini belum tersedia'), findsOneWidget);
-    });
-
     for (final role in [UserRole.owner, UserRole.manager]) {
       testWidgets('shows the occupancy dashboard on the home tab of a $role', (
         tester,
