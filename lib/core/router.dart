@@ -8,6 +8,7 @@ import 'package:niscala/core/shell/fading_tab_stack.dart';
 import 'package:niscala/core/widgets/loading_screen.dart';
 import 'package:niscala/features/auth/ui/accept_invitation_screen.dart';
 import 'package:niscala/features/auth/ui/activation_screen.dart';
+import 'package:niscala/features/auth/ui/confirm_email_change_screen.dart';
 import 'package:niscala/features/auth/ui/forgot_password_screen.dart';
 import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/reset_password_screen.dart';
@@ -51,6 +52,7 @@ import 'package:niscala/features/tenants/ui/tenant_detail_screen.dart';
 import 'package:niscala/features/tenants/ui/tenant_form_screen.dart';
 import 'package:niscala/features/tenants/ui/tenant_list_screen.dart';
 import 'package:niscala/features/user_accounts/ui/user_account_detail_screen.dart';
+import 'package:niscala/features/user_accounts/ui/user_account_edit_screen.dart';
 import 'package:niscala/features/user_accounts/ui/user_account_list_screen.dart';
 import 'package:niscala_api/api.dart';
 
@@ -78,6 +80,7 @@ const _signedOutRoutes = {
   '/aktivasi',
   '/lupa-kata-sandi',
   '/atur-ulang-kata-sandi',
+  '/konfirmasi-email-baru',
 };
 const _managementRoutes = {
   _managementHome,
@@ -431,6 +434,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       _screen('/aktivasi', const ActivationScreen()),
       _screen('/lupa-kata-sandi', const ForgotPasswordScreen()),
       _screen('/atur-ulang-kata-sandi', const ResetPasswordScreen()),
+      _screen('/konfirmasi-email-baru', const ConfirmEmailChangeScreen()),
       _screen(_verifyEmail, const VerifyEmailScreen()),
       GoRoute(
         path: _admin,
@@ -441,6 +445,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => UserAccountDetailScreen(
               accountId: state.pathParameters['accountId']!,
             ),
+            routes: [
+              _subPage(
+                path: 'ubah',
+                builder: (context, state) => UserAccountEditScreen(
+                  accountId: state.pathParameters['accountId']!,
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -100,6 +100,13 @@ const _messages = {
   'NO_ACTIVE_LEASE':
       'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.',
   'USER_ACCOUNT_NOT_FOUND': 'Akun pengguna tidak ditemukan.',
+  'USER_ACCOUNT_DELETED': 'Akun ini sudah dihapus.',
+  'CANNOT_MODIFY_OWN_ACCOUNT':
+      'Anda tidak dapat menonaktifkan akun Anda sendiri.',
+  'EMAIL_CHANGE_NOT_FOUND': 'Tautan tidak ditemukan atau tidak valid.',
+  'EMAIL_CHANGE_USED': 'Tautan ini sudah digunakan.',
+  'EMAIL_CHANGE_EXPIRED':
+      'Tautan sudah kedaluwarsa. Minta admin mengirim ulang.',
   'COMPLAINT_NOT_FOUND': 'Keluhan tidak ditemukan.',
   'COMPLAINT_STATUS_NOT_NEXT':
       'Status keluhan sudah diubah oleh pengguna lain.',

@@ -6,7 +6,7 @@ import 'package:niscala_api/api.dart';
 SessionState _signedIn(UserRole role, {bool verified = true}) =>
     SignedIn(role: role, emailVerified: verified);
 
-const _adminLocations = ['/admin', '/admin/u1'];
+const _adminLocations = ['/admin', '/admin/u1', '/admin/u1/ubah'];
 
 void main() {
   group('an admin', () {

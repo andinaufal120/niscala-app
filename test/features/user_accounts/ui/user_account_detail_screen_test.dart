@@ -6,6 +6,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/status_badge.dart';
 import 'package:niscala/features/user_accounts/ui/user_account_detail_screen.dart';
+import 'package:niscala/features/user_accounts/ui/user_account_edit_screen.dart';
 import 'package:niscala/features/user_accounts/ui/user_account_list_screen.dart';
 import 'package:niscala_api/api.dart';
 
@@ -325,11 +326,70 @@ void main() {
       );
     });
 
-    testWidgets('does not show an edit or delete action', (tester) async {
+    testWidgets('does not show a delete action', (tester) async {
       await _open(tester, _repo(), 'u1');
 
-      expect(find.text('Ubah'), findsNothing);
       expect(find.text('Hapus'), findsNothing);
+    });
+  });
+
+  group('edit action', () {
+    for (final id in ['u1', 'u2', 'u3', 'u4']) {
+      testWidgets('is offered for the account $id', (tester) async {
+        await _open(tester, _repo(), id);
+
+        expect(find.text('Ubah'), findsOneWidget);
+      });
+    }
+
+    testWidgets('is offered for an inactive account', (tester) async {
+      await _open(
+        tester,
+        _repo([_owner(status: UserAccountStatus.inactive)]),
+        'u2',
+      );
+
+      expect(find.text('Ubah'), findsOneWidget);
+    });
+
+    testWidgets('is hidden for a deleted account', (tester) async {
+      await _open(
+        tester,
+        _repo([_owner(status: UserAccountStatus.deleted)]),
+        'u2',
+      );
+
+      expect(find.text('Ubah'), findsNothing);
+      expect(statusBadge('Dihapus'), findsOneWidget);
+    });
+
+    testWidgets('opens the edit screen of the account', (tester) async {
+      await _open(tester, _repo(), 'u2');
+
+      await tester.tap(find.text('Ubah'));
+      await tester.pumpAndSettle();
+
+      expect(currentPath(tester), '/admin/u2/ubah');
+      expect(find.byType(UserAccountEditScreen), findsOneWidget);
+    });
+
+    testWidgets('is at least 48 dp', (tester) async {
+      await _open(tester, _repo(), 'u1');
+
+      expectTargetSize(tester, 'Ubah');
+    });
+
+    testWidgets('Kembali from the edit screen returns to the detail', (
+      tester,
+    ) async {
+      await _open(tester, _repo(), 'u1');
+      await tester.tap(find.text('Ubah'));
+      await tester.pumpAndSettle();
+
+      await pressBack(tester);
+
+      expect(currentPath(tester), '/admin/u1');
+      expect(find.byType(UserAccountDetailScreen), findsOneWidget);
     });
   });
 

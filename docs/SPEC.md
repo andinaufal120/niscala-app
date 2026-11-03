@@ -347,7 +347,7 @@ Opens the payment gateway page (provider: TBD-3). Results:
 List with name, email, role and status. Search by email, filter by role, open a detail view. Shows "not found" when the search or filter matches nothing.
 
 **UC-34 Edit user account** (FR-29) · *[account] → Ubah (Edit)*
-Change name, email (must be unique) and status (*Aktif*/*Nonaktif*). Deactivating an account ends its sessions.
+Change name, email (must be unique) and status (*Aktif*/*Nonaktif*). Deactivating an account ends its sessions. A new email stays pending until the link sent to it is confirmed; the detail shows the pending email and when its link expires. Until U-4 is decided, the link is confirmed by pasting it into *Konfirmasi Email Baru (Confirm new email)* on the login screen.
 
 **UC-35 Delete user account** (FR-29) · *[account] → Hapus (Delete)*
 Soft delete that ends sessions. Rejected, with the reason shown, if the account is an Owner with a property that has an active lease.
@@ -442,3 +442,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 02-11-2026 | UC-06 covers Tenant, Owner and Manager, every notification type the API sends, and notification settings.       | NKMA-104   |
 | 03-11-2026 | Interim password reset by pasted link, until U-4 is decided (§7).                                              | NKMA-103   |
 | 03-11-2026 | Admin navigation defined (§6a).                                                                                | NKMA-81    |
+| 03-11-2026 | UC-34 pending email change and interim confirmation by pasted link.                                            | NKMA-82    |

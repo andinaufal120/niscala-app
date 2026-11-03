@@ -239,6 +239,21 @@ class FakeAuthRepository implements AuthRepository {
     await resetPasswordGate?.future;
     if (resetPasswordFailure != null) throw resetPasswordFailure!;
   }
+
+  /// The token of every [confirmEmailChange] call, in order.
+  final emailChangeConfirmations = <String>[];
+
+  ApiFailure? confirmEmailChangeFailure;
+
+  /// Holds [confirmEmailChange] in flight until it completes.
+  Completer<void>? confirmEmailChangeGate;
+
+  @override
+  Future<void> confirmEmailChange(String token) async {
+    emailChangeConfirmations.add(token);
+    await confirmEmailChangeGate?.future;
+    if (confirmEmailChangeFailure != null) throw confirmEmailChangeFailure!;
+  }
 }
 
 /// Scripts the outcome of one repository method.
@@ -2594,22 +2609,72 @@ UserAccount makeUserAccount({
 /// unless [includeDeleted] is set. It returns summaries in the order of
 /// [accounts]. [get] returns the account with the id or fails with
 /// `USER_ACCOUNT_NOT_FOUND`. Script failures and gates per method with the
-/// `*Script` fields. Every call is appended to [calls] in order, as `list` or
-/// `get:<id>`, and every [list] call to [listed] as given.
+/// `*Script` fields. Every call is appended to [calls] in order, as `list`,
+/// `get:<id>` or `update:<id>`, every [list] call to [listed] as given and
+/// every [update] call to [updated] as given, whether it succeeded or not.
+///
+/// [update] changes the account only when the call succeeds, like the API: it
+/// fails with `USER_ACCOUNT_NOT_FOUND` for an unknown id and with
+/// `USER_ACCOUNT_DELETED` for a deleted account. The name and the email are
+/// trimmed and the email is lowercased. A different email does not replace the
+/// current one: it becomes the pending email, valid until [pendingExpiresAt].
+/// The current email cancels a pending email.
 class FakeUserAccountRepository implements UserAccountRepository {
   FakeUserAccountRepository({List<UserAccount>? accounts})
     : accounts = accounts ?? [];
 
   final List<UserAccount> accounts;
 
+  /// When the link of a pending email change that [update] starts expires.
+  static final pendingExpiresAt = DateTime.utc(2026, 11, 10, 12);
+
   final calls = <String>[];
   final listed = <({String? email, UserRole? role, bool includeDeleted})>[];
+  final updated = <({String id, UserAccountInput input})>[];
 
   final listScript = CallScript();
   final getScript = CallScript();
+  final updateScript = CallScript();
 
   int get listCalls => calls.where((c) => c == 'list').length;
   int get getCalls => calls.where((c) => c.startsWith('get:')).length;
+  int get updateCalls => calls.where((c) => c.startsWith('update:')).length;
+
+  @override
+  Future<UserAccount> update(String id, UserAccountInput input) async {
+    calls.add('update:$id');
+    updated.add((id: id, input: input));
+    final failure = await updateScript.next();
+    if (failure != null) throw failure;
+    final index = accounts.indexWhere((a) => a.id == id);
+    if (index < 0) {
+      throw const ApiFailure(code: 'USER_ACCOUNT_NOT_FOUND', statusCode: 404);
+    }
+    final old = accounts[index];
+    if (old.status == UserAccountStatus.deleted) {
+      throw const ApiFailure(code: 'USER_ACCOUNT_DELETED', statusCode: 409);
+    }
+    final email = input.email.trim().toLowerCase();
+    final changesEmail = email != old.email.toLowerCase();
+    return accounts[index] = makeUserAccount(
+      id: old.id,
+      name: input.name.trim(),
+      email: old.email,
+      role: old.role,
+      status: input.status == EditableAccountStatus.active
+          ? UserAccountStatus.active
+          : UserAccountStatus.inactive,
+      activeLeaseCount: old.activeLeaseCount,
+      registeredAt: old.registeredAt,
+      lastLoginAt: old.lastLoginAt,
+      neverLoggedIn: old.lastLoginAt == null,
+      loginMethods: old.loginMethods,
+      pendingEmail: changesEmail ? email : null,
+      pendingEmailExpiresAt: changesEmail ? pendingExpiresAt : null,
+      properties: old.properties,
+      tenancy: old.tenancy,
+    );
+  }
 
   @override
   Future<List<UserAccountSummary>> list({

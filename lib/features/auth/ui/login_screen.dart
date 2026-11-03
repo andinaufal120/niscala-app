@@ -190,6 +190,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               'Aktifkan dengan tautan undangan',
                             ),
                           ),
+                          TextButton(
+                            onPressed: () =>
+                                context.go('/konfirmasi-email-baru'),
+                            child: const Text('Konfirmasi email baru'),
+                          ),
                         ],
                       ),
                     ],
