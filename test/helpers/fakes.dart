@@ -1743,8 +1743,19 @@ String overviewKey(String propertyId, DateTime date) =>
 /// of the [bills] that match the property, the tenant and the statuses asked
 /// for (all of them when not asked), in their order. Script failures and gates
 /// per method with the `*Script` fields. Every call is also appended to
-/// [calls] in order, as `overview:<propertyId>` or
-/// `bills:<propertyId>:<tenantId>`.
+/// [calls] in order, as `overview:<propertyId>`, `bills:<propertyId>:<tenantId>`,
+/// `verify:<id>` or `reject:<id>`.
+///
+/// [verifyReceipt] and [rejectReceipt] change the bill in [bills] only when the
+/// call succeeds, after the scripted outcome: a bill that is not in [bills]
+/// fails with `RENT_BILL_NOT_FOUND` (404), and a bill whose status is not
+/// awaiting verification fails with `RENT_BILL_NOT_AWAITING_VERIFICATION`
+/// (409). Verifying makes the bill paid by transfer on the calendar day of
+/// [reviewedAt]; rejecting makes it rejected with the given reason and keeps
+/// its receipt. Both append a status change made by [reviewerName] at
+/// [reviewedAt], and replace the bill of the same id in the entries of
+/// [items] and [itemsOnDate]. The list passed as `bills` can be shared with a
+/// `FakeRentBillRepository`, so that both see the change.
 class FakeManagementRentBillRepository implements ManagementRentBillRepository {
   FakeManagementRentBillRepository({
     Map<String, List<PaymentOverviewItem>>? items,
@@ -1771,9 +1782,122 @@ class FakeManagementRentBillRepository implements ManagementRentBillRepository {
 
   final overviewScript = CallScript();
   final listScript = CallScript();
+  final verifyScript = CallScript();
+  final rejectScript = CallScript();
+
+  /// The time and the person of every successful verification or rejection.
+  DateTime reviewedAt = DateTime.utc(2026, 11, 7, 12);
+  String reviewerName = 'Siti Pemilik';
+
+  /// The ids of every [verifyReceipt] call, in order, whether it succeeded or
+  /// not.
+  final verified = <String>[];
+
+  /// The arguments of every [rejectReceipt] call, in order.
+  final rejected = <({String id, String reason})>[];
 
   int get overviewCalls => calls.where((c) => c.startsWith('overview:')).length;
   int get listCalls => calls.where((c) => c.startsWith('bills:')).length;
+  int get verifyCalls => calls.where((c) => c.startsWith('verify:')).length;
+  int get rejectCalls => calls.where((c) => c.startsWith('reject:')).length;
+
+  /// Replaces the bill with the id by the result of [change], in [bills] and
+  /// in the overview entries, after checking it awaits verification.
+  RentBill _review(
+    String id,
+    Payment Function(RentBill old) payment,
+    PaymentStatusChange change,
+  ) {
+    final index = bills.indexWhere((b) => b.id == id);
+    if (index < 0) {
+      throw const ApiFailure(code: 'RENT_BILL_NOT_FOUND', statusCode: 404);
+    }
+    final old = bills[index];
+    if (old.payment.status != PaymentStatus.awaitingVerification) {
+      throw const ApiFailure(
+        code: 'RENT_BILL_NOT_AWAITING_VERIFICATION',
+        statusCode: 409,
+      );
+    }
+    final updated = RentBill(
+      id: old.id,
+      amount: old.amount,
+      daysOverdue: old.daysOverdue,
+      dueDate: old.dueDate,
+      periodStart: old.periodStart,
+      periodEnd: old.periodEnd,
+      bankAccount: old.bankAccount,
+      payment: payment(old),
+      property: old.property,
+      room: old.room,
+      tenant: old.tenant,
+      statusChanges: [...old.statusChanges, change],
+      isCurrent: old.isCurrent,
+      canUploadReceipt:
+          change.status == PaymentStatus.rejected && old.bankAccount != null,
+    );
+    bills[index] = updated;
+    for (final entries in [...items.values, ...itemsOnDate.values]) {
+      for (var i = 0; i < entries.length; i++) {
+        final item = entries[i];
+        if (item.bill?.id == id) {
+          entries[i] = PaymentOverviewItem(
+            tenant: item.tenant,
+            room: item.room,
+            bill: rentBillSummaryOf(updated),
+          );
+        }
+      }
+    }
+    return updated;
+  }
+
+  @override
+  Future<RentBill> verifyReceipt(String billId) async {
+    calls.add('verify:$billId');
+    verified.add(billId);
+    final failure = await verifyScript.next();
+    if (failure != null) throw failure;
+    return _review(
+      billId,
+      (old) => Payment(
+        status: PaymentStatus.paid,
+        hasReceipt: old.payment.hasReceipt,
+        method: PaymentMethod.transfer,
+        paidOn: DateTime.utc(reviewedAt.year, reviewedAt.month, reviewedAt.day),
+      ),
+      PaymentStatusChange(
+        status: PaymentStatus.paid,
+        changedAt: reviewedAt,
+        actorName: reviewerName,
+        manual: true,
+        method: PaymentMethod.transfer,
+      ),
+    );
+  }
+
+  @override
+  Future<RentBill> rejectReceipt(String billId, String reason) async {
+    calls.add('reject:$billId');
+    rejected.add((id: billId, reason: reason));
+    final failure = await rejectScript.next();
+    if (failure != null) throw failure;
+    return _review(
+      billId,
+      (old) => Payment(
+        status: PaymentStatus.rejected,
+        hasReceipt: old.payment.hasReceipt,
+        rejectionReason: reason,
+      ),
+      PaymentStatusChange(
+        status: PaymentStatus.rejected,
+        changedAt: reviewedAt,
+        actorName: reviewerName,
+        manual: true,
+        reason: reason,
+      ),
+    );
+  }
 
   @override
   Future<PaymentOverview> overview(String propertyId, {DateTime? date}) async {

@@ -34,6 +34,7 @@ const _fieldLabels = {
   'phone': 'Nomor telepon',
   'description': 'Keluhan',
   'file': 'Bukti transfer',
+  'reason': 'Alasan penolakan',
 };
 
 const _messages = {
@@ -104,6 +105,8 @@ const _messages = {
       'Properti ini belum memiliki rekening bank. '
       'Bayar tunai ke pengelola kost.',
   'RENT_BILL_NOT_FOUND': 'Tagihan tidak ditemukan.',
+  'RENT_BILL_NOT_AWAITING_VERIFICATION':
+      'Status pembayaran sudah diubah oleh pengguna lain.',
   'RECEIPT_NOT_FOUND': 'Bukti transfer tidak ditemukan.',
   'FORBIDDEN': 'Anda tidak memiliki akses untuk tindakan ini.',
   'ACCESS_TOKEN_INVALID': _sessionEnded,
