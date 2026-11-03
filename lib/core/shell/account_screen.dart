@@ -84,6 +84,13 @@ class AccountScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: NiscalaSpacing.l),
                   ],
+                  ActionCardRow(
+                    icon: Icons.notifications_outlined,
+                    title: 'Notifikasi',
+                    subtitle: 'Lihat pemberitahuan dan atur notifikasi push',
+                    onTap: () => _openSubPage(context, ref, 'notifikasi'),
+                  ),
+                  const SizedBox(height: NiscalaSpacing.l),
                   SectionCard(
                     title: 'Keamanan',
                     child: Column(

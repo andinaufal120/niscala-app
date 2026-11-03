@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Notification;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/app.dart';
@@ -16,6 +16,7 @@ import 'package:niscala/features/complaints/data/complaint_repository.dart';
 import 'package:niscala/features/dashboard/data/dashboard_repository.dart';
 import 'package:niscala/features/lease/data/lease_repository.dart';
 import 'package:niscala/features/managers/data/manager_repository.dart';
+import 'package:niscala/features/notifications/data/notification_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/rent_bills/data/management_rent_bill_repository.dart';
 import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
@@ -2480,6 +2481,259 @@ class FakeDashboardRepository implements DashboardRepository {
   }
 }
 
+/// The bill facts of a notification: November 2026 (1 to 30 Nov), Rp800.000,
+/// due 5 Nov 2026, unpaid, no reason and no method, not overdue.
+NotificationRentBill makeNotificationRentBill({
+  String rentBillId = 'b1',
+  int amount = 800000,
+  int daysOverdue = 0,
+  DateTime? dueDate,
+  DateTime? periodStart,
+  DateTime? periodEnd,
+  PaymentStatus paymentStatus = PaymentStatus.unpaid,
+  PaymentMethod? paymentMethod,
+  String? reason,
+}) => NotificationRentBill(
+  rentBillId: rentBillId,
+  amount: amount,
+  daysOverdue: daysOverdue,
+  dueDate: dueDate ?? DateTime.utc(2026, 11, 5),
+  periodStart: periodStart ?? DateTime.utc(2026, 11, 1),
+  periodEnd: periodEnd ?? DateTime.utc(2026, 11, 30),
+  paymentStatus: paymentStatus,
+  paymentMethod: paymentMethod,
+  reason: reason,
+);
+
+/// The complaint facts of a notification: a new complaint about a leaking tap
+/// with no handling note, category or urgency.
+NotificationComplaint makeNotificationComplaint({
+  String complaintId = 'c1',
+  String description = 'Keran air di kamar mandi bocor',
+  ComplaintStatus status = ComplaintStatus.new_,
+  String? handlingNote,
+  String? category,
+  ComplaintUrgency? urgency,
+}) => NotificationComplaint(
+  complaintId: complaintId,
+  description: description,
+  status: status,
+  handlingNote: handlingNote,
+  category: category,
+  urgency: urgency,
+);
+
+/// A [Notification] of [type], unread, created 2 Nov 2026 at 12:00 UTC. It
+/// carries only the facts given, as the API does.
+Notification makeNotification({
+  String id = 'n1',
+  NotificationType type = NotificationType.billIssued,
+  DateTime? createdAt,
+  bool read = false,
+  NotificationRentBill? rentBill,
+  NotificationComplaint? complaint,
+  TenantRef? tenant,
+  RoomRef? room,
+  PropertyRef? property,
+  String? actorName,
+}) => Notification(
+  id: id,
+  type: type,
+  createdAt: createdAt ?? DateTime.utc(2026, 11, 2, 12),
+  read: read,
+  rentBill: rentBill,
+  complaint: complaint,
+  tenant: tenant,
+  room: room,
+  property: property,
+  actorName: actorName,
+);
+
+/// The tenant, room and property that notifications of management name:
+/// Budi Santoso in room 08 of Kos Melati.
+({TenantRef tenant, RoomRef room, PropertyRef property}) makeNotificationPlace({
+  String tenantName = 'Budi Santoso',
+  String roomNumber = '08',
+  String propertyName = 'Kos Melati',
+}) => (
+  tenant: TenantRef(id: 't1', name: tenantName),
+  room: RoomRef(id: 'r1', number: roomNumber),
+  property: PropertyRef(id: 'p1', name: propertyName),
+);
+
+/// The settings of a tenant: billing, paymentStatus and complaintProgress, all
+/// on.
+List<NotificationSettingItem> makeTenantNotificationSettings() => [
+  NotificationSettingItem(
+    category: NotificationCategory.billing,
+    pushEnabled: true,
+  ),
+  NotificationSettingItem(
+    category: NotificationCategory.paymentStatus,
+    pushEnabled: true,
+  ),
+  NotificationSettingItem(
+    category: NotificationCategory.complaintProgress,
+    pushEnabled: true,
+  ),
+];
+
+/// The settings of management: newComplaint (all urgencies), receiptUpload,
+/// overdueBill and accountActivity, all on.
+List<NotificationSettingItem> makeManagementNotificationSettings() => [
+  NotificationSettingItem(
+    category: NotificationCategory.newComplaint,
+    pushEnabled: true,
+    urgencyScope: NotificationUrgencyScope.allUrgencies,
+  ),
+  NotificationSettingItem(
+    category: NotificationCategory.receiptUpload,
+    pushEnabled: true,
+  ),
+  NotificationSettingItem(
+    category: NotificationCategory.overdueBill,
+    pushEnabled: true,
+  ),
+  NotificationSettingItem(
+    category: NotificationCategory.accountActivity,
+    pushEnabled: true,
+  ),
+];
+
+NotificationSettingItem _copyOfSetting(NotificationSettingItem item) =>
+    NotificationSettingItem(
+      category: item.category,
+      pushEnabled: item.pushEnabled,
+      urgencyScope: item.urgencyScope,
+    );
+
+Notification _copyOfNotification(Notification n, {bool? read}) => Notification(
+  id: n.id,
+  type: n.type,
+  createdAt: n.createdAt,
+  read: read ?? n.read,
+  rentBill: n.rentBill,
+  complaint: n.complaint,
+  tenant: n.tenant,
+  room: n.room,
+  property: n.property,
+  actorName: n.actorName,
+);
+
+/// A [NotificationRepository] that keeps the notifications and the settings in
+/// memory and records its calls.
+///
+/// [list] returns [notifications] in their order with [unreadCount], which
+/// starts as the number of unread ones. [markRead] flips one notification to
+/// read and decrements [unreadCount] when it was unread, and fails with
+/// `NOTIFICATION_NOT_FOUND` for an unknown id. [markAllRead] flips every
+/// notification and sets [unreadCount] to 0. Both change the state only when the
+/// call succeeds. [add] appends a notification, as a new event does.
+///
+/// [settings] returns [settingItems] (the tenant categories unless given).
+/// [updateSettings] records the items it receives in [updated] and, when it
+/// succeeds, keeps a copy of them as the new settings and returns it. Script
+/// failures and gates per method with the `*Script` fields. Every call is also
+/// appended to [calls] in order, as `list`, `markRead:<id>`, `markAllRead`,
+/// `settings` or `updateSettings`.
+class FakeNotificationRepository implements NotificationRepository {
+  FakeNotificationRepository({
+    List<Notification>? notifications,
+    List<NotificationSettingItem>? settings,
+  }) : notifications = notifications ?? [],
+       settingItems = settings ?? makeTenantNotificationSettings() {
+    unreadCount = this.notifications.where((n) => !n.read).length;
+  }
+
+  final List<Notification> notifications;
+  List<NotificationSettingItem> settingItems;
+  late int unreadCount;
+
+  final calls = <String>[];
+  final updated = <List<NotificationSettingItem>>[];
+
+  final listScript = CallScript();
+  final markReadScript = CallScript();
+  final markAllReadScript = CallScript();
+  final settingsScript = CallScript();
+  final updateSettingsScript = CallScript();
+
+  int get listCalls => calls.where((c) => c == 'list').length;
+  int get markReadCalls => calls.where((c) => c.startsWith('markRead:')).length;
+  int get markAllReadCalls => calls.where((c) => c == 'markAllRead').length;
+  int get settingsCalls => calls.where((c) => c == 'settings').length;
+  int get updateSettingsCalls =>
+      calls.where((c) => c == 'updateSettings').length;
+
+  /// Appends [notification], counting it as unread when it is.
+  void add(Notification notification) {
+    notifications.add(notification);
+    if (!notification.read) unreadCount++;
+  }
+
+  @override
+  Future<NotificationList> list() async {
+    calls.add('list');
+    final failure = await listScript.next();
+    if (failure != null) throw failure;
+    return NotificationList(
+      items: [for (final n in notifications) _copyOfNotification(n)],
+      unreadCount: unreadCount,
+    );
+  }
+
+  @override
+  Future<Notification> markRead(String notificationId) async {
+    calls.add('markRead:$notificationId');
+    final failure = await markReadScript.next();
+    if (failure != null) throw failure;
+    final index = notifications.indexWhere((n) => n.id == notificationId);
+    if (index < 0) {
+      throw const ApiFailure(code: 'NOTIFICATION_NOT_FOUND', statusCode: 404);
+    }
+    if (!notifications[index].read) unreadCount--;
+    return notifications[index] = _copyOfNotification(
+      notifications[index],
+      read: true,
+    );
+  }
+
+  @override
+  Future<void> markAllRead() async {
+    calls.add('markAllRead');
+    final failure = await markAllReadScript.next();
+    if (failure != null) throw failure;
+    for (var i = 0; i < notifications.length; i++) {
+      notifications[i] = _copyOfNotification(notifications[i], read: true);
+    }
+    unreadCount = 0;
+  }
+
+  @override
+  Future<NotificationSettings> settings() async {
+    calls.add('settings');
+    final failure = await settingsScript.next();
+    if (failure != null) throw failure;
+    return NotificationSettings(
+      items: [for (final item in settingItems) _copyOfSetting(item)],
+    );
+  }
+
+  @override
+  Future<NotificationSettings> updateSettings(
+    List<NotificationSettingItem> items,
+  ) async {
+    calls.add('updateSettings');
+    updated.add([for (final item in items) _copyOfSetting(item)]);
+    final failure = await updateSettingsScript.next();
+    if (failure != null) throw failure;
+    settingItems = [for (final item in items) _copyOfSetting(item)];
+    return NotificationSettings(
+      items: [for (final item in settingItems) _copyOfSetting(item)],
+    );
+  }
+}
+
 /// The whole app with a fake session store and no network.
 ///
 /// Without [invitationSharer] sharing does nothing.
@@ -2499,6 +2753,7 @@ Widget buildTestApp({
   LeaseRepository? leases,
   AccountRepository? accounts,
   DashboardRepository? dashboard,
+  NotificationRepository? notifications,
   ReceiptPicker? receiptPicker,
   Future<void> Function(String text)? invitationSharer,
 }) {
@@ -2537,6 +2792,9 @@ Widget buildTestApp({
       ),
       dashboardRepositoryProvider.overrideWithValue(
         dashboard ?? FakeDashboardRepository(),
+      ),
+      notificationRepositoryProvider.overrideWithValue(
+        notifications ?? FakeNotificationRepository(),
       ),
       receiptPickerProvider.overrideWithValue(
         receiptPicker ?? FakeReceiptPicker(),

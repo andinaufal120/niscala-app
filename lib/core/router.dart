@@ -26,6 +26,9 @@ import 'package:niscala/features/managers/ui/manager_form_screen.dart';
 import 'package:niscala/features/managers/ui/manager_invitation_qr_screen.dart';
 import 'package:niscala/features/managers/ui/manager_invitation_share_screen.dart';
 import 'package:niscala/features/managers/ui/manager_list_screen.dart';
+import 'package:niscala/features/notifications/ui/notification_detail_screen.dart';
+import 'package:niscala/features/notifications/ui/notification_list_screen.dart';
+import 'package:niscala/features/notifications/ui/notification_settings_screen.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala/features/properties/ui/property_list_screen.dart';
@@ -59,6 +62,8 @@ const _managementComplaints = '/keluhan';
 const _tenantComplaints = '/penyewa/keluhan';
 const _tenantPayments = '/penyewa/pembayaran';
 const _managementPayments = '/pembayaran';
+const _managementNotifications = '/akun/notifikasi';
+const _tenantNotifications = '/penyewa/akun/notifikasi';
 
 /// The navigator of the whole app. Sub-pages are shown on it, above the tab
 /// shell, so they cover the bottom navigation bar. Tab roots stay in the shell.
@@ -108,7 +113,8 @@ String? redirectFor(SessionState session, String location) {
         final allowed =
             _tenantRoutes.contains(location) ||
             _isUnder(location, _tenantComplaints) ||
-            _isUnder(location, _tenantPayments);
+            _isUnder(location, _tenantPayments) ||
+            _isUnder(location, _tenantNotifications);
         return allowed ? null : _tenantHome;
       }
       if (role == UserRole.admin) {
@@ -121,7 +127,8 @@ String? redirectFor(SessionState session, String location) {
           _managementRoutes.contains(location) ||
           _isUnder(location, _managementPayments) ||
           _isUnder(location, _propertyRoot) ||
-          _isUnder(location, _managementComplaints);
+          _isUnder(location, _managementComplaints) ||
+          _isUnder(location, _managementNotifications);
       return allowed ? null : _managementHome;
   }
 }
@@ -196,6 +203,25 @@ StatefulShellBranch _accountBranch(String path, {bool showLease = false}) =>
             _subPage(
               path: 'undangan',
               builder: (context, state) => const AcceptInvitationScreen(),
+            ),
+            _subPage(
+              path: 'notifikasi',
+              builder: (context, state) => const NotificationListScreen(),
+              routes: [
+                // The settings route comes before `:notificationId`, so that
+                // `pengaturan` is not read as a notification id.
+                _subPage(
+                  path: 'pengaturan',
+                  builder: (context, state) =>
+                      const NotificationSettingsScreen(),
+                ),
+                _subPage(
+                  path: ':notificationId',
+                  builder: (context, state) => NotificationDetailScreen(
+                    notificationId: state.pathParameters['notificationId']!,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
