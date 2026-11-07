@@ -188,9 +188,8 @@ void main() {
         }),
       );
 
-      final b = (await h.repository.list(
-        statuses: [PaymentStatus.rejected],
-      )).single;
+      final b = (await h.repository.list(statuses: [PaymentStatus.rejected]))
+          .single;
 
       expect(b.amount, 800000);
       expect(b.daysOverdue, 3);
