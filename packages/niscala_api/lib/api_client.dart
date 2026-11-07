@@ -252,6 +252,8 @@ class ApiClient {
           return FacilitySuggestionList.fromJson(value);
         case 'GoogleAuthInput':
           return GoogleAuthInput.fromJson(value);
+        case 'Health':
+          return Health.fromJson(value);
         case 'InvitationAcceptancePreview':
           return InvitationAcceptancePreview.fromJson(value);
         case 'InvitationBlocker':

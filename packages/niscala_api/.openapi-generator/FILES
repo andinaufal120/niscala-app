@@ -42,6 +42,8 @@ doc/EmergencyContact.md
 doc/ErrorBody.md
 doc/FacilitySuggestionList.md
 doc/GoogleAuthInput.md
+doc/Health.md
+doc/HealthApi.md
 doc/InvitationAcceptancePreview.md
 doc/InvitationBlocker.md
 doc/InvitationGoogleActivationInput.md
@@ -161,6 +163,7 @@ lib/api/account_api.dart
 lib/api/auth_api.dart
 lib/api/complaints_api.dart
 lib/api/dashboard_api.dart
+lib/api/health_api.dart
 lib/api/invitations_api.dart
 lib/api/managers_api.dart
 lib/api/notifications_api.dart
@@ -214,6 +217,7 @@ lib/model/emergency_contact.dart
 lib/model/error_body.dart
 lib/model/facility_suggestion_list.dart
 lib/model/google_auth_input.dart
+lib/model/health.dart
 lib/model/invitation_acceptance_preview.dart
 lib/model/invitation_blocker.dart
 lib/model/invitation_google_activation_input.dart
@@ -357,6 +361,8 @@ test/emergency_contact_test.dart
 test/error_body_test.dart
 test/facility_suggestion_list_test.dart
 test/google_auth_input_test.dart
+test/health_api_test.dart
+test/health_test.dart
 test/invitation_acceptance_preview_test.dart
 test/invitation_blocker_test.dart
 test/invitation_google_activation_input_test.dart
