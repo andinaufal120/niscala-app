@@ -24,6 +24,18 @@ abstract interface class AccountRepository {
     required String currentPassword,
     required String newPassword,
   });
+
+  /// Gives an account that signs in with Google only a local password. The
+  /// token is a fresh ID token of the account's linked Google account. The
+  /// password is sent untrimmed. Returns the updated account.
+  Future<Account> addLocalPassword({
+    required String googleIdToken,
+    required String password,
+  });
+
+  /// Links the Google account of [idToken] to an account that has a password.
+  /// Returns the updated account.
+  Future<Account> linkGoogle(String idToken);
 }
 
 final accountRepositoryProvider = Provider<AccountRepository>((ref) {
@@ -87,6 +99,23 @@ class ApiAccountRepository implements AccountRepository {
       ),
     );
     return result!.hasOtherSessions;
+  });
+
+  @override
+  Future<Account> addLocalPassword({
+    required String googleIdToken,
+    required String password,
+  }) => _guard(() async {
+    final input = AddLocalPasswordInput(
+      googleIdToken: googleIdToken,
+      password: password,
+    );
+    return (await accountApi.addLocalPassword(input))!;
+  });
+
+  @override
+  Future<Account> linkGoogle(String idToken) => _guard(() async {
+    return (await accountApi.linkGoogle(LinkGoogleInput(idToken: idToken)))!;
   });
 
   Future<T> _guard<T>(Future<T> Function() call) async {
