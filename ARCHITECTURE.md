@@ -41,7 +41,7 @@ Riverpod 3 (no code generation) for state and dependency injection, `go_router` 
 
 ## 4. Session and routing
 
-`SessionController` holds `SessionLoading`, `SignedOut` or `SignedIn(role, emailVerified)`, persists tokens in secure storage and implements `TokenSource` for the HTTP client. `NiscalaApp` restores the stored session at start-up.
+`SessionController` holds `SessionLoading`, `SignedOut` or `SignedIn(role, emailVerified)`, persists tokens in secure storage and implements `TokenSource` for the HTTP client. `NiscalaApp` restores the stored session at start-up. It also checks the server with an unauthenticated `GET /health` at start-up and on every resume (`serverStatusProvider`). This wakes a cold backend before the first real request. While the last check failed, `ServerStatusBanner` (installed through `MaterialApp.router`'s `builder`) shows above every route.
 
 `redirectFor(state, location)` in `core/router.dart` is a pure function and the single place that decides where a session may be:
 
@@ -66,7 +66,7 @@ Each shell is a `StatefulShellRoute` with a bottom navigation bar (SPEC §6a).
 
 ## 6. Testing
 
-Tests are written before the code (`CLAUDE.md`, Workflow). Widget tests override the providers that cross the boundary (`sessionStoreProvider`, `refreshTokensProvider`, `logoutProvider`, and each feature's repository provider) with fakes from `test/helpers/fakes.dart`; no test calls a real server.
+Tests are written before the code (`CLAUDE.md`, Workflow). Widget tests override the providers that cross the boundary (`sessionStoreProvider`, `refreshTokensProvider`, `logoutProvider`, `healthRepositoryProvider`, and each feature's repository provider) with fakes from `test/helpers/fakes.dart`; no test calls a real server.
 
 ## 7. Open points
 

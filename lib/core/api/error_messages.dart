@@ -4,6 +4,10 @@ import 'package:niscala/core/api/api_failure.dart';
 /// screen shows.
 const genericErrorMessage = 'Terjadi kesalahan. Coba lagi.';
 
+/// The message for a server that answers but cannot serve requests.
+const serviceUnavailableMessage =
+    'Layanan sedang tidak tersedia. Coba lagi nanti.';
+
 /// The message for an invitation link that has passed its expiry date. The
 /// activation and acceptance screens show it for a link that is checked.
 const invitationExpiredMessage =
