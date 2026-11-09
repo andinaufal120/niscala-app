@@ -70,7 +70,7 @@ void main() {
 
         expect(find.text('Keamanan'), findsOneWidget);
         expect(find.text('Perangkat aktif'), findsOneWidget);
-        expect(find.text('Ubah kata sandi'), findsOneWidget);
+        expect(find.text('Kata sandi'), findsOneWidget);
         expect(find.text('Keluar'), findsOneWidget);
       });
 
@@ -122,7 +122,7 @@ void main() {
         await pumpAccountApp(tester, accounts, role: role);
 
         expect(find.text(_row), findsOneWidget);
-        expect(find.text('Ubah kata sandi'), findsNothing);
+        expect(find.text('Ubah'), findsNothing);
       });
 
       testWidgets('does not call the API before it is opened', (tester) async {

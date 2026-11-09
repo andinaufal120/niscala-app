@@ -12,7 +12,9 @@ import '../../helpers/fakes.dart';
 
 const _roles = [UserRole.owner, UserRole.manager, UserRole.tenant];
 
-const _row = 'Ubah kata sandi';
+/// The action of the Kata sandi row of an account with a password.
+const _row = 'Ubah';
+const _title = 'Ubah kata sandi';
 
 String _pagePath(UserRole role) => '${accountPath(role)}/kata-sandi';
 
@@ -29,7 +31,7 @@ FakeAccountRepository _googleOnly({UserRole role = UserRole.owner}) =>
     );
 
 void main() {
-  group('the Ubah kata sandi row', () {
+  group('the Ubah action of the Kata sandi row', () {
     for (final role in _roles) {
       testWidgets('is shown to a $role whose account has a password', (
         tester,
@@ -181,7 +183,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(currentPath(tester), _pagePath(role));
-        expect(appBarTitle(_row), findsOneWidget);
+        expect(appBarTitle(_title), findsOneWidget);
         expect(find.text('Simpan kata sandi'), findsOneWidget);
       });
 
@@ -226,7 +228,7 @@ void main() {
         );
 
         expect(currentPath(tester), _pagePath(role));
-        expect(appBarTitle(_row), findsOneWidget);
+        expect(appBarTitle(_title), findsOneWidget);
       });
     }
 

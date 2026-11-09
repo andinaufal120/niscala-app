@@ -28,6 +28,7 @@ Future<void> pumpAccountApp(
   String? path,
   FakeLeaseRepository? leases,
   Future<void> Function()? logout,
+  FakeGoogleIdentity? google,
   bool settle = true,
   bool largeText = false,
 }) async {
@@ -36,6 +37,7 @@ Future<void> pumpAccountApp(
     accounts: accounts,
     leases: leases ?? FakeLeaseRepository(lease: makeCurrentLease()),
     logout: logout,
+    google: google,
   );
   if (largeText) {
     await pumpAtLargeText(tester, app);

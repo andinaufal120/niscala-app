@@ -2652,6 +2652,64 @@ class FakeAccountRepository implements AccountRepository {
     if (failure != null) throw failure;
     return hasOtherSessions ?? devices.any((s) => !s.isCurrent);
   }
+
+  final addLocalPasswordScript = CallScript();
+  final linkGoogleScript = CallScript();
+
+  /// The arguments of every [addLocalPassword] call, in order, whether it
+  /// succeeded or not.
+  final localPasswordAdditions = <({String googleIdToken, String password})>[];
+
+  /// The ID token of every [linkGoogle] call, in order, whether it succeeded
+  /// or not.
+  final googleLinks = <String>[];
+
+  /// The Google email that [linkGoogle] links to the account.
+  String linkedGoogleEmail = 'andi@gmail.com';
+
+  int get addLocalPasswordCalls =>
+      calls.where((c) => c == 'addLocalPassword').length;
+  int get linkGoogleCalls => calls.where((c) => c == 'linkGoogle').length;
+
+  Account _withSignIn({bool? hasPassword, String? googleEmail}) => Account(
+    id: account.id,
+    name: account.name,
+    email: account.email,
+    emailVerified: account.emailVerified,
+    googleEmail: googleEmail ?? account.googleEmail,
+    hasPassword: hasPassword ?? account.hasPassword,
+    role: account.role,
+  );
+
+  /// Gives the account a password only when the call succeeds, so that a later
+  /// [me] shows it. It does not check the token: script
+  /// `addLocalPasswordScript` to fail it.
+  @override
+  Future<Account> addLocalPassword({
+    required String googleIdToken,
+    required String password,
+  }) async {
+    calls.add('addLocalPassword');
+    localPasswordAdditions.add((
+      googleIdToken: googleIdToken,
+      password: password,
+    ));
+    final failure = await addLocalPasswordScript.next();
+    if (failure != null) throw failure;
+    return account = _withSignIn(hasPassword: true);
+  }
+
+  /// Links [linkedGoogleEmail] to the account only when the call succeeds, so
+  /// that a later [me] shows it. It does not check the token: script
+  /// `linkGoogleScript` to fail it.
+  @override
+  Future<Account> linkGoogle(String idToken) async {
+    calls.add('linkGoogle');
+    googleLinks.add(idToken);
+    final failure = await linkGoogleScript.next();
+    if (failure != null) throw failure;
+    return account = _withSignIn(googleEmail: linkedGoogleEmail);
+  }
 }
 
 /// An [OccupancyRoom] with sensible defaults: room 08, occupied.

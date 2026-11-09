@@ -1136,7 +1136,7 @@ void main() {
     ) async {
       final repo = _alone();
       await pumpAccountApp(tester, repo);
-      await tester.tap(find.text('Ubah kata sandi'));
+      await tester.tap(find.text('Ubah'));
       await tester.pumpAndSettle();
       expect(currentPath(tester), _pagePath(UserRole.owner));
 
