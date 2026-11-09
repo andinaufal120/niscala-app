@@ -23,13 +23,15 @@ String complaintListPath(UserRole role) =>
 /// tenant has exactly one lease, room 08 of Kos Melati. With [settle] false only
 /// a few frames are pumped, so a held `gate` keeps the screen in its loading
 /// state. With [largeText] the display is 360 x 640 dp at text scale 2.0 and
-/// the test fails on any overflow.
+/// the test fails on any overflow. [picker] is behind the photo chooser of the
+/// tenant screens.
 Future<void> pumpComplaintApp(
   WidgetTester tester,
   FakeComplaintRepository complaints, {
   UserRole role = UserRole.tenant,
   String? path,
   FakeLeaseRepository? leases,
+  FakeImageChooser? picker,
   bool settle = true,
   bool largeText = false,
 }) async {
@@ -37,6 +39,7 @@ Future<void> pumpComplaintApp(
     store: InMemorySessionStore(storedSession(role: role)),
     complaints: complaints,
     leases: leases ?? FakeLeaseRepository(lease: makeCurrentLease()),
+    receiptPicker: picker,
   );
   if (largeText) {
     await pumpAtLargeText(tester, app);
