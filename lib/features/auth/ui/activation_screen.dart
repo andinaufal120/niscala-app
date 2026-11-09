@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/google/google_identity.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/google_button.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/auth/data/invitation_repository.dart';
 import 'package:niscala/features/auth/invitation_link.dart';
@@ -170,18 +172,12 @@ class _ActivationFormState extends ConsumerState<_ActivationForm> {
     final name = _name.text.trim();
     final email = _email.text.trim();
     final password = _password.text;
-    final requiresContacts = widget.preview.emergencyContactsRequired;
-
     final nameError = name.isEmpty ? 'Nama wajib diisi.' : null;
     final emailError = signUpEmailError(email);
     final passwordError = newPasswordError(password);
     final confirmError = confirmPasswordError(password, _confirm.text);
-    final contactsError =
-        requiresContacts && _contacts.length < minEmergencyContacts
-        ? emergencyContactsMinimum
-        : null;
-    final contactsValid = [for (final draft in _contacts) draft.validate()]
-        .every((valid) => valid);
+    final contactsError = _contactCountError();
+    final contactsValid = _contactsValid();
     final valid =
         nameError == null &&
         emailError == null &&
@@ -208,22 +204,93 @@ class _ActivationFormState extends ConsumerState<_ActivationForm> {
             name: name,
             email: email,
             password: password,
-            emergencyContacts: requiresContacts
-                ? [
-                    for (final draft in _contacts)
-                      EmergencyContact(
-                        name: draft.name.text.trim(),
-                        relationship: draft.relationship.text.trim(),
-                        phone: draft.phone.text.trim(),
-                      ),
-                  ]
-                : null,
+            emergencyContacts: _emergencyContactsOrNull(),
           );
       await ref.read(sessionControllerProvider.notifier).signIn(session);
     } on ApiFailure catch (failure) {
       if (!mounted) return;
       _showFailure(failure);
     }
+  }
+
+  /// The error of too few emergency contacts, or null when the invitation needs
+  /// none or enough are given.
+  String? _contactCountError() =>
+      widget.preview.emergencyContactsRequired &&
+          _contacts.length < minEmergencyContacts
+      ? emergencyContactsMinimum
+      : null;
+
+  /// Whether every contact block is filled in. Each block shows its own errors.
+  bool _contactsValid() =>
+      [for (final draft in _contacts) draft.validate()].every((valid) => valid);
+
+  /// The contacts to send, trimmed, or null when the invitation needs none.
+  List<EmergencyContact>? _emergencyContactsOrNull() =>
+      widget.preview.emergencyContactsRequired
+      ? [
+          for (final draft in _contacts)
+            EmergencyContact(
+              name: draft.name.text.trim(),
+              relationship: draft.relationship.text.trim(),
+              phone: draft.phone.text.trim(),
+            ),
+        ]
+      : null;
+
+  /// Activates with the Google account. The name and the contacts are checked
+  /// first, so the chooser opens only for a complete form.
+  Future<void> _activateWithGoogle() async {
+    if (_busy) return;
+    final name = _name.text.trim();
+    final nameError = name.isEmpty ? 'Nama wajib diisi.' : null;
+    final contactsError = _contactCountError();
+    final contactsValid = _contactsValid();
+    final valid = nameError == null && contactsError == null && contactsValid;
+    setState(() {
+      _nameError = nameError;
+      _contactsError = contactsError;
+      _banner = null;
+      _busy = valid;
+    });
+    if (!valid) return;
+
+    try {
+      final idToken = await ref.read(googleIdentityProvider).idToken();
+      if (idToken == null) {
+        if (mounted) setState(() => _busy = false);
+        return;
+      }
+      final session = await ref
+          .read(invitationRepositoryProvider)
+          .activateWithGoogle(
+            token: widget.token,
+            name: name,
+            idToken: idToken,
+            emergencyContacts: _emergencyContactsOrNull(),
+          );
+      await ref.read(sessionControllerProvider.notifier).signIn(session);
+    } on Object catch (error) {
+      if (!mounted) return;
+      _showGoogleFailure(error);
+    }
+  }
+
+  /// A name the API rejects is shown on the name field; any other failure is
+  /// shown in the banner.
+  void _showGoogleFailure(Object error) {
+    final isNameError =
+        error is ApiFailure &&
+        error.code == 'VALIDATION_FAILED' &&
+        error.field == 'name';
+    setState(() {
+      _busy = false;
+      if (isNameError) {
+        _nameError = errorMessageFor(error, labels: personFormLabels);
+      } else {
+        _banner = errorMessageFor(error);
+      }
+    });
   }
 
   /// Shows a failure next to the field it belongs to, or as a banner.
@@ -283,6 +350,13 @@ class _ActivationFormState extends ConsumerState<_ActivationForm> {
         ),
         const SizedBox(height: 4),
         Text(_placeLine(preview), style: theme.textTheme.bodyMedium),
+        formGap,
+        GoogleButton(
+          label: 'Aktifkan dengan Google',
+          onPressed: _busy ? null : _activateWithGoogle,
+        ),
+        formGap,
+        const EmailDivider(),
         formGap,
         LabeledField(
           label: 'Nama lengkap',

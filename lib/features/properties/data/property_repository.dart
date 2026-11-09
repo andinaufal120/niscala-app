@@ -19,6 +19,10 @@ abstract interface class PropertyRepository {
   /// Confirms the caller's password, which the API asks for before a change
   /// that needs a recent re-authentication.
   Future<void> reauthenticateWithPassword(String password);
+
+  /// Confirms the caller's identity with the Google account of [idToken], for
+  /// an account that has no password.
+  Future<void> reauthenticateWithGoogle(String idToken);
 }
 
 final propertyRepositoryProvider = Provider<PropertyRepository>((ref) {
@@ -77,6 +81,13 @@ class ApiPropertyRepository implements PropertyRepository {
   Future<void> reauthenticateWithPassword(String password) => _guard(() async {
     await account.reauthenticateWithPassword(
       ReauthenticationPasswordInput(password: password),
+    );
+  });
+
+  @override
+  Future<void> reauthenticateWithGoogle(String idToken) => _guard(() async {
+    await account.reauthenticateWithGoogle(
+      ReauthenticationGoogleInput(idToken: idToken),
     );
   });
 

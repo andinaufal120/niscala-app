@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/google/google_identity.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/google_button.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/auth/ui/auth_widgets.dart';
@@ -76,6 +78,45 @@ class _RegisterOwnerScreenState extends ConsumerState<RegisterOwnerScreen> {
     }
   }
 
+  Future<void> _signUpWithGoogle() async {
+    if (_busy) return;
+    setState(() {
+      _banner = null;
+      _busy = true;
+    });
+    try {
+      final idToken = await ref.read(googleIdentityProvider).idToken();
+      if (idToken == null) {
+        if (mounted) setState(() => _busy = false);
+        return;
+      }
+      final session = await ref
+          .read(authRepositoryProvider)
+          .registerOwnerWithGoogle(idToken, name: _name.text);
+      await ref.read(sessionControllerProvider.notifier).signIn(session);
+    } on Object catch (error) {
+      if (!mounted) return;
+      _showGoogleFailure(error);
+    }
+  }
+
+  /// A name the API rejects is shown on the name field; any other failure is
+  /// shown in the banner.
+  void _showGoogleFailure(Object error) {
+    final isNameError =
+        error is ApiFailure &&
+        error.code == 'VALIDATION_FAILED' &&
+        error.field == 'name';
+    setState(() {
+      _busy = false;
+      if (isNameError) {
+        _nameError = errorMessageFor(error, labels: personFormLabels);
+      } else {
+        _banner = errorMessageFor(error);
+      }
+    });
+  }
+
   void _showFailure(ApiFailure failure) {
     final message = errorMessageFor(failure, labels: personFormLabels);
     final field = switch (failure.code) {
@@ -116,6 +157,13 @@ class _RegisterOwnerScreenState extends ConsumerState<RegisterOwnerScreen> {
       ),
       children: [
         if (_banner != null) ...[FormMessage(_banner!), formGap],
+        GoogleButton(
+          label: 'Daftar dengan Google',
+          onPressed: _busy ? null : _signUpWithGoogle,
+        ),
+        formGap,
+        const EmailDivider(),
+        formGap,
         LabeledField(
           label: 'Nama lengkap',
           required: true,

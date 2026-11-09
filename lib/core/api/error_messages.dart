@@ -52,6 +52,14 @@ const _messages = {
   'TOO_MANY_LOGIN_ATTEMPTS':
       'Terlalu banyak percobaan masuk yang gagal. Coba lagi dalam 15 menit.',
   'EMAIL_ALREADY_REGISTERED': 'Email sudah terdaftar.',
+  'GOOGLE_TOKEN_INVALID': 'Masuk dengan Google gagal. Coba lagi.',
+  'GOOGLE_EMAIL_UNVERIFIED': 'Email akun Google ini belum terverifikasi.',
+  'GOOGLE_ACCOUNT_ALREADY_REGISTERED':
+      'Akun Google ini sudah terdaftar. Masuk dengan Google.',
+  'GOOGLE_ACCOUNT_MISMATCH':
+      'Akun Google yang dipilih berbeda dari akun yang terhubung.',
+  'GOOGLE_SIGN_IN_UNAVAILABLE': 'Masuk dengan Google belum tersedia.',
+  'ACCOUNT_INACTIVE': 'Akun ini dinonaktifkan. Hubungi admin.',
   'EMAIL_NOT_VERIFIED': 'Email belum diverifikasi.',
   'EMAIL_ALREADY_VERIFIED': 'Email sudah diverifikasi.',
   'VERIFICATION_CODE_INVALID': 'Kode verifikasi salah.',

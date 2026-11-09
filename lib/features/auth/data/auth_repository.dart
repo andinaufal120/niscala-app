@@ -9,11 +9,18 @@ import 'package:niscala_api/api.dart';
 abstract interface class AuthRepository {
   Future<AuthSession> login({required String email, required String password});
 
+  /// Logs in with the Google account of [idToken] and starts a session.
+  Future<AuthSession> loginWithGoogle(String idToken);
+
   Future<AuthSession> registerOwner({
     required String name,
     required String email,
     required String password,
   });
+
+  /// Signs up an Owner with the Google account of [idToken]. A null or blank
+  /// [name] is sent as no name.
+  Future<AuthSession> registerOwnerWithGoogle(String idToken, {String? name});
 
   Future<Account> getMyAccount();
 
@@ -79,6 +86,14 @@ class ApiAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<AuthSession> loginWithGoogle(String idToken) {
+    return _guard(() async {
+      final input = GoogleAuthInput(device: await device(), idToken: idToken);
+      return (await auth.loginWithGoogle(input))!;
+    });
+  }
+
+  @override
   Future<AuthSession> registerOwner({
     required String name,
     required String email,
@@ -92,6 +107,18 @@ class ApiAuthRepository implements AuthRepository {
         password: password,
       );
       return (await auth.registerOwner(input))!;
+    });
+  }
+
+  @override
+  Future<AuthSession> registerOwnerWithGoogle(String idToken, {String? name}) {
+    return _guard(() async {
+      final input = GoogleAuthInput(
+        device: await device(),
+        idToken: idToken,
+        name: _nonBlank(name),
+      );
+      return (await auth.registerOwnerWithGoogle(input))!;
     });
   }
 
@@ -142,4 +169,10 @@ class ApiAuthRepository implements AuthRepository {
       throw toApiFailure(error);
     }
   }
+}
+
+/// The trimmed [value], or null when it is missing or blank.
+String? _nonBlank(String? value) {
+  final trimmed = value?.trim();
+  return trimmed == null || trimmed.isEmpty ? null : trimmed;
 }

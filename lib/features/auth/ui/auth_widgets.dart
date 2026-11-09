@@ -121,6 +121,31 @@ class PasswordStrengthHint extends StatelessWidget {
   }
 }
 
+/// The line that separates the Google button from the email form.
+class EmailDivider extends StatelessWidget {
+  const EmailDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Expanded(child: Divider()),
+        Flexible(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: NiscalaSpacing.s),
+            child: Text(
+              'atau dengan email',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ),
+        const Expanded(child: Divider()),
+      ],
+    );
+  }
+}
+
 Color _strengthColor(ColorScheme scheme, PasswordStrength strength) =>
     switch (strength) {
       PasswordStrength.weak => scheme.error,
