@@ -199,6 +199,128 @@ void main() {
     });
   });
 
+  group('activateWithGoogle', () {
+    Future<AuthSession> activateWithGoogle(
+      _Harness h, {
+      List<EmergencyContact>? emergencyContacts,
+    }) => h.repository.activateWithGoogle(
+      token: 'abc123',
+      name: 'Budi Santoso',
+      idToken: 'id-token-1',
+      emergencyContacts: emergencyContacts,
+    );
+
+    test('posts the token, name, ID token and device and returns the '
+        'session', () async {
+      final session = authSessionFor(UserRole.tenant);
+      final h = _Harness((_) => _ok(session.toJson()));
+
+      final result = await activateWithGoogle(h);
+
+      expect(h.request.method, 'POST');
+      expect(h.request.url.path, '/invitations/activations/google');
+      expect(h.body['token'], 'abc123');
+      expect(h.body['name'], 'Budi Santoso');
+      expect(h.body['idToken'], 'id-token-1');
+      expect(h.body['device'], {'name': 'Pixel 8', 'platform': 'android'});
+      expect(h.body.containsKey('email'), isFalse);
+      expect(h.body.containsKey('password'), isFalse);
+      expect(result.accessToken, session.accessToken);
+      expect(result.refreshToken, session.refreshToken);
+      expect(result.account.role, UserRole.tenant);
+      expect(result.account.emailVerified, isTrue);
+    });
+
+    test('returns a manager session', () async {
+      final h = _Harness((_) => _ok(authSessionFor(UserRole.manager).toJson()));
+
+      final result = await activateWithGoogle(h);
+
+      expect(result.account.role, UserRole.manager);
+    });
+
+    test('sends no emergency contacts when none are given', () async {
+      final h = _Harness((_) => _ok(authSessionFor(UserRole.tenant).toJson()));
+
+      await activateWithGoogle(h);
+
+      expect(h.body['emergencyContacts'], isNull);
+    });
+
+    test('sends the emergency contacts when given', () async {
+      final h = _Harness((_) => _ok(authSessionFor(UserRole.tenant).toJson()));
+
+      await activateWithGoogle(
+        h,
+        emergencyContacts: [
+          EmergencyContact(
+            name: 'Ibu Budi',
+            relationship: 'Ibu',
+            phone: '081255204471',
+          ),
+          EmergencyContact(
+            name: 'Adi',
+            relationship: 'Kakak',
+            phone: '081311112222',
+          ),
+        ],
+      );
+
+      expect(h.body['emergencyContacts'], [
+        {'name': 'Ibu Budi', 'relationship': 'Ibu', 'phone': '081255204471'},
+        {'name': 'Adi', 'relationship': 'Kakak', 'phone': '081311112222'},
+      ]);
+    });
+
+    for (final entry in {
+      'GOOGLE_TOKEN_INVALID': 401,
+      'GOOGLE_EMAIL_UNVERIFIED': 400,
+      'GOOGLE_ACCOUNT_ALREADY_REGISTERED': 409,
+      'EMAIL_ALREADY_REGISTERED': 409,
+      'INVITATION_NOT_FOUND': 404,
+      'INVITATION_EXPIRED': 410,
+      'INVITATION_USED': 409,
+    }.entries) {
+      test('keeps the code and status of a ${entry.key} error', () async {
+        final h = _Harness((_) => _error(entry.value, entry.key));
+
+        await expectLater(
+          activateWithGoogle(h),
+          throwsA(_failure(entry.key, status: entry.value)),
+        );
+      });
+    }
+
+    test('keeps the field of a validation error', () async {
+      final h = _Harness(
+        (_) => _error(422, 'VALIDATION_FAILED', field: 'name'),
+      );
+
+      await expectLater(
+        activateWithGoogle(h),
+        throwsA(_failure('VALIDATION_FAILED', field: 'name', status: 422)),
+      );
+    });
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(const SocketException('no route'));
+
+      await expectLater(
+        activateWithGoogle(h),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+
+    test('maps a server error without a body to INTERNAL_ERROR', () async {
+      final h = _Harness((_) => http.Response('', 503));
+
+      await expectLater(
+        activateWithGoogle(h),
+        throwsA(_failure('INTERNAL_ERROR', status: 503)),
+      );
+    });
+  });
+
   group('activateWithPassword', () {
     test(
       'posts the sign-up data and the device and returns the session',

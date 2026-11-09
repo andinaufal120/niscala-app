@@ -54,12 +54,6 @@ void main() {
       expect(find.text('Daftar'), findsOneWidget);
     });
 
-    testWidgets('has no Google button', (tester) async {
-      await pumpLogin(tester, auth);
-
-      expect(find.textContaining('Google'), findsNothing);
-    });
-
     testWidgets('offers the forgotten password link', (tester) async {
       await pumpLogin(tester, auth);
 

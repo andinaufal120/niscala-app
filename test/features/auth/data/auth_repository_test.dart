@@ -192,6 +192,141 @@ void main() {
     });
   });
 
+  group('loginWithGoogle', () {
+    test('posts the ID token and the device and returns the session', () async {
+      final h = _Harness((_) => _ok(session.toJson()));
+
+      final result = await h.repository.loginWithGoogle('id-token-1');
+
+      expect(h.request.method, 'POST');
+      expect(h.request.url.path, '/auth/login/google');
+      expect(h.body['idToken'], 'id-token-1');
+      expect(h.body['device'], {'name': 'Pixel 8', 'platform': 'android'});
+      expect(h.body['name'], isNull);
+      expect(result.accessToken, session.accessToken);
+      expect(result.refreshToken, session.refreshToken);
+      expect(result.account.role, UserRole.owner);
+      expect(result.account.emailVerified, isTrue);
+    });
+
+    for (final entry in {
+      'GOOGLE_TOKEN_INVALID': 401,
+      'INVALID_CREDENTIALS': 401,
+      'ACCOUNT_INACTIVE': 403,
+      'TOO_MANY_LOGIN_ATTEMPTS': 429,
+    }.entries) {
+      test('keeps the code and status of a ${entry.key} error', () async {
+        final h = _Harness((_) => _error(entry.value, entry.key));
+
+        await expectLater(
+          h.repository.loginWithGoogle('id-token-1'),
+          throwsA(_failure(entry.key, status: entry.value)),
+        );
+      });
+    }
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(const SocketException('no route'));
+
+      await expectLater(
+        h.repository.loginWithGoogle('id-token-1'),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+
+    test('maps a server error without a body to INTERNAL_ERROR', () async {
+      final h = _Harness((_) => http.Response('', 500));
+
+      await expectLater(
+        h.repository.loginWithGoogle('id-token-1'),
+        throwsA(_failure('INTERNAL_ERROR', status: 500)),
+      );
+    });
+  });
+
+  group('registerOwnerWithGoogle', () {
+    test('posts the ID token, the name and the device', () async {
+      final h = _Harness((_) => _ok(session.toJson()));
+
+      final result = await h.repository.registerOwnerWithGoogle(
+        'id-token-1',
+        name: 'Budi Santoso',
+      );
+
+      expect(h.request.method, 'POST');
+      expect(h.request.url.path, '/auth/register/google');
+      expect(h.body['idToken'], 'id-token-1');
+      expect(h.body['name'], 'Budi Santoso');
+      expect(h.body['device'], {'name': 'Pixel 8', 'platform': 'android'});
+      expect(result.account.role, UserRole.owner);
+      expect(result.account.emailVerified, isTrue);
+    });
+
+    test('sends no name when none is given', () async {
+      final h = _Harness((_) => _ok(session.toJson()));
+
+      await h.repository.registerOwnerWithGoogle('id-token-1');
+
+      expect(h.body['idToken'], 'id-token-1');
+      expect(h.body['name'], isNull);
+    });
+
+    test('sends no name when the name is blank', () async {
+      final h = _Harness((_) => _ok(session.toJson()));
+
+      await h.repository.registerOwnerWithGoogle('id-token-1', name: '  \t ');
+
+      expect(h.body['name'], isNull);
+    });
+
+    test('trims the name', () async {
+      final h = _Harness((_) => _ok(session.toJson()));
+
+      await h.repository.registerOwnerWithGoogle(
+        'id-token-1',
+        name: '  Budi Santoso ',
+      );
+
+      expect(h.body['name'], 'Budi Santoso');
+    });
+
+    for (final entry in {
+      'GOOGLE_ACCOUNT_ALREADY_REGISTERED': 409,
+      'EMAIL_ALREADY_REGISTERED': 409,
+      'GOOGLE_EMAIL_UNVERIFIED': 400,
+      'GOOGLE_TOKEN_INVALID': 401,
+    }.entries) {
+      test('keeps the code and status of a ${entry.key} error', () async {
+        final h = _Harness((_) => _error(entry.value, entry.key));
+
+        await expectLater(
+          h.repository.registerOwnerWithGoogle('id-token-1'),
+          throwsA(_failure(entry.key, status: entry.value)),
+        );
+      });
+    }
+
+    test('keeps the field of a validation error', () async {
+      final h = _Harness(
+        (_) => _error(422, 'VALIDATION_FAILED', field: 'name'),
+      );
+
+      await expectLater(
+        h.repository.registerOwnerWithGoogle('id-token-1', name: 'x' * 101),
+        throwsA(_failure('VALIDATION_FAILED', field: 'name', status: 422)),
+      );
+    });
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(const SocketException('no route'));
+
+      await expectLater(
+        h.repository.registerOwnerWithGoogle('id-token-1'),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+  });
+
   group('getMyAccount', () {
     test('gets the account of the signed-in user', () async {
       final account = authSessionFor(

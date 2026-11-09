@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:niscala/features/account/data/account_repository.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
@@ -24,12 +25,18 @@ Future<void> pumpPropertyApp(
   bool largeText = false,
   FakeRoomRepository? rooms,
   FakeTenantRepository? tenants,
+  FakeAuthRepository? auth,
+  AccountRepository? accounts,
+  FakeGoogleIdentity? google,
 }) async {
   final app = buildTestApp(
     store: InMemorySessionStore(storedSession(role: role)),
     properties: repo,
     rooms: rooms,
     tenants: tenants,
+    auth: auth,
+    accounts: accounts,
+    google: google,
   );
   if (largeText) {
     await pumpAtLargeText(tester, app);
