@@ -29,6 +29,26 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 
 Release builds must use an HTTPS URL.
 
+### Local configuration
+
+Per-developer settings live in a `.env` file that is not committed. Copy `.env.example` to `.env`, fill it in and pass it to Flutter:
+
+```sh
+cp .env.example .env
+flutter run --dart-define-from-file=.env
+```
+
+| Key | Meaning |
+|---|---|
+| `API_BASE_URL` | Base URL of the API. Defaults to `http://10.0.2.2:8000`. |
+| `GOOGLE_SERVER_CLIENT_ID` | OAuth **Web** client ID used to get Google ID tokens. Without it the Google buttons say that Google sign-in is not available yet. |
+
+The Web client ID is not a secret (it ends up in the APK), but it differs per environment. To make Google sign-in work:
+
+1. In Google Cloud, create an OAuth client of type *Android* for `com.andinaufal.niscala` with the SHA-1 of your debug or release key, and an OAuth client of type *Web*.
+2. Put the Web client ID in `.env` as `GOOGLE_SERVER_CLIENT_ID`.
+3. Add the same Web client ID to `GOOGLE_CLIENT_IDS` in the niscala-api environment, so the API accepts tokens issued for it.
+
 ## Docs
 
 - `docs/SPEC.md`: what the app has to do
