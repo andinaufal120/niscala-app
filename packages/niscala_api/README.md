@@ -92,6 +92,7 @@ Class | Method | HTTP request | Description
 *ComplaintsApi* | [**listComplaints**](doc//ComplaintsApi.md#listcomplaints) | **GET** /complaints | List Complaints
 *ComplaintsApi* | [**uploadComplaintPhoto**](doc//ComplaintsApi.md#uploadcomplaintphoto) | **PUT** /complaints/{complaintId}/photo | Upload Complaint Photo
 *DashboardApi* | [**getOccupancyDashboard**](doc//DashboardApi.md#getoccupancydashboard) | **GET** /occupancy-dashboard | Get Occupancy Dashboard
+*HealthApi* | [**getHealth**](doc//HealthApi.md#gethealth) | **GET** /health | Get Health
 *InvitationsApi* | [**acceptInvitation**](doc//InvitationsApi.md#acceptinvitation) | **POST** /invitations/acceptances | Accept Invitation
 *InvitationsApi* | [**activateInvitationWithGoogle**](doc//InvitationsApi.md#activateinvitationwithgoogle) | **POST** /invitations/activations/google | Activate Invitation With Google
 *InvitationsApi* | [**activateInvitationWithPassword**](doc//InvitationsApi.md#activateinvitationwithpassword) | **POST** /invitations/activations/password | Activate Invitation With Password
@@ -190,6 +191,7 @@ Class | Method | HTTP request | Description
  - [ErrorBody](doc//ErrorBody.md)
  - [FacilitySuggestionList](doc//FacilitySuggestionList.md)
  - [GoogleAuthInput](doc//GoogleAuthInput.md)
+ - [Health](doc//Health.md)
  - [InvitationAcceptancePreview](doc//InvitationAcceptancePreview.md)
  - [InvitationBlocker](doc//InvitationBlocker.md)
  - [InvitationGoogleActivationInput](doc//InvitationGoogleActivationInput.md)

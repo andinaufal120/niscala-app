@@ -1005,6 +1005,20 @@
         "title": "GoogleAuthInput",
         "type": "object"
       },
+      "Health": {
+        "description": "Whether the service can reach its database.",
+        "properties": {
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
       "InvitationAcceptancePreview": {
         "description": "Whether the caller's account can accept an invitation.",
         "properties": {
@@ -5116,6 +5130,38 @@
         "summary": "Change Complaint Status",
         "tags": [
           "complaints"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "Report \"ok\" when the database answers a query, else 503 with \"unavailable\".",
+        "operationId": "get_health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Health",
+        "tags": [
+          "health"
         ]
       }
     },

@@ -165,6 +165,7 @@ These apply to every use case below. Use cases do not repeat them.
 12. **Lists:** filter chips sit in the page body, not the header. Default filters are given per use case.
 13. **Money** is shown as "Rp800.000", with no space between "Rp" and the number.
 14. **Dates** are shown as day, abbreviated Indonesian month and year, for example "18 Okt 2026".
+15. **Server unreachable:** the app checks the server at launch and each time it returns from the background. If the check fails, a banner stays at the top of every screen until a later check succeeds. It says either that there is no internet connection or that the service is unavailable, and has a *Coba lagi* button. The rest of the app still works.
 
 ## 6a. Navigation
 
@@ -378,7 +379,7 @@ Conventions, as the backend defines them:
 
 Endpoints: see the backend's OpenAPI document. The app keeps its copy in `api/openapi.json` and regenerates the Dart client with `tool/generate_api_client.sh`.
 
-The response shape of `/health` is undecided (see U-1 in §10).
+`GET /health` needs no authentication and answers 200 when the service and its database are reachable, 503 otherwise. The app reads only the status (§6 rule 15).
 
 ### Push message
 
@@ -400,7 +401,6 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 |-------|----------------------------------------------------------------------------------------------------------------------------------|---------------------|
 | TBD-2 | Minimum Android version (minSdk). Tracked in NKMA-24.                                                                            | Build config        |
 | TBD-3 | Google Play server-side integration: how the backend learns of renewals, cancellations, expiry and refunds (real-time developer notifications endpoint, its authentication, scheduled reconciliation), service account, test environment. | UC-31, UC-32 |
-| U-1   | `/health` response shape.                                                                                                        | §9, NKMA-22         |
 | U-4   | Invitation and password-reset link handling: how a link opens the app (Android App Links / deep link) and what happens if the app is not installed. | UC-18, UC-20, FR-01, NFR-11 |
 | U-9   | The complete list of error codes, and declaring them in the OpenAPI document.                                                    | §6, §7              |
 | U-16  | Complaint category list (the prototype list is placeholder data).                                                                | UC-02, UC-23, UC-36 |
@@ -443,4 +443,5 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 03-11-2026 | Interim password reset by pasted link, until U-4 is decided (§7).                                              | NKMA-103   |
 | 03-11-2026 | Admin navigation defined (§6a).                                                                                | NKMA-81    |
 | 03-11-2026 | UC-34 pending email change and interim confirmation by pasted link.                                            | NKMA-82    |
+| 07-11-2026 | §6 rule 15: the app checks the server at launch and on resume and shows a banner when it is unreachable. U-1 decided in the backend: `/health` answers 200 or 503; §9 updated and the row removed from §10. | NKMA-22    |
 | 09-11-2026 | One Tenant account may rent in several places (shared Tenant glossary row and Tenant activation rule).         | NKMA-108   |

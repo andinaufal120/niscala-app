@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/app.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/api/health_repository.dart';
 import 'package:niscala/core/push/push_messaging.dart';
 import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/features/account/data/account_repository.dart';
@@ -3092,7 +3093,26 @@ class FakePushMessaging implements PushMessaging {
   void receiveForeground() => _foreground.add(null);
 }
 
+/// A [HealthRepository] that counts its calls and answers from [script].
+///
+/// Each call first takes the next scripted outcome (null means success). Set
+/// `script.gate` to hold every call in flight until it completes.
+class FakeHealthRepository implements HealthRepository {
+  final script = CallScript();
+
+  var checks = 0;
+
+  @override
+  Future<void> check() async {
+    checks++;
+    final failure = await script.next();
+    if (failure != null) throw failure;
+  }
+}
+
 /// The whole app with a fake session store and no network.
+///
+/// Without [health] every server check succeeds.
 ///
 /// Without [push] the app gets a [FakePushMessaging] that grants the permission
 /// and has no token, so nothing is registered.
@@ -3116,6 +3136,7 @@ Widget buildTestApp({
   DashboardRepository? dashboard,
   NotificationRepository? notifications,
   UserAccountRepository? userAccounts,
+  HealthRepository? health,
   PushMessaging? push,
   ReceiptPicker? receiptPicker,
   Future<void> Function(String text)? invitationSharer,
@@ -3161,6 +3182,9 @@ Widget buildTestApp({
       ),
       userAccountRepositoryProvider.overrideWithValue(
         userAccounts ?? FakeUserAccountRepository(),
+      ),
+      healthRepositoryProvider.overrideWithValue(
+        health ?? FakeHealthRepository(),
       ),
       pushMessagingProvider.overrideWithValue(push ?? FakePushMessaging()),
       receiptPickerProvider.overrideWithValue(
