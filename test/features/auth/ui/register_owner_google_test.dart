@@ -129,10 +129,10 @@ void main() {
 
       await _tapGoogle(tester);
 
-      for (final label in [_name, _email, _password, _confirm]) {
-        expect(fieldError(tester, label), isNull);
-      }
       expect(auth.googleRegistrations, hasLength(1));
+      expect(auth.registrations, isEmpty);
+      expect(currentPath(tester), '/beranda');
+      expect(find.byType(RegisterOwnerScreen), findsNothing);
     });
 
     testWidgets('ignores a typed email and password', (tester) async {
@@ -144,8 +144,8 @@ void main() {
 
       expect(auth.googleRegistrations, hasLength(1));
       expect(auth.registrations, isEmpty);
-      expect(fieldError(tester, _email), isNull);
-      expect(fieldError(tester, _password), isNull);
+      expect(currentPath(tester), '/beranda');
+      expect(find.byType(RegisterOwnerScreen), findsNothing);
     });
 
     testWidgets('sends the typed full name', (tester) async {

@@ -209,9 +209,9 @@ void main() {
       await _tapGoogle(tester);
 
       expect(invitations.googleActivations, hasLength(1));
-      for (final label in [_email, _password, _confirm]) {
-        expect(fieldError(tester, label), isNull);
-      }
+      expect(invitations.activations, isEmpty);
+      expect(currentPath(tester), '/penyewa/beranda');
+      expect(find.byType(ActivationScreen), findsNothing);
     });
 
     testWidgets('ignores what is typed in the email and password fields', (
@@ -226,9 +226,8 @@ void main() {
 
       expect(invitations.googleActivations, hasLength(1));
       expect(invitations.activations, isEmpty);
-      expect(fieldError(tester, _email), isNull);
-      expect(fieldError(tester, _password), isNull);
-      expect(fieldError(tester, _confirm), isNull);
+      expect(currentPath(tester), '/penyewa/beranda');
+      expect(find.byType(ActivationScreen), findsNothing);
     });
 
     testWidgets('a verified tenant lands on the tenant home', (tester) async {
