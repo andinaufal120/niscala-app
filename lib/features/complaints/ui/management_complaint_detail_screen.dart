@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
@@ -203,6 +204,13 @@ class _ManagementComplaintDetailScreenState
                   'Dikirim ${formatDate(c.createdAt.toLocal())}',
                   style: theme.textTheme.bodySmall,
                 ),
+                if (c.hasPhoto) ...[
+                  const SizedBox(height: 8),
+                  ComplaintPhotoTile(
+                    sentAt: c.createdAt,
+                    onOpen: () => context.go('/keluhan/${c.id}/foto'),
+                  ),
+                ],
               ],
             ),
           ),

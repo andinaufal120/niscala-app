@@ -59,3 +59,21 @@ String? imageMediaType(Uint8List bytes) {
   }
   return null;
 }
+
+/// The largest image that can be sent, in bytes.
+const maxImageBytes = 5 * 1024 * 1024;
+
+/// Shown when the camera or the gallery cannot be used.
+const imageAccessDeniedMessage =
+    'Tidak bisa mengakses kamera atau galeri. Periksa izin aplikasi.';
+
+/// Why an image cannot be sent.
+enum ImageRejection { type, tooLarge }
+
+/// The reason [image] cannot be sent, or null when it is a JPG or PNG of at
+/// most [maxImageBytes]. The content decides the type, not the file name.
+ImageRejection? imageRejection(PickedImage image) {
+  if (imageMediaType(image.bytes) == null) return ImageRejection.type;
+  if (image.bytes.length > maxImageBytes) return ImageRejection.tooLarge;
+  return null;
+}

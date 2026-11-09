@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/image_chooser.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/core/widgets/detail_app_bar.dart';
@@ -11,6 +12,8 @@ import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
+import 'package:niscala/features/complaints/ui/complaint_photo_choice.dart';
+import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
 import 'package:niscala/features/lease/data/lease_repository.dart';
 import 'package:niscala/features/lease/ui/lease_card.dart';
 import 'package:niscala_api/api.dart';
@@ -23,8 +26,10 @@ const _roomRequired = 'Pilih kamar.';
 const _minLength = 10;
 const _maxLength = 2000;
 
-/// Submits a complaint about one room of the tenant. On success the detail
-/// screen opens at once, while the AI classification may still be running.
+/// Submits a complaint about one room of the tenant, with an optional photo.
+/// The complaint is saved first and the photo uploaded to it. On success the
+/// detail screen opens at once, while the AI classification may still be
+/// running. If only the upload fails, the detail opens with a warning.
 class ComplaintFormScreen extends ConsumerStatefulWidget {
   const ComplaintFormScreen({super.key});
 
@@ -47,11 +52,29 @@ class _ComplaintFormScreenState extends ConsumerState<ComplaintFormScreen> {
   /// until the next submit, and the text the user wrote is kept.
   String? _banner;
 
+  /// The photo sent with the complaint, and the message for a rejected choice.
+  PickedImage? _photo;
+  String? _photoError;
+
   @override
   void dispose() {
     _description.dispose();
     super.dispose();
   }
+
+  Future<void> _choosePhoto() async {
+    final choice = await choosePhoto(context, ref);
+    if (choice == null || !mounted) return;
+    setState(() {
+      _photo = choice.photo;
+      _photoError = choice.error;
+    });
+  }
+
+  void _removePhoto() => setState(() {
+    _photo = null;
+    _photoError = null;
+  });
 
   Future<void> _submit(List<CurrentLease> leases) async {
     if (_busy) return;
@@ -75,16 +98,27 @@ class _ComplaintFormScreenState extends ConsumerState<ComplaintFormScreen> {
   }
 
   Future<void> _send(String description, String roomId) async {
+    final repository = ref.read(complaintRepositoryProvider);
+    final Complaint complaint;
     try {
-      final complaint = await ref
-          .read(complaintRepositoryProvider)
-          .submit(description, roomId);
-      if (!mounted) return;
-      ref.invalidate(complaintListProvider);
-      context.go('/penyewa/keluhan/${complaint.id}?terkirim=1');
+      complaint = await repository.submit(description, roomId);
     } on ApiFailure catch (failure) {
       if (mounted) _showFailure(failure);
+      return;
     }
+    final photo = _photo;
+    var photoFailed = false;
+    if (photo != null) {
+      try {
+        await repository.uploadPhoto(complaint.id, photo);
+      } on ApiFailure {
+        photoFailed = true;
+      }
+    }
+    if (!mounted) return;
+    ref.invalidate(complaintListProvider);
+    final query = photoFailed ? 'terkirim=1&fotoGagal=1' : 'terkirim=1';
+    context.go('/penyewa/keluhan/${complaint.id}?$query');
   }
 
   /// Shows a failure next to the field it names, or as a banner.
@@ -153,6 +187,8 @@ class _ComplaintFormScreenState extends ConsumerState<ComplaintFormScreen> {
                     decoration: InputDecoration(errorText: _descriptionError),
                   ),
                 ),
+                formGap,
+                _photoField(Theme.of(context)),
               ],
             ),
           ),
@@ -164,6 +200,46 @@ class _ComplaintFormScreenState extends ConsumerState<ComplaintFormScreen> {
             onPressed: () => _submit(leases),
           ),
         ),
+      ],
+    );
+  }
+
+  /// The optional photo: a preview of the chosen image, the choice of camera or
+  /// gallery, and the rejection or access message.
+  Widget _photoField(ThemeData theme) {
+    final photo = _photo;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Foto (opsional)', style: theme.textTheme.titleSmall),
+        const SizedBox(height: 6),
+        if (photo != null) ...[
+          SizedBox(
+            height: 240,
+            child: Image.memory(
+              photo.bytes,
+              fit: BoxFit.contain,
+              semanticLabel: 'Pratinjau foto yang dipilih',
+              errorBuilder: (_, _, _) =>
+                  const Center(child: Text(unreadablePhotoMessage)),
+            ),
+          ),
+          const SizedBox(height: NiscalaSpacing.s),
+        ],
+        OutlinedButton.icon(
+          onPressed: _busy ? null : _choosePhoto,
+          icon: const Icon(Icons.add_a_photo_outlined),
+          label: const Text('Ambil atau pilih foto'),
+        ),
+        if (photo != null)
+          TextButton(
+            onPressed: _busy ? null : _removePhoto,
+            child: const Text('Hapus foto'),
+          ),
+        if (_photoError != null) ...[
+          const SizedBox(height: NiscalaSpacing.s),
+          FieldMessage(_photoError!),
+        ],
       ],
     );
   }

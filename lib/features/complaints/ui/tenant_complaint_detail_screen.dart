@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/format.dart';
 import 'package:niscala/core/tokens.dart';
@@ -8,11 +10,15 @@ import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
+import 'package:niscala/features/complaints/ui/complaint_photo_choice.dart';
 import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
 import 'package:niscala_api/api.dart';
 
 const _submittedMessage = 'Keluhan terkirim.';
+const _photoNotUploadedMessage =
+    'Keluhan terkirim, tetapi foto belum terunggah. Coba lagi lewat Tambah foto.';
 const _aiDisclaimer = 'Klasifikasi dibuat AI dan bisa keliru.';
+const _photoNotNewCode = 'COMPLAINT_NOT_NEW';
 
 /// What a complaint without a classification means for the tenant.
 String _stateExplanation(ComplaintClassificationState state) => switch (state) {
@@ -32,20 +38,73 @@ String _stateExplanation(ComplaintClassificationState state) => switch (state) {
 };
 
 /// One of the tenant's complaints. [submitted] is set when the screen opens
-/// right after the complaint was saved.
-class TenantComplaintDetailScreen extends ConsumerWidget {
+/// right after the complaint was saved, and [photoNotUploaded] when the photo
+/// sent with it did not upload. While the complaint is new, the photo can be
+/// added or replaced here.
+class TenantComplaintDetailScreen extends ConsumerStatefulWidget {
   const TenantComplaintDetailScreen({
     super.key,
     required this.complaintId,
     this.submitted = false,
+    this.photoNotUploaded = false,
   });
 
   final String complaintId;
   final bool submitted;
+  final bool photoNotUploaded;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final complaint = ref.watch(complaintDetailProvider(complaintId));
+  ConsumerState<TenantComplaintDetailScreen> createState() =>
+      _TenantComplaintDetailScreenState();
+}
+
+class _TenantComplaintDetailScreenState
+    extends ConsumerState<TenantComplaintDetailScreen> {
+  /// Set while a photo is being uploaded.
+  var _uploading = false;
+
+  /// The message for a photo that was rejected, could not be chosen or did not
+  /// upload.
+  String? _photoError;
+
+  /// Uploads the photo the tenant chooses, then reloads the complaint.
+  Future<void> _changePhoto() async {
+    final choice = await choosePhoto(context, ref);
+    if (choice == null || !mounted) return;
+    final photo = choice.photo;
+    if (photo == null) {
+      setState(() => _photoError = choice.error);
+      return;
+    }
+    setState(() {
+      _uploading = true;
+      _photoError = null;
+    });
+    try {
+      await ref
+          .read(complaintRepositoryProvider)
+          .uploadPhoto(widget.complaintId, photo);
+    } on ApiFailure catch (failure) {
+      if (!mounted) return;
+      if (failure.code == _photoNotNewCode) {
+        ref.invalidate(complaintDetailProvider(widget.complaintId));
+      }
+      setState(() {
+        _uploading = false;
+        _photoError = errorMessageFor(failure, labels: photoFormLabels);
+      });
+      return;
+    }
+    if (!mounted) return;
+    ref.invalidate(complaintDetailProvider(widget.complaintId));
+    ref.invalidate(complaintPhotoBytesProvider(widget.complaintId));
+    ref.invalidate(complaintListProvider);
+    setState(() => _uploading = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final complaint = ref.watch(complaintDetailProvider(widget.complaintId));
     return Scaffold(
       appBar: const DetailAppBar(title: 'Rincian Keluhan'),
       body: complaint.when(
@@ -55,14 +114,15 @@ class TenantComplaintDetailScreen extends ConsumerWidget {
         ),
         error: (error, _) => ErrorView(
           message: errorMessageFor(error),
-          onRetry: () => ref.invalidate(complaintDetailProvider(complaintId)),
+          onRetry: () =>
+              ref.invalidate(complaintDetailProvider(widget.complaintId)),
         ),
-        data: (c) => _details(context, ref, c),
+        data: _details,
       ),
     );
   }
 
-  Widget _details(BuildContext context, WidgetRef ref, Complaint c) {
+  Widget _details(Complaint c) {
     final theme = Theme.of(context);
     final classification = c.classification;
     final state = c.classificationState;
@@ -71,8 +131,13 @@ class TenantComplaintDetailScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (submitted) ...[
-            FormMessage(_submittedMessage, isError: false),
+          if (widget.submitted) ...[
+            FormMessage(
+              widget.photoNotUploaded
+                  ? _photoNotUploadedMessage
+                  : _submittedMessage,
+              isError: widget.photoNotUploaded,
+            ),
             formGap,
           ],
           SectionCard(
@@ -94,6 +159,12 @@ class TenantComplaintDetailScreen extends ConsumerWidget {
             ),
           ),
           formGap,
+          if (c.hasPhoto ||
+              c.status == ComplaintStatus.new_ ||
+              _photoError != null) ...[
+            _photoCard(c),
+            formGap,
+          ],
           if (classification != null)
             SectionCard(
               emphasis: true,
@@ -113,8 +184,9 @@ class TenantComplaintDetailScreen extends ConsumerWidget {
                   if (state == ComplaintClassificationState.classifying) ...[
                     const SizedBox(height: 8),
                     FilledButton.tonal(
-                      onPressed: () =>
-                          ref.invalidate(complaintDetailProvider(complaintId)),
+                      onPressed: () => ref.invalidate(
+                        complaintDetailProvider(widget.complaintId),
+                      ),
                       child: const Text('Segarkan'),
                     ),
                   ],
@@ -123,6 +195,43 @@ class TenantComplaintDetailScreen extends ConsumerWidget {
             ),
           formGap,
           ComplaintStatusHistory(changes: c.statusChanges),
+        ],
+      ),
+    );
+  }
+
+  /// The photo of the complaint, which opens full screen, and while the
+  /// complaint is new the action that adds or replaces it.
+  Widget _photoCard(Complaint c) {
+    return SectionCard(
+      title: 'Foto',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (c.hasPhoto)
+            ComplaintPhotoTile(
+              sentAt: c.createdAt,
+              onOpen: () => context.go('/penyewa/keluhan/${c.id}/foto'),
+            ),
+          if (_photoError != null) ...[
+            const SizedBox(height: NiscalaSpacing.s),
+            FieldMessage(_photoError!),
+          ],
+          if (c.status == ComplaintStatus.new_) ...[
+            const SizedBox(height: NiscalaSpacing.s),
+            if (_uploading)
+              const Center(
+                child: CircularProgressIndicator(
+                  semanticsLabel: 'Mengunggah foto',
+                ),
+              )
+            else
+              OutlinedButton.icon(
+                onPressed: _changePhoto,
+                icon: const Icon(Icons.add_a_photo_outlined),
+                label: Text(c.hasPhoto ? 'Ganti foto' : 'Tambah foto'),
+              ),
+          ],
         ],
       ),
     );

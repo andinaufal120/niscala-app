@@ -15,10 +15,7 @@ import 'package:niscala/core/image_chooser.dart';
 import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
 import 'package:niscala_api/api.dart';
 
-const _maxBytes = 5 * 1024 * 1024;
 const _chooseFirst = 'Pilih bukti transfer terlebih dahulu.';
-const _accessDenied =
-    'Tidak bisa mengakses kamera atau galeri. Periksa izin aplikasi.';
 const _sentMessage = 'Bukti transfer terkirim.';
 const _typeInvalid = ApiFailure(code: 'RECEIPT_TYPE_INVALID');
 const _tooLarge = ApiFailure(code: 'RECEIPT_TOO_LARGE');
@@ -54,15 +51,15 @@ class _UploadReceiptScreenState extends ConsumerState<UploadReceiptScreen> {
       file = await ref.read(imageChooserProvider).pick(source);
     } on PlatformException {
       if (!mounted) return;
-      setState(() => _fileError = _accessDenied);
+      setState(() => _fileError = imageAccessDeniedMessage);
       return;
     }
     if (file == null || !mounted) return;
-    final failure = imageMediaType(file.bytes) == null
-        ? _typeInvalid
-        : file.bytes.length > _maxBytes
-        ? _tooLarge
-        : null;
+    final failure = switch (imageRejection(file)) {
+      ImageRejection.type => _typeInvalid,
+      ImageRejection.tooLarge => _tooLarge,
+      null => null,
+    };
     setState(() {
       _file = failure == null ? file : null;
       _fileError = failure == null ? null : errorMessageFor(failure);
@@ -212,13 +209,7 @@ class _UploadReceiptScreenState extends ConsumerState<UploadReceiptScreen> {
                   ],
                   if (_fileError != null) ...[
                     const SizedBox(height: NiscalaSpacing.s),
-                    Semantics(
-                      liveRegion: true,
-                      child: Text(
-                        _fileError!,
-                        style: TextStyle(color: theme.colorScheme.error),
-                      ),
-                    ),
+                    FieldMessage(_fileError!),
                   ],
                 ],
               ),

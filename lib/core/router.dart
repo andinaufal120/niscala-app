@@ -17,6 +17,7 @@ import 'package:niscala/features/account/ui/active_sessions_screen.dart';
 import 'package:niscala/features/account/ui/change_password_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
 import 'package:niscala/features/complaints/ui/complaint_form_screen.dart';
+import 'package:niscala/features/complaints/ui/complaint_photo_screen.dart';
 import 'package:niscala/features/complaints/ui/management_complaint_detail_screen.dart';
 import 'package:niscala/features/complaints/ui/management_complaint_list_screen.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_detail_screen.dart';
@@ -480,6 +481,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => ManagementComplaintDetailScreen(
                   complaintId: state.pathParameters['complaintId']!,
                 ),
+                routes: [
+                  _subPage(
+                    path: 'foto',
+                    builder: (context, state) => ComplaintPhotoScreen(
+                      complaintId: state.pathParameters['complaintId']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -545,7 +554,16 @@ final routerProvider = Provider<GoRouter>((ref) {
               builder: (context, state) => TenantComplaintDetailScreen(
                 complaintId: state.pathParameters['complaintId']!,
                 submitted: state.uri.queryParameters['terkirim'] == '1',
+                photoNotUploaded: state.uri.queryParameters['fotoGagal'] == '1',
               ),
+              routes: [
+                _subPage(
+                  path: 'foto',
+                  builder: (context, state) => ComplaintPhotoScreen(
+                    complaintId: state.pathParameters['complaintId']!,
+                  ),
+                ),
+              ],
             ),
           ]),
           _nestedBranch(_tenantPayments, const TenantPaymentsScreen(), [
