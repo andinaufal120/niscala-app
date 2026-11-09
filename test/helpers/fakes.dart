@@ -21,7 +21,7 @@ import 'package:niscala/features/managers/data/manager_repository.dart';
 import 'package:niscala/features/notifications/data/notification_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/rent_bills/data/management_rent_bill_repository.dart';
-import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
+import 'package:niscala/core/image_chooser.dart';
 import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
 import 'package:niscala/features/tenants/data/invitation_sharing.dart';
@@ -1718,7 +1718,7 @@ class FakeRentBillRepository implements RentBillRepository {
 
   final calls = <String>[];
   final listedStatuses = <List<PaymentStatus>>[];
-  final uploaded = <({String id, ReceiptFile file})>[];
+  final uploaded = <({String id, PickedImage file})>[];
 
   final listScript = CallScript();
   final getScript = CallScript();
@@ -1756,7 +1756,7 @@ class FakeRentBillRepository implements RentBillRepository {
   }
 
   @override
-  Future<RentBill> uploadReceipt(String id, ReceiptFile file) async {
+  Future<RentBill> uploadReceipt(String id, PickedImage file) async {
     calls.add('upload:$id');
     uploaded.add((id: id, file: file));
     final failure = await uploadScript.next();
@@ -2246,21 +2246,21 @@ class FakeManagementRentBillRepository implements ManagementRentBillRepository {
   }
 }
 
-/// A [ReceiptPicker] that records the sources asked for.
+/// A [ImageChooser] that records the sources asked for.
 ///
 /// Each [pick] first takes the next entry of [queue] (null means cancelled),
 /// and falls back to [always] when the queue is empty. While [gate] is set,
 /// every call is held until it completes. While [failure] is set, every call
 /// throws it, as the device picker does when access is denied.
-class FakeReceiptPicker implements ReceiptPicker {
-  final requested = <ReceiptSource>[];
-  final queue = <ReceiptFile?>[];
-  ReceiptFile? always;
+class FakeImageChooser implements ImageChooser {
+  final requested = <ImageOrigin>[];
+  final queue = <PickedImage?>[];
+  PickedImage? always;
   Completer<void>? gate;
   Object? failure;
 
   @override
-  Future<ReceiptFile?> pick(ReceiptSource source) async {
+  Future<PickedImage?> pick(ImageOrigin source) async {
     requested.add(source);
     final file = queue.isNotEmpty ? queue.removeAt(0) : always;
     await gate?.future;
@@ -3178,7 +3178,7 @@ Widget buildTestApp({
   UserAccountRepository? userAccounts,
   HealthRepository? health,
   PushMessaging? push,
-  ReceiptPicker? receiptPicker,
+  ImageChooser? receiptPicker,
   Future<void> Function(String text)? invitationSharer,
 }) {
   return ProviderScope(
@@ -3227,8 +3227,8 @@ Widget buildTestApp({
         health ?? FakeHealthRepository(),
       ),
       pushMessagingProvider.overrideWithValue(push ?? FakePushMessaging()),
-      receiptPickerProvider.overrideWithValue(
-        receiptPicker ?? FakeReceiptPicker(),
+      imageChooserProvider.overrideWithValue(
+        receiptPicker ?? FakeImageChooser(),
       ),
       invitationSharerProvider.overrideWithValue(
         invitationSharer ?? (text) async {},

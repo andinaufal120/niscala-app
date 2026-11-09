@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/widgets/screen_header.dart';
-import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
+import 'package:niscala/core/image_chooser.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
@@ -27,7 +27,7 @@ String receiptPath(String id) => '/penyewa/pembayaran/bukti/$id';
 Future<void> pumpRentBillApp(
   WidgetTester tester,
   FakeRentBillRepository rentBills, {
-  FakeReceiptPicker? picker,
+  FakeImageChooser? picker,
   FakeLeaseRepository? leases,
   UserRole role = UserRole.tenant,
   String path = paymentsPath,
@@ -146,34 +146,34 @@ Finder headerTitleText() => find.descendant(
 );
 
 /// A file with the given leading bytes, padded to [length] bytes.
-ReceiptFile _file(String name, List<int> header, int length) {
+PickedImage _file(String name, List<int> header, int length) {
   final bytes = Uint8List(length < header.length ? header.length : length);
   bytes.setAll(0, header);
-  return ReceiptFile(name: name, bytes: bytes);
+  return PickedImage(name: name, bytes: bytes);
 }
 
 const _jpegHeader = [0xFF, 0xD8, 0xFF, 0xE0];
 const _pngHeader = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
 
-ReceiptFile jpegFile({String name = 'bukti.jpg', int length = 2048}) =>
+PickedImage jpegFile({String name = 'bukti.jpg', int length = 2048}) =>
     _file(name, _jpegHeader, length);
 
-ReceiptFile pngFile({String name = 'bukti.png', int length = 2048}) =>
+PickedImage pngFile({String name = 'bukti.png', int length = 2048}) =>
     _file(name, _pngHeader, length);
 
 /// A PDF document, which is not an accepted receipt type.
-ReceiptFile pdfFile({String name = 'bukti.pdf'}) =>
+PickedImage pdfFile({String name = 'bukti.pdf'}) =>
     _file(name, '%PDF-1.4'.codeUnits, 2048);
 
 /// A PDF document renamed to look like a JPEG.
-ReceiptFile pdfNamedJpg() => pdfFile(name: 'bukti.jpg');
+PickedImage pdfNamedJpg() => pdfFile(name: 'bukti.jpg');
 
 /// A HEIC photo, which many Android cameras save.
-ReceiptFile heicFile({String name = 'bukti.heic'}) =>
+PickedImage heicFile({String name = 'bukti.heic'}) =>
     _file(name, [0x00, 0x00, 0x00, 0x18, ...'ftypheic'.codeUnits], 2048);
 
 /// A GIF image, which is not an accepted receipt type.
-ReceiptFile gifFile({String name = 'bukti.gif'}) =>
+PickedImage gifFile({String name = 'bukti.gif'}) =>
     _file(name, 'GIF89a'.codeUnits, 2048);
 
 const maxReceiptBytes = 5 * 1024 * 1024;

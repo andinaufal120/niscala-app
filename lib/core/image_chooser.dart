@@ -3,53 +3,53 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-/// Where a receipt image is taken from.
-enum ReceiptSource { camera, gallery }
+/// Where an image is taken from.
+enum ImageOrigin { camera, gallery }
 
-/// A receipt image chosen by the user.
-class ReceiptFile {
-  const ReceiptFile({required this.name, required this.bytes});
+/// An image chosen by the user.
+class PickedImage {
+  const PickedImage({required this.name, required this.bytes});
 
   final String name;
   final Uint8List bytes;
 }
 
-/// Lets the user take or choose a receipt image.
-abstract interface class ReceiptPicker {
+/// Lets the user take or choose an image.
+abstract interface class ImageChooser {
   /// The image the user chose, or null when the user cancelled. A photo from
   /// the camera is already encoded as JPEG.
-  Future<ReceiptFile?> pick(ReceiptSource source);
+  Future<PickedImage?> pick(ImageOrigin source);
 }
 
-final receiptPickerProvider = Provider<ReceiptPicker>(
-  (ref) => DeviceReceiptPicker(),
+final imageChooserProvider = Provider<ImageChooser>(
+  (ref) => DeviceImageChooser(),
 );
 
 /// Picks images with the device camera and gallery.
-class DeviceReceiptPicker implements ReceiptPicker {
+class DeviceImageChooser implements ImageChooser {
   final _picker = ImagePicker();
 
   @override
-  Future<ReceiptFile?> pick(ReceiptSource source) async {
+  Future<PickedImage?> pick(ImageOrigin source) async {
     // Setting a quality makes the plugin re-encode a camera photo as JPEG,
     // which the API accepts, where some cameras save HEIC.
     final image = switch (source) {
-      ReceiptSource.camera => await _picker.pickImage(
+      ImageOrigin.camera => await _picker.pickImage(
         source: ImageSource.camera,
         imageQuality: 90,
       ),
-      ReceiptSource.gallery => await _picker.pickImage(
+      ImageOrigin.gallery => await _picker.pickImage(
         source: ImageSource.gallery,
       ),
     };
     if (image == null) return null;
-    return ReceiptFile(name: image.name, bytes: await image.readAsBytes());
+    return PickedImage(name: image.name, bytes: await image.readAsBytes());
   }
 }
 
 /// The media type of a JPEG or PNG image, read from its leading bytes, or null
 /// for any other content.
-String? receiptMediaType(Uint8List bytes) {
+String? imageMediaType(Uint8List bytes) {
   bool startsWith(List<int> header) =>
       bytes.length >= header.length &&
       header.indexed.every((entry) => bytes[entry.$1] == entry.$2);

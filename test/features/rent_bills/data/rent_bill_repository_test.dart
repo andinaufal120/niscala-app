@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:niscala/core/api/api_failure.dart';
-import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
+import 'package:niscala/core/image_chooser.dart';
 import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
 import 'package:niscala_api/api.dart';
 
@@ -348,11 +348,11 @@ void main() {
   });
 
   group('uploadReceipt', () {
-    final jpeg = ReceiptFile(
+    final jpeg = PickedImage(
       name: 'bukti.jpg',
       bytes: Uint8List.fromList([0xFF, 0xD8, 0xFF, 0xE0, 1, 2, 3, 4, 5]),
     );
-    final png = ReceiptFile(
+    final png = PickedImage(
       name: 'bukti.png',
       bytes: Uint8List.fromList([
         0x89,

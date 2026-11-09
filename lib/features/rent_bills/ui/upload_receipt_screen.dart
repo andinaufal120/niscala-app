@@ -11,7 +11,7 @@ import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
-import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
+import 'package:niscala/core/image_chooser.dart';
 import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
 import 'package:niscala_api/api.dart';
 
@@ -40,7 +40,7 @@ class UploadReceiptScreen extends ConsumerStatefulWidget {
 }
 
 class _UploadReceiptScreenState extends ConsumerState<UploadReceiptScreen> {
-  ReceiptFile? _file;
+  PickedImage? _file;
   String? _fileError;
   String? _banner;
   var _busy = false;
@@ -48,17 +48,17 @@ class _UploadReceiptScreenState extends ConsumerState<UploadReceiptScreen> {
   /// Set when the API says the bill changed, so the list is stale.
   var _stale = false;
 
-  Future<void> _pick(ReceiptSource source) async {
-    final ReceiptFile? file;
+  Future<void> _pick(ImageOrigin source) async {
+    final PickedImage? file;
     try {
-      file = await ref.read(receiptPickerProvider).pick(source);
+      file = await ref.read(imageChooserProvider).pick(source);
     } on PlatformException {
       if (!mounted) return;
       setState(() => _fileError = _accessDenied);
       return;
     }
     if (file == null || !mounted) return;
-    final failure = receiptMediaType(file.bytes) == null
+    final failure = imageMediaType(file.bytes) == null
         ? _typeInvalid
         : file.bytes.length > _maxBytes
         ? _tooLarge
@@ -196,15 +196,13 @@ class _UploadReceiptScreenState extends ConsumerState<UploadReceiptScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   OutlinedButton.icon(
-                    onPressed: _busy ? null : () => _pick(ReceiptSource.camera),
+                    onPressed: _busy ? null : () => _pick(ImageOrigin.camera),
                     icon: const Icon(Icons.photo_camera_outlined),
                     label: const Text('Ambil dari kamera'),
                   ),
                   const SizedBox(height: NiscalaSpacing.s),
                   OutlinedButton.icon(
-                    onPressed: _busy
-                        ? null
-                        : () => _pick(ReceiptSource.gallery),
+                    onPressed: _busy ? null : () => _pick(ImageOrigin.gallery),
                     icon: const Icon(Icons.photo_library_outlined),
                     label: const Text('Pilih dari galeri'),
                   ),
