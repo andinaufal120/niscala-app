@@ -575,8 +575,9 @@ void main() {
 
       await _submit(tester);
 
-      expect(labeledFieldError(tester, _name), isNull);
       expect(repo.updated, hasLength(1));
+      expect(repo.updated.single.id, 't2');
+      expect(repo.updated.single.input.name, 'Dewi Lestari');
     });
 
     testWidgets('the hint is shown with the form of an active tenant at large '

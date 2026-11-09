@@ -894,7 +894,10 @@ void main() {
     ) async {
       await _openWithTwoLeases(tester, FakeComplaintRepository());
 
-      expect(find.byType(RadioListTile), findsNWidgets(2));
+      expect(
+        find.byWidgetPredicate((w) => w is RadioListTile),
+        findsNWidgets(2),
+      );
       expect(_roomChoice(_melati), findsOneWidget);
       expect(_roomChoice(_mawar), findsOneWidget);
       expect(
@@ -936,7 +939,10 @@ void main() {
         ),
       );
 
-      expect(find.byType(RadioListTile), findsNWidgets(3));
+      expect(
+        find.byWidgetPredicate((w) => w is RadioListTile),
+        findsNWidgets(3),
+      );
       expect(_roomChoice('Kos Anggrek · Kamar 03'), findsOneWidget);
     });
 

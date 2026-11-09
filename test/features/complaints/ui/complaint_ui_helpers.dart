@@ -44,7 +44,11 @@ Future<void> pumpComplaintApp(
     useTallScreen(tester);
     await tester.pumpWidget(app);
   }
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+  }
   goTo(tester, path ?? complaintListPath(role));
   if (settle) {
     await tester.pumpAndSettle();

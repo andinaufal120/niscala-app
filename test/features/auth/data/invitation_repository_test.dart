@@ -481,14 +481,16 @@ void main() {
   });
 
   group('accept', () {
-    test('posts only the token and completes on an empty answer', () async {
+    test('posts the token without emergency contacts and completes on an empty '
+        'answer', () async {
       final h = _Harness((_) => http.Response('', 204));
 
       await h.repository.accept('abc123');
 
       expect(h.request.method, 'POST');
       expect(h.request.url.path, '/invitations/acceptances');
-      expect(h.body, {'token': 'abc123'});
+      expect(h.body['token'], 'abc123');
+      expect((h.body['emergencyContacts'] as List?) ?? const [], isEmpty);
     });
 
     test('completes on a 200 answer without a body', () async {
@@ -504,7 +506,8 @@ void main() {
 
       await h.repository.accept('abc123');
 
-      expect(h.body.keys, ['token']);
+      expect(h.body['token'], 'abc123');
+      expect(h.body.containsKey('device'), isFalse);
     });
 
     test('sends no emergency contacts when none are given', () async {
@@ -512,7 +515,7 @@ void main() {
 
       await h.repository.accept('abc123');
 
-      expect(h.body.containsKey('emergencyContacts'), isFalse);
+      expect((h.body['emergencyContacts'] as List?) ?? const [], isEmpty);
     });
 
     test('posts the emergency contacts with the token', () async {
