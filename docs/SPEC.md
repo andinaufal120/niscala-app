@@ -220,9 +220,10 @@ Shows every active lease in the order the API returns them: room number, propert
 
 **UC-02 Submit maintenance complaint** (FR-03, FR-04, FR-25, FR-28) · Tenant with an active lease · *Keluhan (Complaints)* tab → complaint list → new complaint
 Free-text description → submit → confirmation. With one active lease the room is shown; with several the tenant picks the room (required). An empty, too-short or too-long description gets a field error (10 to 2000 characters after trimming). After saving, the complaint is *Baru* and its classification state is one of: classified, *Sedang Diklasifikasi* (the AI has not finished yet), *Menunggu Klasifikasi*, or *Belum Diklasifikasi*. The app shows the confirmation as soon as the save succeeds; it does not wait for the AI.
+Optionally one photo from the camera or gallery: JPG or PNG, at most 5 MB; camera photos are re-encoded to JPEG before upload. It is uploaded after the complaint is saved. If the upload fails the complaint stays saved and the tenant can retry. While the complaint is *Baru* the tenant can add or replace the photo from the detail.
 
 **UC-03 View complaint status and history** (FR-05) · Tenant · *Keluhan (Complaints)* tab
-List of own complaints, opening on the *Aktif (Active)* filter (*Baru* and *Diproses*). Each shows its status and marks complaints still *Sedang Diklasifikasi*, *Menunggu Klasifikasi* or *Belum Diklasifikasi*. Detail shows category and urgency if classified, and the handling note of each status change. With more than one active lease each complaint shows its property and room. Empty state if none.
+List of own complaints, opening on the *Aktif (Active)* filter (*Baru* and *Diproses*). Each shows its status and marks complaints still *Sedang Diklasifikasi*, *Menunggu Klasifikasi* or *Belum Diklasifikasi*. Detail shows category and urgency if classified, and the handling note of each status change, and the photo when one is attached. With more than one active lease each complaint shows its property and room. Empty state if none.
 
 **UC-04 View rent payment history and status** (FR-06) · Tenant with an active lease · *Pembayaran (Payments)* tab
 List of bills/payments with status (§5), period, amount and due date. Filters: *Tagihan aktif (Active bill)*, the default, and *Riwayat (History)*. *Tagihan aktif* lists the bills that are *Belum Bayar*, *Menunggu Verifikasi* or *Ditolak*, including overdue bills from earlier periods, which show how many days overdue they are; *Riwayat* lists the *Lunas* bills. A rejected payment shows the reason management entered. With more than one active lease each bill shows its property and room. The upload action appears only on a bill the API marks as uploadable (UC-05).
@@ -300,7 +301,7 @@ Per property: occupied count, vacant count, occupancy percentage and each room's
 
 **UC-23 Complaint list with AI classification** (FR-15, FR-25) · *Keluhan (Complaints)*
 Complaints across accessible properties, sorted by urgency, then time; default filter *Semua (All)*. Shows category, urgency and suggested action when available. Unclassified complaints show their classification state instead. Without an active subscription, hide AI classification results and show the subscription note; manual classifications (UC-36) are still shown.
-Detail order: status first, then the AI classification, then the tenant's message with tenant name, room and timestamp.
+Detail order: status first, then the AI classification, then the tenant's message with tenant name, room and timestamp, and the photo when one is attached.
 
 **UC-24 Change complaint status** (FR-16) · *[complaint] → Ubah Status (Change status)*
 Offers only the next status (*Baru* → *Diproses*, *Diproses* → *Selesai*) and asks for confirmation. The optional handling note is labelled as visible to the tenant. No status action remains once a complaint is *Selesai*.
@@ -446,3 +447,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 07-11-2026 | §6 rule 15: the app checks the server at launch and on resume and shows a banner when it is unreachable. U-1 decided in the backend: `/health` answers 200 or 503; §9 updated and the row removed from §10. | NKMA-22    |
 | 09-11-2026 | One Tenant account may rent in several places (shared Tenant glossary row and Tenant activation rule).         | NKMA-108   |
 | 09-11-2026 | Tenant screens list every active lease; the complaint form picks the room; a Tenant accepts an invitation with an existing account from *Akun*; tenant name editable only before activation; deleting a tenant ends account access only with the last tenancy; Admin detail lists tenancies. | NKMA-108 |
+| 09-11-2026 | Optional complaint photo: UC-02 adds it with retry, UC-03 and UC-23 show it. | NKMA-107 |
