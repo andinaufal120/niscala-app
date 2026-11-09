@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/widgets/error_view.dart';
@@ -322,7 +323,13 @@ void main() {
     testWidgets('a classified complaint has no refresh action', (tester) async {
       await _open(tester, _repo(_classified()));
 
-      expect(actionButtons(), findsNothing);
+      expect(
+        find.ancestor(
+          of: find.text(_refresh),
+          matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+        ),
+        findsNothing,
+      );
     });
   });
 

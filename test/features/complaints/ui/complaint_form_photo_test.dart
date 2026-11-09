@@ -222,7 +222,7 @@ void main() {
 
       await _pick(tester, s.picker, pngPhoto());
 
-      expect(s.repo.calls, isEmpty);
+      expect(_saves(s.repo), isEmpty);
     });
 
     final accepted = <String, PickedImage Function()>{
@@ -262,7 +262,7 @@ void main() {
         expect(find.text(photoSizeError), findsNothing);
         expect(_preview(), findsNothing);
         expect(find.text(removePhotoText), findsNothing);
-        expect(s.repo.calls, isEmpty);
+        expect(_saves(s.repo), isEmpty);
       });
 
       testWidgets('does not keep ${entry.key}', (tester) async {
@@ -442,7 +442,7 @@ void main() {
 
       await tapVisible(tester, find.text(removePhotoText));
 
-      expect(s.repo.calls, isEmpty);
+      expect(_saves(s.repo), isEmpty);
       expect(currentPath(tester), _formPath);
     });
 
@@ -678,7 +678,7 @@ void main() {
 
       await _submit(tester);
 
-      expect(s.repo.calls, isEmpty);
+      expect(_saves(s.repo), isEmpty);
       expect(labeledFieldError(tester, _label), isNotNull);
       expect(find.text(removePhotoText), findsOneWidget);
     });
@@ -722,7 +722,7 @@ void main() {
       await _submit(tester);
 
       expect(find.text('Pilih kamar.'), findsOneWidget);
-      expect(s.repo.calls, isEmpty);
+      expect(_saves(s.repo), isEmpty);
     });
   });
 
