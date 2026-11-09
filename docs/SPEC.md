@@ -52,7 +52,7 @@ Markdown docs use the format *Original term (English term)*. Code uses the Engli
 | Properti (Property)                                 | `Property`                | One kos location with rooms, owned by one Owner.                                   |
 | Kamar (Room)                                        | `Room`                    | A rentable unit in a property. Occupancy is Terisi or Kosong.                      |
 | Masa sewa (Lease)                                   | `Lease`                   | A tenant's occupancy of a room: start date, end date, rent, billing cycle, grace period. |
-| Penyewa (Tenant)                                    | `Tenant`                  | User who occupies a room; joins through an invitation link.                        |
+| Penyewa (Tenant)                                    | `Tenant`                  | A property's record of a person who rents a room; the person joins through an invitation link. One account may hold records at several properties, each with its own phone, occupation, emergency contacts and lease; the name and sign-in belong to the account.                        |
 | Pemilik Kost (Owner)                                | `Owner`                   | User who owns one or more properties and holds the subscription.                   |
 | Pengelola Kost (Manager)                            | `Manager`                 | Optional user assigned by an Owner to specific properties.                         |
 | Admin (Admin)                                       | `Admin`                   | Internal user who manages all user accounts.                                       |
@@ -189,7 +189,7 @@ Tenant *Beranda*: a greeting with the tenant's name and their property and room;
 Login and sign-up are preconditions, not use cases. All use cases assume a valid session. The account identifier is **email**.
 
 - **Owner** signs up and logs in with Google or a local password (FR-20).
-- **Tenant** activates through an invitation link shared by management. During activation the tenant completes whatever data management left empty, including email and at least 2 emergency contacts if management gave none, then chooses Google or a local password (FR-01).
+- **Tenant** activates through an invitation link shared by management. During activation the tenant completes whatever data management left empty, including email and at least 2 emergency contacts if management gave none, then chooses Google or a local password (FR-01). A person who already has a Tenant account can accept the link with that account, so one account may rent in several places.
 - **Manager** activates through an invitation link shared by the Owner, enters their own email, and chooses Google or a local password; a person who already has a Manager account can accept the link with that account (FR-26).
 - **Profile menu (FR-30):** a Google-only user can add a local password. A password user can link Google, but only after logging in with the password. The app never links accounts automatically by matching email.
 - **Local password rules (NFR-11, NIST SP 800-63B Rev. 3, AAL1).** These apply only to accounts with a local password:
@@ -444,3 +444,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 03-11-2026 | Admin navigation defined (§6a).                                                                                | NKMA-81    |
 | 03-11-2026 | UC-34 pending email change and interim confirmation by pasted link.                                            | NKMA-82    |
 | 07-11-2026 | §6 rule 15: the app checks the server at launch and on resume and shows a banner when it is unreachable. U-1 decided in the backend: `/health` answers 200 or 503; §9 updated and the row removed from §10. | NKMA-22    |
+| 09-11-2026 | One Tenant account may rent in several places (shared Tenant glossary row and Tenant activation rule).         | NKMA-108   |
