@@ -25,6 +25,8 @@ const _contactsHelper =
     'aktivasi.';
 const _contactsCount = 'Isi minimal 2 kontak darurat, atau kosongkan semuanya.';
 const _endBeforeStart = 'Tanggal berakhir tidak boleh sebelum tanggal mulai.';
+const _nameLockedHelper =
+    'Nama mengikuti akun penyewa yang sudah aktif dan tidak bisa diubah di sini.';
 const _nextBillHint =
     'Perubahan tarif sewa atau siklus penagihan berlaku mulai tagihan '
     'berikutnya.';
@@ -431,6 +433,9 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
     final theme = Theme.of(context);
     final tenant = widget.tenant;
     final noRooms = tenant == null && widget.vacantRooms.isEmpty;
+    // The name belongs to the tenant's account once the tenant is active.
+    final nameLocked =
+        tenant != null && tenant.accountStatus == TenantAccountStatus.active;
     return Column(
       children: [
         Expanded(
@@ -474,8 +479,10 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
                 LabeledField(
                   label: 'Nama lengkap',
                   required: true,
+                  helper: nameLocked ? _nameLockedHelper : null,
                   child: TextField(
                     controller: _name,
+                    readOnly: nameLocked,
                     textCapitalization: TextCapitalization.words,
                     decoration: InputDecoration(errorText: _nameError),
                   ),

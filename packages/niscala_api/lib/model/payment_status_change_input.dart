@@ -29,22 +29,25 @@ class PaymentStatusChangeInput {
   PaymentStatusChangeInputStatusEnum status;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PaymentStatusChangeInput &&
-    other.method == method &&
-    other.reason == reason &&
-    other.receivedOn == receivedOn &&
-    other.status == status;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PaymentStatusChangeInput &&
+          other.method == method &&
+          other.reason == reason &&
+          other.receivedOn == receivedOn &&
+          other.status == status;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (method == null ? 0 : method!.hashCode) +
-    (reason.hashCode) +
-    (receivedOn == null ? 0 : receivedOn!.hashCode) +
-    (status.hashCode);
+      // ignore: unnecessary_parenthesis
+      (method == null ? 0 : method!.hashCode) +
+      (reason.hashCode) +
+      (receivedOn == null ? 0 : receivedOn!.hashCode) +
+      (status.hashCode);
 
   @override
-  String toString() => 'PaymentStatusChangeInput[method=$method, reason=$reason, receivedOn=$receivedOn, status=$status]';
+  String toString() =>
+      'PaymentStatusChangeInput[method=$method, reason=$reason, receivedOn=$receivedOn, status=$status]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -53,13 +56,13 @@ class PaymentStatusChangeInput {
     } else {
       json[r'method'] = null;
     }
-      json[r'reason'] = this.reason;
+    json[r'reason'] = this.reason;
     if (this.receivedOn != null) {
       json[r'receivedOn'] = _dateFormatter.format(this.receivedOn!.toUtc());
     } else {
       json[r'receivedOn'] = null;
     }
-      json[r'status'] = this.status;
+    json[r'status'] = this.status;
     return json;
   }
 
@@ -75,8 +78,10 @@ class PaymentStatusChangeInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PaymentStatusChangeInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PaymentStatusChangeInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PaymentStatusChangeInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PaymentStatusChangeInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -91,7 +96,10 @@ class PaymentStatusChangeInput {
     return null;
   }
 
-  static List<PaymentStatusChangeInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PaymentStatusChangeInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PaymentStatusChangeInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -119,13 +127,19 @@ class PaymentStatusChangeInput {
   }
 
   // maps a json object with a list of PaymentStatusChangeInput-objects as value to a dart map
-  static Map<String, List<PaymentStatusChangeInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PaymentStatusChangeInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PaymentStatusChangeInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PaymentStatusChangeInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PaymentStatusChangeInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -137,7 +151,6 @@ class PaymentStatusChangeInput {
     'status',
   };
 }
-
 
 class PaymentStatusChangeInputStatusEnum {
   /// Instantiate a new enum with the provided [value].
@@ -162,9 +175,13 @@ class PaymentStatusChangeInputStatusEnum {
     rejected,
   ];
 
-  static PaymentStatusChangeInputStatusEnum? fromJson(dynamic value) => PaymentStatusChangeInputStatusEnumTypeTransformer().decode(value);
+  static PaymentStatusChangeInputStatusEnum? fromJson(dynamic value) =>
+      PaymentStatusChangeInputStatusEnumTypeTransformer().decode(value);
 
-  static List<PaymentStatusChangeInputStatusEnum> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PaymentStatusChangeInputStatusEnum> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PaymentStatusChangeInputStatusEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -181,7 +198,8 @@ class PaymentStatusChangeInputStatusEnum {
 /// Transformation class that can [encode] an instance of [PaymentStatusChangeInputStatusEnum] to String,
 /// and [decode] dynamic data back to [PaymentStatusChangeInputStatusEnum].
 class PaymentStatusChangeInputStatusEnumTypeTransformer {
-  factory PaymentStatusChangeInputStatusEnumTypeTransformer() => _instance ??= const PaymentStatusChangeInputStatusEnumTypeTransformer._();
+  factory PaymentStatusChangeInputStatusEnumTypeTransformer() =>
+      _instance ??= const PaymentStatusChangeInputStatusEnumTypeTransformer._();
 
   const PaymentStatusChangeInputStatusEnumTypeTransformer._();
 
@@ -195,12 +213,16 @@ class PaymentStatusChangeInputStatusEnumTypeTransformer {
   ///
   /// The [allowNull] is very handy when an API changes and a new enum value is added or removed,
   /// and users are still using an old app with the old code.
-  PaymentStatusChangeInputStatusEnum? decode(dynamic data, {bool allowNull = true}) {
+  PaymentStatusChangeInputStatusEnum? decode(dynamic data,
+      {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'unpaid': return PaymentStatusChangeInputStatusEnum.unpaid;
-        case r'paid': return PaymentStatusChangeInputStatusEnum.paid;
-        case r'rejected': return PaymentStatusChangeInputStatusEnum.rejected;
+        case r'unpaid':
+          return PaymentStatusChangeInputStatusEnum.unpaid;
+        case r'paid':
+          return PaymentStatusChangeInputStatusEnum.paid;
+        case r'rejected':
+          return PaymentStatusChangeInputStatusEnum.rejected;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -213,5 +235,3 @@ class PaymentStatusChangeInputStatusEnumTypeTransformer {
   /// Singleton [PaymentStatusChangeInputStatusEnumTypeTransformer] instance.
   static PaymentStatusChangeInputStatusEnumTypeTransformer? _instance;
 }
-
-

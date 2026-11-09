@@ -11,7 +11,6 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
-
 /// tests for UserAccountsApi
 void main() {
   // final instance = UserAccountsApi();
@@ -52,6 +51,5 @@ void main() {
     test('test updateUserAccount', () async {
       // TODO
     });
-
   });
 }

@@ -10,9 +10,9 @@
 
 part of niscala_api;
 
-
 class ManagersApi {
-  ManagersApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
+  ManagersApi([ApiClient? apiClient])
+      : apiClient = apiClient ?? defaultApiClient;
 
   final ApiClient apiClient;
 
@@ -25,7 +25,9 @@ class ManagersApi {
   /// Parameters:
   ///
   /// * [ManagerInput] managerInput (required):
-  Future<Response> createManagerWithHttpInfo(ManagerInput managerInput,) async {
+  Future<Response> createManagerWithHttpInfo(
+    ManagerInput managerInput,
+  ) async {
     // ignore: prefer_const_declarations
     final path = r'/managers';
 
@@ -37,7 +39,6 @@ class ManagersApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -57,17 +58,24 @@ class ManagersApi {
   /// Parameters:
   ///
   /// * [ManagerInput] managerInput (required):
-  Future<Manager?> createManager(ManagerInput managerInput,) async {
-    final response = await createManagerWithHttpInfo(managerInput,);
+  Future<Manager?> createManager(
+    ManagerInput managerInput,
+  ) async {
+    final response = await createManagerWithHttpInfo(
+      managerInput,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Manager',) as Manager;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Manager',
+      ) as Manager;
     }
     return null;
   }
@@ -81,10 +89,11 @@ class ManagersApi {
   /// Parameters:
   ///
   /// * [String] managerId (required):
-  Future<Response> deleteManagerWithHttpInfo(String managerId,) async {
+  Future<Response> deleteManagerWithHttpInfo(
+    String managerId,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/managers/{managerId}'
-      .replaceAll('{managerId}', managerId);
+    final path = r'/managers/{managerId}'.replaceAll('{managerId}', managerId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -94,7 +103,6 @@ class ManagersApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -114,8 +122,12 @@ class ManagersApi {
   /// Parameters:
   ///
   /// * [String] managerId (required):
-  Future<void> deleteManager(String managerId,) async {
-    final response = await deleteManagerWithHttpInfo(managerId,);
+  Future<void> deleteManager(
+    String managerId,
+  ) async {
+    final response = await deleteManagerWithHttpInfo(
+      managerId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -130,10 +142,11 @@ class ManagersApi {
   /// Parameters:
   ///
   /// * [String] managerId (required):
-  Future<Response> getManagerWithHttpInfo(String managerId,) async {
+  Future<Response> getManagerWithHttpInfo(
+    String managerId,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/managers/{managerId}'
-      .replaceAll('{managerId}', managerId);
+    final path = r'/managers/{managerId}'.replaceAll('{managerId}', managerId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -143,7 +156,6 @@ class ManagersApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -163,17 +175,24 @@ class ManagersApi {
   /// Parameters:
   ///
   /// * [String] managerId (required):
-  Future<Manager?> getManager(String managerId,) async {
-    final response = await getManagerWithHttpInfo(managerId,);
+  Future<Manager?> getManager(
+    String managerId,
+  ) async {
+    final response = await getManagerWithHttpInfo(
+      managerId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Manager',) as Manager;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Manager',
+      ) as Manager;
     }
     return null;
   }
@@ -187,7 +206,9 @@ class ManagersApi {
   /// Parameters:
   ///
   /// * [String] propertyId:
-  Future<Response> listManagersWithHttpInfo({ String? propertyId, }) async {
+  Future<Response> listManagersWithHttpInfo({
+    String? propertyId,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/managers';
 
@@ -204,7 +225,6 @@ class ManagersApi {
 
     const contentTypes = <String>[];
 
-
     return apiClient.invokeAPI(
       path,
       'GET',
@@ -223,17 +243,24 @@ class ManagersApi {
   /// Parameters:
   ///
   /// * [String] propertyId:
-  Future<ManagerList?> listManagers({ String? propertyId, }) async {
-    final response = await listManagersWithHttpInfo( propertyId: propertyId, );
+  Future<ManagerList?> listManagers({
+    String? propertyId,
+  }) async {
+    final response = await listManagersWithHttpInfo(
+      propertyId: propertyId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'ManagerList',) as ManagerList;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'ManagerList',
+      ) as ManagerList;
     }
     return null;
   }
@@ -247,10 +274,12 @@ class ManagersApi {
   /// Parameters:
   ///
   /// * [String] managerId (required):
-  Future<Response> regenerateManagerInvitationWithHttpInfo(String managerId,) async {
+  Future<Response> regenerateManagerInvitationWithHttpInfo(
+    String managerId,
+  ) async {
     // ignore: prefer_const_declarations
     final path = r'/managers/{managerId}/invitation'
-      .replaceAll('{managerId}', managerId);
+        .replaceAll('{managerId}', managerId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -260,7 +289,6 @@ class ManagersApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -280,17 +308,24 @@ class ManagersApi {
   /// Parameters:
   ///
   /// * [String] managerId (required):
-  Future<ManagerInvitation?> regenerateManagerInvitation(String managerId,) async {
-    final response = await regenerateManagerInvitationWithHttpInfo(managerId,);
+  Future<ManagerInvitation?> regenerateManagerInvitation(
+    String managerId,
+  ) async {
+    final response = await regenerateManagerInvitationWithHttpInfo(
+      managerId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'ManagerInvitation',) as ManagerInvitation;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'ManagerInvitation',
+      ) as ManagerInvitation;
     }
     return null;
   }
@@ -306,10 +341,12 @@ class ManagersApi {
   /// * [String] managerId (required):
   ///
   /// * [ManagerInput] managerInput (required):
-  Future<Response> updateManagerWithHttpInfo(String managerId, ManagerInput managerInput,) async {
+  Future<Response> updateManagerWithHttpInfo(
+    String managerId,
+    ManagerInput managerInput,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/managers/{managerId}'
-      .replaceAll('{managerId}', managerId);
+    final path = r'/managers/{managerId}'.replaceAll('{managerId}', managerId);
 
     // ignore: prefer_final_locals
     Object? postBody = managerInput;
@@ -319,7 +356,6 @@ class ManagersApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -341,17 +377,26 @@ class ManagersApi {
   /// * [String] managerId (required):
   ///
   /// * [ManagerInput] managerInput (required):
-  Future<Manager?> updateManager(String managerId, ManagerInput managerInput,) async {
-    final response = await updateManagerWithHttpInfo(managerId, managerInput,);
+  Future<Manager?> updateManager(
+    String managerId,
+    ManagerInput managerInput,
+  ) async {
+    final response = await updateManagerWithHttpInfo(
+      managerId,
+      managerInput,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Manager',) as Manager;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Manager',
+      ) as Manager;
     }
     return null;
   }

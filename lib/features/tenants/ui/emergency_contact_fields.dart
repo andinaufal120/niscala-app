@@ -5,6 +5,12 @@ import 'package:niscala/features/tenants/tenant_format.dart';
 
 const maxEmergencyContacts = 4;
 
+/// The fewest emergency contacts a form that asks for them accepts.
+const minEmergencyContacts = 2;
+
+const emergencyContactsHelper = 'Isi 2 sampai 4 kontak.';
+const emergencyContactsMinimum = 'Isi minimal 2 kontak darurat.';
+
 const invalidPhoneMessage =
     'Nomor telepon tidak valid. Contoh: 0812-5520-4471.';
 
@@ -42,6 +48,69 @@ class EmergencyContactDraft {
     name.dispose();
     relationship.dispose();
     phone.dispose();
+  }
+}
+
+/// The emergency contacts of a form: a required heading, the help text or the
+/// count error, one block per contact, and the button that adds one more.
+class EmergencyContactsSection extends StatelessWidget {
+  const EmergencyContactsSection({
+    super.key,
+    required this.drafts,
+    required this.error,
+    required this.onAdd,
+    required this.onRemove,
+  });
+
+  final List<EmergencyContactDraft> drafts;
+
+  /// The message of a failed count check. Null shows the help text.
+  final String? error;
+  final VoidCallback onAdd;
+  final ValueChanged<EmergencyContactDraft> onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Semantics(
+          header: true,
+          child: Text(
+            'Kontak darurat (wajib)',
+            style: theme.textTheme.titleSmall,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Semantics(
+          liveRegion: error != null,
+          child: Text(
+            error ?? emergencyContactsHelper,
+            style: error == null
+                ? theme.textTheme.bodyMedium
+                : theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        for (final (index, draft) in drafts.indexed) ...[
+          EmergencyContactBlock(
+            key: ObjectKey(draft),
+            index: index + 1,
+            draft: draft,
+            onRemove: () => onRemove(draft),
+          ),
+          const SizedBox(height: 16),
+        ],
+        if (drafts.length < maxEmergencyContacts)
+          OutlinedButton(
+            onPressed: onAdd,
+            child: const Text('Tambah Kontak Darurat'),
+          ),
+      ],
+    );
   }
 }
 

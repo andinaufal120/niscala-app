@@ -15,10 +15,6 @@ import 'package:niscala/features/auth/ui/invitation_link_field.dart';
 import 'package:niscala/features/tenants/ui/emergency_contact_fields.dart';
 import 'package:niscala_api/api.dart';
 
-const _contactsHelper = 'Isi 2 sampai 4 kontak.';
-const _contactsMinimum = 'Isi minimal 2 kontak darurat.';
-const _minimumContacts = 2;
-
 /// Activates an account from a pasted invitation link. A valid link turns the
 /// same screen into the activation form.
 class ActivationScreen extends ConsumerStatefulWidget {
@@ -145,7 +141,7 @@ class _ActivationFormState extends ConsumerState<_ActivationForm> {
     super.initState();
     if (widget.preview.emergencyContactsRequired) {
       _contacts.addAll([
-        for (var i = 0; i < _minimumContacts; i++) EmergencyContactDraft(),
+        for (var i = 0; i < minEmergencyContacts; i++) EmergencyContactDraft(),
       ]);
     }
   }
@@ -181,8 +177,8 @@ class _ActivationFormState extends ConsumerState<_ActivationForm> {
     final passwordError = newPasswordError(password);
     final confirmError = confirmPasswordError(password, _confirm.text);
     final contactsError =
-        requiresContacts && _contacts.length < _minimumContacts
-        ? _contactsMinimum
+        requiresContacts && _contacts.length < minEmergencyContacts
+        ? emergencyContactsMinimum
         : null;
     final contactsValid = [for (final draft in _contacts) draft.validate()]
         .every((valid) => valid);
@@ -262,40 +258,6 @@ class _ActivationFormState extends ConsumerState<_ActivationForm> {
     final room = preview.roomNumber;
     return room == null ? names : '$names · Kamar $room';
   }
-
-  List<Widget> _contactSection(ThemeData theme) => [
-    Semantics(
-      header: true,
-      child: Text('Kontak darurat (wajib)', style: theme.textTheme.titleSmall),
-    ),
-    const SizedBox(height: 4),
-    Semantics(
-      liveRegion: _contactsError != null,
-      child: Text(
-        _contactsError ?? _contactsHelper,
-        style: _contactsError == null
-            ? theme.textTheme.bodyMedium
-            : theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.error,
-              ),
-      ),
-    ),
-    const SizedBox(height: 8),
-    for (var i = 0; i < _contacts.length; i++) ...[
-      EmergencyContactBlock(
-        key: ObjectKey(_contacts[i]),
-        index: i + 1,
-        draft: _contacts[i],
-        onRemove: () => _removeContact(_contacts[i]),
-      ),
-      const SizedBox(height: 16),
-    ],
-    if (_contacts.length < maxEmergencyContacts)
-      OutlinedButton(
-        onPressed: _addContact,
-        child: const Text('Tambah Kontak Darurat'),
-      ),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -386,7 +348,12 @@ class _ActivationFormState extends ConsumerState<_ActivationForm> {
         ),
         if (preview.emergencyContactsRequired) ...[
           formGap,
-          ..._contactSection(theme),
+          EmergencyContactsSection(
+            drafts: _contacts,
+            error: _contactsError,
+            onAdd: _addContact,
+            onRemove: _removeContact,
+          ),
         ],
       ],
     );

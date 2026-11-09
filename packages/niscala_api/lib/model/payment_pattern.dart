@@ -51,48 +51,51 @@ class PaymentPattern {
   TenantRef tenant;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PaymentPattern &&
-    other.arrears == arrears &&
-    other.atRisk == atRisk &&
-    other.averageDaysLate == averageDaysLate &&
-    other.countedBillCount == countedBillCount &&
-    other.onTimeCount == onTimeCount &&
-    other.room == room &&
-    other.summary == summary &&
-    other.summaryWithheld == summaryWithheld &&
-    other.tenant == tenant;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PaymentPattern &&
+          other.arrears == arrears &&
+          other.atRisk == atRisk &&
+          other.averageDaysLate == averageDaysLate &&
+          other.countedBillCount == countedBillCount &&
+          other.onTimeCount == onTimeCount &&
+          other.room == room &&
+          other.summary == summary &&
+          other.summaryWithheld == summaryWithheld &&
+          other.tenant == tenant;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (arrears.hashCode) +
-    (atRisk.hashCode) +
-    (averageDaysLate.hashCode) +
-    (countedBillCount.hashCode) +
-    (onTimeCount.hashCode) +
-    (room.hashCode) +
-    (summary == null ? 0 : summary!.hashCode) +
-    (summaryWithheld.hashCode) +
-    (tenant.hashCode);
+      // ignore: unnecessary_parenthesis
+      (arrears.hashCode) +
+      (atRisk.hashCode) +
+      (averageDaysLate.hashCode) +
+      (countedBillCount.hashCode) +
+      (onTimeCount.hashCode) +
+      (room.hashCode) +
+      (summary == null ? 0 : summary!.hashCode) +
+      (summaryWithheld.hashCode) +
+      (tenant.hashCode);
 
   @override
-  String toString() => 'PaymentPattern[arrears=$arrears, atRisk=$atRisk, averageDaysLate=$averageDaysLate, countedBillCount=$countedBillCount, onTimeCount=$onTimeCount, room=$room, summary=$summary, summaryWithheld=$summaryWithheld, tenant=$tenant]';
+  String toString() =>
+      'PaymentPattern[arrears=$arrears, atRisk=$atRisk, averageDaysLate=$averageDaysLate, countedBillCount=$countedBillCount, onTimeCount=$onTimeCount, room=$room, summary=$summary, summaryWithheld=$summaryWithheld, tenant=$tenant]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'arrears'] = this.arrears;
-      json[r'atRisk'] = this.atRisk;
-      json[r'averageDaysLate'] = this.averageDaysLate;
-      json[r'countedBillCount'] = this.countedBillCount;
-      json[r'onTimeCount'] = this.onTimeCount;
-      json[r'room'] = this.room;
+    json[r'arrears'] = this.arrears;
+    json[r'atRisk'] = this.atRisk;
+    json[r'averageDaysLate'] = this.averageDaysLate;
+    json[r'countedBillCount'] = this.countedBillCount;
+    json[r'onTimeCount'] = this.onTimeCount;
+    json[r'room'] = this.room;
     if (this.summary != null) {
       json[r'summary'] = this.summary;
     } else {
       json[r'summary'] = null;
     }
-      json[r'summaryWithheld'] = this.summaryWithheld;
-      json[r'tenant'] = this.tenant;
+    json[r'summaryWithheld'] = this.summaryWithheld;
+    json[r'tenant'] = this.tenant;
     return json;
   }
 
@@ -108,8 +111,10 @@ class PaymentPattern {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PaymentPattern[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PaymentPattern[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PaymentPattern[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PaymentPattern[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -129,7 +134,10 @@ class PaymentPattern {
     return null;
   }
 
-  static List<PaymentPattern> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PaymentPattern> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PaymentPattern>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -157,13 +165,19 @@ class PaymentPattern {
   }
 
   // maps a json object with a list of PaymentPattern-objects as value to a dart map
-  static Map<String, List<PaymentPattern>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PaymentPattern>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PaymentPattern>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PaymentPattern.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PaymentPattern.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -181,4 +195,3 @@ class PaymentPattern {
     'tenant',
   };
 }
-

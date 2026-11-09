@@ -162,7 +162,7 @@ No authorization required
 
 Login With Google
 
-Log in with Google and start a session.
+Log in with Google and start a session; failures are not counted.
 
 ### Example
 ```dart

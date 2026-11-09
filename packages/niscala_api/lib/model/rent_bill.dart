@@ -65,63 +65,66 @@ class RentBill {
   TenantRef tenant;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is RentBill &&
-    other.amount == amount &&
-    other.bankAccount == bankAccount &&
-    other.canUploadReceipt == canUploadReceipt &&
-    other.daysOverdue == daysOverdue &&
-    other.dueDate == dueDate &&
-    other.id == id &&
-    other.isCurrent == isCurrent &&
-    other.payment == payment &&
-    other.periodEnd == periodEnd &&
-    other.periodStart == periodStart &&
-    other.property == property &&
-    other.room == room &&
-    _deepEquality.equals(other.statusChanges, statusChanges) &&
-    other.tenant == tenant;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RentBill &&
+          other.amount == amount &&
+          other.bankAccount == bankAccount &&
+          other.canUploadReceipt == canUploadReceipt &&
+          other.daysOverdue == daysOverdue &&
+          other.dueDate == dueDate &&
+          other.id == id &&
+          other.isCurrent == isCurrent &&
+          other.payment == payment &&
+          other.periodEnd == periodEnd &&
+          other.periodStart == periodStart &&
+          other.property == property &&
+          other.room == room &&
+          _deepEquality.equals(other.statusChanges, statusChanges) &&
+          other.tenant == tenant;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (amount.hashCode) +
-    (bankAccount == null ? 0 : bankAccount!.hashCode) +
-    (canUploadReceipt.hashCode) +
-    (daysOverdue.hashCode) +
-    (dueDate.hashCode) +
-    (id.hashCode) +
-    (isCurrent.hashCode) +
-    (payment.hashCode) +
-    (periodEnd.hashCode) +
-    (periodStart.hashCode) +
-    (property.hashCode) +
-    (room.hashCode) +
-    (statusChanges.hashCode) +
-    (tenant.hashCode);
+      // ignore: unnecessary_parenthesis
+      (amount.hashCode) +
+      (bankAccount == null ? 0 : bankAccount!.hashCode) +
+      (canUploadReceipt.hashCode) +
+      (daysOverdue.hashCode) +
+      (dueDate.hashCode) +
+      (id.hashCode) +
+      (isCurrent.hashCode) +
+      (payment.hashCode) +
+      (periodEnd.hashCode) +
+      (periodStart.hashCode) +
+      (property.hashCode) +
+      (room.hashCode) +
+      (statusChanges.hashCode) +
+      (tenant.hashCode);
 
   @override
-  String toString() => 'RentBill[amount=$amount, bankAccount=$bankAccount, canUploadReceipt=$canUploadReceipt, daysOverdue=$daysOverdue, dueDate=$dueDate, id=$id, isCurrent=$isCurrent, payment=$payment, periodEnd=$periodEnd, periodStart=$periodStart, property=$property, room=$room, statusChanges=$statusChanges, tenant=$tenant]';
+  String toString() =>
+      'RentBill[amount=$amount, bankAccount=$bankAccount, canUploadReceipt=$canUploadReceipt, daysOverdue=$daysOverdue, dueDate=$dueDate, id=$id, isCurrent=$isCurrent, payment=$payment, periodEnd=$periodEnd, periodStart=$periodStart, property=$property, room=$room, statusChanges=$statusChanges, tenant=$tenant]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'amount'] = this.amount;
+    json[r'amount'] = this.amount;
     if (this.bankAccount != null) {
       json[r'bankAccount'] = this.bankAccount;
     } else {
       json[r'bankAccount'] = null;
     }
-      json[r'canUploadReceipt'] = this.canUploadReceipt;
-      json[r'daysOverdue'] = this.daysOverdue;
-      json[r'dueDate'] = _dateFormatter.format(this.dueDate.toUtc());
-      json[r'id'] = this.id;
-      json[r'isCurrent'] = this.isCurrent;
-      json[r'payment'] = this.payment;
-      json[r'periodEnd'] = _dateFormatter.format(this.periodEnd.toUtc());
-      json[r'periodStart'] = _dateFormatter.format(this.periodStart.toUtc());
-      json[r'property'] = this.property;
-      json[r'room'] = this.room;
-      json[r'statusChanges'] = this.statusChanges;
-      json[r'tenant'] = this.tenant;
+    json[r'canUploadReceipt'] = this.canUploadReceipt;
+    json[r'daysOverdue'] = this.daysOverdue;
+    json[r'dueDate'] = _dateFormatter.format(this.dueDate.toUtc());
+    json[r'id'] = this.id;
+    json[r'isCurrent'] = this.isCurrent;
+    json[r'payment'] = this.payment;
+    json[r'periodEnd'] = _dateFormatter.format(this.periodEnd.toUtc());
+    json[r'periodStart'] = _dateFormatter.format(this.periodStart.toUtc());
+    json[r'property'] = this.property;
+    json[r'room'] = this.room;
+    json[r'statusChanges'] = this.statusChanges;
+    json[r'tenant'] = this.tenant;
     return json;
   }
 
@@ -137,8 +140,10 @@ class RentBill {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "RentBill[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "RentBill[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "RentBill[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "RentBill[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -163,7 +168,10 @@ class RentBill {
     return null;
   }
 
-  static List<RentBill> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<RentBill> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <RentBill>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -191,13 +199,19 @@ class RentBill {
   }
 
   // maps a json object with a list of RentBill-objects as value to a dart map
-  static Map<String, List<RentBill>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<RentBill>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<RentBill>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = RentBill.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = RentBill.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -220,4 +234,3 @@ class RentBill {
     'tenant',
   };
 }
-

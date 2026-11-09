@@ -29,29 +29,32 @@ class SubscriptionPlanPrice {
   String googlePlayProductId;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is SubscriptionPlanPrice &&
-    other.amount == amount &&
-    other.billingPeriod == billingPeriod &&
-    other.googlePlayBasePlanId == googlePlayBasePlanId &&
-    other.googlePlayProductId == googlePlayProductId;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SubscriptionPlanPrice &&
+          other.amount == amount &&
+          other.billingPeriod == billingPeriod &&
+          other.googlePlayBasePlanId == googlePlayBasePlanId &&
+          other.googlePlayProductId == googlePlayProductId;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (amount.hashCode) +
-    (billingPeriod.hashCode) +
-    (googlePlayBasePlanId.hashCode) +
-    (googlePlayProductId.hashCode);
+      // ignore: unnecessary_parenthesis
+      (amount.hashCode) +
+      (billingPeriod.hashCode) +
+      (googlePlayBasePlanId.hashCode) +
+      (googlePlayProductId.hashCode);
 
   @override
-  String toString() => 'SubscriptionPlanPrice[amount=$amount, billingPeriod=$billingPeriod, googlePlayBasePlanId=$googlePlayBasePlanId, googlePlayProductId=$googlePlayProductId]';
+  String toString() =>
+      'SubscriptionPlanPrice[amount=$amount, billingPeriod=$billingPeriod, googlePlayBasePlanId=$googlePlayBasePlanId, googlePlayProductId=$googlePlayProductId]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'amount'] = this.amount;
-      json[r'billingPeriod'] = this.billingPeriod;
-      json[r'googlePlayBasePlanId'] = this.googlePlayBasePlanId;
-      json[r'googlePlayProductId'] = this.googlePlayProductId;
+    json[r'amount'] = this.amount;
+    json[r'billingPeriod'] = this.billingPeriod;
+    json[r'googlePlayBasePlanId'] = this.googlePlayBasePlanId;
+    json[r'googlePlayProductId'] = this.googlePlayProductId;
     return json;
   }
 
@@ -67,8 +70,10 @@ class SubscriptionPlanPrice {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "SubscriptionPlanPrice[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "SubscriptionPlanPrice[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "SubscriptionPlanPrice[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "SubscriptionPlanPrice[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -76,14 +81,19 @@ class SubscriptionPlanPrice {
       return SubscriptionPlanPrice(
         amount: mapValueOfType<int>(json, r'amount')!,
         billingPeriod: SubscriptionPeriod.fromJson(json[r'billingPeriod'])!,
-        googlePlayBasePlanId: mapValueOfType<String>(json, r'googlePlayBasePlanId')!,
-        googlePlayProductId: mapValueOfType<String>(json, r'googlePlayProductId')!,
+        googlePlayBasePlanId:
+            mapValueOfType<String>(json, r'googlePlayBasePlanId')!,
+        googlePlayProductId:
+            mapValueOfType<String>(json, r'googlePlayProductId')!,
       );
     }
     return null;
   }
 
-  static List<SubscriptionPlanPrice> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<SubscriptionPlanPrice> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <SubscriptionPlanPrice>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -111,13 +121,19 @@ class SubscriptionPlanPrice {
   }
 
   // maps a json object with a list of SubscriptionPlanPrice-objects as value to a dart map
-  static Map<String, List<SubscriptionPlanPrice>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<SubscriptionPlanPrice>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<SubscriptionPlanPrice>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = SubscriptionPlanPrice.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = SubscriptionPlanPrice.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -131,4 +147,3 @@ class SubscriptionPlanPrice {
     'googlePlayProductId',
   };
 }
-

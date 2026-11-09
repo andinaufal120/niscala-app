@@ -37,36 +37,40 @@ class TenantSummary {
   RoomRef room;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is TenantSummary &&
-    other.accountStatus == accountStatus &&
-    other.billingCycle == billingCycle &&
-    other.id == id &&
-    other.invitationExpiresAt == invitationExpiresAt &&
-    other.leaseEndDate == leaseEndDate &&
-    other.name == name &&
-    other.room == room;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TenantSummary &&
+          other.accountStatus == accountStatus &&
+          other.billingCycle == billingCycle &&
+          other.id == id &&
+          other.invitationExpiresAt == invitationExpiresAt &&
+          other.leaseEndDate == leaseEndDate &&
+          other.name == name &&
+          other.room == room;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (accountStatus.hashCode) +
-    (billingCycle.hashCode) +
-    (id.hashCode) +
-    (invitationExpiresAt == null ? 0 : invitationExpiresAt!.hashCode) +
-    (leaseEndDate == null ? 0 : leaseEndDate!.hashCode) +
-    (name.hashCode) +
-    (room.hashCode);
+      // ignore: unnecessary_parenthesis
+      (accountStatus.hashCode) +
+      (billingCycle.hashCode) +
+      (id.hashCode) +
+      (invitationExpiresAt == null ? 0 : invitationExpiresAt!.hashCode) +
+      (leaseEndDate == null ? 0 : leaseEndDate!.hashCode) +
+      (name.hashCode) +
+      (room.hashCode);
 
   @override
-  String toString() => 'TenantSummary[accountStatus=$accountStatus, billingCycle=$billingCycle, id=$id, invitationExpiresAt=$invitationExpiresAt, leaseEndDate=$leaseEndDate, name=$name, room=$room]';
+  String toString() =>
+      'TenantSummary[accountStatus=$accountStatus, billingCycle=$billingCycle, id=$id, invitationExpiresAt=$invitationExpiresAt, leaseEndDate=$leaseEndDate, name=$name, room=$room]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'accountStatus'] = this.accountStatus;
-      json[r'billingCycle'] = this.billingCycle;
-      json[r'id'] = this.id;
+    json[r'accountStatus'] = this.accountStatus;
+    json[r'billingCycle'] = this.billingCycle;
+    json[r'id'] = this.id;
     if (this.invitationExpiresAt != null) {
-      json[r'invitationExpiresAt'] = this.invitationExpiresAt!.toUtc().toIso8601String();
+      json[r'invitationExpiresAt'] =
+          this.invitationExpiresAt!.toUtc().toIso8601String();
     } else {
       json[r'invitationExpiresAt'] = null;
     }
@@ -75,8 +79,8 @@ class TenantSummary {
     } else {
       json[r'leaseEndDate'] = null;
     }
-      json[r'name'] = this.name;
-      json[r'room'] = this.room;
+    json[r'name'] = this.name;
+    json[r'room'] = this.room;
     return json;
   }
 
@@ -92,8 +96,10 @@ class TenantSummary {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "TenantSummary[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "TenantSummary[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "TenantSummary[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "TenantSummary[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -111,7 +117,10 @@ class TenantSummary {
     return null;
   }
 
-  static List<TenantSummary> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<TenantSummary> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <TenantSummary>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -139,13 +148,19 @@ class TenantSummary {
   }
 
   // maps a json object with a list of TenantSummary-objects as value to a dart map
-  static Map<String, List<TenantSummary>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<TenantSummary>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<TenantSummary>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = TenantSummary.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = TenantSummary.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -160,4 +175,3 @@ class TenantSummary {
     'room',
   };
 }
-

@@ -26,8 +26,10 @@ class NotificationType {
   static const billIssued = NotificationType._(r'billIssued');
   static const dueDateReminder = NotificationType._(r'dueDateReminder');
   static const billOverdue = NotificationType._(r'billOverdue');
-  static const paymentStatusChanged = NotificationType._(r'paymentStatusChanged');
-  static const complaintStatusChanged = NotificationType._(r'complaintStatusChanged');
+  static const paymentStatusChanged =
+      NotificationType._(r'paymentStatusChanged');
+  static const complaintStatusChanged =
+      NotificationType._(r'complaintStatusChanged');
   static const complaintSubmitted = NotificationType._(r'complaintSubmitted');
   static const receiptUploaded = NotificationType._(r'receiptUploaded');
   static const cashPaymentRecorded = NotificationType._(r'cashPaymentRecorded');
@@ -48,9 +50,13 @@ class NotificationType {
     managerActivated,
   ];
 
-  static NotificationType? fromJson(dynamic value) => NotificationTypeTypeTransformer().decode(value);
+  static NotificationType? fromJson(dynamic value) =>
+      NotificationTypeTypeTransformer().decode(value);
 
-  static List<NotificationType> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<NotificationType> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <NotificationType>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -67,7 +73,8 @@ class NotificationType {
 /// Transformation class that can [encode] an instance of [NotificationType] to String,
 /// and [decode] dynamic data back to [NotificationType].
 class NotificationTypeTypeTransformer {
-  factory NotificationTypeTypeTransformer() => _instance ??= const NotificationTypeTypeTransformer._();
+  factory NotificationTypeTypeTransformer() =>
+      _instance ??= const NotificationTypeTypeTransformer._();
 
   const NotificationTypeTypeTransformer._();
 
@@ -84,16 +91,26 @@ class NotificationTypeTypeTransformer {
   NotificationType? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'billIssued': return NotificationType.billIssued;
-        case r'dueDateReminder': return NotificationType.dueDateReminder;
-        case r'billOverdue': return NotificationType.billOverdue;
-        case r'paymentStatusChanged': return NotificationType.paymentStatusChanged;
-        case r'complaintStatusChanged': return NotificationType.complaintStatusChanged;
-        case r'complaintSubmitted': return NotificationType.complaintSubmitted;
-        case r'receiptUploaded': return NotificationType.receiptUploaded;
-        case r'cashPaymentRecorded': return NotificationType.cashPaymentRecorded;
-        case r'tenantActivated': return NotificationType.tenantActivated;
-        case r'managerActivated': return NotificationType.managerActivated;
+        case r'billIssued':
+          return NotificationType.billIssued;
+        case r'dueDateReminder':
+          return NotificationType.dueDateReminder;
+        case r'billOverdue':
+          return NotificationType.billOverdue;
+        case r'paymentStatusChanged':
+          return NotificationType.paymentStatusChanged;
+        case r'complaintStatusChanged':
+          return NotificationType.complaintStatusChanged;
+        case r'complaintSubmitted':
+          return NotificationType.complaintSubmitted;
+        case r'receiptUploaded':
+          return NotificationType.receiptUploaded;
+        case r'cashPaymentRecorded':
+          return NotificationType.cashPaymentRecorded;
+        case r'tenantActivated':
+          return NotificationType.tenantActivated;
+        case r'managerActivated':
+          return NotificationType.managerActivated;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -106,4 +123,3 @@ class NotificationTypeTypeTransformer {
   /// Singleton [NotificationTypeTypeTransformer] instance.
   static NotificationTypeTypeTransformer? _instance;
 }
-

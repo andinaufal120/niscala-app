@@ -42,34 +42,37 @@ class Subscription {
   SubscriptionStatus status;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Subscription &&
-    other.autoRenew == autoRenew &&
-    other.billingPeriod == billingPeriod &&
-    other.endDate == endDate &&
-    other.openOrder == openOrder &&
-    other.planCode == planCode &&
-    other.propertyCount == propertyCount &&
-    other.scheduledDowngrade == scheduledDowngrade &&
-    other.status == status;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Subscription &&
+          other.autoRenew == autoRenew &&
+          other.billingPeriod == billingPeriod &&
+          other.endDate == endDate &&
+          other.openOrder == openOrder &&
+          other.planCode == planCode &&
+          other.propertyCount == propertyCount &&
+          other.scheduledDowngrade == scheduledDowngrade &&
+          other.status == status;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (autoRenew.hashCode) +
-    (billingPeriod == null ? 0 : billingPeriod!.hashCode) +
-    (endDate == null ? 0 : endDate!.hashCode) +
-    (openOrder == null ? 0 : openOrder!.hashCode) +
-    (planCode.hashCode) +
-    (propertyCount.hashCode) +
-    (scheduledDowngrade == null ? 0 : scheduledDowngrade!.hashCode) +
-    (status.hashCode);
+      // ignore: unnecessary_parenthesis
+      (autoRenew.hashCode) +
+      (billingPeriod == null ? 0 : billingPeriod!.hashCode) +
+      (endDate == null ? 0 : endDate!.hashCode) +
+      (openOrder == null ? 0 : openOrder!.hashCode) +
+      (planCode.hashCode) +
+      (propertyCount.hashCode) +
+      (scheduledDowngrade == null ? 0 : scheduledDowngrade!.hashCode) +
+      (status.hashCode);
 
   @override
-  String toString() => 'Subscription[autoRenew=$autoRenew, billingPeriod=$billingPeriod, endDate=$endDate, openOrder=$openOrder, planCode=$planCode, propertyCount=$propertyCount, scheduledDowngrade=$scheduledDowngrade, status=$status]';
+  String toString() =>
+      'Subscription[autoRenew=$autoRenew, billingPeriod=$billingPeriod, endDate=$endDate, openOrder=$openOrder, planCode=$planCode, propertyCount=$propertyCount, scheduledDowngrade=$scheduledDowngrade, status=$status]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'autoRenew'] = this.autoRenew;
+    json[r'autoRenew'] = this.autoRenew;
     if (this.billingPeriod != null) {
       json[r'billingPeriod'] = this.billingPeriod;
     } else {
@@ -85,14 +88,14 @@ class Subscription {
     } else {
       json[r'openOrder'] = null;
     }
-      json[r'planCode'] = this.planCode;
-      json[r'propertyCount'] = this.propertyCount;
+    json[r'planCode'] = this.planCode;
+    json[r'propertyCount'] = this.propertyCount;
     if (this.scheduledDowngrade != null) {
       json[r'scheduledDowngrade'] = this.scheduledDowngrade;
     } else {
       json[r'scheduledDowngrade'] = null;
     }
-      json[r'status'] = this.status;
+    json[r'status'] = this.status;
     return json;
   }
 
@@ -108,8 +111,10 @@ class Subscription {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Subscription[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Subscription[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Subscription[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Subscription[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -121,14 +126,18 @@ class Subscription {
         openOrder: SubscriptionOrder.fromJson(json[r'openOrder']),
         planCode: PlanCode.fromJson(json[r'planCode'])!,
         propertyCount: mapValueOfType<int>(json, r'propertyCount')!,
-        scheduledDowngrade: ScheduledDowngrade.fromJson(json[r'scheduledDowngrade']),
+        scheduledDowngrade:
+            ScheduledDowngrade.fromJson(json[r'scheduledDowngrade']),
         status: SubscriptionStatus.fromJson(json[r'status'])!,
       );
     }
     return null;
   }
 
-  static List<Subscription> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Subscription> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Subscription>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -156,13 +165,19 @@ class Subscription {
   }
 
   // maps a json object with a list of Subscription-objects as value to a dart map
-  static Map<String, List<Subscription>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Subscription>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Subscription>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Subscription.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Subscription.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -176,4 +191,3 @@ class Subscription {
     'status',
   };
 }
-

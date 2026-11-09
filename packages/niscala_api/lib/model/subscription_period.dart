@@ -32,9 +32,13 @@ class SubscriptionPeriod {
     yearly,
   ];
 
-  static SubscriptionPeriod? fromJson(dynamic value) => SubscriptionPeriodTypeTransformer().decode(value);
+  static SubscriptionPeriod? fromJson(dynamic value) =>
+      SubscriptionPeriodTypeTransformer().decode(value);
 
-  static List<SubscriptionPeriod> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<SubscriptionPeriod> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <SubscriptionPeriod>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -51,7 +55,8 @@ class SubscriptionPeriod {
 /// Transformation class that can [encode] an instance of [SubscriptionPeriod] to String,
 /// and [decode] dynamic data back to [SubscriptionPeriod].
 class SubscriptionPeriodTypeTransformer {
-  factory SubscriptionPeriodTypeTransformer() => _instance ??= const SubscriptionPeriodTypeTransformer._();
+  factory SubscriptionPeriodTypeTransformer() =>
+      _instance ??= const SubscriptionPeriodTypeTransformer._();
 
   const SubscriptionPeriodTypeTransformer._();
 
@@ -68,8 +73,10 @@ class SubscriptionPeriodTypeTransformer {
   SubscriptionPeriod? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'monthly': return SubscriptionPeriod.monthly;
-        case r'yearly': return SubscriptionPeriod.yearly;
+        case r'monthly':
+          return SubscriptionPeriod.monthly;
+        case r'yearly':
+          return SubscriptionPeriod.yearly;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -82,4 +89,3 @@ class SubscriptionPeriodTypeTransformer {
   /// Singleton [SubscriptionPeriodTypeTransformer] instance.
   static SubscriptionPeriodTypeTransformer? _instance;
 }
-

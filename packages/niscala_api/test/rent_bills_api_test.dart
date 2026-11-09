@@ -11,7 +11,6 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
-
 /// tests for RentBillsApi
 void main() {
   // final instance = RentBillsApi();
@@ -106,6 +105,5 @@ void main() {
     test('test verifyReceipt', () async {
       // TODO
     });
-
   });
 }

@@ -31,28 +31,31 @@ class Payment {
   PaymentStatus status;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Payment &&
-    other.hasReceipt == hasReceipt &&
-    other.method == method &&
-    other.paidOn == paidOn &&
-    other.rejectionReason == rejectionReason &&
-    other.status == status;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Payment &&
+          other.hasReceipt == hasReceipt &&
+          other.method == method &&
+          other.paidOn == paidOn &&
+          other.rejectionReason == rejectionReason &&
+          other.status == status;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (hasReceipt.hashCode) +
-    (method == null ? 0 : method!.hashCode) +
-    (paidOn == null ? 0 : paidOn!.hashCode) +
-    (rejectionReason == null ? 0 : rejectionReason!.hashCode) +
-    (status.hashCode);
+      // ignore: unnecessary_parenthesis
+      (hasReceipt.hashCode) +
+      (method == null ? 0 : method!.hashCode) +
+      (paidOn == null ? 0 : paidOn!.hashCode) +
+      (rejectionReason == null ? 0 : rejectionReason!.hashCode) +
+      (status.hashCode);
 
   @override
-  String toString() => 'Payment[hasReceipt=$hasReceipt, method=$method, paidOn=$paidOn, rejectionReason=$rejectionReason, status=$status]';
+  String toString() =>
+      'Payment[hasReceipt=$hasReceipt, method=$method, paidOn=$paidOn, rejectionReason=$rejectionReason, status=$status]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'hasReceipt'] = this.hasReceipt;
+    json[r'hasReceipt'] = this.hasReceipt;
     if (this.method != null) {
       json[r'method'] = this.method;
     } else {
@@ -68,7 +71,7 @@ class Payment {
     } else {
       json[r'rejectionReason'] = null;
     }
-      json[r'status'] = this.status;
+    json[r'status'] = this.status;
     return json;
   }
 
@@ -84,8 +87,10 @@ class Payment {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Payment[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Payment[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Payment[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Payment[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -101,7 +106,10 @@ class Payment {
     return null;
   }
 
-  static List<Payment> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Payment> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Payment>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -129,13 +137,19 @@ class Payment {
   }
 
   // maps a json object with a list of Payment-objects as value to a dart map
-  static Map<String, List<Payment>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Payment>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Payment>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Payment.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Payment.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -147,4 +161,3 @@ class Payment {
     'status',
   };
 }
-

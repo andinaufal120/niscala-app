@@ -10,9 +10,9 @@
 
 part of niscala_api;
 
-
 class ComplaintsApi {
-  ComplaintsApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
+  ComplaintsApi([ApiClient? apiClient])
+      : apiClient = apiClient ?? defaultApiClient;
 
   final ApiClient apiClient;
 
@@ -27,10 +27,13 @@ class ComplaintsApi {
   /// * [String] complaintId (required):
   ///
   /// * [ComplaintStatusChangeInput] complaintStatusChangeInput (required):
-  Future<Response> changeComplaintStatusWithHttpInfo(String complaintId, ComplaintStatusChangeInput complaintStatusChangeInput,) async {
+  Future<Response> changeComplaintStatusWithHttpInfo(
+    String complaintId,
+    ComplaintStatusChangeInput complaintStatusChangeInput,
+  ) async {
     // ignore: prefer_const_declarations
     final path = r'/complaints/{complaintId}/status-changes'
-      .replaceAll('{complaintId}', complaintId);
+        .replaceAll('{complaintId}', complaintId);
 
     // ignore: prefer_final_locals
     Object? postBody = complaintStatusChangeInput;
@@ -40,7 +43,6 @@ class ComplaintsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -62,17 +64,26 @@ class ComplaintsApi {
   /// * [String] complaintId (required):
   ///
   /// * [ComplaintStatusChangeInput] complaintStatusChangeInput (required):
-  Future<Complaint?> changeComplaintStatus(String complaintId, ComplaintStatusChangeInput complaintStatusChangeInput,) async {
-    final response = await changeComplaintStatusWithHttpInfo(complaintId, complaintStatusChangeInput,);
+  Future<Complaint?> changeComplaintStatus(
+    String complaintId,
+    ComplaintStatusChangeInput complaintStatusChangeInput,
+  ) async {
+    final response = await changeComplaintStatusWithHttpInfo(
+      complaintId,
+      complaintStatusChangeInput,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Complaint',) as Complaint;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Complaint',
+      ) as Complaint;
     }
     return null;
   }
@@ -88,10 +99,13 @@ class ComplaintsApi {
   /// * [String] complaintId (required):
   ///
   /// * [ComplaintClassificationInput] complaintClassificationInput (required):
-  Future<Response> classifyComplaintWithHttpInfo(String complaintId, ComplaintClassificationInput complaintClassificationInput,) async {
+  Future<Response> classifyComplaintWithHttpInfo(
+    String complaintId,
+    ComplaintClassificationInput complaintClassificationInput,
+  ) async {
     // ignore: prefer_const_declarations
     final path = r'/complaints/{complaintId}/classification'
-      .replaceAll('{complaintId}', complaintId);
+        .replaceAll('{complaintId}', complaintId);
 
     // ignore: prefer_final_locals
     Object? postBody = complaintClassificationInput;
@@ -101,7 +115,6 @@ class ComplaintsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -123,17 +136,26 @@ class ComplaintsApi {
   /// * [String] complaintId (required):
   ///
   /// * [ComplaintClassificationInput] complaintClassificationInput (required):
-  Future<Complaint?> classifyComplaint(String complaintId, ComplaintClassificationInput complaintClassificationInput,) async {
-    final response = await classifyComplaintWithHttpInfo(complaintId, complaintClassificationInput,);
+  Future<Complaint?> classifyComplaint(
+    String complaintId,
+    ComplaintClassificationInput complaintClassificationInput,
+  ) async {
+    final response = await classifyComplaintWithHttpInfo(
+      complaintId,
+      complaintClassificationInput,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Complaint',) as Complaint;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Complaint',
+      ) as Complaint;
     }
     return null;
   }
@@ -147,7 +169,9 @@ class ComplaintsApi {
   /// Parameters:
   ///
   /// * [ComplaintInput] complaintInput (required):
-  Future<Response> createComplaintWithHttpInfo(ComplaintInput complaintInput,) async {
+  Future<Response> createComplaintWithHttpInfo(
+    ComplaintInput complaintInput,
+  ) async {
     // ignore: prefer_const_declarations
     final path = r'/complaints';
 
@@ -159,7 +183,6 @@ class ComplaintsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -179,17 +202,24 @@ class ComplaintsApi {
   /// Parameters:
   ///
   /// * [ComplaintInput] complaintInput (required):
-  Future<Complaint?> createComplaint(ComplaintInput complaintInput,) async {
-    final response = await createComplaintWithHttpInfo(complaintInput,);
+  Future<Complaint?> createComplaint(
+    ComplaintInput complaintInput,
+  ) async {
+    final response = await createComplaintWithHttpInfo(
+      complaintInput,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Complaint',) as Complaint;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Complaint',
+      ) as Complaint;
     }
     return null;
   }
@@ -203,10 +233,12 @@ class ComplaintsApi {
   /// Parameters:
   ///
   /// * [String] complaintId (required):
-  Future<Response> getComplaintWithHttpInfo(String complaintId,) async {
+  Future<Response> getComplaintWithHttpInfo(
+    String complaintId,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/complaints/{complaintId}'
-      .replaceAll('{complaintId}', complaintId);
+    final path =
+        r'/complaints/{complaintId}'.replaceAll('{complaintId}', complaintId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -216,7 +248,6 @@ class ComplaintsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -236,17 +267,24 @@ class ComplaintsApi {
   /// Parameters:
   ///
   /// * [String] complaintId (required):
-  Future<Complaint?> getComplaint(String complaintId,) async {
-    final response = await getComplaintWithHttpInfo(complaintId,);
+  Future<Complaint?> getComplaint(
+    String complaintId,
+  ) async {
+    final response = await getComplaintWithHttpInfo(
+      complaintId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Complaint',) as Complaint;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Complaint',
+      ) as Complaint;
     }
     return null;
   }
@@ -260,10 +298,12 @@ class ComplaintsApi {
   /// Parameters:
   ///
   /// * [String] complaintId (required):
-  Future<Response> getComplaintPhotoWithHttpInfo(String complaintId,) async {
+  Future<Response> getComplaintPhotoWithHttpInfo(
+    String complaintId,
+  ) async {
     // ignore: prefer_const_declarations
     final path = r'/complaints/{complaintId}/photo'
-      .replaceAll('{complaintId}', complaintId);
+        .replaceAll('{complaintId}', complaintId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -273,7 +313,6 @@ class ComplaintsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -293,8 +332,12 @@ class ComplaintsApi {
   /// Parameters:
   ///
   /// * [String] complaintId (required):
-  Future<void> getComplaintPhoto(String complaintId,) async {
-    final response = await getComplaintPhotoWithHttpInfo(complaintId,);
+  Future<void> getComplaintPhoto(
+    String complaintId,
+  ) async {
+    final response = await getComplaintPhotoWithHttpInfo(
+      complaintId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -318,7 +361,6 @@ class ComplaintsApi {
 
     const contentTypes = <String>[];
 
-
     return apiClient.invokeAPI(
       path,
       'GET',
@@ -341,9 +383,12 @@ class ComplaintsApi {
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'ComplaintCategoryList',) as ComplaintCategoryList;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'ComplaintCategoryList',
+      ) as ComplaintCategoryList;
     }
     return null;
   }
@@ -365,7 +410,6 @@ class ComplaintsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -389,9 +433,12 @@ class ComplaintsApi {
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'ComplaintList',) as ComplaintList;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'ComplaintList',
+      ) as ComplaintList;
     }
     return null;
   }
@@ -407,10 +454,13 @@ class ComplaintsApi {
   /// * [String] complaintId (required):
   ///
   /// * [MultipartFile] file (required):
-  Future<Response> uploadComplaintPhotoWithHttpInfo(String complaintId, MultipartFile file,) async {
+  Future<Response> uploadComplaintPhotoWithHttpInfo(
+    String complaintId,
+    MultipartFile file,
+  ) async {
     // ignore: prefer_const_declarations
     final path = r'/complaints/{complaintId}/photo'
-      .replaceAll('{complaintId}', complaintId);
+        .replaceAll('{complaintId}', complaintId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -452,17 +502,26 @@ class ComplaintsApi {
   /// * [String] complaintId (required):
   ///
   /// * [MultipartFile] file (required):
-  Future<Complaint?> uploadComplaintPhoto(String complaintId, MultipartFile file,) async {
-    final response = await uploadComplaintPhotoWithHttpInfo(complaintId, file,);
+  Future<Complaint?> uploadComplaintPhoto(
+    String complaintId,
+    MultipartFile file,
+  ) async {
+    final response = await uploadComplaintPhotoWithHttpInfo(
+      complaintId,
+      file,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Complaint',) as Complaint;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Complaint',
+      ) as Complaint;
     }
     return null;
   }

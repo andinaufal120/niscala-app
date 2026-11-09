@@ -45,39 +45,42 @@ class RoomSummary {
   num? widthM;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is RoomSummary &&
-    other.baseRate == baseRate &&
-    other.editable == editable &&
-    _deepEquality.equals(other.facilities, facilities) &&
-    other.id == id &&
-    other.lease == lease &&
-    other.lengthM == lengthM &&
-    other.number == number &&
-    other.occupancy == occupancy &&
-    other.widthM == widthM;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RoomSummary &&
+          other.baseRate == baseRate &&
+          other.editable == editable &&
+          _deepEquality.equals(other.facilities, facilities) &&
+          other.id == id &&
+          other.lease == lease &&
+          other.lengthM == lengthM &&
+          other.number == number &&
+          other.occupancy == occupancy &&
+          other.widthM == widthM;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (baseRate.hashCode) +
-    (editable.hashCode) +
-    (facilities.hashCode) +
-    (id.hashCode) +
-    (lease == null ? 0 : lease!.hashCode) +
-    (lengthM == null ? 0 : lengthM!.hashCode) +
-    (number.hashCode) +
-    (occupancy.hashCode) +
-    (widthM == null ? 0 : widthM!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (baseRate.hashCode) +
+      (editable.hashCode) +
+      (facilities.hashCode) +
+      (id.hashCode) +
+      (lease == null ? 0 : lease!.hashCode) +
+      (lengthM == null ? 0 : lengthM!.hashCode) +
+      (number.hashCode) +
+      (occupancy.hashCode) +
+      (widthM == null ? 0 : widthM!.hashCode);
 
   @override
-  String toString() => 'RoomSummary[baseRate=$baseRate, editable=$editable, facilities=$facilities, id=$id, lease=$lease, lengthM=$lengthM, number=$number, occupancy=$occupancy, widthM=$widthM]';
+  String toString() =>
+      'RoomSummary[baseRate=$baseRate, editable=$editable, facilities=$facilities, id=$id, lease=$lease, lengthM=$lengthM, number=$number, occupancy=$occupancy, widthM=$widthM]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'baseRate'] = this.baseRate;
-      json[r'editable'] = this.editable;
-      json[r'facilities'] = this.facilities;
-      json[r'id'] = this.id;
+    json[r'baseRate'] = this.baseRate;
+    json[r'editable'] = this.editable;
+    json[r'facilities'] = this.facilities;
+    json[r'id'] = this.id;
     if (this.lease != null) {
       json[r'lease'] = this.lease;
     } else {
@@ -88,8 +91,8 @@ class RoomSummary {
     } else {
       json[r'lengthM'] = null;
     }
-      json[r'number'] = this.number;
-      json[r'occupancy'] = this.occupancy;
+    json[r'number'] = this.number;
+    json[r'occupancy'] = this.occupancy;
     if (this.widthM != null) {
       json[r'widthM'] = this.widthM;
     } else {
@@ -110,8 +113,10 @@ class RoomSummary {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "RoomSummary[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "RoomSummary[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "RoomSummary[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "RoomSummary[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -120,24 +125,27 @@ class RoomSummary {
         baseRate: mapValueOfType<int>(json, r'baseRate')!,
         editable: mapValueOfType<bool>(json, r'editable')!,
         facilities: json[r'facilities'] is Iterable
-            ? (json[r'facilities'] as Iterable).cast<String>().toList(growable: false)
+            ? (json[r'facilities'] as Iterable)
+                .cast<String>()
+                .toList(growable: false)
             : const [],
         id: mapValueOfType<String>(json, r'id')!,
         lease: RoomLeaseSummary.fromJson(json[r'lease']),
-        lengthM: json[r'lengthM'] == null
-            ? null
-            : num.parse('${json[r'lengthM']}'),
+        lengthM:
+            json[r'lengthM'] == null ? null : num.parse('${json[r'lengthM']}'),
         number: mapValueOfType<String>(json, r'number')!,
         occupancy: Occupancy.fromJson(json[r'occupancy'])!,
-        widthM: json[r'widthM'] == null
-            ? null
-            : num.parse('${json[r'widthM']}'),
+        widthM:
+            json[r'widthM'] == null ? null : num.parse('${json[r'widthM']}'),
       );
     }
     return null;
   }
 
-  static List<RoomSummary> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<RoomSummary> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <RoomSummary>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -165,13 +173,19 @@ class RoomSummary {
   }
 
   // maps a json object with a list of RoomSummary-objects as value to a dart map
-  static Map<String, List<RoomSummary>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<RoomSummary>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<RoomSummary>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = RoomSummary.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = RoomSummary.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -187,4 +201,3 @@ class RoomSummary {
     'occupancy',
   };
 }
-

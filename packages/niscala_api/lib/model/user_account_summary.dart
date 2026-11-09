@@ -31,32 +31,35 @@ class UserAccountSummary {
   UserAccountStatus status;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is UserAccountSummary &&
-    other.email == email &&
-    other.id == id &&
-    other.name == name &&
-    other.role == role &&
-    other.status == status;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UserAccountSummary &&
+          other.email == email &&
+          other.id == id &&
+          other.name == name &&
+          other.role == role &&
+          other.status == status;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (email.hashCode) +
-    (id.hashCode) +
-    (name.hashCode) +
-    (role.hashCode) +
-    (status.hashCode);
+      // ignore: unnecessary_parenthesis
+      (email.hashCode) +
+      (id.hashCode) +
+      (name.hashCode) +
+      (role.hashCode) +
+      (status.hashCode);
 
   @override
-  String toString() => 'UserAccountSummary[email=$email, id=$id, name=$name, role=$role, status=$status]';
+  String toString() =>
+      'UserAccountSummary[email=$email, id=$id, name=$name, role=$role, status=$status]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'email'] = this.email;
-      json[r'id'] = this.id;
-      json[r'name'] = this.name;
-      json[r'role'] = this.role;
-      json[r'status'] = this.status;
+    json[r'email'] = this.email;
+    json[r'id'] = this.id;
+    json[r'name'] = this.name;
+    json[r'role'] = this.role;
+    json[r'status'] = this.status;
     return json;
   }
 
@@ -72,8 +75,10 @@ class UserAccountSummary {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "UserAccountSummary[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "UserAccountSummary[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "UserAccountSummary[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "UserAccountSummary[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -89,7 +94,10 @@ class UserAccountSummary {
     return null;
   }
 
-  static List<UserAccountSummary> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<UserAccountSummary> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <UserAccountSummary>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -117,13 +125,19 @@ class UserAccountSummary {
   }
 
   // maps a json object with a list of UserAccountSummary-objects as value to a dart map
-  static Map<String, List<UserAccountSummary>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<UserAccountSummary>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<UserAccountSummary>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = UserAccountSummary.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = UserAccountSummary.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -138,4 +152,3 @@ class UserAccountSummary {
     'status',
   };
 }
-

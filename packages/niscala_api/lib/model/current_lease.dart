@@ -19,6 +19,7 @@ class CurrentLease {
     required this.rent,
     required this.room,
     this.startDate,
+    required this.tenantId,
   });
 
   BillingCycle billingCycle;
@@ -34,44 +35,53 @@ class CurrentLease {
 
   DateTime? startDate;
 
+  /// The Tenant record the lease belongs to.
+  String tenantId;
+
   @override
-  bool operator ==(Object other) => identical(this, other) || other is CurrentLease &&
-    other.billingCycle == billingCycle &&
-    other.endDate == endDate &&
-    other.property == property &&
-    other.rent == rent &&
-    other.room == room &&
-    other.startDate == startDate;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CurrentLease &&
+          other.billingCycle == billingCycle &&
+          other.endDate == endDate &&
+          other.property == property &&
+          other.rent == rent &&
+          other.room == room &&
+          other.startDate == startDate &&
+          other.tenantId == tenantId;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (billingCycle.hashCode) +
-    (endDate == null ? 0 : endDate!.hashCode) +
-    (property.hashCode) +
-    (rent.hashCode) +
-    (room.hashCode) +
-    (startDate == null ? 0 : startDate!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (billingCycle.hashCode) +
+      (endDate == null ? 0 : endDate!.hashCode) +
+      (property.hashCode) +
+      (rent.hashCode) +
+      (room.hashCode) +
+      (startDate == null ? 0 : startDate!.hashCode) +
+      (tenantId.hashCode);
 
   @override
-  String toString() => 'CurrentLease[billingCycle=$billingCycle, endDate=$endDate, property=$property, rent=$rent, room=$room, startDate=$startDate]';
+  String toString() =>
+      'CurrentLease[billingCycle=$billingCycle, endDate=$endDate, property=$property, rent=$rent, room=$room, startDate=$startDate, tenantId=$tenantId]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'billingCycle'] = this.billingCycle;
+    json[r'billingCycle'] = this.billingCycle;
     if (this.endDate != null) {
       json[r'endDate'] = _dateFormatter.format(this.endDate!.toUtc());
     } else {
       json[r'endDate'] = null;
     }
-      json[r'property'] = this.property;
-      json[r'rent'] = this.rent;
-      json[r'room'] = this.room;
+    json[r'property'] = this.property;
+    json[r'rent'] = this.rent;
+    json[r'room'] = this.room;
     if (this.startDate != null) {
       json[r'startDate'] = _dateFormatter.format(this.startDate!.toUtc());
     } else {
       json[r'startDate'] = null;
     }
+    json[r'tenantId'] = this.tenantId;
     return json;
   }
 
@@ -87,8 +97,10 @@ class CurrentLease {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "CurrentLease[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "CurrentLease[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "CurrentLease[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "CurrentLease[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -100,12 +112,16 @@ class CurrentLease {
         rent: mapValueOfType<int>(json, r'rent')!,
         room: CurrentLeaseRoom.fromJson(json[r'room'])!,
         startDate: mapDateTime(json, r'startDate', r''),
+        tenantId: mapValueOfType<String>(json, r'tenantId')!,
       );
     }
     return null;
   }
 
-  static List<CurrentLease> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<CurrentLease> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <CurrentLease>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -133,13 +149,19 @@ class CurrentLease {
   }
 
   // maps a json object with a list of CurrentLease-objects as value to a dart map
-  static Map<String, List<CurrentLease>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<CurrentLease>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<CurrentLease>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = CurrentLease.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = CurrentLease.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -151,6 +173,6 @@ class CurrentLease {
     'property',
     'rent',
     'room',
+    'tenantId',
   };
 }
-

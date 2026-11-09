@@ -11,7 +11,6 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
-
 /// tests for InvitationsApi
 void main() {
   // final instance = InvitationsApi();
@@ -21,7 +20,7 @@ void main() {
     //
     // Accept an invitation with the caller's existing account.
     //
-    //Future acceptInvitation(TokenInput tokenInput) async
+    //Future acceptInvitation(InvitationAcceptanceInput invitationAcceptanceInput) async
     test('test acceptInvitation', () async {
       // TODO
     });
@@ -61,6 +60,5 @@ void main() {
     test('test previewInvitationAcceptance', () async {
       // TODO
     });
-
   });
 }

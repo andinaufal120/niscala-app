@@ -31,11 +31,6 @@ void main() {
       // TODO
     });
 
-    // ActiveLeaseSummary activeLease
-    test('to test the property `activeLease`', () async {
-      // TODO
-    });
-
     // InvitationBlocker blocker
     test('to test the property `blocker`', () async {
       // TODO
@@ -51,8 +46,5 @@ void main() {
     test('to test the property `invitation`', () async {
       // TODO
     });
-
-
   });
-
 }

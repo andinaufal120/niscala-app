@@ -36,9 +36,13 @@ class PaymentStatus {
     rejected,
   ];
 
-  static PaymentStatus? fromJson(dynamic value) => PaymentStatusTypeTransformer().decode(value);
+  static PaymentStatus? fromJson(dynamic value) =>
+      PaymentStatusTypeTransformer().decode(value);
 
-  static List<PaymentStatus> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PaymentStatus> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PaymentStatus>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -55,7 +59,8 @@ class PaymentStatus {
 /// Transformation class that can [encode] an instance of [PaymentStatus] to String,
 /// and [decode] dynamic data back to [PaymentStatus].
 class PaymentStatusTypeTransformer {
-  factory PaymentStatusTypeTransformer() => _instance ??= const PaymentStatusTypeTransformer._();
+  factory PaymentStatusTypeTransformer() =>
+      _instance ??= const PaymentStatusTypeTransformer._();
 
   const PaymentStatusTypeTransformer._();
 
@@ -72,10 +77,14 @@ class PaymentStatusTypeTransformer {
   PaymentStatus? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'unpaid': return PaymentStatus.unpaid;
-        case r'awaitingVerification': return PaymentStatus.awaitingVerification;
-        case r'paid': return PaymentStatus.paid;
-        case r'rejected': return PaymentStatus.rejected;
+        case r'unpaid':
+          return PaymentStatus.unpaid;
+        case r'awaitingVerification':
+          return PaymentStatus.awaitingVerification;
+        case r'paid':
+          return PaymentStatus.paid;
+        case r'rejected':
+          return PaymentStatus.rejected;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -88,4 +97,3 @@ class PaymentStatusTypeTransformer {
   /// Singleton [PaymentStatusTypeTransformer] instance.
   static PaymentStatusTypeTransformer? _instance;
 }
-

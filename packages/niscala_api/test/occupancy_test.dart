@@ -13,9 +13,5 @@ import 'package:test/test.dart';
 
 // tests for Occupancy
 void main() {
-
-  group('test Occupancy', () {
-
-  });
-
+  group('test Occupancy', () {});
 }

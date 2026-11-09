@@ -13,9 +13,5 @@ import 'package:test/test.dart';
 
 // tests for UserRole
 void main() {
-
-  group('test UserRole', () {
-
-  });
-
+  group('test UserRole', () {});
 }

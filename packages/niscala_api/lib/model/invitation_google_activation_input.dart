@@ -31,36 +31,39 @@ class InvitationGoogleActivationInput {
   String token;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is InvitationGoogleActivationInput &&
-    other.device == device &&
-    _deepEquality.equals(other.emergencyContacts, emergencyContacts) &&
-    other.idToken == idToken &&
-    other.name == name &&
-    other.token == token;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is InvitationGoogleActivationInput &&
+          other.device == device &&
+          _deepEquality.equals(other.emergencyContacts, emergencyContacts) &&
+          other.idToken == idToken &&
+          other.name == name &&
+          other.token == token;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (device.hashCode) +
-    (emergencyContacts == null ? 0 : emergencyContacts!.hashCode) +
-    (idToken.hashCode) +
-    (name.hashCode) +
-    (token.hashCode);
+      // ignore: unnecessary_parenthesis
+      (device.hashCode) +
+      (emergencyContacts == null ? 0 : emergencyContacts!.hashCode) +
+      (idToken.hashCode) +
+      (name.hashCode) +
+      (token.hashCode);
 
   @override
-  String toString() => 'InvitationGoogleActivationInput[device=$device, emergencyContacts=$emergencyContacts, idToken=$idToken, name=$name, token=$token]';
+  String toString() =>
+      'InvitationGoogleActivationInput[device=$device, emergencyContacts=$emergencyContacts, idToken=$idToken, name=$name, token=$token]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'device'] = this.device;
+    json[r'device'] = this.device;
     if (this.emergencyContacts != null) {
       json[r'emergencyContacts'] = this.emergencyContacts;
     } else {
       json[r'emergencyContacts'] = null;
     }
-      json[r'idToken'] = this.idToken;
-      json[r'name'] = this.name;
-      json[r'token'] = this.token;
+    json[r'idToken'] = this.idToken;
+    json[r'name'] = this.name;
+    json[r'token'] = this.token;
     return json;
   }
 
@@ -76,15 +79,18 @@ class InvitationGoogleActivationInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "InvitationGoogleActivationInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "InvitationGoogleActivationInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "InvitationGoogleActivationInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "InvitationGoogleActivationInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return InvitationGoogleActivationInput(
         device: DeviceInfo.fromJson(json[r'device'])!,
-        emergencyContacts: EmergencyContact.listFromJson(json[r'emergencyContacts']),
+        emergencyContacts:
+            EmergencyContact.listFromJson(json[r'emergencyContacts']),
         idToken: mapValueOfType<String>(json, r'idToken')!,
         name: mapValueOfType<String>(json, r'name')!,
         token: mapValueOfType<String>(json, r'token')!,
@@ -93,7 +99,10 @@ class InvitationGoogleActivationInput {
     return null;
   }
 
-  static List<InvitationGoogleActivationInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<InvitationGoogleActivationInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <InvitationGoogleActivationInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -106,7 +115,8 @@ class InvitationGoogleActivationInput {
     return result.toList(growable: growable);
   }
 
-  static Map<String, InvitationGoogleActivationInput> mapFromJson(dynamic json) {
+  static Map<String, InvitationGoogleActivationInput> mapFromJson(
+      dynamic json) {
     final map = <String, InvitationGoogleActivationInput>{};
     if (json is Map && json.isNotEmpty) {
       json = json.cast<String, dynamic>(); // ignore: parameter_assignments
@@ -121,13 +131,19 @@ class InvitationGoogleActivationInput {
   }
 
   // maps a json object with a list of InvitationGoogleActivationInput-objects as value to a dart map
-  static Map<String, List<InvitationGoogleActivationInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<InvitationGoogleActivationInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<InvitationGoogleActivationInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = InvitationGoogleActivationInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = InvitationGoogleActivationInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -141,4 +157,3 @@ class InvitationGoogleActivationInput {
     'token',
   };
 }
-

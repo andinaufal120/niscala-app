@@ -34,9 +34,13 @@ class ComplaintUrgency {
     high,
   ];
 
-  static ComplaintUrgency? fromJson(dynamic value) => ComplaintUrgencyTypeTransformer().decode(value);
+  static ComplaintUrgency? fromJson(dynamic value) =>
+      ComplaintUrgencyTypeTransformer().decode(value);
 
-  static List<ComplaintUrgency> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ComplaintUrgency> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ComplaintUrgency>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -53,7 +57,8 @@ class ComplaintUrgency {
 /// Transformation class that can [encode] an instance of [ComplaintUrgency] to String,
 /// and [decode] dynamic data back to [ComplaintUrgency].
 class ComplaintUrgencyTypeTransformer {
-  factory ComplaintUrgencyTypeTransformer() => _instance ??= const ComplaintUrgencyTypeTransformer._();
+  factory ComplaintUrgencyTypeTransformer() =>
+      _instance ??= const ComplaintUrgencyTypeTransformer._();
 
   const ComplaintUrgencyTypeTransformer._();
 
@@ -70,9 +75,12 @@ class ComplaintUrgencyTypeTransformer {
   ComplaintUrgency? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'low': return ComplaintUrgency.low;
-        case r'medium': return ComplaintUrgency.medium;
-        case r'high': return ComplaintUrgency.high;
+        case r'low':
+          return ComplaintUrgency.low;
+        case r'medium':
+          return ComplaintUrgency.medium;
+        case r'high':
+          return ComplaintUrgency.high;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -85,4 +93,3 @@ class ComplaintUrgencyTypeTransformer {
   /// Singleton [ComplaintUrgencyTypeTransformer] instance.
   static ComplaintUrgencyTypeTransformer? _instance;
 }
-

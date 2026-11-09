@@ -13,9 +13,5 @@ import 'package:test/test.dart';
 
 // tests for NotificationType
 void main() {
-
-  group('test NotificationType', () {
-
-  });
-
+  group('test NotificationType', () {});
 }

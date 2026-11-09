@@ -58,53 +58,56 @@ class RentBillSummary {
   TenantRef tenant;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is RentBillSummary &&
-    other.amount == amount &&
-    other.canUploadReceipt == canUploadReceipt &&
-    other.daysOverdue == daysOverdue &&
-    other.dueDate == dueDate &&
-    other.id == id &&
-    other.isCurrent == isCurrent &&
-    other.payment == payment &&
-    other.periodEnd == periodEnd &&
-    other.periodStart == periodStart &&
-    other.property == property &&
-    other.room == room &&
-    other.tenant == tenant;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RentBillSummary &&
+          other.amount == amount &&
+          other.canUploadReceipt == canUploadReceipt &&
+          other.daysOverdue == daysOverdue &&
+          other.dueDate == dueDate &&
+          other.id == id &&
+          other.isCurrent == isCurrent &&
+          other.payment == payment &&
+          other.periodEnd == periodEnd &&
+          other.periodStart == periodStart &&
+          other.property == property &&
+          other.room == room &&
+          other.tenant == tenant;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (amount.hashCode) +
-    (canUploadReceipt.hashCode) +
-    (daysOverdue.hashCode) +
-    (dueDate.hashCode) +
-    (id.hashCode) +
-    (isCurrent.hashCode) +
-    (payment.hashCode) +
-    (periodEnd.hashCode) +
-    (periodStart.hashCode) +
-    (property.hashCode) +
-    (room.hashCode) +
-    (tenant.hashCode);
+      // ignore: unnecessary_parenthesis
+      (amount.hashCode) +
+      (canUploadReceipt.hashCode) +
+      (daysOverdue.hashCode) +
+      (dueDate.hashCode) +
+      (id.hashCode) +
+      (isCurrent.hashCode) +
+      (payment.hashCode) +
+      (periodEnd.hashCode) +
+      (periodStart.hashCode) +
+      (property.hashCode) +
+      (room.hashCode) +
+      (tenant.hashCode);
 
   @override
-  String toString() => 'RentBillSummary[amount=$amount, canUploadReceipt=$canUploadReceipt, daysOverdue=$daysOverdue, dueDate=$dueDate, id=$id, isCurrent=$isCurrent, payment=$payment, periodEnd=$periodEnd, periodStart=$periodStart, property=$property, room=$room, tenant=$tenant]';
+  String toString() =>
+      'RentBillSummary[amount=$amount, canUploadReceipt=$canUploadReceipt, daysOverdue=$daysOverdue, dueDate=$dueDate, id=$id, isCurrent=$isCurrent, payment=$payment, periodEnd=$periodEnd, periodStart=$periodStart, property=$property, room=$room, tenant=$tenant]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'amount'] = this.amount;
-      json[r'canUploadReceipt'] = this.canUploadReceipt;
-      json[r'daysOverdue'] = this.daysOverdue;
-      json[r'dueDate'] = _dateFormatter.format(this.dueDate.toUtc());
-      json[r'id'] = this.id;
-      json[r'isCurrent'] = this.isCurrent;
-      json[r'payment'] = this.payment;
-      json[r'periodEnd'] = _dateFormatter.format(this.periodEnd.toUtc());
-      json[r'periodStart'] = _dateFormatter.format(this.periodStart.toUtc());
-      json[r'property'] = this.property;
-      json[r'room'] = this.room;
-      json[r'tenant'] = this.tenant;
+    json[r'amount'] = this.amount;
+    json[r'canUploadReceipt'] = this.canUploadReceipt;
+    json[r'daysOverdue'] = this.daysOverdue;
+    json[r'dueDate'] = _dateFormatter.format(this.dueDate.toUtc());
+    json[r'id'] = this.id;
+    json[r'isCurrent'] = this.isCurrent;
+    json[r'payment'] = this.payment;
+    json[r'periodEnd'] = _dateFormatter.format(this.periodEnd.toUtc());
+    json[r'periodStart'] = _dateFormatter.format(this.periodStart.toUtc());
+    json[r'property'] = this.property;
+    json[r'room'] = this.room;
+    json[r'tenant'] = this.tenant;
     return json;
   }
 
@@ -120,8 +123,10 @@ class RentBillSummary {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "RentBillSummary[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "RentBillSummary[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "RentBillSummary[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "RentBillSummary[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -144,7 +149,10 @@ class RentBillSummary {
     return null;
   }
 
-  static List<RentBillSummary> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<RentBillSummary> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <RentBillSummary>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -172,13 +180,19 @@ class RentBillSummary {
   }
 
   // maps a json object with a list of RentBillSummary-objects as value to a dart map
-  static Map<String, List<RentBillSummary>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<RentBillSummary>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<RentBillSummary>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = RentBillSummary.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = RentBillSummary.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -200,4 +214,3 @@ class RentBillSummary {
     'tenant',
   };
 }
-

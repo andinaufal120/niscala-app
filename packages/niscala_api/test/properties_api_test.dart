@@ -11,7 +11,6 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
-
 /// tests for PropertiesApi
 void main() {
   // final instance = PropertiesApi();
@@ -61,6 +60,5 @@ void main() {
     test('test updateProperty', () async {
       // TODO
     });
-
   });
 }

@@ -25,10 +25,10 @@ class UserAccount {
     required this.registeredAt,
     required this.role,
     required this.status,
-    this.tenancy,
+    this.tenancies = const [],
   });
 
-  /// Owner: across owned properties. Tenant: 0 or 1. Otherwise 0.
+  /// Owner: across owned properties. Tenant: across their records. Otherwise 0.
   ///
   /// Minimum value: 0
   int activeLeaseCount;
@@ -57,75 +57,76 @@ class UserAccount {
 
   UserAccountStatus status;
 
-  AccountTenancy? tenancy;
+  /// A Tenant's active leases; empty for other roles.
+  List<AccountTenancy> tenancies;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is UserAccount &&
-    other.activeLeaseCount == activeLeaseCount &&
-    other.email == email &&
-    other.id == id &&
-    other.lastLoginAt == lastLoginAt &&
-    _deepEquality.equals(other.loginMethods, loginMethods) &&
-    other.name == name &&
-    other.pendingEmail == pendingEmail &&
-    other.pendingEmailExpiresAt == pendingEmailExpiresAt &&
-    _deepEquality.equals(other.properties, properties) &&
-    other.registeredAt == registeredAt &&
-    other.role == role &&
-    other.status == status &&
-    other.tenancy == tenancy;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UserAccount &&
+          other.activeLeaseCount == activeLeaseCount &&
+          other.email == email &&
+          other.id == id &&
+          other.lastLoginAt == lastLoginAt &&
+          _deepEquality.equals(other.loginMethods, loginMethods) &&
+          other.name == name &&
+          other.pendingEmail == pendingEmail &&
+          other.pendingEmailExpiresAt == pendingEmailExpiresAt &&
+          _deepEquality.equals(other.properties, properties) &&
+          other.registeredAt == registeredAt &&
+          other.role == role &&
+          other.status == status &&
+          _deepEquality.equals(other.tenancies, tenancies);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (activeLeaseCount.hashCode) +
-    (email.hashCode) +
-    (id.hashCode) +
-    (lastLoginAt == null ? 0 : lastLoginAt!.hashCode) +
-    (loginMethods.hashCode) +
-    (name.hashCode) +
-    (pendingEmail == null ? 0 : pendingEmail!.hashCode) +
-    (pendingEmailExpiresAt == null ? 0 : pendingEmailExpiresAt!.hashCode) +
-    (properties.hashCode) +
-    (registeredAt.hashCode) +
-    (role.hashCode) +
-    (status.hashCode) +
-    (tenancy == null ? 0 : tenancy!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (activeLeaseCount.hashCode) +
+      (email.hashCode) +
+      (id.hashCode) +
+      (lastLoginAt == null ? 0 : lastLoginAt!.hashCode) +
+      (loginMethods.hashCode) +
+      (name.hashCode) +
+      (pendingEmail == null ? 0 : pendingEmail!.hashCode) +
+      (pendingEmailExpiresAt == null ? 0 : pendingEmailExpiresAt!.hashCode) +
+      (properties.hashCode) +
+      (registeredAt.hashCode) +
+      (role.hashCode) +
+      (status.hashCode) +
+      (tenancies.hashCode);
 
   @override
-  String toString() => 'UserAccount[activeLeaseCount=$activeLeaseCount, email=$email, id=$id, lastLoginAt=$lastLoginAt, loginMethods=$loginMethods, name=$name, pendingEmail=$pendingEmail, pendingEmailExpiresAt=$pendingEmailExpiresAt, properties=$properties, registeredAt=$registeredAt, role=$role, status=$status, tenancy=$tenancy]';
+  String toString() =>
+      'UserAccount[activeLeaseCount=$activeLeaseCount, email=$email, id=$id, lastLoginAt=$lastLoginAt, loginMethods=$loginMethods, name=$name, pendingEmail=$pendingEmail, pendingEmailExpiresAt=$pendingEmailExpiresAt, properties=$properties, registeredAt=$registeredAt, role=$role, status=$status, tenancies=$tenancies]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'activeLeaseCount'] = this.activeLeaseCount;
-      json[r'email'] = this.email;
-      json[r'id'] = this.id;
+    json[r'activeLeaseCount'] = this.activeLeaseCount;
+    json[r'email'] = this.email;
+    json[r'id'] = this.id;
     if (this.lastLoginAt != null) {
       json[r'lastLoginAt'] = this.lastLoginAt!.toUtc().toIso8601String();
     } else {
       json[r'lastLoginAt'] = null;
     }
-      json[r'loginMethods'] = this.loginMethods;
-      json[r'name'] = this.name;
+    json[r'loginMethods'] = this.loginMethods;
+    json[r'name'] = this.name;
     if (this.pendingEmail != null) {
       json[r'pendingEmail'] = this.pendingEmail;
     } else {
       json[r'pendingEmail'] = null;
     }
     if (this.pendingEmailExpiresAt != null) {
-      json[r'pendingEmailExpiresAt'] = this.pendingEmailExpiresAt!.toUtc().toIso8601String();
+      json[r'pendingEmailExpiresAt'] =
+          this.pendingEmailExpiresAt!.toUtc().toIso8601String();
     } else {
       json[r'pendingEmailExpiresAt'] = null;
     }
-      json[r'properties'] = this.properties;
-      json[r'registeredAt'] = this.registeredAt.toUtc().toIso8601String();
-      json[r'role'] = this.role;
-      json[r'status'] = this.status;
-    if (this.tenancy != null) {
-      json[r'tenancy'] = this.tenancy;
-    } else {
-      json[r'tenancy'] = null;
-    }
+    json[r'properties'] = this.properties;
+    json[r'registeredAt'] = this.registeredAt.toUtc().toIso8601String();
+    json[r'role'] = this.role;
+    json[r'status'] = this.status;
+    json[r'tenancies'] = this.tenancies;
     return json;
   }
 
@@ -141,8 +142,10 @@ class UserAccount {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "UserAccount[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "UserAccount[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "UserAccount[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "UserAccount[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -160,13 +163,16 @@ class UserAccount {
         registeredAt: mapDateTime(json, r'registeredAt', r'')!,
         role: UserRole.fromJson(json[r'role'])!,
         status: UserAccountStatus.fromJson(json[r'status'])!,
-        tenancy: AccountTenancy.fromJson(json[r'tenancy']),
+        tenancies: AccountTenancy.listFromJson(json[r'tenancies']),
       );
     }
     return null;
   }
 
-  static List<UserAccount> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<UserAccount> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <UserAccount>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -194,13 +200,19 @@ class UserAccount {
   }
 
   // maps a json object with a list of UserAccount-objects as value to a dart map
-  static Map<String, List<UserAccount>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<UserAccount>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<UserAccount>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = UserAccount.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = UserAccount.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -217,6 +229,6 @@ class UserAccount {
     'registeredAt',
     'role',
     'status',
+    'tenancies',
   };
 }
-

@@ -46,34 +46,37 @@ class Notification {
   NotificationType type;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Notification &&
-    other.actorName == actorName &&
-    other.complaint == complaint &&
-    other.createdAt == createdAt &&
-    other.id == id &&
-    other.property == property &&
-    other.read == read &&
-    other.rentBill == rentBill &&
-    other.room == room &&
-    other.tenant == tenant &&
-    other.type == type;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Notification &&
+          other.actorName == actorName &&
+          other.complaint == complaint &&
+          other.createdAt == createdAt &&
+          other.id == id &&
+          other.property == property &&
+          other.read == read &&
+          other.rentBill == rentBill &&
+          other.room == room &&
+          other.tenant == tenant &&
+          other.type == type;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (actorName == null ? 0 : actorName!.hashCode) +
-    (complaint == null ? 0 : complaint!.hashCode) +
-    (createdAt.hashCode) +
-    (id.hashCode) +
-    (property == null ? 0 : property!.hashCode) +
-    (read.hashCode) +
-    (rentBill == null ? 0 : rentBill!.hashCode) +
-    (room == null ? 0 : room!.hashCode) +
-    (tenant == null ? 0 : tenant!.hashCode) +
-    (type.hashCode);
+      // ignore: unnecessary_parenthesis
+      (actorName == null ? 0 : actorName!.hashCode) +
+      (complaint == null ? 0 : complaint!.hashCode) +
+      (createdAt.hashCode) +
+      (id.hashCode) +
+      (property == null ? 0 : property!.hashCode) +
+      (read.hashCode) +
+      (rentBill == null ? 0 : rentBill!.hashCode) +
+      (room == null ? 0 : room!.hashCode) +
+      (tenant == null ? 0 : tenant!.hashCode) +
+      (type.hashCode);
 
   @override
-  String toString() => 'Notification[actorName=$actorName, complaint=$complaint, createdAt=$createdAt, id=$id, property=$property, read=$read, rentBill=$rentBill, room=$room, tenant=$tenant, type=$type]';
+  String toString() =>
+      'Notification[actorName=$actorName, complaint=$complaint, createdAt=$createdAt, id=$id, property=$property, read=$read, rentBill=$rentBill, room=$room, tenant=$tenant, type=$type]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -87,14 +90,14 @@ class Notification {
     } else {
       json[r'complaint'] = null;
     }
-      json[r'createdAt'] = this.createdAt.toUtc().toIso8601String();
-      json[r'id'] = this.id;
+    json[r'createdAt'] = this.createdAt.toUtc().toIso8601String();
+    json[r'id'] = this.id;
     if (this.property != null) {
       json[r'property'] = this.property;
     } else {
       json[r'property'] = null;
     }
-      json[r'read'] = this.read;
+    json[r'read'] = this.read;
     if (this.rentBill != null) {
       json[r'rentBill'] = this.rentBill;
     } else {
@@ -110,7 +113,7 @@ class Notification {
     } else {
       json[r'tenant'] = null;
     }
-      json[r'type'] = this.type;
+    json[r'type'] = this.type;
     return json;
   }
 
@@ -126,8 +129,10 @@ class Notification {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Notification[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Notification[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Notification[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Notification[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -148,7 +153,10 @@ class Notification {
     return null;
   }
 
-  static List<Notification> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Notification> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Notification>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -176,13 +184,19 @@ class Notification {
   }
 
   // maps a json object with a list of Notification-objects as value to a dart map
-  static Map<String, List<Notification>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Notification>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Notification>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Notification.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Notification.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -196,4 +210,3 @@ class Notification {
     'type',
   };
 }
-

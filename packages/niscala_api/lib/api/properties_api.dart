@@ -10,9 +10,9 @@
 
 part of niscala_api;
 
-
 class PropertiesApi {
-  PropertiesApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
+  PropertiesApi([ApiClient? apiClient])
+      : apiClient = apiClient ?? defaultApiClient;
 
   final ApiClient apiClient;
 
@@ -25,7 +25,9 @@ class PropertiesApi {
   /// Parameters:
   ///
   /// * [PropertyInput] propertyInput (required):
-  Future<Response> createPropertyWithHttpInfo(PropertyInput propertyInput,) async {
+  Future<Response> createPropertyWithHttpInfo(
+    PropertyInput propertyInput,
+  ) async {
     // ignore: prefer_const_declarations
     final path = r'/properties';
 
@@ -37,7 +39,6 @@ class PropertiesApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -57,17 +58,24 @@ class PropertiesApi {
   /// Parameters:
   ///
   /// * [PropertyInput] propertyInput (required):
-  Future<Property?> createProperty(PropertyInput propertyInput,) async {
-    final response = await createPropertyWithHttpInfo(propertyInput,);
+  Future<Property?> createProperty(
+    PropertyInput propertyInput,
+  ) async {
+    final response = await createPropertyWithHttpInfo(
+      propertyInput,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Property',) as Property;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Property',
+      ) as Property;
     }
     return null;
   }
@@ -81,10 +89,12 @@ class PropertiesApi {
   /// Parameters:
   ///
   /// * [String] propertyId (required):
-  Future<Response> deletePropertyWithHttpInfo(String propertyId,) async {
+  Future<Response> deletePropertyWithHttpInfo(
+    String propertyId,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/properties/{propertyId}'
-      .replaceAll('{propertyId}', propertyId);
+    final path =
+        r'/properties/{propertyId}'.replaceAll('{propertyId}', propertyId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -94,7 +104,6 @@ class PropertiesApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -114,8 +123,12 @@ class PropertiesApi {
   /// Parameters:
   ///
   /// * [String] propertyId (required):
-  Future<void> deleteProperty(String propertyId,) async {
-    final response = await deletePropertyWithHttpInfo(propertyId,);
+  Future<void> deleteProperty(
+    String propertyId,
+  ) async {
+    final response = await deletePropertyWithHttpInfo(
+      propertyId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -130,10 +143,12 @@ class PropertiesApi {
   /// Parameters:
   ///
   /// * [String] propertyId (required):
-  Future<Response> getPropertyWithHttpInfo(String propertyId,) async {
+  Future<Response> getPropertyWithHttpInfo(
+    String propertyId,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/properties/{propertyId}'
-      .replaceAll('{propertyId}', propertyId);
+    final path =
+        r'/properties/{propertyId}'.replaceAll('{propertyId}', propertyId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -143,7 +158,6 @@ class PropertiesApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -163,17 +177,24 @@ class PropertiesApi {
   /// Parameters:
   ///
   /// * [String] propertyId (required):
-  Future<Property?> getProperty(String propertyId,) async {
-    final response = await getPropertyWithHttpInfo(propertyId,);
+  Future<Property?> getProperty(
+    String propertyId,
+  ) async {
+    final response = await getPropertyWithHttpInfo(
+      propertyId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Property',) as Property;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Property',
+      ) as Property;
     }
     return null;
   }
@@ -195,7 +216,6 @@ class PropertiesApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -219,9 +239,12 @@ class PropertiesApi {
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'PropertyList',) as PropertyList;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'PropertyList',
+      ) as PropertyList;
     }
     return null;
   }
@@ -237,10 +260,13 @@ class PropertiesApi {
   /// * [String] propertyId (required):
   ///
   /// * [PropertyInput] propertyInput (required):
-  Future<Response> updatePropertyWithHttpInfo(String propertyId, PropertyInput propertyInput,) async {
+  Future<Response> updatePropertyWithHttpInfo(
+    String propertyId,
+    PropertyInput propertyInput,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/properties/{propertyId}'
-      .replaceAll('{propertyId}', propertyId);
+    final path =
+        r'/properties/{propertyId}'.replaceAll('{propertyId}', propertyId);
 
     // ignore: prefer_final_locals
     Object? postBody = propertyInput;
@@ -250,7 +276,6 @@ class PropertiesApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -272,17 +297,26 @@ class PropertiesApi {
   /// * [String] propertyId (required):
   ///
   /// * [PropertyInput] propertyInput (required):
-  Future<Property?> updateProperty(String propertyId, PropertyInput propertyInput,) async {
-    final response = await updatePropertyWithHttpInfo(propertyId, propertyInput,);
+  Future<Property?> updateProperty(
+    String propertyId,
+    PropertyInput propertyInput,
+  ) async {
+    final response = await updatePropertyWithHttpInfo(
+      propertyId,
+      propertyInput,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Property',) as Property;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Property',
+      ) as Property;
     }
     return null;
   }

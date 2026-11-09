@@ -22,23 +22,25 @@ class SubscriptionOrderInput {
   PaidPlanCode planCode;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is SubscriptionOrderInput &&
-    other.billingPeriod == billingPeriod &&
-    other.planCode == planCode;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SubscriptionOrderInput &&
+          other.billingPeriod == billingPeriod &&
+          other.planCode == planCode;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (billingPeriod.hashCode) +
-    (planCode.hashCode);
+      // ignore: unnecessary_parenthesis
+      (billingPeriod.hashCode) + (planCode.hashCode);
 
   @override
-  String toString() => 'SubscriptionOrderInput[billingPeriod=$billingPeriod, planCode=$planCode]';
+  String toString() =>
+      'SubscriptionOrderInput[billingPeriod=$billingPeriod, planCode=$planCode]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'billingPeriod'] = this.billingPeriod;
-      json[r'planCode'] = this.planCode;
+    json[r'billingPeriod'] = this.billingPeriod;
+    json[r'planCode'] = this.planCode;
     return json;
   }
 
@@ -54,8 +56,10 @@ class SubscriptionOrderInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "SubscriptionOrderInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "SubscriptionOrderInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "SubscriptionOrderInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "SubscriptionOrderInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -68,7 +72,10 @@ class SubscriptionOrderInput {
     return null;
   }
 
-  static List<SubscriptionOrderInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<SubscriptionOrderInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <SubscriptionOrderInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -96,13 +103,19 @@ class SubscriptionOrderInput {
   }
 
   // maps a json object with a list of SubscriptionOrderInput-objects as value to a dart map
-  static Map<String, List<SubscriptionOrderInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<SubscriptionOrderInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<SubscriptionOrderInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = SubscriptionOrderInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = SubscriptionOrderInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -114,4 +127,3 @@ class SubscriptionOrderInput {
     'planCode',
   };
 }
-

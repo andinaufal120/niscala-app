@@ -96,6 +96,7 @@ const _tenantRoutes = {
   '/penyewa/akun',
   '/penyewa/akun/perangkat',
   '/penyewa/akun/kata-sandi',
+  '/penyewa/akun/undangan',
 };
 
 /// [root] itself or any location below it.

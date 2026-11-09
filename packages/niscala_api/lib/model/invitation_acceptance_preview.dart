@@ -16,7 +16,6 @@ class InvitationAcceptancePreview {
     required this.accountEmail,
     required this.accountName,
     required this.accountRole,
-    this.activeLease,
     this.blocker,
     required this.canAccept,
     required this.invitation,
@@ -28,8 +27,6 @@ class InvitationAcceptancePreview {
 
   UserRole accountRole;
 
-  ActiveLeaseSummary? activeLease;
-
   InvitationBlocker? blocker;
 
   /// True only when the link is valid and there is no blocker.
@@ -38,46 +35,42 @@ class InvitationAcceptancePreview {
   InvitationPreview invitation;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is InvitationAcceptancePreview &&
-    other.accountEmail == accountEmail &&
-    other.accountName == accountName &&
-    other.accountRole == accountRole &&
-    other.activeLease == activeLease &&
-    other.blocker == blocker &&
-    other.canAccept == canAccept &&
-    other.invitation == invitation;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is InvitationAcceptancePreview &&
+          other.accountEmail == accountEmail &&
+          other.accountName == accountName &&
+          other.accountRole == accountRole &&
+          other.blocker == blocker &&
+          other.canAccept == canAccept &&
+          other.invitation == invitation;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (accountEmail.hashCode) +
-    (accountName.hashCode) +
-    (accountRole.hashCode) +
-    (activeLease == null ? 0 : activeLease!.hashCode) +
-    (blocker == null ? 0 : blocker!.hashCode) +
-    (canAccept.hashCode) +
-    (invitation.hashCode);
+      // ignore: unnecessary_parenthesis
+      (accountEmail.hashCode) +
+      (accountName.hashCode) +
+      (accountRole.hashCode) +
+      (blocker == null ? 0 : blocker!.hashCode) +
+      (canAccept.hashCode) +
+      (invitation.hashCode);
 
   @override
-  String toString() => 'InvitationAcceptancePreview[accountEmail=$accountEmail, accountName=$accountName, accountRole=$accountRole, activeLease=$activeLease, blocker=$blocker, canAccept=$canAccept, invitation=$invitation]';
+  String toString() =>
+      'InvitationAcceptancePreview[accountEmail=$accountEmail, accountName=$accountName, accountRole=$accountRole, blocker=$blocker, canAccept=$canAccept, invitation=$invitation]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'accountEmail'] = this.accountEmail;
-      json[r'accountName'] = this.accountName;
-      json[r'accountRole'] = this.accountRole;
-    if (this.activeLease != null) {
-      json[r'activeLease'] = this.activeLease;
-    } else {
-      json[r'activeLease'] = null;
-    }
+    json[r'accountEmail'] = this.accountEmail;
+    json[r'accountName'] = this.accountName;
+    json[r'accountRole'] = this.accountRole;
     if (this.blocker != null) {
       json[r'blocker'] = this.blocker;
     } else {
       json[r'blocker'] = null;
     }
-      json[r'canAccept'] = this.canAccept;
-      json[r'invitation'] = this.invitation;
+    json[r'canAccept'] = this.canAccept;
+    json[r'invitation'] = this.invitation;
     return json;
   }
 
@@ -93,8 +86,10 @@ class InvitationAcceptancePreview {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "InvitationAcceptancePreview[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "InvitationAcceptancePreview[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "InvitationAcceptancePreview[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "InvitationAcceptancePreview[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -103,7 +98,6 @@ class InvitationAcceptancePreview {
         accountEmail: mapValueOfType<String>(json, r'accountEmail')!,
         accountName: mapValueOfType<String>(json, r'accountName')!,
         accountRole: UserRole.fromJson(json[r'accountRole'])!,
-        activeLease: ActiveLeaseSummary.fromJson(json[r'activeLease']),
         blocker: InvitationBlocker.fromJson(json[r'blocker']),
         canAccept: mapValueOfType<bool>(json, r'canAccept')!,
         invitation: InvitationPreview.fromJson(json[r'invitation'])!,
@@ -112,7 +106,10 @@ class InvitationAcceptancePreview {
     return null;
   }
 
-  static List<InvitationAcceptancePreview> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<InvitationAcceptancePreview> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <InvitationAcceptancePreview>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -140,13 +137,19 @@ class InvitationAcceptancePreview {
   }
 
   // maps a json object with a list of InvitationAcceptancePreview-objects as value to a dart map
-  static Map<String, List<InvitationAcceptancePreview>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<InvitationAcceptancePreview>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<InvitationAcceptancePreview>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = InvitationAcceptancePreview.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = InvitationAcceptancePreview.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -161,4 +164,3 @@ class InvitationAcceptancePreview {
     'invitation',
   };
 }
-

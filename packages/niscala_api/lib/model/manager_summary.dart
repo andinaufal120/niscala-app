@@ -38,46 +38,49 @@ class ManagerSummary {
   List<ManagerProperty> properties;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ManagerSummary &&
-    other.accountStatus == accountStatus &&
-    other.email == email &&
-    other.id == id &&
-    other.name == name &&
-    other.nickname == nickname &&
-    other.phone == phone &&
-    _deepEquality.equals(other.properties, properties);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ManagerSummary &&
+          other.accountStatus == accountStatus &&
+          other.email == email &&
+          other.id == id &&
+          other.name == name &&
+          other.nickname == nickname &&
+          other.phone == phone &&
+          _deepEquality.equals(other.properties, properties);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (accountStatus.hashCode) +
-    (email == null ? 0 : email!.hashCode) +
-    (id.hashCode) +
-    (name.hashCode) +
-    (nickname == null ? 0 : nickname!.hashCode) +
-    (phone.hashCode) +
-    (properties.hashCode);
+      // ignore: unnecessary_parenthesis
+      (accountStatus.hashCode) +
+      (email == null ? 0 : email!.hashCode) +
+      (id.hashCode) +
+      (name.hashCode) +
+      (nickname == null ? 0 : nickname!.hashCode) +
+      (phone.hashCode) +
+      (properties.hashCode);
 
   @override
-  String toString() => 'ManagerSummary[accountStatus=$accountStatus, email=$email, id=$id, name=$name, nickname=$nickname, phone=$phone, properties=$properties]';
+  String toString() =>
+      'ManagerSummary[accountStatus=$accountStatus, email=$email, id=$id, name=$name, nickname=$nickname, phone=$phone, properties=$properties]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'accountStatus'] = this.accountStatus;
+    json[r'accountStatus'] = this.accountStatus;
     if (this.email != null) {
       json[r'email'] = this.email;
     } else {
       json[r'email'] = null;
     }
-      json[r'id'] = this.id;
-      json[r'name'] = this.name;
+    json[r'id'] = this.id;
+    json[r'name'] = this.name;
     if (this.nickname != null) {
       json[r'nickname'] = this.nickname;
     } else {
       json[r'nickname'] = null;
     }
-      json[r'phone'] = this.phone;
-      json[r'properties'] = this.properties;
+    json[r'phone'] = this.phone;
+    json[r'properties'] = this.properties;
     return json;
   }
 
@@ -93,8 +96,10 @@ class ManagerSummary {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ManagerSummary[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ManagerSummary[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ManagerSummary[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ManagerSummary[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -112,7 +117,10 @@ class ManagerSummary {
     return null;
   }
 
-  static List<ManagerSummary> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ManagerSummary> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ManagerSummary>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -140,13 +148,19 @@ class ManagerSummary {
   }
 
   // maps a json object with a list of ManagerSummary-objects as value to a dart map
-  static Map<String, List<ManagerSummary>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ManagerSummary>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ManagerSummary>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ManagerSummary.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ManagerSummary.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -161,4 +175,3 @@ class ManagerSummary {
     'properties',
   };
 }
-

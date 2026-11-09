@@ -31,29 +31,32 @@ class ScheduledDowngrade {
   PlanCode planCode;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ScheduledDowngrade &&
-    other.effectiveDate == effectiveDate &&
-    _deepEquality.equals(other.keptPropertyIds, keptPropertyIds) &&
-    _deepEquality.equals(other.keptRoomIds, keptRoomIds) &&
-    other.planCode == planCode;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ScheduledDowngrade &&
+          other.effectiveDate == effectiveDate &&
+          _deepEquality.equals(other.keptPropertyIds, keptPropertyIds) &&
+          _deepEquality.equals(other.keptRoomIds, keptRoomIds) &&
+          other.planCode == planCode;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (effectiveDate.hashCode) +
-    (keptPropertyIds.hashCode) +
-    (keptRoomIds.hashCode) +
-    (planCode.hashCode);
+      // ignore: unnecessary_parenthesis
+      (effectiveDate.hashCode) +
+      (keptPropertyIds.hashCode) +
+      (keptRoomIds.hashCode) +
+      (planCode.hashCode);
 
   @override
-  String toString() => 'ScheduledDowngrade[effectiveDate=$effectiveDate, keptPropertyIds=$keptPropertyIds, keptRoomIds=$keptRoomIds, planCode=$planCode]';
+  String toString() =>
+      'ScheduledDowngrade[effectiveDate=$effectiveDate, keptPropertyIds=$keptPropertyIds, keptRoomIds=$keptRoomIds, planCode=$planCode]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'effectiveDate'] = _dateFormatter.format(this.effectiveDate.toUtc());
-      json[r'keptPropertyIds'] = this.keptPropertyIds;
-      json[r'keptRoomIds'] = this.keptRoomIds;
-      json[r'planCode'] = this.planCode;
+    json[r'effectiveDate'] = _dateFormatter.format(this.effectiveDate.toUtc());
+    json[r'keptPropertyIds'] = this.keptPropertyIds;
+    json[r'keptRoomIds'] = this.keptRoomIds;
+    json[r'planCode'] = this.planCode;
     return json;
   }
 
@@ -69,8 +72,10 @@ class ScheduledDowngrade {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ScheduledDowngrade[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ScheduledDowngrade[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ScheduledDowngrade[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ScheduledDowngrade[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -78,10 +83,14 @@ class ScheduledDowngrade {
       return ScheduledDowngrade(
         effectiveDate: mapDateTime(json, r'effectiveDate', r'')!,
         keptPropertyIds: json[r'keptPropertyIds'] is Iterable
-            ? (json[r'keptPropertyIds'] as Iterable).cast<String>().toList(growable: false)
+            ? (json[r'keptPropertyIds'] as Iterable)
+                .cast<String>()
+                .toList(growable: false)
             : const [],
         keptRoomIds: json[r'keptRoomIds'] is Iterable
-            ? (json[r'keptRoomIds'] as Iterable).cast<String>().toList(growable: false)
+            ? (json[r'keptRoomIds'] as Iterable)
+                .cast<String>()
+                .toList(growable: false)
             : const [],
         planCode: PlanCode.fromJson(json[r'planCode'])!,
       );
@@ -89,7 +98,10 @@ class ScheduledDowngrade {
     return null;
   }
 
-  static List<ScheduledDowngrade> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ScheduledDowngrade> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ScheduledDowngrade>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -117,13 +129,19 @@ class ScheduledDowngrade {
   }
 
   // maps a json object with a list of ScheduledDowngrade-objects as value to a dart map
-  static Map<String, List<ScheduledDowngrade>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ScheduledDowngrade>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ScheduledDowngrade>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ScheduledDowngrade.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ScheduledDowngrade.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -137,4 +155,3 @@ class ScheduledDowngrade {
     'planCode',
   };
 }
-

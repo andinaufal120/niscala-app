@@ -47,7 +47,6 @@ part 'api/user_accounts_api.dart';
 part 'model/account.dart';
 part 'model/account_property_ref.dart';
 part 'model/account_tenancy.dart';
-part 'model/active_lease_summary.dart';
 part 'model/add_local_password_input.dart';
 part 'model/ai_complaint_classification.dart';
 part 'model/auth_session.dart';
@@ -68,8 +67,8 @@ part 'model/complaint_status_change_input.dart';
 part 'model/complaint_summary.dart';
 part 'model/complaint_urgency.dart';
 part 'model/current_lease.dart';
+part 'model/current_lease_list.dart';
 part 'model/current_lease_property.dart';
-part 'model/current_lease_result.dart';
 part 'model/current_lease_room.dart';
 part 'model/device_info.dart';
 part 'model/editable_account_status.dart';
@@ -80,6 +79,7 @@ part 'model/error_body.dart';
 part 'model/facility_suggestion_list.dart';
 part 'model/google_auth_input.dart';
 part 'model/health.dart';
+part 'model/invitation_acceptance_input.dart';
 part 'model/invitation_acceptance_preview.dart';
 part 'model/invitation_blocker.dart';
 part 'model/invitation_google_activation_input.dart';
@@ -184,7 +184,6 @@ part 'model/user_account_status.dart';
 part 'model/user_account_summary.dart';
 part 'model/user_role.dart';
 
-
 /// An [ApiClient] instance that uses the default values obtained from
 /// the OpenAPI specification file.
 var defaultApiClient = ApiClient();
@@ -197,4 +196,5 @@ final _regList = RegExp(r'^List<(.*)>$');
 final _regSet = RegExp(r'^Set<(.*)>$');
 final _regMap = RegExp(r'^Map<String,(.*)>$');
 
-bool _isEpochMarker(String? pattern) => pattern == _dateEpochMarker || pattern == '/$_dateEpochMarker/';
+bool _isEpochMarker(String? pattern) =>
+    pattern == _dateEpochMarker || pattern == '/$_dateEpochMarker/';

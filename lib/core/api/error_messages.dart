@@ -99,7 +99,8 @@ const _messages = {
   'INVITATION_USED': invitationUsedMessage,
   'INVITATION_ROLE_MISMATCH':
       'Undangan ini untuk peran lain. Akun Anda tidak dapat menerimanya.',
-  'TENANT_HAS_ACTIVE_LEASE': 'Akun ini masih memiliki masa sewa aktif.',
+  'TENANT_NAME_NOT_EDITABLE':
+      'Nama penyewa yang sudah aktif mengikuti akunnya dan tidak bisa diubah.',
   'OWNER_HAS_ACTIVE_LEASE':
       'Pemilik ini masih memiliki properti dengan masa sewa aktif.',
   'MANAGER_ALREADY_ADDED': 'Anda sudah menjadi pengelola untuk pemilik ini.',

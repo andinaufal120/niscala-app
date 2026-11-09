@@ -66,8 +66,5 @@ void main() {
     test('to test the property `room`', () async {
       // TODO
     });
-
-
   });
-
 }

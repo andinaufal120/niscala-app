@@ -36,9 +36,13 @@ class OrderStatus {
     expired,
   ];
 
-  static OrderStatus? fromJson(dynamic value) => OrderStatusTypeTransformer().decode(value);
+  static OrderStatus? fromJson(dynamic value) =>
+      OrderStatusTypeTransformer().decode(value);
 
-  static List<OrderStatus> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<OrderStatus> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <OrderStatus>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -55,7 +59,8 @@ class OrderStatus {
 /// Transformation class that can [encode] an instance of [OrderStatus] to String,
 /// and [decode] dynamic data back to [OrderStatus].
 class OrderStatusTypeTransformer {
-  factory OrderStatusTypeTransformer() => _instance ??= const OrderStatusTypeTransformer._();
+  factory OrderStatusTypeTransformer() =>
+      _instance ??= const OrderStatusTypeTransformer._();
 
   const OrderStatusTypeTransformer._();
 
@@ -72,10 +77,14 @@ class OrderStatusTypeTransformer {
   OrderStatus? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'awaitingPayment': return OrderStatus.awaitingPayment;
-        case r'succeeded': return OrderStatus.succeeded;
-        case r'failed': return OrderStatus.failed;
-        case r'expired': return OrderStatus.expired;
+        case r'awaitingPayment':
+          return OrderStatus.awaitingPayment;
+        case r'succeeded':
+          return OrderStatus.succeeded;
+        case r'failed':
+          return OrderStatus.failed;
+        case r'expired':
+          return OrderStatus.expired;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -88,4 +97,3 @@ class OrderStatusTypeTransformer {
   /// Singleton [OrderStatusTypeTransformer] instance.
   static OrderStatusTypeTransformer? _instance;
 }
-

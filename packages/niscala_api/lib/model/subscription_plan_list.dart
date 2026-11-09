@@ -19,20 +19,21 @@ class SubscriptionPlanList {
   List<SubscriptionPlan> items;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is SubscriptionPlanList &&
-    _deepEquality.equals(other.items, items);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SubscriptionPlanList && _deepEquality.equals(other.items, items);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (items.hashCode);
+      // ignore: unnecessary_parenthesis
+      (items.hashCode);
 
   @override
   String toString() => 'SubscriptionPlanList[items=$items]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'items'] = this.items;
+    json[r'items'] = this.items;
     return json;
   }
 
@@ -48,8 +49,10 @@ class SubscriptionPlanList {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "SubscriptionPlanList[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "SubscriptionPlanList[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "SubscriptionPlanList[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "SubscriptionPlanList[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -61,7 +64,10 @@ class SubscriptionPlanList {
     return null;
   }
 
-  static List<SubscriptionPlanList> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<SubscriptionPlanList> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <SubscriptionPlanList>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -89,13 +95,19 @@ class SubscriptionPlanList {
   }
 
   // maps a json object with a list of SubscriptionPlanList-objects as value to a dart map
-  static Map<String, List<SubscriptionPlanList>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<SubscriptionPlanList>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<SubscriptionPlanList>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = SubscriptionPlanList.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = SubscriptionPlanList.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -106,4 +118,3 @@ class SubscriptionPlanList {
     'items',
   };
 }
-

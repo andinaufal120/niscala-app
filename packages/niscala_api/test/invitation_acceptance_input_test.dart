@@ -11,27 +11,19 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
-// tests for ActiveLeaseSummary
+// tests for InvitationAcceptanceInput
 void main() {
-  // final instance = ActiveLeaseSummary();
+  // final instance = InvitationAcceptanceInput();
 
-  group('test ActiveLeaseSummary', () {
-    // DateTime endDate
-    test('to test the property `endDate`', () async {
+  group('test InvitationAcceptanceInput', () {
+    // List<EmergencyContact> emergencyContacts (default value: const [])
+    test('to test the property `emergencyContacts`', () async {
       // TODO
     });
 
-    // String propertyName
-    test('to test the property `propertyName`', () async {
+    // String token
+    test('to test the property `token`', () async {
       // TODO
     });
-
-    // String roomNumber
-    test('to test the property `roomNumber`', () async {
-      // TODO
-    });
-
-
   });
-
 }

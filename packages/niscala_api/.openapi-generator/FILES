@@ -7,7 +7,6 @@ doc/Account.md
 doc/AccountApi.md
 doc/AccountPropertyRef.md
 doc/AccountTenancy.md
-doc/ActiveLeaseSummary.md
 doc/AddLocalPasswordInput.md
 doc/AiComplaintClassification.md
 doc/AuthApi.md
@@ -30,8 +29,8 @@ doc/ComplaintSummary.md
 doc/ComplaintUrgency.md
 doc/ComplaintsApi.md
 doc/CurrentLease.md
+doc/CurrentLeaseList.md
 doc/CurrentLeaseProperty.md
-doc/CurrentLeaseResult.md
 doc/CurrentLeaseRoom.md
 doc/DashboardApi.md
 doc/DeviceInfo.md
@@ -44,6 +43,7 @@ doc/FacilitySuggestionList.md
 doc/GoogleAuthInput.md
 doc/Health.md
 doc/HealthApi.md
+doc/InvitationAcceptanceInput.md
 doc/InvitationAcceptancePreview.md
 doc/InvitationBlocker.md
 doc/InvitationGoogleActivationInput.md
@@ -185,7 +185,6 @@ lib/auth/oauth.dart
 lib/model/account.dart
 lib/model/account_property_ref.dart
 lib/model/account_tenancy.dart
-lib/model/active_lease_summary.dart
 lib/model/add_local_password_input.dart
 lib/model/ai_complaint_classification.dart
 lib/model/auth_session.dart
@@ -206,8 +205,8 @@ lib/model/complaint_status_change_input.dart
 lib/model/complaint_summary.dart
 lib/model/complaint_urgency.dart
 lib/model/current_lease.dart
+lib/model/current_lease_list.dart
 lib/model/current_lease_property.dart
-lib/model/current_lease_result.dart
 lib/model/current_lease_room.dart
 lib/model/device_info.dart
 lib/model/editable_account_status.dart
@@ -218,6 +217,7 @@ lib/model/error_body.dart
 lib/model/facility_suggestion_list.dart
 lib/model/google_auth_input.dart
 lib/model/health.dart
+lib/model/invitation_acceptance_input.dart
 lib/model/invitation_acceptance_preview.dart
 lib/model/invitation_blocker.dart
 lib/model/invitation_google_activation_input.dart
@@ -326,7 +326,6 @@ test/account_api_test.dart
 test/account_property_ref_test.dart
 test/account_tenancy_test.dart
 test/account_test.dart
-test/active_lease_summary_test.dart
 test/add_local_password_input_test.dart
 test/ai_complaint_classification_test.dart
 test/auth_api_test.dart
@@ -348,8 +347,8 @@ test/complaint_summary_test.dart
 test/complaint_test.dart
 test/complaint_urgency_test.dart
 test/complaints_api_test.dart
+test/current_lease_list_test.dart
 test/current_lease_property_test.dart
-test/current_lease_result_test.dart
 test/current_lease_room_test.dart
 test/current_lease_test.dart
 test/dashboard_api_test.dart
@@ -363,6 +362,7 @@ test/facility_suggestion_list_test.dart
 test/google_auth_input_test.dart
 test/health_api_test.dart
 test/health_test.dart
+test/invitation_acceptance_input_test.dart
 test/invitation_acceptance_preview_test.dart
 test/invitation_blocker_test.dart
 test/invitation_google_activation_input_test.dart

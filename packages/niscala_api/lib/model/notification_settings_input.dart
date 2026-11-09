@@ -20,20 +20,22 @@ class NotificationSettingsInput {
   List<NotificationSettingItem> items;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is NotificationSettingsInput &&
-    _deepEquality.equals(other.items, items);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NotificationSettingsInput &&
+          _deepEquality.equals(other.items, items);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (items.hashCode);
+      // ignore: unnecessary_parenthesis
+      (items.hashCode);
 
   @override
   String toString() => 'NotificationSettingsInput[items=$items]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'items'] = this.items;
+    json[r'items'] = this.items;
     return json;
   }
 
@@ -49,8 +51,10 @@ class NotificationSettingsInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "NotificationSettingsInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "NotificationSettingsInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "NotificationSettingsInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "NotificationSettingsInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -62,7 +66,10 @@ class NotificationSettingsInput {
     return null;
   }
 
-  static List<NotificationSettingsInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<NotificationSettingsInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <NotificationSettingsInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -90,13 +97,19 @@ class NotificationSettingsInput {
   }
 
   // maps a json object with a list of NotificationSettingsInput-objects as value to a dart map
-  static Map<String, List<NotificationSettingsInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<NotificationSettingsInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<NotificationSettingsInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = NotificationSettingsInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = NotificationSettingsInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -107,4 +120,3 @@ class NotificationSettingsInput {
     'items',
   };
 }
-

@@ -61,8 +61,5 @@ void main() {
     test('to test the property `vacantRoomCount`', () async {
       // TODO
     });
-
-
   });
-
 }

@@ -14,26 +14,35 @@ class ComplaintInput {
   /// Returns a new [ComplaintInput] instance.
   ComplaintInput({
     required this.description,
+    required this.roomId,
   });
 
   /// 10 to 2000 characters, counted after trimming.
   String description;
 
+  /// The room of one of the Tenant's active leases.
+  String roomId;
+
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ComplaintInput &&
-    other.description == description;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ComplaintInput &&
+          other.description == description &&
+          other.roomId == roomId;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (description.hashCode);
+      // ignore: unnecessary_parenthesis
+      (description.hashCode) + (roomId.hashCode);
 
   @override
-  String toString() => 'ComplaintInput[description=$description]';
+  String toString() =>
+      'ComplaintInput[description=$description, roomId=$roomId]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'description'] = this.description;
+    json[r'description'] = this.description;
+    json[r'roomId'] = this.roomId;
     return json;
   }
 
@@ -49,20 +58,26 @@ class ComplaintInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ComplaintInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ComplaintInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ComplaintInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ComplaintInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return ComplaintInput(
         description: mapValueOfType<String>(json, r'description')!,
+        roomId: mapValueOfType<String>(json, r'roomId')!,
       );
     }
     return null;
   }
 
-  static List<ComplaintInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ComplaintInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ComplaintInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -90,13 +105,19 @@ class ComplaintInput {
   }
 
   // maps a json object with a list of ComplaintInput-objects as value to a dart map
-  static Map<String, List<ComplaintInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ComplaintInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ComplaintInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ComplaintInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ComplaintInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -105,6 +126,6 @@ class ComplaintInput {
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
     'description',
+    'roomId',
   };
 }
-

@@ -10,9 +10,9 @@
 
 part of niscala_api;
 
-
 class SessionsApi {
-  SessionsApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
+  SessionsApi([ApiClient? apiClient])
+      : apiClient = apiClient ?? defaultApiClient;
 
   final ApiClient apiClient;
 
@@ -33,7 +33,6 @@ class SessionsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -65,10 +64,12 @@ class SessionsApi {
   /// Parameters:
   ///
   /// * [String] sessionId (required):
-  Future<Response> endMySessionWithHttpInfo(String sessionId,) async {
+  Future<Response> endMySessionWithHttpInfo(
+    String sessionId,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/me/sessions/{sessionId}'
-      .replaceAll('{sessionId}', sessionId);
+    final path =
+        r'/me/sessions/{sessionId}'.replaceAll('{sessionId}', sessionId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -78,7 +79,6 @@ class SessionsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -98,8 +98,12 @@ class SessionsApi {
   /// Parameters:
   ///
   /// * [String] sessionId (required):
-  Future<void> endMySession(String sessionId,) async {
-    final response = await endMySessionWithHttpInfo(sessionId,);
+  Future<void> endMySession(
+    String sessionId,
+  ) async {
+    final response = await endMySessionWithHttpInfo(
+      sessionId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -123,7 +127,6 @@ class SessionsApi {
 
     const contentTypes = <String>[];
 
-
     return apiClient.invokeAPI(
       path,
       'GET',
@@ -146,9 +149,12 @@ class SessionsApi {
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'SessionList',) as SessionList;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'SessionList',
+      ) as SessionList;
     }
     return null;
   }

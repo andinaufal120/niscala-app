@@ -43,45 +43,48 @@ class InvitationPreview {
   InvitationLinkStatus status;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is InvitationPreview &&
-    other.emergencyContactsRequired == emergencyContactsRequired &&
-    other.expiresAt == expiresAt &&
-    other.inviterName == inviterName &&
-    other.name == name &&
-    _deepEquality.equals(other.properties, properties) &&
-    other.role == role &&
-    other.roomNumber == roomNumber &&
-    other.status == status;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is InvitationPreview &&
+          other.emergencyContactsRequired == emergencyContactsRequired &&
+          other.expiresAt == expiresAt &&
+          other.inviterName == inviterName &&
+          other.name == name &&
+          _deepEquality.equals(other.properties, properties) &&
+          other.role == role &&
+          other.roomNumber == roomNumber &&
+          other.status == status;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (emergencyContactsRequired.hashCode) +
-    (expiresAt.hashCode) +
-    (inviterName.hashCode) +
-    (name.hashCode) +
-    (properties.hashCode) +
-    (role.hashCode) +
-    (roomNumber == null ? 0 : roomNumber!.hashCode) +
-    (status.hashCode);
+      // ignore: unnecessary_parenthesis
+      (emergencyContactsRequired.hashCode) +
+      (expiresAt.hashCode) +
+      (inviterName.hashCode) +
+      (name.hashCode) +
+      (properties.hashCode) +
+      (role.hashCode) +
+      (roomNumber == null ? 0 : roomNumber!.hashCode) +
+      (status.hashCode);
 
   @override
-  String toString() => 'InvitationPreview[emergencyContactsRequired=$emergencyContactsRequired, expiresAt=$expiresAt, inviterName=$inviterName, name=$name, properties=$properties, role=$role, roomNumber=$roomNumber, status=$status]';
+  String toString() =>
+      'InvitationPreview[emergencyContactsRequired=$emergencyContactsRequired, expiresAt=$expiresAt, inviterName=$inviterName, name=$name, properties=$properties, role=$role, roomNumber=$roomNumber, status=$status]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'emergencyContactsRequired'] = this.emergencyContactsRequired;
-      json[r'expiresAt'] = this.expiresAt.toUtc().toIso8601String();
-      json[r'inviterName'] = this.inviterName;
-      json[r'name'] = this.name;
-      json[r'properties'] = this.properties;
-      json[r'role'] = this.role;
+    json[r'emergencyContactsRequired'] = this.emergencyContactsRequired;
+    json[r'expiresAt'] = this.expiresAt.toUtc().toIso8601String();
+    json[r'inviterName'] = this.inviterName;
+    json[r'name'] = this.name;
+    json[r'properties'] = this.properties;
+    json[r'role'] = this.role;
     if (this.roomNumber != null) {
       json[r'roomNumber'] = this.roomNumber;
     } else {
       json[r'roomNumber'] = null;
     }
-      json[r'status'] = this.status;
+    json[r'status'] = this.status;
     return json;
   }
 
@@ -97,14 +100,17 @@ class InvitationPreview {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "InvitationPreview[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "InvitationPreview[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "InvitationPreview[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "InvitationPreview[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return InvitationPreview(
-        emergencyContactsRequired: mapValueOfType<bool>(json, r'emergencyContactsRequired')!,
+        emergencyContactsRequired:
+            mapValueOfType<bool>(json, r'emergencyContactsRequired')!,
         expiresAt: mapDateTime(json, r'expiresAt', r'')!,
         inviterName: mapValueOfType<String>(json, r'inviterName')!,
         name: mapValueOfType<String>(json, r'name')!,
@@ -117,7 +123,10 @@ class InvitationPreview {
     return null;
   }
 
-  static List<InvitationPreview> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<InvitationPreview> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <InvitationPreview>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -145,13 +154,19 @@ class InvitationPreview {
   }
 
   // maps a json object with a list of InvitationPreview-objects as value to a dart map
-  static Map<String, List<InvitationPreview>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<InvitationPreview>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<InvitationPreview>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = InvitationPreview.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = InvitationPreview.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -168,4 +183,3 @@ class InvitationPreview {
     'status',
   };
 }
-

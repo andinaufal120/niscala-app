@@ -19,20 +19,21 @@ class RefreshInput {
   String refreshToken;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is RefreshInput &&
-    other.refreshToken == refreshToken;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RefreshInput && other.refreshToken == refreshToken;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (refreshToken.hashCode);
+      // ignore: unnecessary_parenthesis
+      (refreshToken.hashCode);
 
   @override
   String toString() => 'RefreshInput[refreshToken=$refreshToken]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'refreshToken'] = this.refreshToken;
+    json[r'refreshToken'] = this.refreshToken;
     return json;
   }
 
@@ -48,8 +49,10 @@ class RefreshInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "RefreshInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "RefreshInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "RefreshInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "RefreshInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -61,7 +64,10 @@ class RefreshInput {
     return null;
   }
 
-  static List<RefreshInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<RefreshInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <RefreshInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -89,13 +95,19 @@ class RefreshInput {
   }
 
   // maps a json object with a list of RefreshInput-objects as value to a dart map
-  static Map<String, List<RefreshInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<RefreshInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<RefreshInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = RefreshInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = RefreshInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -106,4 +118,3 @@ class RefreshInput {
     'refreshToken',
   };
 }
-

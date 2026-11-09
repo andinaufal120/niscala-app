@@ -37,42 +37,45 @@ class Account {
   UserRole role;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Account &&
-    other.email == email &&
-    other.emailVerified == emailVerified &&
-    other.googleEmail == googleEmail &&
-    other.hasPassword == hasPassword &&
-    other.id == id &&
-    other.name == name &&
-    other.role == role;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Account &&
+          other.email == email &&
+          other.emailVerified == emailVerified &&
+          other.googleEmail == googleEmail &&
+          other.hasPassword == hasPassword &&
+          other.id == id &&
+          other.name == name &&
+          other.role == role;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (email.hashCode) +
-    (emailVerified.hashCode) +
-    (googleEmail == null ? 0 : googleEmail!.hashCode) +
-    (hasPassword.hashCode) +
-    (id.hashCode) +
-    (name.hashCode) +
-    (role.hashCode);
+      // ignore: unnecessary_parenthesis
+      (email.hashCode) +
+      (emailVerified.hashCode) +
+      (googleEmail == null ? 0 : googleEmail!.hashCode) +
+      (hasPassword.hashCode) +
+      (id.hashCode) +
+      (name.hashCode) +
+      (role.hashCode);
 
   @override
-  String toString() => 'Account[email=$email, emailVerified=$emailVerified, googleEmail=$googleEmail, hasPassword=$hasPassword, id=$id, name=$name, role=$role]';
+  String toString() =>
+      'Account[email=$email, emailVerified=$emailVerified, googleEmail=$googleEmail, hasPassword=$hasPassword, id=$id, name=$name, role=$role]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'email'] = this.email;
-      json[r'emailVerified'] = this.emailVerified;
+    json[r'email'] = this.email;
+    json[r'emailVerified'] = this.emailVerified;
     if (this.googleEmail != null) {
       json[r'googleEmail'] = this.googleEmail;
     } else {
       json[r'googleEmail'] = null;
     }
-      json[r'hasPassword'] = this.hasPassword;
-      json[r'id'] = this.id;
-      json[r'name'] = this.name;
-      json[r'role'] = this.role;
+    json[r'hasPassword'] = this.hasPassword;
+    json[r'id'] = this.id;
+    json[r'name'] = this.name;
+    json[r'role'] = this.role;
     return json;
   }
 
@@ -88,8 +91,10 @@ class Account {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Account[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Account[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Account[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Account[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -107,7 +112,10 @@ class Account {
     return null;
   }
 
-  static List<Account> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Account> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Account>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -135,13 +143,19 @@ class Account {
   }
 
   // maps a json object with a list of Account-objects as value to a dart map
-  static Map<String, List<Account>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Account>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Account>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Account.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Account.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -157,4 +171,3 @@ class Account {
     'role',
   };
 }
-

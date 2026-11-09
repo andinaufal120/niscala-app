@@ -19,20 +19,24 @@ class EmailVerificationSent {
   DateTime resendAvailableAt;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is EmailVerificationSent &&
-    other.resendAvailableAt == resendAvailableAt;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EmailVerificationSent &&
+          other.resendAvailableAt == resendAvailableAt;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (resendAvailableAt.hashCode);
+      // ignore: unnecessary_parenthesis
+      (resendAvailableAt.hashCode);
 
   @override
-  String toString() => 'EmailVerificationSent[resendAvailableAt=$resendAvailableAt]';
+  String toString() =>
+      'EmailVerificationSent[resendAvailableAt=$resendAvailableAt]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'resendAvailableAt'] = this.resendAvailableAt.toUtc().toIso8601String();
+    json[r'resendAvailableAt'] =
+        this.resendAvailableAt.toUtc().toIso8601String();
     return json;
   }
 
@@ -48,8 +52,10 @@ class EmailVerificationSent {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "EmailVerificationSent[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "EmailVerificationSent[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "EmailVerificationSent[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "EmailVerificationSent[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -61,7 +67,10 @@ class EmailVerificationSent {
     return null;
   }
 
-  static List<EmailVerificationSent> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<EmailVerificationSent> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <EmailVerificationSent>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -89,13 +98,19 @@ class EmailVerificationSent {
   }
 
   // maps a json object with a list of EmailVerificationSent-objects as value to a dart map
-  static Map<String, List<EmailVerificationSent>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<EmailVerificationSent>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<EmailVerificationSent>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = EmailVerificationSent.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = EmailVerificationSent.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -106,4 +121,3 @@ class EmailVerificationSent {
     'resendAvailableAt',
   };
 }
-

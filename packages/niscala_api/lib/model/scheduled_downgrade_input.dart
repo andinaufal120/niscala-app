@@ -28,26 +28,27 @@ class ScheduledDowngradeInput {
   PlanCode planCode;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ScheduledDowngradeInput &&
-    _deepEquality.equals(other.keptPropertyIds, keptPropertyIds) &&
-    _deepEquality.equals(other.keptRoomIds, keptRoomIds) &&
-    other.planCode == planCode;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ScheduledDowngradeInput &&
+          _deepEquality.equals(other.keptPropertyIds, keptPropertyIds) &&
+          _deepEquality.equals(other.keptRoomIds, keptRoomIds) &&
+          other.planCode == planCode;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (keptPropertyIds.hashCode) +
-    (keptRoomIds.hashCode) +
-    (planCode.hashCode);
+      // ignore: unnecessary_parenthesis
+      (keptPropertyIds.hashCode) + (keptRoomIds.hashCode) + (planCode.hashCode);
 
   @override
-  String toString() => 'ScheduledDowngradeInput[keptPropertyIds=$keptPropertyIds, keptRoomIds=$keptRoomIds, planCode=$planCode]';
+  String toString() =>
+      'ScheduledDowngradeInput[keptPropertyIds=$keptPropertyIds, keptRoomIds=$keptRoomIds, planCode=$planCode]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'keptPropertyIds'] = this.keptPropertyIds;
-      json[r'keptRoomIds'] = this.keptRoomIds;
-      json[r'planCode'] = this.planCode;
+    json[r'keptPropertyIds'] = this.keptPropertyIds;
+    json[r'keptRoomIds'] = this.keptRoomIds;
+    json[r'planCode'] = this.planCode;
     return json;
   }
 
@@ -63,18 +64,24 @@ class ScheduledDowngradeInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ScheduledDowngradeInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ScheduledDowngradeInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ScheduledDowngradeInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ScheduledDowngradeInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return ScheduledDowngradeInput(
         keptPropertyIds: json[r'keptPropertyIds'] is Iterable
-            ? (json[r'keptPropertyIds'] as Iterable).cast<String>().toList(growable: false)
+            ? (json[r'keptPropertyIds'] as Iterable)
+                .cast<String>()
+                .toList(growable: false)
             : const [],
         keptRoomIds: json[r'keptRoomIds'] is Iterable
-            ? (json[r'keptRoomIds'] as Iterable).cast<String>().toList(growable: false)
+            ? (json[r'keptRoomIds'] as Iterable)
+                .cast<String>()
+                .toList(growable: false)
             : const [],
         planCode: PlanCode.fromJson(json[r'planCode'])!,
       );
@@ -82,7 +89,10 @@ class ScheduledDowngradeInput {
     return null;
   }
 
-  static List<ScheduledDowngradeInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ScheduledDowngradeInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ScheduledDowngradeInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -110,13 +120,19 @@ class ScheduledDowngradeInput {
   }
 
   // maps a json object with a list of ScheduledDowngradeInput-objects as value to a dart map
-  static Map<String, List<ScheduledDowngradeInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ScheduledDowngradeInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ScheduledDowngradeInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ScheduledDowngradeInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ScheduledDowngradeInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -128,4 +144,3 @@ class ScheduledDowngradeInput {
     'planCode',
   };
 }
-

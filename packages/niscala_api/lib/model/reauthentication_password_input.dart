@@ -19,20 +19,21 @@ class ReauthenticationPasswordInput {
   String password;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ReauthenticationPasswordInput &&
-    other.password == password;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ReauthenticationPasswordInput && other.password == password;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (password.hashCode);
+      // ignore: unnecessary_parenthesis
+      (password.hashCode);
 
   @override
   String toString() => 'ReauthenticationPasswordInput[password=$password]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'password'] = this.password;
+    json[r'password'] = this.password;
     return json;
   }
 
@@ -48,8 +49,10 @@ class ReauthenticationPasswordInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ReauthenticationPasswordInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ReauthenticationPasswordInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ReauthenticationPasswordInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ReauthenticationPasswordInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -61,7 +64,10 @@ class ReauthenticationPasswordInput {
     return null;
   }
 
-  static List<ReauthenticationPasswordInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ReauthenticationPasswordInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ReauthenticationPasswordInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -89,13 +95,19 @@ class ReauthenticationPasswordInput {
   }
 
   // maps a json object with a list of ReauthenticationPasswordInput-objects as value to a dart map
-  static Map<String, List<ReauthenticationPasswordInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ReauthenticationPasswordInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ReauthenticationPasswordInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ReauthenticationPasswordInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ReauthenticationPasswordInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -106,4 +118,3 @@ class ReauthenticationPasswordInput {
     'password',
   };
 }
-

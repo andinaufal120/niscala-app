@@ -13,9 +13,5 @@ import 'package:test/test.dart';
 
 // tests for OrderStatus
 void main() {
-
-  group('test OrderStatus', () {
-
-  });
-
+  group('test OrderStatus', () {});
 }

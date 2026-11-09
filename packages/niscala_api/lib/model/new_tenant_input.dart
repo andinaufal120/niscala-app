@@ -43,43 +43,46 @@ class NewTenantInput {
   String roomId;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is NewTenantInput &&
-    _deepEquality.equals(other.emergencyContacts, emergencyContacts) &&
-    other.lease == lease &&
-    other.name == name &&
-    other.occupation == occupation &&
-    other.phone == phone &&
-    other.roomId == roomId;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NewTenantInput &&
+          _deepEquality.equals(other.emergencyContacts, emergencyContacts) &&
+          other.lease == lease &&
+          other.name == name &&
+          other.occupation == occupation &&
+          other.phone == phone &&
+          other.roomId == roomId;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (emergencyContacts.hashCode) +
-    (lease == null ? 0 : lease!.hashCode) +
-    (name.hashCode) +
-    (occupation == null ? 0 : occupation!.hashCode) +
-    (phone.hashCode) +
-    (roomId.hashCode);
+      // ignore: unnecessary_parenthesis
+      (emergencyContacts.hashCode) +
+      (lease == null ? 0 : lease!.hashCode) +
+      (name.hashCode) +
+      (occupation == null ? 0 : occupation!.hashCode) +
+      (phone.hashCode) +
+      (roomId.hashCode);
 
   @override
-  String toString() => 'NewTenantInput[emergencyContacts=$emergencyContacts, lease=$lease, name=$name, occupation=$occupation, phone=$phone, roomId=$roomId]';
+  String toString() =>
+      'NewTenantInput[emergencyContacts=$emergencyContacts, lease=$lease, name=$name, occupation=$occupation, phone=$phone, roomId=$roomId]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'emergencyContacts'] = this.emergencyContacts;
+    json[r'emergencyContacts'] = this.emergencyContacts;
     if (this.lease != null) {
       json[r'lease'] = this.lease;
     } else {
       json[r'lease'] = null;
     }
-      json[r'name'] = this.name;
+    json[r'name'] = this.name;
     if (this.occupation != null) {
       json[r'occupation'] = this.occupation;
     } else {
       json[r'occupation'] = null;
     }
-      json[r'phone'] = this.phone;
-      json[r'roomId'] = this.roomId;
+    json[r'phone'] = this.phone;
+    json[r'roomId'] = this.roomId;
     return json;
   }
 
@@ -95,14 +98,17 @@ class NewTenantInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "NewTenantInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "NewTenantInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "NewTenantInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "NewTenantInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return NewTenantInput(
-        emergencyContacts: EmergencyContact.listFromJson(json[r'emergencyContacts']),
+        emergencyContacts:
+            EmergencyContact.listFromJson(json[r'emergencyContacts']),
         lease: LeaseInput.fromJson(json[r'lease']),
         name: mapValueOfType<String>(json, r'name')!,
         occupation: mapValueOfType<String>(json, r'occupation'),
@@ -113,7 +119,10 @@ class NewTenantInput {
     return null;
   }
 
-  static List<NewTenantInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<NewTenantInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <NewTenantInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -141,13 +150,19 @@ class NewTenantInput {
   }
 
   // maps a json object with a list of NewTenantInput-objects as value to a dart map
-  static Map<String, List<NewTenantInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<NewTenantInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<NewTenantInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = NewTenantInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = NewTenantInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -160,4 +175,3 @@ class NewTenantInput {
     'roomId',
   };
 }
-

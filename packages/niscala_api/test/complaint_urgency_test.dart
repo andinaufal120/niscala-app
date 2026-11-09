@@ -13,9 +13,5 @@ import 'package:test/test.dart';
 
 // tests for ComplaintUrgency
 void main() {
-
-  group('test ComplaintUrgency', () {
-
-  });
-
+  group('test ComplaintUrgency', () {});
 }

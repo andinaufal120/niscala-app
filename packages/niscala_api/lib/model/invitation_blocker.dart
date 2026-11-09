@@ -24,17 +24,19 @@ class InvitationBlocker {
   String toJson() => value;
 
   static const roleMismatch = InvitationBlocker._(r'roleMismatch');
-  static const activeLease = InvitationBlocker._(r'activeLease');
 
   /// List of all possible values in this [enum][InvitationBlocker].
   static const values = <InvitationBlocker>[
     roleMismatch,
-    activeLease,
   ];
 
-  static InvitationBlocker? fromJson(dynamic value) => InvitationBlockerTypeTransformer().decode(value);
+  static InvitationBlocker? fromJson(dynamic value) =>
+      InvitationBlockerTypeTransformer().decode(value);
 
-  static List<InvitationBlocker> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<InvitationBlocker> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <InvitationBlocker>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -51,7 +53,8 @@ class InvitationBlocker {
 /// Transformation class that can [encode] an instance of [InvitationBlocker] to String,
 /// and [decode] dynamic data back to [InvitationBlocker].
 class InvitationBlockerTypeTransformer {
-  factory InvitationBlockerTypeTransformer() => _instance ??= const InvitationBlockerTypeTransformer._();
+  factory InvitationBlockerTypeTransformer() =>
+      _instance ??= const InvitationBlockerTypeTransformer._();
 
   const InvitationBlockerTypeTransformer._();
 
@@ -68,8 +71,8 @@ class InvitationBlockerTypeTransformer {
   InvitationBlocker? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'roleMismatch': return InvitationBlocker.roleMismatch;
-        case r'activeLease': return InvitationBlocker.activeLease;
+        case r'roleMismatch':
+          return InvitationBlocker.roleMismatch;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -82,4 +85,3 @@ class InvitationBlockerTypeTransformer {
   /// Singleton [InvitationBlockerTypeTransformer] instance.
   static InvitationBlockerTypeTransformer? _instance;
 }
-

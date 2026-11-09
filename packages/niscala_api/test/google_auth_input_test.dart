@@ -26,7 +26,9 @@ void main() {
       // TODO
     });
 
-
+    // String name
+    test('to test the property `name`', () async {
+      // TODO
+    });
   });
-
 }

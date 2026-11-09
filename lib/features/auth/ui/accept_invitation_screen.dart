@@ -15,15 +15,22 @@ import 'package:niscala/features/auth/data/invitation_repository.dart';
 import 'package:niscala/features/auth/invitation_link.dart';
 import 'package:niscala/features/auth/ui/auth_widgets.dart';
 import 'package:niscala/features/auth/ui/invitation_link_field.dart';
+import 'package:niscala/features/complaints/data/complaint_repository.dart';
+import 'package:niscala/features/lease/data/lease_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
+import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
+import 'package:niscala/features/tenants/ui/emergency_contact_fields.dart';
 import 'package:niscala_api/api.dart';
 
 const _accepted =
     'Undangan diterima. Properti baru sudah tersedia di menu Properti.';
+const _acceptedTenant =
+    'Undangan diterima. Kamar baru ada di Beranda dan Akun.';
 
-/// Adds a Manager invitation to the account that is signed in. The pasted link
-/// is checked first; the second step shows the invitation, the account that
-/// will accept it and the buttons to accept or to paste another link.
+/// Adds an invitation to the account that is signed in. The pasted link is
+/// checked first; the second step shows the invitation, the account that will
+/// accept it and the buttons to accept or to paste another link. A Tenant
+/// invitation whose tenant record lacks emergency contacts also asks for them.
 class AcceptInvitationScreen extends ConsumerStatefulWidget {
   const AcceptInvitationScreen({super.key});
 
@@ -40,9 +47,16 @@ class _AcceptInvitationScreenState
   String? _banner;
   ({String token, InvitationAcceptancePreview preview})? _checked;
 
+  /// The emergency contacts asked for by the checked invitation.
+  var _contacts = <EmergencyContactDraft>[];
+  String? _contactsError;
+
   @override
   void dispose() {
     _link.dispose();
+    for (final draft in _contacts) {
+      draft.dispose();
+    }
     super.dispose();
   }
 
@@ -67,6 +81,7 @@ class _AcceptInvitationScreenState
         _busy = false;
         if (preview.canAccept) {
           _checked = (token: token, preview: preview);
+          _resetContacts(preview.invitation.emergencyContactsRequired);
         } else {
           _banner = _blockedMessage(preview);
         }
@@ -85,27 +100,73 @@ class _AcceptInvitationScreenState
     final status = preview.invitation.status;
     if (status == InvitationLinkStatus.expired) return invitationExpiredMessage;
     if (status == InvitationLinkStatus.used) return invitationUsedMessage;
-    final blocker = preview.blocker;
-    if (blocker == InvitationBlocker.roleMismatch) {
+    if (preview.blocker == InvitationBlocker.roleMismatch) {
       return errorMessageFor(
         const ApiFailure(code: 'INVITATION_ROLE_MISMATCH'),
       );
     }
-    if (blocker == InvitationBlocker.activeLease) {
-      return errorMessageFor(const ApiFailure(code: 'TENANT_HAS_ACTIVE_LEASE'));
-    }
     return genericErrorMessage;
+  }
+
+  /// Replaces the contact blocks by two empty ones when [contactsRequired], or
+  /// by none.
+  void _resetContacts(bool contactsRequired) {
+    final previous = _contacts;
+    _contacts = [
+      for (var i = 0; i < (contactsRequired ? minEmergencyContacts : 0); i++)
+        EmergencyContactDraft(),
+    ];
+    _contactsError = null;
+    // The replaced blocks stay in the tree until this frame is built.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (final draft in previous) {
+        draft.dispose();
+      }
+    });
+  }
+
+  void _addContact() => setState(() => _contacts.add(EmergencyContactDraft()));
+
+  void _removeContact(EmergencyContactDraft draft) {
+    setState(() => _contacts.remove(draft));
+    WidgetsBinding.instance.addPostFrameCallback((_) => draft.dispose());
   }
 
   Future<void> _accept() async {
     final checked = _checked;
     if (_busy || checked == null) return;
+    final contactsRequired =
+        checked.preview.invitation.emergencyContactsRequired;
+    final contactsError =
+        contactsRequired && _contacts.length < minEmergencyContacts
+        ? emergencyContactsMinimum
+        : null;
+    final contactsValid = [for (final draft in _contacts) draft.validate()]
+        .every((valid) => valid);
+    final valid = contactsError == null && contactsValid;
     setState(() {
-      _busy = true;
+      _contactsError = contactsError;
       _banner = null;
+      _busy = valid;
     });
+    if (!valid) return;
+
     try {
-      await ref.read(invitationRepositoryProvider).accept(checked.token);
+      await ref
+          .read(invitationRepositoryProvider)
+          .accept(
+            checked.token,
+            emergencyContacts: contactsRequired
+                ? [
+                    for (final draft in _contacts)
+                      EmergencyContact(
+                        name: draft.name.text.trim(),
+                        relationship: draft.relationship.text.trim(),
+                        phone: draft.phone.text.trim(),
+                      ),
+                  ]
+                : null,
+          );
     } on ApiFailure catch (failure) {
       if (!mounted) return;
       setState(() {
@@ -115,9 +176,18 @@ class _AcceptInvitationScreenState
       return;
     }
     if (!mounted) return;
+    final role = ref.read(currentRoleProvider);
     ref.invalidate(meProvider);
-    ref.invalidate(propertyListProvider);
-    context.go(accountTabPath(ref.read(currentRoleProvider)), extra: _accepted);
+    if (role == UserRole.tenant) {
+      ref.invalidate(myLeasesProvider);
+      ref.invalidate(activeRentBillsProvider);
+      ref.invalidate(paidRentBillsProvider);
+      ref.invalidate(complaintListProvider);
+      context.go(accountTabPath(role), extra: _acceptedTenant);
+    } else {
+      ref.invalidate(propertyListProvider);
+      context.go(accountTabPath(role), extra: _accepted);
+    }
   }
 
   void _changeLink() => setState(() {
@@ -194,6 +264,11 @@ class _AcceptInvitationScreenState
           ),
           const SizedBox(height: 8),
         ],
+        if (invitation.roomNumber != null)
+          Text(
+            'Kamar ${invitation.roomNumber}',
+            style: theme.textTheme.titleSmall,
+          ),
         formGap,
         SectionCard(
           title: 'Diterima dengan akun',
@@ -207,6 +282,15 @@ class _AcceptInvitationScreenState
             ),
           ),
         ),
+        if (invitation.emergencyContactsRequired) ...[
+          formGap,
+          EmergencyContactsSection(
+            drafts: _contacts,
+            error: _contactsError,
+            onAdd: _addContact,
+            onRemove: _removeContact,
+          ),
+        ],
       ],
     );
   }

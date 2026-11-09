@@ -32,9 +32,13 @@ class TenantAccountStatus {
     active,
   ];
 
-  static TenantAccountStatus? fromJson(dynamic value) => TenantAccountStatusTypeTransformer().decode(value);
+  static TenantAccountStatus? fromJson(dynamic value) =>
+      TenantAccountStatusTypeTransformer().decode(value);
 
-  static List<TenantAccountStatus> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<TenantAccountStatus> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <TenantAccountStatus>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -51,7 +55,8 @@ class TenantAccountStatus {
 /// Transformation class that can [encode] an instance of [TenantAccountStatus] to String,
 /// and [decode] dynamic data back to [TenantAccountStatus].
 class TenantAccountStatusTypeTransformer {
-  factory TenantAccountStatusTypeTransformer() => _instance ??= const TenantAccountStatusTypeTransformer._();
+  factory TenantAccountStatusTypeTransformer() =>
+      _instance ??= const TenantAccountStatusTypeTransformer._();
 
   const TenantAccountStatusTypeTransformer._();
 
@@ -68,8 +73,10 @@ class TenantAccountStatusTypeTransformer {
   TenantAccountStatus? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'notActivated': return TenantAccountStatus.notActivated;
-        case r'active': return TenantAccountStatus.active;
+        case r'notActivated':
+          return TenantAccountStatus.notActivated;
+        case r'active':
+          return TenantAccountStatus.active;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -82,4 +89,3 @@ class TenantAccountStatusTypeTransformer {
   /// Singleton [TenantAccountStatusTypeTransformer] instance.
   static TenantAccountStatusTypeTransformer? _instance;
 }
-

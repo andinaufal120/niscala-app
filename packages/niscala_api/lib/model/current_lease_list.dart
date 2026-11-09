@@ -10,40 +10,38 @@
 
 part of niscala_api;
 
-class CurrentLeaseResult {
-  /// Returns a new [CurrentLeaseResult] instance.
-  CurrentLeaseResult({
-    this.lease,
+class CurrentLeaseList {
+  /// Returns a new [CurrentLeaseList] instance.
+  CurrentLeaseList({
+    this.items = const [],
   });
 
-  CurrentLease? lease;
+  /// Ordered by property name, then room number.
+  List<CurrentLease> items;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is CurrentLeaseResult &&
-    other.lease == lease;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CurrentLeaseList && _deepEquality.equals(other.items, items);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (lease == null ? 0 : lease!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (items.hashCode);
 
   @override
-  String toString() => 'CurrentLeaseResult[lease=$lease]';
+  String toString() => 'CurrentLeaseList[items=$items]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    if (this.lease != null) {
-      json[r'lease'] = this.lease;
-    } else {
-      json[r'lease'] = null;
-    }
+    json[r'items'] = this.items;
     return json;
   }
 
-  /// Returns a new [CurrentLeaseResult] instance and imports its values from
+  /// Returns a new [CurrentLeaseList] instance and imports its values from
   /// [value] if it's a [Map], null otherwise.
   // ignore: prefer_constructors_over_static_methods
-  static CurrentLeaseResult? fromJson(dynamic value) {
+  static CurrentLeaseList? fromJson(dynamic value) {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
@@ -52,24 +50,29 @@ class CurrentLeaseResult {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "CurrentLeaseResult[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "CurrentLeaseResult[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "CurrentLeaseList[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "CurrentLeaseList[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
-      return CurrentLeaseResult(
-        lease: CurrentLease.fromJson(json[r'lease']),
+      return CurrentLeaseList(
+        items: CurrentLease.listFromJson(json[r'items']),
       );
     }
     return null;
   }
 
-  static List<CurrentLeaseResult> listFromJson(dynamic json, {bool growable = false,}) {
-    final result = <CurrentLeaseResult>[];
+  static List<CurrentLeaseList> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
+    final result = <CurrentLeaseList>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
-        final value = CurrentLeaseResult.fromJson(row);
+        final value = CurrentLeaseList.fromJson(row);
         if (value != null) {
           result.add(value);
         }
@@ -78,12 +81,12 @@ class CurrentLeaseResult {
     return result.toList(growable: growable);
   }
 
-  static Map<String, CurrentLeaseResult> mapFromJson(dynamic json) {
-    final map = <String, CurrentLeaseResult>{};
+  static Map<String, CurrentLeaseList> mapFromJson(dynamic json) {
+    final map = <String, CurrentLeaseList>{};
     if (json is Map && json.isNotEmpty) {
       json = json.cast<String, dynamic>(); // ignore: parameter_assignments
       for (final entry in json.entries) {
-        final value = CurrentLeaseResult.fromJson(entry.value);
+        final value = CurrentLeaseList.fromJson(entry.value);
         if (value != null) {
           map[entry.key] = value;
         }
@@ -92,14 +95,20 @@ class CurrentLeaseResult {
     return map;
   }
 
-  // maps a json object with a list of CurrentLeaseResult-objects as value to a dart map
-  static Map<String, List<CurrentLeaseResult>> mapListFromJson(dynamic json, {bool growable = false,}) {
-    final map = <String, List<CurrentLeaseResult>>{};
+  // maps a json object with a list of CurrentLeaseList-objects as value to a dart map
+  static Map<String, List<CurrentLeaseList>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
+    final map = <String, List<CurrentLeaseList>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = CurrentLeaseResult.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = CurrentLeaseList.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -107,6 +116,6 @@ class CurrentLeaseResult {
 
   /// The list of required keys that must be present in a JSON.
   static const requiredKeys = <String>{
+    'items',
   };
 }
-

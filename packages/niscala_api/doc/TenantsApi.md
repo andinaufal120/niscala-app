@@ -11,7 +11,7 @@ Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**createTenant**](TenantsApi.md#createtenant) | **POST** /properties/{propertyId}/tenants | Create Tenant
 [**deleteTenant**](TenantsApi.md#deletetenant) | **DELETE** /tenants/{tenantId} | Delete Tenant
-[**getMyLease**](TenantsApi.md#getmylease) | **GET** /me/lease | Get My Lease
+[**getMyLeases**](TenantsApi.md#getmyleases) | **GET** /me/leases | Get My Leases
 [**getTenant**](TenantsApi.md#gettenant) | **GET** /tenants/{tenantId} | Get Tenant
 [**listTenants**](TenantsApi.md#listtenants) | **GET** /properties/{propertyId}/tenants | List Tenants
 [**regenerateTenantInvitation**](TenantsApi.md#regeneratetenantinvitation) | **POST** /tenants/{tenantId}/invitation | Regenerate Tenant Invitation
@@ -117,12 +117,12 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **getMyLease**
-> CurrentLeaseResult getMyLease()
+# **getMyLeases**
+> CurrentLeaseList getMyLeases()
 
-Get My Lease
+Get My Leases
 
-Return the calling tenant's active lease, or null when it has ended.
+Return the calling tenant's active leases, possibly none.
 
 ### Example
 ```dart
@@ -137,10 +137,10 @@ import 'package:niscala_api/api.dart';
 final api_instance = TenantsApi();
 
 try {
-    final result = api_instance.getMyLease();
+    final result = api_instance.getMyLeases();
     print(result);
 } catch (e) {
-    print('Exception when calling TenantsApi->getMyLease: $e\n');
+    print('Exception when calling TenantsApi->getMyLeases: $e\n');
 }
 ```
 
@@ -149,7 +149,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**CurrentLeaseResult**](CurrentLeaseResult.md)
+[**CurrentLeaseList**](CurrentLeaseList.md)
 
 ### Authorization
 

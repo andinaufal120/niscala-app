@@ -10,6 +10,7 @@ import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/features/complaints/data/complaint_repository.dart';
 import 'package:niscala/features/complaints/ui/complaint_widgets.dart';
+import 'package:niscala/features/lease/data/lease_repository.dart';
 import 'package:niscala_api/api.dart';
 
 const _empty =
@@ -48,6 +49,8 @@ class _TenantComplaintListScreenState
   @override
   Widget build(BuildContext context) {
     final complaints = ref.watch(complaintListProvider);
+    // A failed lease request only hides the room of each complaint.
+    final showPlace = (ref.watch(myLeasesProvider).value?.length ?? 0) > 1;
     // The Ajukan action keeps its place in every state, so the header does not
     // change size. It is shown only when there are complaints.
     final ajukan = FilledButton(
@@ -106,7 +109,7 @@ class _TenantComplaintListScreenState
                 Text(_emptyFilter, style: Theme.of(context).textTheme.bodyLarge)
               else
                 for (final complaint in shown) ...[
-                  _ComplaintRow(complaint: complaint),
+                  _ComplaintRow(complaint: complaint, showPlace: showPlace),
                   const SizedBox(height: 8),
                 ],
             ],
@@ -136,11 +139,13 @@ Scaffold _listPage(Widget body, {Widget? action, bool actionVisible = true}) =>
     );
 
 /// One complaint: its description, status, and either its classification or
-/// the state that explains why it has none.
+/// the state that explains why it has none. With [showPlace] it also names the
+/// property and room, which the tenant needs when several leases are held.
 class _ComplaintRow extends StatelessWidget {
-  const _ComplaintRow({required this.complaint});
+  const _ComplaintRow({required this.complaint, required this.showPlace});
 
   final ComplaintSummary complaint;
+  final bool showPlace;
 
   @override
   Widget build(BuildContext context) {
@@ -155,16 +160,26 @@ class _ComplaintRow extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          subtitle: Wrap(
-            spacing: 8,
-            runSpacing: 8,
+          subtitle: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ComplaintBadge.status(complaint.status),
-              if (classification != null) ...[
-                Text(classification.category),
-                ComplaintBadge.urgency(classification.urgency),
-              ] else if (state != null)
-                ComplaintBadge.classification(state),
+              if (showPlace)
+                Text(
+                  '${complaint.property.name} · Kamar ${complaint.room.number}',
+                ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ComplaintBadge.status(complaint.status),
+                  if (classification != null) ...[
+                    Text(classification.category),
+                    ComplaintBadge.urgency(classification.urgency),
+                  ] else if (state != null)
+                    ComplaintBadge.classification(state),
+                ],
+              ),
             ],
           ),
         ),
