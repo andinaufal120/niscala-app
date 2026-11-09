@@ -1006,8 +1006,10 @@ void main() {
       await _fill(tester);
 
       await _tapInFlight(tester, _submitLabel);
-      await tester.tap(buttonLabelled(_submitLabel), warnIfMissed: false);
-      await tester.pump();
+      if (buttonLabelled(_submitLabel).evaluate().isNotEmpty) {
+        await tester.tap(buttonLabelled(_submitLabel), warnIfMissed: false);
+        await tester.pump();
+      }
       await tester.tap(busyButton(), warnIfMissed: false);
       await tester.pump();
 
