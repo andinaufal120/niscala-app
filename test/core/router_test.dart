@@ -188,5 +188,31 @@ void main() {
         expect(redirectFor(signedIn(UserRole.tenant), location), isNull);
       });
     }
+
+    test('a tenant may stay at the accept invitation page', () {
+      expect(
+        redirectFor(signedIn(UserRole.tenant), '/penyewa/akun/undangan'),
+        isNull,
+      );
+    });
+
+    test('a tenant at the management accept invitation page goes home', () {
+      expect(
+        redirectFor(signedIn(UserRole.tenant), '/akun/undangan'),
+        '/penyewa/beranda',
+      );
+    });
+
+    test('a manager may stay at the accept invitation page', () {
+      expect(redirectFor(signedIn(UserRole.manager), '/akun/undangan'), isNull);
+    });
+
+    test('an owner at the tenant accept invitation page goes to the '
+        'management home', () {
+      expect(
+        redirectFor(signedIn(UserRole.owner), '/penyewa/akun/undangan'),
+        '/beranda',
+      );
+    });
   });
 }

@@ -23,6 +23,11 @@ http.Response _error(int status, String code, {String? field}) => http.Response(
 );
 
 Map<String, Object?> _leaseJson({
+  String tenantId = 't1',
+  String propertyId = 'p1',
+  String propertyName = 'Kos Melati',
+  String roomId = 'r1',
+  String roomNumber = '08',
   String billingCycle = 'monthly',
   String? startDate = '2026-01-01',
   String? endDate = '2026-12-31',
@@ -30,22 +35,27 @@ Map<String, Object?> _leaseJson({
   num? widthM = 4,
   List<String> facilities = const ['ac', 'kasur'],
 }) => {
+  'tenantId': tenantId,
   'billingCycle': billingCycle,
   'startDate': startDate,
   'endDate': endDate,
   'rent': 750000,
   'property': {
-    'id': 'p1',
-    'name': 'Kos Melati',
+    'id': propertyId,
+    'name': propertyName,
     'address': 'Jl. Melati 1, Bandung',
   },
   'room': {
-    'id': 'r1',
-    'number': '08',
+    'id': roomId,
+    'number': roomNumber,
     'lengthM': lengthM,
     'widthM': widthM,
     'facilities': facilities,
   },
+};
+
+Map<String, Object?> _list(List<Map<String, Object?>> items) => {
+  'items': items,
 };
 
 class _Harness {
@@ -84,22 +94,23 @@ Matcher _failure(String code, {String? field, int? status}) => isA<ApiFailure>()
     .having((f) => f.statusCode, 'statusCode', status);
 
 void main() {
-  group('myLease', () {
-    test('gets the lease of the caller', () async {
-      final h = _Harness((_) => _ok({'lease': _leaseJson()}));
+  group('myLeases', () {
+    test('gets the leases of the caller', () async {
+      final h = _Harness((_) => _ok(_list([_leaseJson()])));
 
-      await h.repository.myLease();
+      await h.repository.myLeases();
 
       expect(h.request.method, 'GET');
-      expect(h.request.url.path, '/me/lease');
+      expect(h.request.url.path, '/me/leases');
       expect(h.request.url.queryParameters, isEmpty);
     });
 
     test('maps the fields of the lease', () async {
-      final h = _Harness((_) => _ok({'lease': _leaseJson()}));
+      final h = _Harness((_) => _ok(_list([_leaseJson()])));
 
-      final lease = (await h.repository.myLease())!;
+      final lease = (await h.repository.myLeases()).single;
 
+      expect(lease.tenantId, 't1');
       expect(lease.billingCycle, BillingCycle.monthly);
       expect(lease.rent, 750000);
       expect(lease.startDate!.year, 2026);
@@ -118,30 +129,61 @@ void main() {
       expect(lease.room.facilities, ['ac', 'kasur']);
     });
 
+    test('returns every lease in the order of the API', () async {
+      final h = _Harness(
+        (_) => _ok(
+          _list([
+            _leaseJson(
+              tenantId: 't2',
+              propertyId: 'p2',
+              propertyName: 'Kos Mawar',
+              roomId: 'r2',
+              roomNumber: '12',
+            ),
+            _leaseJson(),
+            _leaseJson(tenantId: 't3', roomId: 'r3', roomNumber: '03'),
+          ]),
+        ),
+      );
+
+      final leases = await h.repository.myLeases();
+
+      expect(leases.map((l) => l.tenantId), ['t2', 't1', 't3']);
+      expect(leases.map((l) => l.property.name), [
+        'Kos Mawar',
+        'Kos Melati',
+        'Kos Melati',
+      ]);
+      expect(leases.map((l) => l.room.number), ['12', '08', '03']);
+      expect(leases.map((l) => l.room.id), ['r2', 'r1', 'r3']);
+    });
+
     for (final cycle in BillingCycle.values) {
       test('maps the billing cycle ${cycle.value}', () async {
         final h = _Harness(
-          (_) => _ok({'lease': _leaseJson(billingCycle: cycle.value)}),
+          (_) => _ok(_list([_leaseJson(billingCycle: cycle.value)])),
         );
 
-        expect((await h.repository.myLease())!.billingCycle, cycle);
+        expect((await h.repository.myLeases()).single.billingCycle, cycle);
       });
     }
 
     test('maps a lease without dates, dimensions and facilities', () async {
       final h = _Harness(
-        (_) => _ok({
-          'lease': _leaseJson(
-            startDate: null,
-            endDate: null,
-            lengthM: null,
-            widthM: null,
-            facilities: const [],
-          ),
-        }),
+        (_) => _ok(
+          _list([
+            _leaseJson(
+              startDate: null,
+              endDate: null,
+              lengthM: null,
+              widthM: null,
+              facilities: const [],
+            ),
+          ]),
+        ),
       );
 
-      final lease = (await h.repository.myLease())!;
+      final lease = (await h.repository.myLeases()).single;
 
       expect(lease.startDate, isNull);
       expect(lease.endDate, isNull);
@@ -150,17 +192,17 @@ void main() {
       expect(lease.room.facilities, isEmpty);
     });
 
-    test('returns null when the tenant has no lease', () async {
-      final h = _Harness((_) => _ok({'lease': null}));
+    test('returns an empty list when the tenant has no lease', () async {
+      final h = _Harness((_) => _ok(_list(const [])));
 
-      expect(await h.repository.myLease(), isNull);
+      expect(await h.repository.myLeases(), isEmpty);
     });
 
     test('converts a forbidden response to an ApiFailure', () async {
       final h = _Harness((_) => _error(403, 'FORBIDDEN'));
 
       await expectLater(
-        h.repository.myLease(),
+        h.repository.myLeases(),
         throwsA(_failure('FORBIDDEN', status: 403)),
       );
     });
@@ -169,7 +211,7 @@ void main() {
       final h = _Harness((_) => _error(401, 'ACCESS_TOKEN_INVALID'));
 
       await expectLater(
-        h.repository.myLease(),
+        h.repository.myLeases(),
         throwsA(_failure('ACCESS_TOKEN_INVALID', status: 401)),
       );
     });
@@ -178,7 +220,7 @@ void main() {
       final h = _Harness.failing(const SocketException('no route'));
 
       await expectLater(
-        h.repository.myLease(),
+        h.repository.myLeases(),
         throwsA(_failure('NETWORK_ERROR')),
       );
     });
@@ -187,7 +229,7 @@ void main() {
       final h = _Harness.failing(http.ClientException('broken'));
 
       await expectLater(
-        h.repository.myLease(),
+        h.repository.myLeases(),
         throwsA(_failure('NETWORK_ERROR')),
       );
     });
@@ -196,13 +238,13 @@ void main() {
       final h = _Harness((_) => http.Response('', 500));
 
       await expectLater(
-        h.repository.myLease(),
+        h.repository.myLeases(),
         throwsA(_failure('INTERNAL_ERROR', status: 500)),
       );
     });
   });
 
-  group('myLeaseProvider', () {
+  group('myLeasesProvider', () {
     ProviderContainer containerWith(FakeLeaseRepository repository) {
       final container = ProviderContainer(
         overrides: [leaseRepositoryProvider.overrideWithValue(repository)],
@@ -211,25 +253,25 @@ void main() {
       return container;
     }
 
-    test('resolves to the lease of the repository', () async {
-      final lease = makeCurrentLease();
-      final container = containerWith(FakeLeaseRepository(lease: lease));
+    test('resolves to the leases of the repository in order', () async {
+      final leases = makeTwoLeases();
+      final container = containerWith(FakeLeaseRepository(leases: leases));
 
-      expect(await container.read(myLeaseProvider.future), lease);
+      expect(await container.read(myLeasesProvider.future), leases);
     });
 
-    test('resolves to null when there is no lease', () async {
+    test('resolves to an empty list when there is no lease', () async {
       final container = containerWith(FakeLeaseRepository());
 
-      expect(await container.read(myLeaseProvider.future), isNull);
+      expect(await container.read(myLeasesProvider.future), isEmpty);
     });
 
     test('fetches once however often it is read', () async {
       final repository = FakeLeaseRepository(lease: makeCurrentLease());
       final container = containerWith(repository);
 
-      await container.read(myLeaseProvider.future);
-      await container.read(myLeaseProvider.future);
+      await container.read(myLeasesProvider.future);
+      await container.read(myLeasesProvider.future);
 
       expect(repository.calls, 1);
     });
@@ -237,10 +279,10 @@ void main() {
     test('fetches again after it is invalidated', () async {
       final repository = FakeLeaseRepository(lease: makeCurrentLease());
       final container = containerWith(repository);
-      await container.read(myLeaseProvider.future);
+      await container.read(myLeasesProvider.future);
 
-      container.invalidate(myLeaseProvider);
-      await container.read(myLeaseProvider.future);
+      container.invalidate(myLeasesProvider);
+      await container.read(myLeasesProvider.future);
 
       expect(repository.calls, 2);
     });
@@ -251,7 +293,7 @@ void main() {
       final container = containerWith(repository);
 
       await expectLater(
-        container.read(myLeaseProvider.future),
+        container.read(myLeasesProvider.future),
         throwsA(_failure('INTERNAL_ERROR')),
       );
     });
@@ -260,10 +302,10 @@ void main() {
       final repository = FakeLeaseRepository()
         ..script.always = const ApiFailure.network();
       final container = containerWith(repository);
-      container.listen(myLeaseProvider, (_, _) {});
+      container.listen(myLeasesProvider, (_, _) {});
 
       await expectLater(
-        container.read(myLeaseProvider.future),
+        container.read(myLeasesProvider.future),
         throwsA(isA<ApiFailure>()),
       );
       await Future<void>.delayed(const Duration(seconds: 2));

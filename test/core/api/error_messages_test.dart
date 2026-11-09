@@ -49,7 +49,8 @@ const _table = {
       'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.',
   'INVITATION_ROLE_MISMATCH':
       'Undangan ini untuk peran lain. Akun Anda tidak dapat menerimanya.',
-  'TENANT_HAS_ACTIVE_LEASE': 'Akun ini masih memiliki masa sewa aktif.',
+  'TENANT_NAME_NOT_EDITABLE':
+      'Nama penyewa yang sudah aktif mengikuti akunnya dan tidak bisa diubah.',
   'MANAGER_ALREADY_ADDED': 'Anda sudah menjadi pengelola untuk pemilik ini.',
   'COMPLAINT_CATEGORY_INVALID':
       'Kategori tidak valid. Pilih kategori dari daftar.',
@@ -86,6 +87,11 @@ void main() {
 
   test('falls back to the generic message for an unknown code', () {
     expect(_messageOf('SOMETHING_NEW'), _fallback);
+  });
+
+  test('falls back to the generic message for a code the API no longer '
+      'sends', () {
+    expect(_messageOf('TENANT_HAS_ACTIVE_LEASE'), _fallback);
   });
 
   test('falls back to the generic message for an empty code', () {

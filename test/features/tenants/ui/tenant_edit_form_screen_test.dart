@@ -508,6 +508,132 @@ void main() {
     });
   });
 
+  group('name of the tenant', () {
+    const notEditableMessage =
+        'Nama penyewa yang sudah aktif mengikuti akunnya dan tidak bisa '
+        'diubah.';
+
+    /// The hint that explains why the name cannot be changed.
+    Finder hint() => find.textContaining('tidak bisa diubah');
+
+    bool readOnly(WidgetTester tester) {
+      final field = labeledTextField(tester, _name);
+      return field.readOnly || field.enabled == false;
+    }
+
+    testWidgets('is read-only with a hint when the tenant is active', (
+      tester,
+    ) async {
+      await _openEdit(tester, _repo(), tenantId: 't2');
+
+      expect(labeledField(_name), findsOneWidget);
+      expect(_text(tester, _name), 'Dewi Lestari');
+      expect(readOnly(tester), isTrue);
+      expect(hint(), findsOneWidget);
+    });
+
+    testWidgets('is editable without a hint when the tenant is not '
+        'activated', (tester) async {
+      await _openEdit(tester, _repo());
+
+      expect(_text(tester, _name), 'Budi Santoso');
+      expect(readOnly(tester), isFalse);
+      expect(hint(), findsNothing);
+    });
+
+    testWidgets('keeps the other fields editable for an active tenant', (
+      tester,
+    ) async {
+      await _openEdit(tester, _repo(), tenantId: 't2');
+
+      for (final label in [_phone, _occupation, _grace, _rent]) {
+        final field = labeledTextField(tester, label);
+        expect(field.readOnly, isFalse, reason: label);
+        expect(field.enabled, isNot(false), reason: label);
+      }
+    });
+
+    testWidgets('an active tenant is saved with the name it has', (
+      tester,
+    ) async {
+      final repo = _repo();
+      await _openEdit(tester, repo, tenantId: 't2');
+      await typeInto(tester, _occupation, 'Mahasiswa');
+
+      await _submit(tester);
+
+      expect(repo.updated.single.id, 't2');
+      expect(repo.updated.single.input.name, 'Dewi Lestari');
+      expect(repo.updated.single.input.occupation, 'Mahasiswa');
+    });
+
+    testWidgets('an active tenant needs no name to be filled in', (
+      tester,
+    ) async {
+      final repo = _repo();
+      await _openEdit(tester, repo, tenantId: 't2');
+
+      await _submit(tester);
+
+      expect(labeledFieldError(tester, _name), isNull);
+      expect(repo.updated, hasLength(1));
+    });
+
+    testWidgets('the hint is shown with the form of an active tenant at large '
+        'text', (tester) async {
+      await _openEdit(tester, _repo(), tenantId: 't2', largeText: true);
+
+      expect(tester.takeException(), isNull);
+      expect(hint(), findsOneWidget);
+    });
+
+    testWidgets('the API refusing the name shows its message on the name '
+        'field', (tester) async {
+      final repo = _repo()
+        ..updateScript.queue.add(
+          const ApiFailure(
+            code: 'TENANT_NAME_NOT_EDITABLE',
+            field: 'name',
+            statusCode: 422,
+          ),
+        );
+      await _openEdit(tester, repo);
+      await typeInto(tester, _name, 'Budi Hartono');
+
+      await _submit(tester);
+
+      expect(labeledFieldError(tester, _name), notEditableMessage);
+      expect(find.text('Terjadi kesalahan. Coba lagi.'), findsNothing);
+      expect(find.byType(TenantFormScreen), findsOneWidget);
+      expect(_text(tester, _name), 'Budi Hartono');
+    });
+
+    testWidgets('the API refusing the name of an active tenant shows its '
+        'message', (tester) async {
+      final repo = _repo()
+        ..updateScript.queue.add(
+          const ApiFailure(
+            code: 'TENANT_NAME_NOT_EDITABLE',
+            field: 'name',
+            statusCode: 422,
+          ),
+        );
+      await _openEdit(tester, repo, tenantId: 't2');
+
+      await _submit(tester);
+
+      expect(find.text(notEditableMessage), findsOneWidget);
+      expect(find.byType(TenantFormScreen), findsOneWidget);
+      expect(busyButton(), findsNothing);
+    });
+
+    testWidgets('meets the guidelines for an active tenant', (tester) async {
+      await _openEdit(tester, _repo(), tenantId: 't2');
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+  });
+
   group('validation', () {
     testWidgets('an emptied name shows its error', (tester) async {
       final repo = _repo();

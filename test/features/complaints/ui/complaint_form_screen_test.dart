@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
-import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/complaints/ui/complaint_form_screen.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_detail_screen.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_list_screen.dart';
@@ -24,16 +23,77 @@ const _helper = 'Ceritakan masalahnya, minimal 10 karakter.';
 const _send = 'Kirim Keluhan';
 const _valid = 'Keran air di kamar mandi bocor.';
 
+/// The label of the read-only room line shown to a tenant with one lease.
+const _roomLine = 'Kamar';
+
+/// The label of the required room choice shown to a tenant with several
+/// leases.
+const _roomGroup = 'Kamar (wajib)';
+
+const _roomRequired = 'Pilih kamar.';
+const _melati = 'Kos Melati · Kamar 08';
+const _mawar = 'Kos Mawar · Kamar 12';
+
 Future<void> _open(
   WidgetTester tester,
   FakeComplaintRepository repo, {
+  FakeLeaseRepository? leases,
+  bool settle = true,
   bool largeText = false,
 }) => pumpComplaintApp(
   tester,
   repo,
   path: '/penyewa/keluhan/baru',
+  leases: leases,
+  settle: settle,
   largeText: largeText,
 );
+
+/// Opens the form of a tenant with the two leases of [makeTwoLeases].
+Future<void> _openWithTwoLeases(
+  WidgetTester tester,
+  FakeComplaintRepository repo, {
+  bool largeText = false,
+}) => _open(
+  tester,
+  repo,
+  leases: FakeLeaseRepository(leases: makeTwoLeases()),
+  largeText: largeText,
+);
+
+/// The radio choice labelled [label] in the room group.
+Finder _roomChoice(String label) => find.ancestor(
+  of: find.text(label),
+  matching: find.byWidgetPredicate(
+    (widget) => widget is RadioListTile,
+    description: 'RadioListTile',
+  ),
+);
+
+Future<void> _chooseRoom(WidgetTester tester, String label) =>
+    tapVisible(tester, _roomChoice(label));
+
+/// Expects the choice to be a radio of a mutually exclusive group that
+/// announces whether it is selected.
+void _expectChoice(
+  WidgetTester tester,
+  String label, {
+  required bool selected,
+}) {
+  final handle = tester.ensureSemantics();
+  try {
+    expect(
+      tester.getSemantics(_roomChoice(label)),
+      isSemantics(
+        hasCheckedState: true,
+        isChecked: selected,
+        isInMutuallyExclusiveGroup: true,
+      ),
+    );
+  } finally {
+    handle.dispose();
+  }
+}
 
 Future<void> _submit(WidgetTester tester) =>
     tapVisible(tester, find.text(_send));
@@ -703,13 +763,637 @@ void main() {
     });
   });
 
+  group('with one lease', () {
+    testWidgets('shows the room read-only with its property', (tester) async {
+      await _open(tester, FakeComplaintRepository());
+
+      expect(find.text(_roomLine), findsOneWidget);
+      expect(find.text(_melati), findsOneWidget);
+    });
+
+    testWidgets('offers no room choice and no second input', (tester) async {
+      await _open(tester, FakeComplaintRepository());
+
+      expect(find.byType(RadioListTile), findsNothing);
+      expect(find.byType(Radio), findsNothing);
+      expect(find.byType(TextField), findsOneWidget);
+      expect(find.byType(DropdownButtonFormField), findsNothing);
+      expect(find.text(_roomGroup), findsNothing);
+      expect(find.text(_roomRequired), findsNothing);
+    });
+
+    testWidgets('names the property and room of that lease', (tester) async {
+      await _open(
+        tester,
+        FakeComplaintRepository(),
+        leases: FakeLeaseRepository(
+          lease: makeCurrentLease(
+            propertyName: 'Kos Anggrek',
+            roomNumber: '21',
+            roomId: 'r9',
+          ),
+        ),
+      );
+
+      expect(find.text('Kos Anggrek · Kamar 21'), findsOneWidget);
+      expect(find.text(_melati), findsNothing);
+    });
+
+    testWidgets('sends the room of that lease with the description', (
+      tester,
+    ) async {
+      final repo = FakeComplaintRepository();
+      await _open(
+        tester,
+        repo,
+        leases: FakeLeaseRepository(lease: makeCurrentLease(roomId: 'r9')),
+      );
+      await _write(tester, _valid);
+
+      await _submit(tester);
+
+      expect(repo.submitted, [_valid]);
+      expect(repo.submittedRoomIds, ['r9']);
+      expect(currentPath(tester), '/penyewa/keluhan/new-1');
+    });
+
+    testWidgets('does not need a choice before sending', (tester) async {
+      final repo = FakeComplaintRepository();
+      await _open(tester, repo);
+      await _write(tester, _valid);
+
+      await _submit(tester);
+
+      expect(find.text(_roomRequired), findsNothing);
+      expect(repo.submitCalls, 1);
+    });
+
+    testWidgets('fetches the leases once', (tester) async {
+      final leases = FakeLeaseRepository(lease: makeCurrentLease());
+      await _open(tester, FakeComplaintRepository(), leases: leases);
+
+      expect(leases.calls, 1);
+    });
+
+    testWidgets('tapping the read-only room changes nothing', (tester) async {
+      await _open(tester, FakeComplaintRepository());
+
+      await tester.tap(find.text(_melati));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(find.byType(PopupMenuItem), findsNothing);
+      expect(currentPath(tester), '/penyewa/keluhan/baru');
+    });
+
+    testWidgets('puts the room above the description', (tester) async {
+      await _open(tester, FakeComplaintRepository());
+
+      expect(
+        tester.getTopLeft(find.text(_melati)).dy,
+        lessThan(tester.getTopLeft(find.text(_label)).dy),
+      );
+    });
+
+    testWidgets('meets the guidelines', (tester) async {
+      await _open(tester, FakeComplaintRepository());
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+
+    testWidgets('fits at large text size', (tester) async {
+      await _open(
+        tester,
+        FakeComplaintRepository(),
+        leases: FakeLeaseRepository(
+          lease: makeCurrentLease(
+            propertyName: 'Kos Melati Indah Permai Sejahtera Bersama',
+            roomNumber: 'A-12 Lantai Dua Sayap Timur',
+          ),
+        ),
+        largeText: true,
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.textContaining('Kos Melati Indah'), findsOneWidget);
+    });
+  });
+
+  group('with several leases', () {
+    testWidgets('asks which room the complaint is about, as required', (
+      tester,
+    ) async {
+      await _openWithTwoLeases(tester, FakeComplaintRepository());
+
+      expect(find.text(_roomGroup), findsOneWidget);
+      expect(find.text(_roomLine), findsNothing);
+    });
+
+    testWidgets('offers one choice per lease in the order of the API', (
+      tester,
+    ) async {
+      await _openWithTwoLeases(tester, FakeComplaintRepository());
+
+      expect(find.byType(RadioListTile), findsNWidgets(2));
+      expect(_roomChoice(_melati), findsOneWidget);
+      expect(_roomChoice(_mawar), findsOneWidget);
+      expect(
+        tester.getTopLeft(_roomChoice(_melati)).dy,
+        lessThan(tester.getTopLeft(_roomChoice(_mawar)).dy),
+      );
+    });
+
+    testWidgets('keeps the order of the API when it is reversed', (
+      tester,
+    ) async {
+      await _open(
+        tester,
+        FakeComplaintRepository(),
+        leases: FakeLeaseRepository(leases: makeTwoLeases().reversed.toList()),
+      );
+
+      expect(
+        tester.getTopLeft(_roomChoice(_mawar)).dy,
+        lessThan(tester.getTopLeft(_roomChoice(_melati)).dy),
+      );
+    });
+
+    testWidgets('offers every lease when there are three', (tester) async {
+      await _open(
+        tester,
+        FakeComplaintRepository(),
+        leases: FakeLeaseRepository(
+          leases: [
+            ...makeTwoLeases(),
+            makeCurrentLease(
+              tenantId: 't3',
+              propertyId: 'p3',
+              roomId: 'r3',
+              propertyName: 'Kos Anggrek',
+              roomNumber: '03',
+            ),
+          ],
+        ),
+      );
+
+      expect(find.byType(RadioListTile), findsNWidgets(3));
+      expect(_roomChoice('Kos Anggrek · Kamar 03'), findsOneWidget);
+    });
+
+    testWidgets('selects no room by default', (tester) async {
+      await _openWithTwoLeases(tester, FakeComplaintRepository());
+
+      _expectChoice(tester, _melati, selected: false);
+      _expectChoice(tester, _mawar, selected: false);
+      expect(find.text(_roomRequired), findsNothing);
+    });
+
+    testWidgets('selects only the room that is tapped', (tester) async {
+      await _openWithTwoLeases(tester, FakeComplaintRepository());
+
+      await _chooseRoom(tester, _mawar);
+
+      _expectChoice(tester, _mawar, selected: true);
+      _expectChoice(tester, _melati, selected: false);
+    });
+
+    testWidgets('moves the selection to another room', (tester) async {
+      await _openWithTwoLeases(tester, FakeComplaintRepository());
+      await _chooseRoom(tester, _mawar);
+
+      await _chooseRoom(tester, _melati);
+
+      _expectChoice(tester, _melati, selected: true);
+      _expectChoice(tester, _mawar, selected: false);
+    });
+
+    testWidgets('choosing a room does not submit or navigate', (tester) async {
+      final repo = FakeComplaintRepository();
+      await _openWithTwoLeases(tester, repo);
+
+      await _chooseRoom(tester, _mawar);
+
+      expect(repo.submitCalls, 0);
+      expect(currentPath(tester), '/penyewa/keluhan/baru');
+    });
+
+    testWidgets('sends nothing and names the missing room when none is '
+        'chosen', (tester) async {
+      final repo = FakeComplaintRepository();
+      await _openWithTwoLeases(tester, repo);
+      await _write(tester, _valid);
+
+      await _submit(tester);
+
+      expect(find.text(_roomRequired), findsOneWidget);
+      expect(repo.submitCalls, 0);
+      expect(repo.complaints, isEmpty);
+      expect(currentPath(tester), '/penyewa/keluhan/baru');
+      expect(labeledTextField(tester, _label).controller!.text, _valid);
+    });
+
+    testWidgets('shows the room error and the description error together', (
+      tester,
+    ) async {
+      final repo = FakeComplaintRepository();
+      await _openWithTwoLeases(tester, repo);
+
+      await _submit(tester);
+
+      expect(find.text(_roomRequired), findsOneWidget);
+      expect(_error(tester), isNotNull);
+      expect(repo.submitCalls, 0);
+    });
+
+    testWidgets('a short description with a room is only a description '
+        'error', (tester) async {
+      final repo = FakeComplaintRepository();
+      await _openWithTwoLeases(tester, repo);
+      await _chooseRoom(tester, _melati);
+      await _write(tester, 'pendek');
+
+      await _submit(tester);
+
+      expect(find.text(_roomRequired), findsNothing);
+      expect(_error(tester), isNotNull);
+      expect(repo.submitCalls, 0);
+    });
+
+    testWidgets('sends the room that was chosen', (tester) async {
+      final repo = FakeComplaintRepository();
+      await _openWithTwoLeases(tester, repo);
+      await _chooseRoom(tester, _mawar);
+      await _write(tester, _valid);
+
+      await _submit(tester);
+
+      expect(repo.submitted, [_valid]);
+      expect(repo.submittedRoomIds, ['r2']);
+      expect(currentPath(tester), '/penyewa/keluhan/new-1');
+    });
+
+    testWidgets('sends the first room when it is chosen', (tester) async {
+      final repo = FakeComplaintRepository();
+      await _openWithTwoLeases(tester, repo);
+      await _chooseRoom(tester, _melati);
+      await _write(tester, _valid);
+
+      await _submit(tester);
+
+      expect(repo.submittedRoomIds, ['r1']);
+    });
+
+    testWidgets('sends the room chosen last', (tester) async {
+      final repo = FakeComplaintRepository();
+      await _openWithTwoLeases(tester, repo);
+      await _chooseRoom(tester, _melati);
+      await _chooseRoom(tester, _mawar);
+      await _write(tester, _valid);
+
+      await _submit(tester);
+
+      expect(repo.submittedRoomIds, ['r2']);
+    });
+
+    testWidgets('sends the room of the tenant record of a lease with the '
+        'same room number', (tester) async {
+      final repo = FakeComplaintRepository();
+      await _open(
+        tester,
+        repo,
+        leases: FakeLeaseRepository(
+          leases: [
+            makeCurrentLease(roomId: 'r1'),
+            makeCurrentLease(
+              tenantId: 't2',
+              propertyId: 'p2',
+              roomId: 'r5',
+              propertyName: 'Kos Mawar',
+            ),
+          ],
+        ),
+      );
+      await _chooseRoom(tester, 'Kos Mawar · Kamar 08');
+      await _write(tester, _valid);
+
+      await _submit(tester);
+
+      expect(repo.submittedRoomIds, ['r5']);
+    });
+
+    testWidgets('clears the room error once a room is chosen and sent', (
+      tester,
+    ) async {
+      final repo = FakeComplaintRepository();
+      await _openWithTwoLeases(tester, repo);
+      await _write(tester, _valid);
+      await _submit(tester);
+      expect(find.text(_roomRequired), findsOneWidget);
+
+      await _chooseRoom(tester, _melati);
+      await _submit(tester);
+
+      expect(find.text(_roomRequired), findsNothing);
+      expect(repo.submittedRoomIds, ['r1']);
+      expect(find.byType(ComplaintFormScreen), findsNothing);
+    });
+
+    testWidgets('keeps the chosen room after a network failure and sends it '
+        'again', (tester) async {
+      final repo = FakeComplaintRepository()
+        ..submitScript.queue.add(const ApiFailure.network());
+      await _openWithTwoLeases(tester, repo);
+      await _chooseRoom(tester, _mawar);
+      await _write(tester, _valid);
+      await _submit(tester);
+
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
+      _expectChoice(tester, _mawar, selected: true);
+
+      await _submit(tester);
+
+      expect(repo.submittedRoomIds, ['r2', 'r2']);
+      expect(repo.complaints, hasLength(1));
+    });
+
+    testWidgets('shows a missing room from the API on the choice', (
+      tester,
+    ) async {
+      final repo = FakeComplaintRepository()
+        ..submitScript.queue.add(
+          const ApiFailure(code: 'ROOM_NOT_FOUND', field: 'roomId'),
+        );
+      await _openWithTwoLeases(tester, repo);
+      await _chooseRoom(tester, _mawar);
+      await _write(tester, _valid);
+
+      await _submit(tester);
+
+      expect(find.text(messageOfCode('ROOM_NOT_FOUND')), findsOneWidget);
+      expect(find.text(_roomRequired), findsNothing);
+      expect(currentPath(tester), '/penyewa/keluhan/baru');
+      expect(labeledTextField(tester, _label).controller!.text, _valid);
+      _expectChoice(tester, _mawar, selected: true);
+      expect(repo.complaints, isEmpty);
+    });
+
+    testWidgets('shows the API room error next to the choice, above the '
+        'description', (tester) async {
+      final repo = FakeComplaintRepository()
+        ..submitScript.queue.add(
+          const ApiFailure(code: 'ROOM_NOT_FOUND', field: 'roomId'),
+        );
+      await _openWithTwoLeases(tester, repo);
+      await _chooseRoom(tester, _mawar);
+      await _write(tester, _valid);
+      await _submit(tester);
+
+      final error = find.text(messageOfCode('ROOM_NOT_FOUND'));
+      expect(
+        tester.getTopLeft(error).dy,
+        greaterThan(tester.getTopLeft(find.text(_roomGroup)).dy),
+      );
+      expect(
+        tester.getTopLeft(error).dy,
+        lessThan(tester.getTopLeft(find.text(_label)).dy),
+      );
+    });
+
+    testWidgets('sends a corrected choice after the API room error', (
+      tester,
+    ) async {
+      final repo = FakeComplaintRepository()
+        ..submitScript.queue.add(
+          const ApiFailure(code: 'ROOM_NOT_FOUND', field: 'roomId'),
+        );
+      await _openWithTwoLeases(tester, repo);
+      await _chooseRoom(tester, _mawar);
+      await _write(tester, _valid);
+      await _submit(tester);
+
+      await _chooseRoom(tester, _melati);
+      await _submit(tester);
+
+      expect(find.text(messageOfCode('ROOM_NOT_FOUND')), findsNothing);
+      expect(repo.submittedRoomIds, ['r2', 'r1']);
+    });
+
+    testWidgets('shows a missing lease as a banner and keeps the room', (
+      tester,
+    ) async {
+      final repo = FakeComplaintRepository()
+        ..submitScript.queue.add(const ApiFailure(code: 'NO_ACTIVE_LEASE'));
+      await _openWithTwoLeases(tester, repo);
+      await _chooseRoom(tester, _melati);
+      await _write(tester, _valid);
+
+      await _submit(tester);
+
+      expect(find.text(messageOfCode('NO_ACTIVE_LEASE')), findsOneWidget);
+      _expectChoice(tester, _melati, selected: true);
+    });
+
+    testWidgets('disables sending while the complaint is saving', (
+      tester,
+    ) async {
+      final repo = FakeComplaintRepository()
+        ..submitScript.gate = Completer<void>();
+      await _openWithTwoLeases(tester, repo);
+      await _chooseRoom(tester, _melati);
+      await _write(tester, _valid);
+
+      await tapAndPump(tester, find.text(_send));
+
+      expectBusy(tester);
+      expect(repo.submitCalls, 1);
+    });
+
+    testWidgets('the room choices are at least 48 dp', (tester) async {
+      await _openWithTwoLeases(tester, FakeComplaintRepository());
+
+      final handle = tester.ensureSemantics();
+      try {
+        for (final label in [_melati, _mawar]) {
+          final rect = tester.getSemantics(_roomChoice(label)).rect;
+          expect(rect.height, greaterThanOrEqualTo(48));
+          expect(rect.width, greaterThanOrEqualTo(48));
+        }
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets('puts the room choice above the description', (tester) async {
+      await _openWithTwoLeases(tester, FakeComplaintRepository());
+
+      expect(
+        tester.getTopLeft(find.text(_roomGroup)).dy,
+        lessThan(tester.getTopLeft(find.text(_label)).dy),
+      );
+      expect(
+        tester.getTopLeft(_roomChoice(_mawar)).dy,
+        lessThan(tester.getTopLeft(find.text(_label)).dy),
+      );
+    });
+
+    testWidgets('keeps the footer button reachable at large text', (
+      tester,
+    ) async {
+      await _openWithTwoLeases(
+        tester,
+        FakeComplaintRepository(),
+        largeText: true,
+      );
+
+      expectFooterAtBottom(tester);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('fits the room error at large text', (tester) async {
+      await _openWithTwoLeases(
+        tester,
+        FakeComplaintRepository(),
+        largeText: true,
+      );
+      await _write(tester, _valid);
+      await _submit(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.text(_roomRequired), findsOneWidget);
+    });
+
+    testWidgets('meets the guidelines with no room chosen', (tester) async {
+      await _openWithTwoLeases(tester, FakeComplaintRepository());
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+
+    testWidgets('meets the guidelines with the room error', (tester) async {
+      await _openWithTwoLeases(tester, FakeComplaintRepository());
+      await _write(tester, _valid);
+      await _submit(tester);
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+
+    testWidgets('meets the guidelines with a room chosen', (tester) async {
+      await _openWithTwoLeases(tester, FakeComplaintRepository());
+      await _chooseRoom(tester, _mawar);
+      await _write(tester, _valid);
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+  });
+
+  group('while the leases load', () {
+    testWidgets('shows a labelled progress indicator and no form', (
+      tester,
+    ) async {
+      final leases = FakeLeaseRepository(lease: makeCurrentLease())
+        ..script.gate = Completer<void>();
+      await _open(
+        tester,
+        FakeComplaintRepository(),
+        leases: leases,
+        settle: false,
+      );
+
+      expectLoading(tester);
+      expect(labeledField(_label), findsNothing);
+      expect(appBarTitle('Ajukan Keluhan'), findsOneWidget);
+      expect(backButton(), findsOneWidget);
+    });
+
+    testWidgets('shows the form once they have loaded', (tester) async {
+      final gate = Completer<void>();
+      final leases = FakeLeaseRepository(lease: makeCurrentLease())
+        ..script.gate = gate;
+      await _open(
+        tester,
+        FakeComplaintRepository(),
+        leases: leases,
+        settle: false,
+      );
+
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(labeledField(_label), findsOneWidget);
+      expect(find.text(_melati), findsOneWidget);
+    });
+
+    testWidgets('meets the guidelines', (tester) async {
+      final leases = FakeLeaseRepository(lease: makeCurrentLease())
+        ..script.gate = Completer<void>();
+      await _open(
+        tester,
+        FakeComplaintRepository(),
+        leases: leases,
+        settle: false,
+      );
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+  });
+
+  group('when the leases fail to load', () {
+    testWidgets('shows the Indonesian message with a retry and no form', (
+      tester,
+    ) async {
+      final leases = FakeLeaseRepository(lease: makeCurrentLease())
+        ..script.always = const ApiFailure.network();
+      await _open(tester, FakeComplaintRepository(), leases: leases);
+
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text('Coba lagi'), findsOneWidget);
+      expect(labeledField(_label), findsNothing);
+      expect(appBarTitle('Ajukan Keluhan'), findsOneWidget);
+      expect(backButton(), findsOneWidget);
+    });
+
+    testWidgets('fetches again and shows the form when retry is tapped', (
+      tester,
+    ) async {
+      final leases = FakeLeaseRepository(lease: makeCurrentLease())
+        ..script.queue.add(const ApiFailure.network());
+      await _open(tester, FakeComplaintRepository(), leases: leases);
+
+      await tester.tap(find.text('Coba lagi'));
+      await tester.pumpAndSettle();
+
+      expect(leases.calls, 2);
+      expect(labeledField(_label), findsOneWidget);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
+    });
+
+    testWidgets('meets the guidelines', (tester) async {
+      final leases = FakeLeaseRepository(lease: makeCurrentLease())
+        ..script.always = const ApiFailure.network();
+      await _open(tester, FakeComplaintRepository(), leases: leases);
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+
+    testWidgets('fits at large text size', (tester) async {
+      final leases = FakeLeaseRepository(lease: makeCurrentLease())
+        ..script.always = const ApiFailure.network();
+      await _open(
+        tester,
+        FakeComplaintRepository(),
+        leases: leases,
+        largeText: true,
+      );
+
+      expect(tester.takeException(), isNull);
+    });
+  });
+
   group('structure', () {
     testWidgets(
       'wraps the description in a LabeledField with its visible text',
       (tester) async {
         await _open(tester, FakeComplaintRepository());
 
-        expect(find.byType(LabeledField), findsOneWidget);
         expect(labeledField(_label), findsOneWidget);
         expect(find.text(_label), findsOneWidget);
       },
