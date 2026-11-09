@@ -174,12 +174,12 @@ Bottom navigation:
 - Tenant: *Beranda*, *Keluhan*, *Pembayaran*, *Akun*.
 - Admin: no bottom navigation; *Akun Pengguna (User accounts)* (UC-33) is the home screen, with *Keluar (Log out)* in its header.
 
-Tenant *Beranda*: a greeting with the tenant's name and their property and room; the first bill of *Tagihan aktif* (UC-04) with amount, due date, days overdue when the API reports them, and the UC-05 upload action or the pay-cash note; a link to *Riwayat*; the latest complaint with its status and handling note, and *Ajukan Keluhan* (UC-02) for a tenant with an active lease. Without an active lease it shows the UC-01 message to contact management.
+Tenant *Beranda*: a greeting with the tenant's name and, for each active lease, its property and room; the first bill of *Tagihan aktif* (UC-04) with amount, due date, days overdue when the API reports them, and the UC-05 upload action or the pay-cash note; a link to *Riwayat*; the latest complaint with its status and handling note, and *Ajukan Keluhan* (UC-02) for a tenant with at least one active lease. Without an active lease it shows the UC-01 message to contact management.
 
 *Akun (Account)*, for every role: profile; security (Google and local password, active devices (UC-37), change password (UC-38)); help; notifications; log out. In addition:
 - Owner: *Langganan (Subscription)*.
 - Manager: their assigned properties, read-only.
-- Tenant: room and lease details (UC-01).
+- Tenant: room and lease details of each active lease (UC-01).
 
 ## 7. Account access
 
@@ -205,7 +205,7 @@ Login and sign-up are preconditions, not use cases. All use cases assume a valid
     - a session ended by the user or by Admin stops working within 15 minutes at most.
 <!-- shared:end -->
 
-Until U-4 is decided, the login screen offers *Aktifkan dengan tautan undangan (Activate with invitation link)*: the user pastes the link, the app takes its last path segment as the token, shows the invitation preview and activates with a local password. A local-password account confirms its email with a 6-digit code before using other features. Likewise, a signed-in Manager accepts a Manager invitation with their existing account from *Akun → Terima Undangan Pengelola (Accept manager invitation)*: they paste the link, the app shows who invited them, the properties and the account that will accept, or the reason the link cannot be accepted, and they confirm. Accepting adds the properties of that Owner to the account and keeps those from other Owners.
+Until U-4 is decided, the login screen offers *Aktifkan dengan tautan undangan (Activate with invitation link)*: the user pastes the link, the app takes its last path segment as the token, shows the invitation preview and activates with a local password. A local-password account confirms its email with a 6-digit code before using other features. Likewise, a signed-in Manager or Tenant accepts an invitation for their role with their existing account from *Akun → Terima Undangan (Accept invitation)*: they paste the link, the app shows who invited them, the property (and room, for a Tenant) and the account that will accept, or the reason the link cannot be accepted, and they confirm. A Tenant whose record has fewer than 2 emergency contacts enters 2 to 4 before confirming. Accepting a Manager invitation adds the properties of that Owner and keeps those from other Owners; accepting a Tenant invitation adds that lease to the account.
 
 Until U-4 is decided, the login screen also offers *Lupa kata sandi? (Forgot password)*: the user enters their email, the app requests a reset link and shows the same confirmation whether or not the email is registered. *Atur ulang dengan tautan (Reset with link)* takes a pasted reset link, reads its `token` query parameter, shows the account email from the preview and sets a new password under the same rules and strength meter as UC-38. A completed reset ends every session, so the user logs in again.
 
@@ -216,16 +216,16 @@ Format: actor · entry point · flow · outcomes. Menu names are *Indonesian (En
 ### 8.1 Tenant (Penyewa)
 
 **UC-01 View room and lease** (FR-02) · Tenant · *Akun (Account)*
-Shows room number, property address, lease start and end dates, rent, room dimensions and facilities. If there is no room or lease → message to contact management.
+Shows every active lease in the order the API returns them: room number, property address, lease start and end dates, rent, room dimensions and facilities. If there is none → message to contact management.
 
 **UC-02 Submit maintenance complaint** (FR-03, FR-04, FR-25, FR-28) · Tenant with an active lease · *Keluhan (Complaints)* tab → complaint list → new complaint
-Free-text description → submit → confirmation. An empty, too-short or too-long description gets a field error (10 to 2000 characters after trimming). After saving, the complaint is *Baru* and its classification state is one of: classified, *Sedang Diklasifikasi* (the AI has not finished yet), *Menunggu Klasifikasi*, or *Belum Diklasifikasi*. The app shows the confirmation as soon as the save succeeds; it does not wait for the AI.
+Free-text description → submit → confirmation. With one active lease the room is shown; with several the tenant picks the room (required). An empty, too-short or too-long description gets a field error (10 to 2000 characters after trimming). After saving, the complaint is *Baru* and its classification state is one of: classified, *Sedang Diklasifikasi* (the AI has not finished yet), *Menunggu Klasifikasi*, or *Belum Diklasifikasi*. The app shows the confirmation as soon as the save succeeds; it does not wait for the AI.
 
 **UC-03 View complaint status and history** (FR-05) · Tenant · *Keluhan (Complaints)* tab
-List of own complaints, opening on the *Aktif (Active)* filter (*Baru* and *Diproses*). Each shows its status and marks complaints still *Sedang Diklasifikasi*, *Menunggu Klasifikasi* or *Belum Diklasifikasi*. Detail shows category and urgency if classified, and the handling note of each status change. Empty state if none.
+List of own complaints, opening on the *Aktif (Active)* filter (*Baru* and *Diproses*). Each shows its status and marks complaints still *Sedang Diklasifikasi*, *Menunggu Klasifikasi* or *Belum Diklasifikasi*. Detail shows category and urgency if classified, and the handling note of each status change. With more than one active lease each complaint shows its property and room. Empty state if none.
 
 **UC-04 View rent payment history and status** (FR-06) · Tenant with an active lease · *Pembayaran (Payments)* tab
-List of bills/payments with status (§5), period, amount and due date. Filters: *Tagihan aktif (Active bill)*, the default, and *Riwayat (History)*. *Tagihan aktif* lists the bills that are *Belum Bayar*, *Menunggu Verifikasi* or *Ditolak*, including overdue bills from earlier periods, which show how many days overdue they are; *Riwayat* lists the *Lunas* bills. A rejected payment shows the reason management entered. The upload action appears only on a bill the API marks as uploadable (UC-05).
+List of bills/payments with status (§5), period, amount and due date. Filters: *Tagihan aktif (Active bill)*, the default, and *Riwayat (History)*. *Tagihan aktif* lists the bills that are *Belum Bayar*, *Menunggu Verifikasi* or *Ditolak*, including overdue bills from earlier periods, which show how many days overdue they are; *Riwayat* lists the *Lunas* bills. A rejected payment shows the reason management entered. With more than one active lease each bill shows its property and room. The upload action appears only on a bill the API marks as uploadable (UC-05).
 
 **UC-05 Upload transfer receipt** (FR-07) · Tenant · from a bill that is *Belum Bayar* or *Ditolak*, on *Pembayaran* or *Beranda* → *Unggah Bukti (Upload receipt)*
 The screen shows the property's bank account and the amount to transfer. Pick an image from the gallery or the camera → submit. Images only: JPG or PNG, at most 5 MB; anything else gets a field error. Camera photos are re-encoded to JPEG before upload, because many Android cameras save HEIC. On success the status becomes *Menunggu Verifikasi*.
@@ -289,11 +289,11 @@ On save, the room becomes *Terisi* and an **invitation link** is shown. The link
 List with room, lease and account status. Detail shows personal data, room, lease and activation status.
 
 **UC-20 Edit tenant** (FR-13) · *[tenant] → Ubah Data Penyewa (Edit)*
-Editable: name, phone, occupation, emergency contacts, lease dates, rent, billing cycle, grace period. The lease end date must not be before the start date. Tell the user that a rent or billing-cycle change applies **from the next bill onward**.
+Editable: name (only while the tenant is not *Aktif*; afterwards it belongs to the tenant's account), phone, occupation, emergency contacts, lease dates, rent, billing cycle, grace period. The lease end date must not be before the start date. Tell the user that a rent or billing-cycle change applies **from the next bill onward**.
 Alternative: *Buat Ulang Tautan Undangan (Regenerate invitation link)* for an unused or expired invitation. It creates a new link, invalidates the old one and shows the new one for sharing. If regeneration fails, the old link stays valid.
 
 **UC-21 Delete tenant** (FR-13) · *[tenant] → Hapus Penyewa (Delete)*
-Soft delete: the lease ends, account access is revoked and the room becomes *Kosong*. Payment and complaint history is kept.
+Soft delete of this tenant record: the lease ends and the room becomes *Kosong*. Account access is revoked only when it was the account's last tenancy. Payment and complaint history is kept.
 
 **UC-22 Occupancy dashboard** (FR-14) · *Beranda (Home)*
 Per property: occupied count, vacant count, occupancy percentage and each room's status. With several properties, show a summary of all of them first, then per-property detail. All figures come from the API. A Manager sees the same view, limited to the assigned properties.
@@ -345,7 +345,7 @@ Opens the payment gateway page (provider: TBD-3). Results:
 ### 8.4 Admin
 
 **UC-33 View user accounts** (FR-29) · *Akun Pengguna (User accounts)*
-List with name, email, role and status. Search by email, filter by role, open a detail view. Shows "not found" when the search or filter matches nothing.
+List with name, email, role and status. Search by email, filter by role, open a detail view; a Tenant account's detail lists each active lease. Shows "not found" when the search or filter matches nothing.
 
 **UC-34 Edit user account** (FR-29) · *[account] → Ubah (Edit)*
 Change name, email (must be unique) and status (*Aktif*/*Nonaktif*). Deactivating an account ends its sessions. A new email stays pending until the link sent to it is confirmed; the detail shows the pending email and when its link expires. Until U-4 is decided, the link is confirmed by pasting it into *Konfirmasi Email Baru (Confirm new email)* on the login screen.
@@ -445,3 +445,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 03-11-2026 | UC-34 pending email change and interim confirmation by pasted link.                                            | NKMA-82    |
 | 07-11-2026 | §6 rule 15: the app checks the server at launch and on resume and shows a banner when it is unreachable. U-1 decided in the backend: `/health` answers 200 or 503; §9 updated and the row removed from §10. | NKMA-22    |
 | 09-11-2026 | One Tenant account may rent in several places (shared Tenant glossary row and Tenant activation rule).         | NKMA-108   |
+| 09-11-2026 | Tenant screens list every active lease; the complaint form picks the room; a Tenant accepts an invitation with an existing account from *Akun*; tenant name editable only before activation; deleting a tenant ends account access only with the last tenancy; Admin detail lists tenancies. | NKMA-108 |
