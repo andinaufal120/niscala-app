@@ -19,6 +19,8 @@ dart format .      # format
 flutter run        # run on a connected device or emulator
 ```
 
+To regenerate the launcher icon after changing the images in `assets/icon/`, run `dart run flutter_launcher_icons`.
+
 ## Running against a local API
 
 Clone [niscala-api](https://github.com/andinaufal120/niscala-api), start it (see its README), then point the app at it. On an Android emulator the host machine is `10.0.2.2`:

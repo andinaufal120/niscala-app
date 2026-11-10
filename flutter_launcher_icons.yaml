@@ -1,0 +1,7 @@
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/niscala_icon.png"
+  adaptive_icon_background: "#0E5E52"
+  adaptive_icon_foreground: "assets/icon/niscala_icon_foreground.png"
+  adaptive_icon_monochrome: "assets/icon/niscala_icon_monochrome.png"
