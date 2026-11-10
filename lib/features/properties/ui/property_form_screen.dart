@@ -3,12 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/google/google_identity.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/action_footer.dart';
 import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/google_button.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
+import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala_api/api.dart';
 
@@ -191,14 +194,20 @@ class _PropertyFormState extends ConsumerState<_PropertyForm> {
     );
   }
 
-  /// Resolves to true once the password dialog has re-authenticated the user.
+  /// Resolves to true once the dialog has re-authenticated the user. An account
+  /// without a password confirms with Google; while the account is not known,
+  /// the password dialog is shown.
   Future<bool> _askForPassword() async {
-    final reauthenticate = ref
-        .read(propertyRepositoryProvider)
-        .reauthenticateWithPassword;
+    final repository = ref.read(propertyRepositoryProvider);
+    final hasPassword = ref.read(myAccountProvider).value?.hasPassword ?? true;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => _ReauthDialog(reauthenticate: reauthenticate),
+      builder: (context) => hasPassword
+          ? _ReauthDialog(reauthenticate: repository.reauthenticateWithPassword)
+          : _GoogleReauthDialog(
+              identity: ref.read(googleIdentityProvider),
+              reauthenticate: repository.reauthenticateWithGoogle,
+            ),
     );
     return confirmed ?? false;
   }
@@ -226,6 +235,9 @@ class _PropertyFormState extends ConsumerState<_PropertyForm> {
 
   @override
   Widget build(BuildContext context) {
+    // Loads the signed-in account, so that a re-authentication knows whether
+    // the account has a password.
+    ref.watch(myAccountProvider);
     final isEdit = widget.propertyId != null;
     return Scaffold(
       appBar: DetailAppBar(title: isEdit ? 'Ubah Properti' : 'Tambah Properti'),
@@ -322,6 +334,76 @@ class _PropertyFormState extends ConsumerState<_PropertyForm> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Confirms the user with a Google account. Pops true once it is accepted, false
+/// when the user cancels. A failure keeps the dialog open with its message.
+class _GoogleReauthDialog extends StatefulWidget {
+  const _GoogleReauthDialog({
+    required this.identity,
+    required this.reauthenticate,
+  });
+
+  final GoogleIdentity identity;
+  final Future<void> Function(String idToken) reauthenticate;
+
+  @override
+  State<_GoogleReauthDialog> createState() => _GoogleReauthDialogState();
+}
+
+class _GoogleReauthDialogState extends State<_GoogleReauthDialog> {
+  var _busy = false;
+  String? _banner;
+
+  Future<void> _submit() async {
+    if (_busy) return;
+    setState(() {
+      _banner = null;
+      _busy = true;
+    });
+    try {
+      final idToken = await widget.identity.idToken();
+      if (idToken == null) {
+        if (mounted) setState(() => _busy = false);
+        return;
+      }
+      await widget.reauthenticate(idToken);
+      if (mounted) Navigator.of(context).pop(true);
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _banner = errorMessageFor(error);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      scrollable: true,
+      title: const Text('Konfirmasi akun'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Pilih akun Google Anda untuk melanjutkan.'),
+          if (_banner != null) ...[formGap, FormMessage(_banner!)],
+          formGap,
+          GoogleButton(
+            label: 'Lanjutkan dengan Google',
+            onPressed: _busy ? null : _submit,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Batal'),
+        ),
+      ],
     );
   }
 }

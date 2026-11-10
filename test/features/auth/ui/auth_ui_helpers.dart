@@ -242,11 +242,12 @@ Future<InMemorySessionStore> pumpLogin(
   WidgetTester tester,
   FakeAuthRepository auth, {
   Future<void> Function()? logout,
+  FakeGoogleIdentity? google,
 }) async {
   useTallScreen(tester);
   final store = InMemorySessionStore();
   await tester.pumpWidget(
-    buildTestApp(store: store, auth: auth, logout: logout),
+    buildTestApp(store: store, auth: auth, logout: logout, google: google),
   );
   await tester.pumpAndSettle();
   return store;
@@ -255,9 +256,10 @@ Future<InMemorySessionStore> pumpLogin(
 /// Shows the sign up screen with [auth] behind it.
 Future<InMemorySessionStore> pumpRegister(
   WidgetTester tester,
-  FakeAuthRepository auth,
-) async {
-  final store = await pumpLogin(tester, auth);
+  FakeAuthRepository auth, {
+  FakeGoogleIdentity? google,
+}) async {
+  final store = await pumpLogin(tester, auth, google: google);
   goTo(tester, '/daftar');
   await tester.pumpAndSettle();
   return store;

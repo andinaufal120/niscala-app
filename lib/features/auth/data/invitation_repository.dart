@@ -19,6 +19,15 @@ abstract interface class InvitationRepository {
     List<EmergencyContact>? emergencyContacts,
   });
 
+  /// Creates the account with the Google account of [idToken] and starts a
+  /// session.
+  Future<AuthSession> activateWithGoogle({
+    required String token,
+    required String name,
+    required String idToken,
+    List<EmergencyContact>? emergencyContacts,
+  });
+
   /// Reports whether the signed-in account can accept the invitation [token],
   /// and why not when it cannot.
   Future<InvitationAcceptancePreview> previewAcceptance(String token);
@@ -68,6 +77,25 @@ class ApiInvitationRepository implements InvitationRepository {
         emergencyContacts: emergencyContacts,
       );
       return (await invitations.activateInvitationWithPassword(input))!;
+    });
+  }
+
+  @override
+  Future<AuthSession> activateWithGoogle({
+    required String token,
+    required String name,
+    required String idToken,
+    List<EmergencyContact>? emergencyContacts,
+  }) {
+    return _guard(() async {
+      final input = InvitationGoogleActivationInput(
+        device: await device(),
+        token: token,
+        name: name,
+        idToken: idToken,
+        emergencyContacts: emergencyContacts,
+      );
+      return (await invitations.activateInvitationWithGoogle(input))!;
     });
   }
 

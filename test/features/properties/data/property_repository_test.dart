@@ -343,6 +343,59 @@ void main() {
     });
   });
 
+  group('reauthenticateWithGoogle', () {
+    test('posts the ID token and completes on success', () async {
+      final h = _Harness(
+        (_) => _ok({
+          'reauthenticatedUntil': DateTime.utc(
+            2026,
+            10,
+            18,
+            13,
+          ).toIso8601String(),
+        }),
+      );
+
+      await h.repository.reauthenticateWithGoogle('id-token-1');
+
+      expect(h.request.method, 'POST');
+      expect(h.request.url.path, '/me/reauthentication/google');
+      expect(h.body, {'idToken': 'id-token-1'});
+    });
+
+    test('completes when the response has no body', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await h.repository.reauthenticateWithGoogle('id-token-1');
+
+      expect(h.requests, hasLength(1));
+    });
+
+    for (final entry in {
+      'GOOGLE_ACCOUNT_MISMATCH': 403,
+      'GOOGLE_TOKEN_INVALID': 401,
+      'TOO_MANY_LOGIN_ATTEMPTS': 429,
+    }.entries) {
+      test('keeps the code and status of a ${entry.key} error', () async {
+        final h = _Harness((_) => _error(entry.value, entry.key));
+
+        await expectLater(
+          h.repository.reauthenticateWithGoogle('id-token-1'),
+          throwsA(_failure(entry.key, status: entry.value)),
+        );
+      });
+    }
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(const SocketException('no route'));
+
+      await expectLater(
+        h.repository.reauthenticateWithGoogle('id-token-1'),
+        throwsA(_failure('NETWORK_ERROR')),
+      );
+    });
+  });
+
   group('reauthenticateWithPassword', () {
     test('posts the password and completes on success', () async {
       final h = _Harness(

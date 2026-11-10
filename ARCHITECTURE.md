@@ -28,11 +28,12 @@ test/                        # mirrors lib/; shared helpers in test/helpers/
 
 ## 2. Stack
 
-Riverpod 3 (no code generation) for state and dependency injection, `go_router` for navigation, `flutter_secure_storage` for tokens, `device_info_plus` for the device sent at login, `firebase_messaging` for push (FCM, Android; `android/app/google-services.json` is local and not committed), `intl` with `flutter_localizations` for Indonesian formatting. Plus Jakarta Sans is bundled under `assets/fonts/`; the app fetches no fonts at run time.
+Riverpod 3 (no code generation) for state and dependency injection, `go_router` for navigation, `flutter_secure_storage` for tokens, `device_info_plus` for the device sent at login, `google_sign_in` for Google ID tokens (behind `GoogleIdentity`), `firebase_messaging` for push (FCM, Android; `android/app/google-services.json` is local and not committed), `intl` with `flutter_localizations` for Indonesian formatting. Plus Jakarta Sans is bundled under `assets/fonts/`; the app fetches no fonts at run time.
 
 ## 3. The API boundary
 
 - The generated client in `packages/niscala_api` is the only code that knows endpoint paths and wire types. Feature repositories wrap it and turn failures into `ApiFailure {code, field, statusCode}` (`core/api/api_failure_mapper.dart`). Screens never see HTTP exceptions.
+- Local configuration comes from `--dart-define-from-file=.env` (see `.env.example`): `API_BASE_URL` and `GOOGLE_SERVER_CLIENT_ID`. Plain `--dart-define` also works.
 - The base URL comes from `--dart-define=API_BASE_URL` (default `http://10.0.2.2:8000`, the host machine seen from an Android emulator). Debug builds may use plain HTTP; release builds are HTTPS only.
 - `AuthHttpClient` adds the bearer token to every request. When the API answers `401` with `ACCESS_TOKEN_INVALID` it refreshes the token pair once (one refresh shared by concurrent requests) and retries the request once. A failed refresh ends the session.
 - Error text shown to the user is Indonesian, mapped from `ApiFailure.code` in `core/api/error_messages.dart`. The API's English message is never displayed. Unknown codes and `VALIDATION_FAILED` show the generic message; a field error is shown next to its field using `ApiFailure.field`.
@@ -66,7 +67,7 @@ Each shell is a `StatefulShellRoute` with a bottom navigation bar (SPEC §6a).
 
 ## 6. Testing
 
-Tests are written before the code (`CLAUDE.md`, Workflow). Widget tests override the providers that cross the boundary (`sessionStoreProvider`, `refreshTokensProvider`, `logoutProvider`, `healthRepositoryProvider`, and each feature's repository provider) with fakes from `test/helpers/fakes.dart`; no test calls a real server.
+Tests are written before the code (`CLAUDE.md`, Workflow). Widget tests override the providers that cross the boundary (`sessionStoreProvider`, `refreshTokensProvider`, `logoutProvider`, `healthRepositoryProvider`, `googleIdentityProvider`, and each feature's repository provider) with fakes from `test/helpers/fakes.dart`; no test calls a real server.
 
 ## 7. Open points
 

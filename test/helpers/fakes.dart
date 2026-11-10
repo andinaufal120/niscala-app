@@ -9,6 +9,7 @@ import 'package:niscala/app.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/api/health_repository.dart';
+import 'package:niscala/core/google/google_identity.dart';
 import 'package:niscala/core/push/push_messaging.dart';
 import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/features/account/data/account_repository.dart';
@@ -144,6 +145,44 @@ class FakeAuthRepository implements AuthRepository {
 
   Completer<void>? gate;
   Completer<void>? accountGate;
+
+  /// The ID token of every [loginWithGoogle] call, in order.
+  final googleLogins = <String>[];
+
+  /// The arguments of every [registerOwnerWithGoogle] call, in order.
+  final googleRegistrations = <({String idToken, String? name})>[];
+
+  /// What [loginWithGoogle] returns: a verified owner.
+  AuthSession googleLoginResult = authSessionFor(UserRole.owner);
+
+  /// What [registerOwnerWithGoogle] returns: a verified owner.
+  AuthSession googleRegisterResult = authSessionFor(UserRole.owner);
+
+  ApiFailure? googleLoginFailure;
+  ApiFailure? googleRegisterFailure;
+
+  /// Holds [loginWithGoogle] and [registerOwnerWithGoogle] in flight until it
+  /// completes, like [gate] does for the password methods.
+  Completer<void>? googleGate;
+
+  @override
+  Future<AuthSession> loginWithGoogle(String idToken) async {
+    googleLogins.add(idToken);
+    await googleGate?.future;
+    if (googleLoginFailure != null) throw googleLoginFailure!;
+    return googleLoginResult;
+  }
+
+  @override
+  Future<AuthSession> registerOwnerWithGoogle(
+    String idToken, {
+    String? name,
+  }) async {
+    googleRegistrations.add((idToken: idToken, name: name));
+    await googleGate?.future;
+    if (googleRegisterFailure != null) throw googleRegisterFailure!;
+    return googleRegisterResult;
+  }
 
   @override
   Future<AuthSession> login({
@@ -407,6 +446,19 @@ class FakePropertyRepository implements PropertyRepository {
   Future<void> reauthenticateWithPassword(String password) async {
     calls.add('reauthenticate');
     reauthentications.add(password);
+    final failure = await reauthScript.next();
+    if (failure != null) throw failure;
+  }
+
+  /// The ID token of every [reauthenticateWithGoogle] call, in order.
+  final googleReauthentications = <String>[];
+
+  /// Recorded as `reauthenticateGoogle` in [calls]; scripted by
+  /// [reauthScript] like the password method.
+  @override
+  Future<void> reauthenticateWithGoogle(String idToken) async {
+    calls.add('reauthenticateGoogle');
+    googleReauthentications.add(idToken);
     final failure = await reauthScript.next();
     if (failure != null) throw failure;
   }
@@ -1269,6 +1321,43 @@ class FakeInvitationRepository implements InvitationRepository {
 
   Completer<void>? previewGate;
   Completer<void>? activateGate;
+
+  /// The arguments of every [activateWithGoogle] call, in order.
+  final googleActivations =
+      <
+        ({
+          String token,
+          String name,
+          String idToken,
+          List<EmergencyContact>? emergencyContacts,
+        })
+      >[];
+
+  /// What [activateWithGoogle] returns: a verified tenant.
+  AuthSession activateGoogleResult = authSessionFor(UserRole.tenant);
+
+  ApiFailure? activateGoogleFailure;
+
+  /// Holds [activateWithGoogle] in flight until it completes.
+  Completer<void>? activateGoogleGate;
+
+  @override
+  Future<AuthSession> activateWithGoogle({
+    required String token,
+    required String name,
+    required String idToken,
+    List<EmergencyContact>? emergencyContacts,
+  }) async {
+    googleActivations.add((
+      token: token,
+      name: name,
+      idToken: idToken,
+      emergencyContacts: emergencyContacts,
+    ));
+    await activateGoogleGate?.future;
+    if (activateGoogleFailure != null) throw activateGoogleFailure!;
+    return activateGoogleResult;
+  }
 
   @override
   Future<InvitationPreview> preview(String token) async {
@@ -3195,6 +3284,29 @@ class FakePushMessaging implements PushMessaging {
   void receiveForeground() => _foreground.add(null);
 }
 
+/// A [GoogleIdentity] that never touches the Google plugin.
+///
+/// [idToken] returns [token]; set [token] to null to act as a user who cancels
+/// the Google account chooser. Set [failure] to make it throw, and [gate] to
+/// hold it in flight until it completes. [requests] counts the calls.
+class FakeGoogleIdentity implements GoogleIdentity {
+  FakeGoogleIdentity({this.token = 'google-token-1'});
+
+  String? token;
+  Object? failure;
+  Completer<void>? gate;
+
+  var requests = 0;
+
+  @override
+  Future<String?> idToken() async {
+    requests++;
+    await gate?.future;
+    if (failure != null) throw failure!;
+    return token;
+  }
+}
+
 /// A [HealthRepository] that counts its calls and answers from [script].
 ///
 /// Each call first takes the next scripted outcome (null means success). Set
@@ -3240,6 +3352,7 @@ Widget buildTestApp({
   UserAccountRepository? userAccounts,
   HealthRepository? health,
   PushMessaging? push,
+  GoogleIdentity? google,
   ImageChooser? receiptPicker,
   Future<void> Function(String text)? invitationSharer,
 }) {
@@ -3289,6 +3402,7 @@ Widget buildTestApp({
         health ?? FakeHealthRepository(),
       ),
       pushMessagingProvider.overrideWithValue(push ?? FakePushMessaging()),
+      googleIdentityProvider.overrideWithValue(google ?? FakeGoogleIdentity()),
       imageChooserProvider.overrideWithValue(
         receiptPicker ?? FakeImageChooser(),
       ),

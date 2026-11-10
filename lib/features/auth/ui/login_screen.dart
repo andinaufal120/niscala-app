@@ -3,12 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/google/google_identity.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/google_button.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/auth/ui/auth_widgets.dart';
+
+/// Shown for a Google account that has no Niscala account yet. The password
+/// wording would suggest a mistyped password.
+const _googleAccountNotRegistered =
+    'Akun Google ini belum terdaftar. Daftar atau aktifkan akun lewat tautan '
+    'undangan dulu.';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -72,6 +80,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    if (_busy) return;
+    setState(() {
+      _banner = null;
+      _busy = true;
+    });
+    try {
+      final idToken = await ref.read(googleIdentityProvider).idToken();
+      if (idToken == null) {
+        if (mounted) setState(() => _busy = false);
+        return;
+      }
+      final session = await ref
+          .read(authRepositoryProvider)
+          .loginWithGoogle(idToken);
+      await ref.read(sessionControllerProvider.notifier).signIn(session);
+    } on Object catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _banner = _googleLoginMessage(error);
+        _busy = false;
+      });
+    }
+  }
+
+  /// The banner text for a failed Google sign-in.
+  String _googleLoginMessage(Object error) =>
+      error is ApiFailure && error.code == 'INVALID_CREDENTIALS'
+      ? _googleAccountNotRegistered
+      : errorMessageFor(error);
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -114,6 +153,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             FormMessage(_banner!),
                             formGap,
                           ],
+                          GoogleButton(
+                            label: 'Masuk dengan Google',
+                            onPressed: _busy ? null : _signInWithGoogle,
+                          ),
+                          formGap,
+                          const EmailDivider(),
+                          formGap,
                           LabeledField(
                             label: 'Email',
                             required: true,
