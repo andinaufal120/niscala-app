@@ -83,7 +83,14 @@ void main() {
 
     testWidgets('the login logo has room above it', (tester) async {
       await pumpLogin(tester, FakeAuthRepository());
-      expect(tester.getTopLeft(find.text('N')).dy, greaterThanOrEqualTo(48));
+      final logo = find.byWidgetPredicate(
+        (w) =>
+            w is Image &&
+            w.image is AssetImage &&
+            (w.image as AssetImage).assetName == 'assets/icon/niscala_icon.png',
+      );
+      expect(logo, findsOneWidget);
+      expect(tester.getTopLeft(logo).dy, greaterThanOrEqualTo(48));
     });
   });
 }
