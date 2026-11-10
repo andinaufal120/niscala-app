@@ -6,6 +6,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/format.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/screen_header.dart';
+import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/complaints/ui/complaint_form_screen.dart';
 import 'package:niscala/features/complaints/ui/tenant_complaint_detail_screen.dart';
 import 'package:niscala/features/home/ui/tenant_home_screen.dart';
@@ -804,6 +805,154 @@ void main() {
 
       expect(rentBills.calls, isEmpty);
       expect(complaints.calls, isEmpty);
+    });
+  });
+
+  group('with several leases', () {
+    FakeLeaseRepository two() => FakeLeaseRepository(leases: makeTwoLeases());
+
+    Finder billCard() => find.ancestor(
+      of: find.text('Tagihan aktif'),
+      matching: find.byType(SectionCard),
+    );
+
+    testWidgets('names the property and room of every lease', (tester) async {
+      await _open(tester, leases: two());
+
+      expect(find.text('Kos Melati · Kamar 08'), findsOneWidget);
+      expect(find.text('Kos Mawar · Kamar 12'), findsOneWidget);
+    });
+
+    testWidgets('lists the leases in the order of the API', (tester) async {
+      await _open(
+        tester,
+        leases: FakeLeaseRepository(leases: makeTwoLeases().reversed.toList()),
+      );
+
+      expect(
+        _top(tester, find.text('Kos Mawar · Kamar 12')),
+        lessThan(_top(tester, find.text('Kos Melati · Kamar 08'))),
+      );
+    });
+
+    testWidgets('greets once and keeps the greeting above the leases', (
+      tester,
+    ) async {
+      await _open(tester, leases: two());
+
+      expect(find.text('Halo, Siti Rahayu'), findsOneWidget);
+      expect(
+        _top(tester, find.text('Halo, Siti Rahayu')),
+        lessThan(_top(tester, find.text('Kos Melati · Kamar 08'))),
+      );
+    });
+
+    testWidgets('shows the bill, the complaint section and Ajukan', (
+      tester,
+    ) async {
+      await _open(
+        tester,
+        leases: two(),
+        rentBills: FakeRentBillRepository(bills: [makeRentBill()]),
+      );
+
+      expect(find.text('Rp800.000'), findsOneWidget);
+      expect(find.text(_complaints), findsOneWidget);
+      expect(find.text(_apply), findsOneWidget);
+      expect(find.text(_history), findsOneWidget);
+      expect(find.text(_noLease), findsNothing);
+    });
+
+    testWidgets('loads the leases once', (tester) async {
+      final leases = two();
+      await _open(tester, leases: leases);
+
+      expect(leases.calls, 1);
+    });
+
+    testWidgets('shows the property and room of the bill on the bill card', (
+      tester,
+    ) async {
+      await _open(
+        tester,
+        leases: two(),
+        rentBills: FakeRentBillRepository(
+          bills: [makeRentBill(propertyName: 'Kos Mawar', roomNumber: '12')],
+        ),
+      );
+
+      expect(
+        find.descendant(
+          of: billCard(),
+          matching: find.text('Kos Mawar · Kamar 12'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: billCard(),
+          matching: find.text('Kos Melati · Kamar 08'),
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('shows no property and room on the bill card without a '
+        'bill', (tester) async {
+      await _open(tester, leases: two());
+
+      expect(
+        find.descendant(of: billCard(), matching: find.textContaining('Kamar')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('shows no property and room on the bill card of a single '
+        'lease', (tester) async {
+      await _open(
+        tester,
+        rentBills: FakeRentBillRepository(bills: [makeRentBill()]),
+      );
+
+      expect(
+        find.descendant(of: billCard(), matching: find.textContaining('Kamar')),
+        findsNothing,
+      );
+      expect(find.text('Kos Melati · Kamar 08'), findsOneWidget);
+    });
+
+    testWidgets('fits at 200 percent text without overflow', (tester) async {
+      await _open(
+        tester,
+        largeText: true,
+        leases: two(),
+        rentBills: FakeRentBillRepository(
+          bills: [
+            makeRentBill(
+              propertyName: 'Kos Mawar',
+              roomNumber: '12',
+              daysOverdue: 3,
+            ),
+          ],
+        ),
+        complaints: FakeComplaintRepository(complaints: [makeComplaint()]),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Kos Mawar · Kamar 12'), findsWidgets);
+    });
+
+    testWidgets('meets the accessibility guidelines', (tester) async {
+      await _open(
+        tester,
+        leases: two(),
+        rentBills: FakeRentBillRepository(
+          bills: [makeRentBill(propertyName: 'Kos Mawar', roomNumber: '12')],
+        ),
+        complaints: FakeComplaintRepository(complaints: [makeComplaint()]),
+      );
+
+      await expectMeetsA11yGuidelines(tester);
     });
   });
 

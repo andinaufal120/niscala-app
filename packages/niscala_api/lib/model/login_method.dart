@@ -32,9 +32,13 @@ class LoginMethod {
     password,
   ];
 
-  static LoginMethod? fromJson(dynamic value) => LoginMethodTypeTransformer().decode(value);
+  static LoginMethod? fromJson(dynamic value) =>
+      LoginMethodTypeTransformer().decode(value);
 
-  static List<LoginMethod> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<LoginMethod> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <LoginMethod>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -51,7 +55,8 @@ class LoginMethod {
 /// Transformation class that can [encode] an instance of [LoginMethod] to String,
 /// and [decode] dynamic data back to [LoginMethod].
 class LoginMethodTypeTransformer {
-  factory LoginMethodTypeTransformer() => _instance ??= const LoginMethodTypeTransformer._();
+  factory LoginMethodTypeTransformer() =>
+      _instance ??= const LoginMethodTypeTransformer._();
 
   const LoginMethodTypeTransformer._();
 
@@ -68,8 +73,10 @@ class LoginMethodTypeTransformer {
   LoginMethod? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'google': return LoginMethod.google;
-        case r'password': return LoginMethod.password;
+        case r'google':
+          return LoginMethod.google;
+        case r'password':
+          return LoginMethod.password;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -82,4 +89,3 @@ class LoginMethodTypeTransformer {
   /// Singleton [LoginMethodTypeTransformer] instance.
   static LoginMethodTypeTransformer? _instance;
 }
-

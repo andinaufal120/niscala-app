@@ -15,33 +15,46 @@ import 'package:niscala_api/api.dart';
 const noActiveLeaseMessage =
     'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.';
 
-/// The room and lease of the signed-in tenant, with its loading, empty and
-/// error states.
+/// The rooms and leases of the signed-in tenant: one card per lease, in the
+/// order the API returns them. The loading, empty and error states replace the
+/// cards.
 class LeaseCard extends ConsumerWidget {
   const LeaseCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final lease = ref.watch(myLeaseProvider);
-    return SectionCard(
-      title: 'Kamar & masa sewa',
-      child: lease.when(
-        // Retrying after an error shows the spinner, not the old error.
-        skipLoadingOnRefresh: false,
-        loading: () => const Center(
+    final leases = ref.watch(myLeasesProvider);
+    return leases.when(
+      // Retrying after an error shows the spinner, not the old error.
+      skipLoadingOnRefresh: false,
+      loading: () => _leaseSection(
+        const Center(
           child: CircularProgressIndicator(semanticsLabel: 'Memuat'),
         ),
-        error: (error, _) => ErrorView(
-          message: errorMessageFor(error),
-          onRetry: () => ref.invalidate(myLeaseProvider),
-        ),
-        data: (lease) => lease == null
-            ? const EmptyState(message: noActiveLeaseMessage)
-            : _LeaseDetails(lease: lease),
       ),
+      error: (error, _) => _leaseSection(
+        ErrorView(
+          message: errorMessageFor(error),
+          onRetry: () => ref.invalidate(myLeasesProvider),
+        ),
+      ),
+      data: (items) => items.isEmpty
+          ? _leaseSection(const EmptyState(message: noActiveLeaseMessage))
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final (index, lease) in items.indexed) ...[
+                  if (index > 0) const SizedBox(height: NiscalaSpacing.l),
+                  _leaseSection(_LeaseDetails(lease: lease)),
+                ],
+              ],
+            ),
     );
   }
 }
+
+SectionCard _leaseSection(Widget child) =>
+    SectionCard(title: 'Kamar & masa sewa', child: child);
 
 /// The facts of one active lease, each on its own line.
 class _LeaseDetails extends StatelessWidget {

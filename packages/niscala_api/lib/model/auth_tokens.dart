@@ -31,29 +31,32 @@ class AuthTokens {
   AuthTokensTokenTypeEnum tokenType;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is AuthTokens &&
-    other.accessToken == accessToken &&
-    other.expiresIn == expiresIn &&
-    other.refreshToken == refreshToken &&
-    other.tokenType == tokenType;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AuthTokens &&
+          other.accessToken == accessToken &&
+          other.expiresIn == expiresIn &&
+          other.refreshToken == refreshToken &&
+          other.tokenType == tokenType;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (accessToken.hashCode) +
-    (expiresIn.hashCode) +
-    (refreshToken.hashCode) +
-    (tokenType.hashCode);
+      // ignore: unnecessary_parenthesis
+      (accessToken.hashCode) +
+      (expiresIn.hashCode) +
+      (refreshToken.hashCode) +
+      (tokenType.hashCode);
 
   @override
-  String toString() => 'AuthTokens[accessToken=$accessToken, expiresIn=$expiresIn, refreshToken=$refreshToken, tokenType=$tokenType]';
+  String toString() =>
+      'AuthTokens[accessToken=$accessToken, expiresIn=$expiresIn, refreshToken=$refreshToken, tokenType=$tokenType]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'accessToken'] = this.accessToken;
-      json[r'expiresIn'] = this.expiresIn;
-      json[r'refreshToken'] = this.refreshToken;
-      json[r'tokenType'] = this.tokenType;
+    json[r'accessToken'] = this.accessToken;
+    json[r'expiresIn'] = this.expiresIn;
+    json[r'refreshToken'] = this.refreshToken;
+    json[r'tokenType'] = this.tokenType;
     return json;
   }
 
@@ -69,8 +72,10 @@ class AuthTokens {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "AuthTokens[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "AuthTokens[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "AuthTokens[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "AuthTokens[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -85,7 +90,10 @@ class AuthTokens {
     return null;
   }
 
-  static List<AuthTokens> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<AuthTokens> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <AuthTokens>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -113,13 +121,19 @@ class AuthTokens {
   }
 
   // maps a json object with a list of AuthTokens-objects as value to a dart map
-  static Map<String, List<AuthTokens>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<AuthTokens>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<AuthTokens>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = AuthTokens.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = AuthTokens.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -133,7 +147,6 @@ class AuthTokens {
     'tokenType',
   };
 }
-
 
 class AuthTokensTokenTypeEnum {
   /// Instantiate a new enum with the provided [value].
@@ -154,9 +167,13 @@ class AuthTokensTokenTypeEnum {
     bearer,
   ];
 
-  static AuthTokensTokenTypeEnum? fromJson(dynamic value) => AuthTokensTokenTypeEnumTypeTransformer().decode(value);
+  static AuthTokensTokenTypeEnum? fromJson(dynamic value) =>
+      AuthTokensTokenTypeEnumTypeTransformer().decode(value);
 
-  static List<AuthTokensTokenTypeEnum> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<AuthTokensTokenTypeEnum> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <AuthTokensTokenTypeEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -173,7 +190,8 @@ class AuthTokensTokenTypeEnum {
 /// Transformation class that can [encode] an instance of [AuthTokensTokenTypeEnum] to String,
 /// and [decode] dynamic data back to [AuthTokensTokenTypeEnum].
 class AuthTokensTokenTypeEnumTypeTransformer {
-  factory AuthTokensTokenTypeEnumTypeTransformer() => _instance ??= const AuthTokensTokenTypeEnumTypeTransformer._();
+  factory AuthTokensTokenTypeEnumTypeTransformer() =>
+      _instance ??= const AuthTokensTokenTypeEnumTypeTransformer._();
 
   const AuthTokensTokenTypeEnumTypeTransformer._();
 
@@ -190,7 +208,8 @@ class AuthTokensTokenTypeEnumTypeTransformer {
   AuthTokensTokenTypeEnum? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'bearer': return AuthTokensTokenTypeEnum.bearer;
+        case r'bearer':
+          return AuthTokensTokenTypeEnum.bearer;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -203,5 +222,3 @@ class AuthTokensTokenTypeEnumTypeTransformer {
   /// Singleton [AuthTokensTokenTypeEnumTypeTransformer] instance.
   static AuthTokensTokenTypeEnumTypeTransformer? _instance;
 }
-
-

@@ -11,17 +11,15 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
-// tests for CurrentLeaseResult
+// tests for CurrentLeaseList
 void main() {
-  // final instance = CurrentLeaseResult();
+  // final instance = CurrentLeaseList();
 
-  group('test CurrentLeaseResult', () {
-    // CurrentLease lease
-    test('to test the property `lease`', () async {
+  group('test CurrentLeaseList', () {
+    // Ordered by property name, then room number.
+    // List<CurrentLease> items (default value: const [])
+    test('to test the property `items`', () async {
       // TODO
     });
-
-
   });
-
 }

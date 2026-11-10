@@ -20,20 +20,23 @@ class PasswordChangeResult {
   bool hasOtherSessions;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PasswordChangeResult &&
-    other.hasOtherSessions == hasOtherSessions;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PasswordChangeResult &&
+          other.hasOtherSessions == hasOtherSessions;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (hasOtherSessions.hashCode);
+      // ignore: unnecessary_parenthesis
+      (hasOtherSessions.hashCode);
 
   @override
-  String toString() => 'PasswordChangeResult[hasOtherSessions=$hasOtherSessions]';
+  String toString() =>
+      'PasswordChangeResult[hasOtherSessions=$hasOtherSessions]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'hasOtherSessions'] = this.hasOtherSessions;
+    json[r'hasOtherSessions'] = this.hasOtherSessions;
     return json;
   }
 
@@ -49,8 +52,10 @@ class PasswordChangeResult {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PasswordChangeResult[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PasswordChangeResult[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PasswordChangeResult[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PasswordChangeResult[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -62,7 +67,10 @@ class PasswordChangeResult {
     return null;
   }
 
-  static List<PasswordChangeResult> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PasswordChangeResult> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PasswordChangeResult>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -90,13 +98,19 @@ class PasswordChangeResult {
   }
 
   // maps a json object with a list of PasswordChangeResult-objects as value to a dart map
-  static Map<String, List<PasswordChangeResult>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PasswordChangeResult>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PasswordChangeResult>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PasswordChangeResult.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PasswordChangeResult.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -107,4 +121,3 @@ class PasswordChangeResult {
     'hasOtherSessions',
   };
 }
-

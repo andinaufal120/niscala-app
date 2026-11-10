@@ -274,8 +274,8 @@ class _Properties extends StatelessWidget {
   }
 }
 
-/// The number of active leases of an Owner or Tenant, and for a Tenant with a
-/// tenancy its property, room and lease end.
+/// The number of active leases of an Owner or Tenant, and for a Tenant the
+/// property, room and lease end of each tenancy, in the order the API gives.
 class _Lease extends StatelessWidget {
   const _Lease({required this.account});
 
@@ -283,15 +283,13 @@ class _Lease extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tenancy = account.tenancy;
-    final leaseEnd = tenancy?.leaseEndDate;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (tenancy != null) ...[
+        for (final tenancy in account.tenancies) ...[
           _Field(label: 'Properti', child: Text(tenancy.propertyName)),
           _Field(label: 'Kamar', child: Text(tenancy.roomNumber)),
-          if (leaseEnd != null)
+          if (tenancy.leaseEndDate case final leaseEnd?)
             _Field(
               label: 'Berakhir pada',
               // A lease end is a calendar date, so its day is not shifted.

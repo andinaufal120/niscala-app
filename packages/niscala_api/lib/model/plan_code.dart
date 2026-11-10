@@ -34,9 +34,13 @@ class PlanCode {
     pro,
   ];
 
-  static PlanCode? fromJson(dynamic value) => PlanCodeTypeTransformer().decode(value);
+  static PlanCode? fromJson(dynamic value) =>
+      PlanCodeTypeTransformer().decode(value);
 
-  static List<PlanCode> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PlanCode> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PlanCode>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -53,7 +57,8 @@ class PlanCode {
 /// Transformation class that can [encode] an instance of [PlanCode] to String,
 /// and [decode] dynamic data back to [PlanCode].
 class PlanCodeTypeTransformer {
-  factory PlanCodeTypeTransformer() => _instance ??= const PlanCodeTypeTransformer._();
+  factory PlanCodeTypeTransformer() =>
+      _instance ??= const PlanCodeTypeTransformer._();
 
   const PlanCodeTypeTransformer._();
 
@@ -70,9 +75,12 @@ class PlanCodeTypeTransformer {
   PlanCode? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'free': return PlanCode.free;
-        case r'basic': return PlanCode.basic;
-        case r'pro': return PlanCode.pro;
+        case r'free':
+          return PlanCode.free;
+        case r'basic':
+          return PlanCode.basic;
+        case r'pro':
+          return PlanCode.pro;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -85,4 +93,3 @@ class PlanCodeTypeTransformer {
   /// Singleton [PlanCodeTypeTransformer] instance.
   static PlanCodeTypeTransformer? _instance;
 }
-

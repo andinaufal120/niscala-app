@@ -11,7 +11,6 @@ Name | Type | Description | Notes
 **accountEmail** | **String** |  | 
 **accountName** | **String** |  | 
 **accountRole** | [**UserRole**](UserRole.md) |  | 
-**activeLease** | [**ActiveLeaseSummary**](ActiveLeaseSummary.md) |  | [optional] 
 **blocker** | [**InvitationBlocker**](InvitationBlocker.md) |  | [optional] 
 **canAccept** | **bool** | True only when the link is valid and there is no blocker. | 
 **invitation** | [**InvitationPreview**](InvitationPreview.md) |  | 

@@ -34,32 +34,35 @@ class AuthSession {
   AuthSessionTokenTypeEnum tokenType;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is AuthSession &&
-    other.accessToken == accessToken &&
-    other.account == account &&
-    other.expiresIn == expiresIn &&
-    other.refreshToken == refreshToken &&
-    other.tokenType == tokenType;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AuthSession &&
+          other.accessToken == accessToken &&
+          other.account == account &&
+          other.expiresIn == expiresIn &&
+          other.refreshToken == refreshToken &&
+          other.tokenType == tokenType;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (accessToken.hashCode) +
-    (account.hashCode) +
-    (expiresIn.hashCode) +
-    (refreshToken.hashCode) +
-    (tokenType.hashCode);
+      // ignore: unnecessary_parenthesis
+      (accessToken.hashCode) +
+      (account.hashCode) +
+      (expiresIn.hashCode) +
+      (refreshToken.hashCode) +
+      (tokenType.hashCode);
 
   @override
-  String toString() => 'AuthSession[accessToken=$accessToken, account=$account, expiresIn=$expiresIn, refreshToken=$refreshToken, tokenType=$tokenType]';
+  String toString() =>
+      'AuthSession[accessToken=$accessToken, account=$account, expiresIn=$expiresIn, refreshToken=$refreshToken, tokenType=$tokenType]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'accessToken'] = this.accessToken;
-      json[r'account'] = this.account;
-      json[r'expiresIn'] = this.expiresIn;
-      json[r'refreshToken'] = this.refreshToken;
-      json[r'tokenType'] = this.tokenType;
+    json[r'accessToken'] = this.accessToken;
+    json[r'account'] = this.account;
+    json[r'expiresIn'] = this.expiresIn;
+    json[r'refreshToken'] = this.refreshToken;
+    json[r'tokenType'] = this.tokenType;
     return json;
   }
 
@@ -75,8 +78,10 @@ class AuthSession {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "AuthSession[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "AuthSession[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "AuthSession[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "AuthSession[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -92,7 +97,10 @@ class AuthSession {
     return null;
   }
 
-  static List<AuthSession> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<AuthSession> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <AuthSession>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -120,13 +128,19 @@ class AuthSession {
   }
 
   // maps a json object with a list of AuthSession-objects as value to a dart map
-  static Map<String, List<AuthSession>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<AuthSession>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<AuthSession>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = AuthSession.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = AuthSession.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -141,7 +155,6 @@ class AuthSession {
     'tokenType',
   };
 }
-
 
 class AuthSessionTokenTypeEnum {
   /// Instantiate a new enum with the provided [value].
@@ -162,9 +175,13 @@ class AuthSessionTokenTypeEnum {
     bearer,
   ];
 
-  static AuthSessionTokenTypeEnum? fromJson(dynamic value) => AuthSessionTokenTypeEnumTypeTransformer().decode(value);
+  static AuthSessionTokenTypeEnum? fromJson(dynamic value) =>
+      AuthSessionTokenTypeEnumTypeTransformer().decode(value);
 
-  static List<AuthSessionTokenTypeEnum> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<AuthSessionTokenTypeEnum> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <AuthSessionTokenTypeEnum>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -181,7 +198,8 @@ class AuthSessionTokenTypeEnum {
 /// Transformation class that can [encode] an instance of [AuthSessionTokenTypeEnum] to String,
 /// and [decode] dynamic data back to [AuthSessionTokenTypeEnum].
 class AuthSessionTokenTypeEnumTypeTransformer {
-  factory AuthSessionTokenTypeEnumTypeTransformer() => _instance ??= const AuthSessionTokenTypeEnumTypeTransformer._();
+  factory AuthSessionTokenTypeEnumTypeTransformer() =>
+      _instance ??= const AuthSessionTokenTypeEnumTypeTransformer._();
 
   const AuthSessionTokenTypeEnumTypeTransformer._();
 
@@ -198,7 +216,8 @@ class AuthSessionTokenTypeEnumTypeTransformer {
   AuthSessionTokenTypeEnum? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'bearer': return AuthSessionTokenTypeEnum.bearer;
+        case r'bearer':
+          return AuthSessionTokenTypeEnum.bearer;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -211,5 +230,3 @@ class AuthSessionTokenTypeEnumTypeTransformer {
   /// Singleton [AuthSessionTokenTypeEnumTypeTransformer] instance.
   static AuthSessionTokenTypeEnumTypeTransformer? _instance;
 }
-
-

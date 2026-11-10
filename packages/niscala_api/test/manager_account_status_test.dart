@@ -13,9 +13,5 @@ import 'package:test/test.dart';
 
 // tests for ManagerAccountStatus
 void main() {
-
-  group('test ManagerAccountStatus', () {
-
-  });
-
+  group('test ManagerAccountStatus', () {});
 }

@@ -25,25 +25,28 @@ class NotificationSettingItem {
   NotificationUrgencyScope? urgencyScope;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is NotificationSettingItem &&
-    other.category == category &&
-    other.pushEnabled == pushEnabled &&
-    other.urgencyScope == urgencyScope;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NotificationSettingItem &&
+          other.category == category &&
+          other.pushEnabled == pushEnabled &&
+          other.urgencyScope == urgencyScope;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (category.hashCode) +
-    (pushEnabled.hashCode) +
-    (urgencyScope == null ? 0 : urgencyScope!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (category.hashCode) +
+      (pushEnabled.hashCode) +
+      (urgencyScope == null ? 0 : urgencyScope!.hashCode);
 
   @override
-  String toString() => 'NotificationSettingItem[category=$category, pushEnabled=$pushEnabled, urgencyScope=$urgencyScope]';
+  String toString() =>
+      'NotificationSettingItem[category=$category, pushEnabled=$pushEnabled, urgencyScope=$urgencyScope]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'category'] = this.category;
-      json[r'pushEnabled'] = this.pushEnabled;
+    json[r'category'] = this.category;
+    json[r'pushEnabled'] = this.pushEnabled;
     if (this.urgencyScope != null) {
       json[r'urgencyScope'] = this.urgencyScope;
     } else {
@@ -64,8 +67,10 @@ class NotificationSettingItem {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "NotificationSettingItem[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "NotificationSettingItem[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "NotificationSettingItem[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "NotificationSettingItem[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -79,7 +84,10 @@ class NotificationSettingItem {
     return null;
   }
 
-  static List<NotificationSettingItem> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<NotificationSettingItem> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <NotificationSettingItem>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -107,13 +115,19 @@ class NotificationSettingItem {
   }
 
   // maps a json object with a list of NotificationSettingItem-objects as value to a dart map
-  static Map<String, List<NotificationSettingItem>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<NotificationSettingItem>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<NotificationSettingItem>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = NotificationSettingItem.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = NotificationSettingItem.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -125,4 +139,3 @@ class NotificationSettingItem {
     'pushEnabled',
   };
 }
-

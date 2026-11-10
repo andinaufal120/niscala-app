@@ -11,7 +11,6 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
-
 /// tests for AccountApi
 void main() {
   // final instance = AccountApi();
@@ -70,6 +69,5 @@ void main() {
     test('test reauthenticateWithPassword', () async {
       // TODO
     });
-
   });
 }

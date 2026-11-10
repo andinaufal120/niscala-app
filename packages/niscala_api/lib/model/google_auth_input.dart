@@ -15,30 +15,43 @@ class GoogleAuthInput {
   GoogleAuthInput({
     required this.device,
     required this.idToken,
+    this.name,
   });
 
   DeviceInfo device;
 
   String idToken;
 
+  String? name;
+
   @override
-  bool operator ==(Object other) => identical(this, other) || other is GoogleAuthInput &&
-    other.device == device &&
-    other.idToken == idToken;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is GoogleAuthInput &&
+          other.device == device &&
+          other.idToken == idToken &&
+          other.name == name;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (device.hashCode) +
-    (idToken.hashCode);
+      // ignore: unnecessary_parenthesis
+      (device.hashCode) +
+      (idToken.hashCode) +
+      (name == null ? 0 : name!.hashCode);
 
   @override
-  String toString() => 'GoogleAuthInput[device=$device, idToken=$idToken]';
+  String toString() =>
+      'GoogleAuthInput[device=$device, idToken=$idToken, name=$name]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'device'] = this.device;
-      json[r'idToken'] = this.idToken;
+    json[r'device'] = this.device;
+    json[r'idToken'] = this.idToken;
+    if (this.name != null) {
+      json[r'name'] = this.name;
+    } else {
+      json[r'name'] = null;
+    }
     return json;
   }
 
@@ -54,8 +67,10 @@ class GoogleAuthInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "GoogleAuthInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "GoogleAuthInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "GoogleAuthInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "GoogleAuthInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -63,12 +78,16 @@ class GoogleAuthInput {
       return GoogleAuthInput(
         device: DeviceInfo.fromJson(json[r'device'])!,
         idToken: mapValueOfType<String>(json, r'idToken')!,
+        name: mapValueOfType<String>(json, r'name'),
       );
     }
     return null;
   }
 
-  static List<GoogleAuthInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<GoogleAuthInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <GoogleAuthInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -96,13 +115,19 @@ class GoogleAuthInput {
   }
 
   // maps a json object with a list of GoogleAuthInput-objects as value to a dart map
-  static Map<String, List<GoogleAuthInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<GoogleAuthInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<GoogleAuthInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = GoogleAuthInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = GoogleAuthInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -114,4 +139,3 @@ class GoogleAuthInput {
     'idToken',
   };
 }
-

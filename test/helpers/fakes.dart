@@ -1190,7 +1190,6 @@ InvitationAcceptancePreview makeAcceptancePreview({
   String accountEmail = 'andi@example.com',
   UserRole accountRole = UserRole.manager,
   InvitationBlocker? blocker,
-  ActiveLeaseSummary? activeLease,
   bool? canAccept,
 }) {
   final shown =
@@ -1202,7 +1201,6 @@ InvitationAcceptancePreview makeAcceptancePreview({
     accountEmail: accountEmail,
     accountRole: accountRole,
     blocker: blocker,
-    activeLease: activeLease,
     canAccept:
         canAccept ??
         (shown.status == InvitationLinkStatus.valid && blocker == null),
@@ -1219,6 +1217,10 @@ class FakeInvitationRepository implements InvitationRepository {
   final acceptancePreviews = <String>[];
   final acceptances = <String>[];
 
+  /// The emergency contacts of every [accept] call, in order, parallel to
+  /// [acceptances]; null when the call sent none.
+  final acceptedEmergencyContacts = <List<EmergencyContact>?>[];
+
   InvitationAcceptancePreview previewAcceptanceResult = makeAcceptancePreview();
   ApiFailure? previewAcceptanceFailure;
   ApiFailure? acceptFailure;
@@ -1234,8 +1236,12 @@ class FakeInvitationRepository implements InvitationRepository {
   }
 
   @override
-  Future<void> accept(String token) async {
+  Future<void> accept(
+    String token, {
+    List<EmergencyContact>? emergencyContacts,
+  }) async {
     acceptances.add(token);
+    acceptedEmergencyContacts.add(emergencyContacts);
     await acceptGate?.future;
     if (acceptFailure != null) throw acceptFailure!;
   }
@@ -1323,6 +1329,7 @@ Complaint makeComplaint({
   bool classificationWithheld = false,
   DateTime? createdAt,
   String tenantName = 'Budi Santoso',
+  String roomId = 'r1',
   String roomNumber = '08',
   String propertyName = 'Kos Melati',
   List<ComplaintStatusChange> statusChanges = const [],
@@ -1336,7 +1343,7 @@ Complaint makeComplaint({
   createdAt: createdAt ?? DateTime.utc(2026, 10, 18, 12),
   hasPhoto: false,
   property: PropertyRef(id: 'p1', name: propertyName),
-  room: RoomRef(id: 'r1', number: roomNumber),
+  room: RoomRef(id: roomId, number: roomNumber),
   statusChanges: statusChanges,
   tenantName: tenantName,
 );
@@ -1371,6 +1378,9 @@ class FakeComplaintRepository implements ComplaintRepository {
 
   final calls = <String>[];
   final submitted = <String>[];
+
+  /// The room id of every [submit] call, in order, parallel to [submitted].
+  final submittedRoomIds = <String>[];
   final statusChanged =
       <({String id, ComplaintStatus status, String? handlingNote})>[];
   final classified =
@@ -1539,13 +1549,15 @@ class FakeComplaintRepository implements ComplaintRepository {
   }
 
   @override
-  Future<Complaint> submit(String description) async {
+  Future<Complaint> submit(String description, String roomId) async {
     calls.add('submit');
     submitted.add(description);
+    submittedRoomIds.add(roomId);
     final failure = await submitScript.next();
     if (failure != null) throw failure;
     final complaint = makeComplaint(
       id: 'new-${_nextId++}',
+      roomId: roomId,
       description: description,
       classification: submitState == null ? submitClassification : null,
       classificationState: submitState,
@@ -2261,8 +2273,14 @@ class FakeReceiptPicker implements ReceiptPicker {
 /// monthly lease of Rp750.000 from 1 Jan 2026 to 31 Des 2026, 3,5 x 4 m, with
 /// the facilities ac and kasur.
 ///
+/// The lease belongs to tenant record `t1` and room `r1` of property `p1`
+/// unless given.
+///
 /// Set [noStartDate], [noEndDate], [noDimensions] to leave those out.
 CurrentLease makeCurrentLease({
+  String tenantId = 't1',
+  String propertyId = 'p1',
+  String roomId = 'r1',
   String propertyName = 'Kos Melati',
   String address = 'Jl. Melati 1, Bandung',
   String roomNumber = '08',
@@ -2277,15 +2295,16 @@ CurrentLease makeCurrentLease({
   bool noDimensions = false,
   List<String> facilities = const ['ac', 'kasur'],
 }) => CurrentLease(
+  tenantId: tenantId,
   billingCycle: billingCycle,
   property: CurrentLeaseProperty(
-    id: 'p1',
+    id: propertyId,
     name: propertyName,
     address: address,
   ),
   rent: rent,
   room: CurrentLeaseRoom(
-    id: 'r1',
+    id: roomId,
     number: roomNumber,
     lengthM: noDimensions ? null : lengthM,
     widthM: noDimensions ? null : widthM,
@@ -2295,23 +2314,44 @@ CurrentLease makeCurrentLease({
   endDate: noEndDate ? null : endDate ?? DateTime.utc(2026, 12, 31),
 );
 
-/// A [LeaseRepository] that answers with [lease] (null means no lease) and
-/// records its calls. Script failures and a gate with [script].
-class FakeLeaseRepository implements LeaseRepository {
-  FakeLeaseRepository({this.lease});
+/// Two leases of one tenant account in different places: room 08 of Kos Melati
+/// (tenant record `t1`, room `r1`) and room 12 of Kos Mawar (tenant record
+/// `t2`, room `r2`).
+List<CurrentLease> makeTwoLeases() => [
+  makeCurrentLease(),
+  makeCurrentLease(
+    tenantId: 't2',
+    propertyId: 'p2',
+    roomId: 'r2',
+    propertyName: 'Kos Mawar',
+    address: 'Jl. Mawar 2, Bandung',
+    roomNumber: '12',
+  ),
+];
 
-  CurrentLease? lease;
+/// A [LeaseRepository] that answers with [leases] (empty means no lease) in
+/// that order and records its calls. Script failures and a gate with [script].
+///
+/// [lease] is a shorthand for a tenant with exactly one lease.
+class FakeLeaseRepository implements LeaseRepository {
+  FakeLeaseRepository({CurrentLease? lease, List<CurrentLease>? leases})
+    : leases = leases ?? [?lease];
+
+  List<CurrentLease> leases;
+
+  /// Replaces [leases] by this one lease, or by none.
+  set lease(CurrentLease? value) => leases = [?value];
 
   final script = CallScript();
 
   var calls = 0;
 
   @override
-  Future<CurrentLease?> myLease() async {
+  Future<List<CurrentLease>> myLeases() async {
     calls++;
     final failure = await script.next();
     if (failure != null) throw failure;
-    return lease;
+    return List.of(leases);
   }
 }
 
@@ -2566,7 +2606,7 @@ UserAccountSummary makeUserAccountSummary({
 
 /// A [UserAccount] with sensible defaults: Budi Santoso, an active tenant with
 /// a password, registered on 18 Okt 2026 and last signed in on 19 Okt 2026
-/// (both at 12:00 UTC), with no pending email, properties or tenancy.
+/// (both at 12:00 UTC), with no pending email, properties or tenancies.
 ///
 /// Set [neverLoggedIn] to leave out the last login.
 UserAccount makeUserAccount({
@@ -2583,7 +2623,7 @@ UserAccount makeUserAccount({
   String? pendingEmail,
   DateTime? pendingEmailExpiresAt,
   List<AccountPropertyRef> properties = const [],
-  AccountTenancy? tenancy,
+  List<AccountTenancy> tenancies = const [],
 }) => UserAccount(
   id: id,
   name: name,
@@ -2599,7 +2639,7 @@ UserAccount makeUserAccount({
   pendingEmail: pendingEmail,
   pendingEmailExpiresAt: pendingEmailExpiresAt,
   properties: properties,
-  tenancy: tenancy,
+  tenancies: tenancies,
 );
 
 /// A [UserAccountRepository] that keeps the accounts in memory and records its
@@ -2678,7 +2718,7 @@ class FakeUserAccountRepository implements UserAccountRepository {
       pendingEmail: old.pendingEmail,
       pendingEmailExpiresAt: old.pendingEmailExpiresAt,
       properties: old.properties,
-      tenancy: old.tenancy,
+      tenancies: old.tenancies,
     );
   }
 
@@ -2714,7 +2754,7 @@ class FakeUserAccountRepository implements UserAccountRepository {
       pendingEmail: changesEmail ? email : null,
       pendingEmailExpiresAt: changesEmail ? pendingExpiresAt : null,
       properties: old.properties,
-      tenancy: old.tenancy,
+      tenancies: old.tenancies,
     );
   }
 

@@ -22,23 +22,22 @@ class ManagerRef {
   String name;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ManagerRef &&
-    other.id == id &&
-    other.name == name;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ManagerRef && other.id == id && other.name == name;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (id.hashCode) +
-    (name.hashCode);
+      // ignore: unnecessary_parenthesis
+      (id.hashCode) + (name.hashCode);
 
   @override
   String toString() => 'ManagerRef[id=$id, name=$name]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'id'] = this.id;
-      json[r'name'] = this.name;
+    json[r'id'] = this.id;
+    json[r'name'] = this.name;
     return json;
   }
 
@@ -54,8 +53,10 @@ class ManagerRef {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ManagerRef[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ManagerRef[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ManagerRef[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ManagerRef[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -68,7 +69,10 @@ class ManagerRef {
     return null;
   }
 
-  static List<ManagerRef> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ManagerRef> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ManagerRef>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -96,13 +100,19 @@ class ManagerRef {
   }
 
   // maps a json object with a list of ManagerRef-objects as value to a dart map
-  static Map<String, List<ManagerRef>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ManagerRef>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ManagerRef>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ManagerRef.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ManagerRef.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -114,4 +124,3 @@ class ManagerRef {
     'name',
   };
 }
-

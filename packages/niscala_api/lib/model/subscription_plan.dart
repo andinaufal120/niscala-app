@@ -32,29 +32,32 @@ class SubscriptionPlan {
   List<SubscriptionPlanPrice> prices;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is SubscriptionPlan &&
-    other.aiEnabled == aiEnabled &&
-    other.code == code &&
-    other.maxProperties == maxProperties &&
-    other.maxRoomsPerProperty == maxRoomsPerProperty &&
-    _deepEquality.equals(other.prices, prices);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SubscriptionPlan &&
+          other.aiEnabled == aiEnabled &&
+          other.code == code &&
+          other.maxProperties == maxProperties &&
+          other.maxRoomsPerProperty == maxRoomsPerProperty &&
+          _deepEquality.equals(other.prices, prices);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (aiEnabled.hashCode) +
-    (code.hashCode) +
-    (maxProperties == null ? 0 : maxProperties!.hashCode) +
-    (maxRoomsPerProperty == null ? 0 : maxRoomsPerProperty!.hashCode) +
-    (prices.hashCode);
+      // ignore: unnecessary_parenthesis
+      (aiEnabled.hashCode) +
+      (code.hashCode) +
+      (maxProperties == null ? 0 : maxProperties!.hashCode) +
+      (maxRoomsPerProperty == null ? 0 : maxRoomsPerProperty!.hashCode) +
+      (prices.hashCode);
 
   @override
-  String toString() => 'SubscriptionPlan[aiEnabled=$aiEnabled, code=$code, maxProperties=$maxProperties, maxRoomsPerProperty=$maxRoomsPerProperty, prices=$prices]';
+  String toString() =>
+      'SubscriptionPlan[aiEnabled=$aiEnabled, code=$code, maxProperties=$maxProperties, maxRoomsPerProperty=$maxRoomsPerProperty, prices=$prices]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'aiEnabled'] = this.aiEnabled;
-      json[r'code'] = this.code;
+    json[r'aiEnabled'] = this.aiEnabled;
+    json[r'code'] = this.code;
     if (this.maxProperties != null) {
       json[r'maxProperties'] = this.maxProperties;
     } else {
@@ -65,7 +68,7 @@ class SubscriptionPlan {
     } else {
       json[r'maxRoomsPerProperty'] = null;
     }
-      json[r'prices'] = this.prices;
+    json[r'prices'] = this.prices;
     return json;
   }
 
@@ -81,8 +84,10 @@ class SubscriptionPlan {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "SubscriptionPlan[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "SubscriptionPlan[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "SubscriptionPlan[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "SubscriptionPlan[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -98,7 +103,10 @@ class SubscriptionPlan {
     return null;
   }
 
-  static List<SubscriptionPlan> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<SubscriptionPlan> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <SubscriptionPlan>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -126,13 +134,19 @@ class SubscriptionPlan {
   }
 
   // maps a json object with a list of SubscriptionPlan-objects as value to a dart map
-  static Map<String, List<SubscriptionPlan>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<SubscriptionPlan>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<SubscriptionPlan>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = SubscriptionPlan.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = SubscriptionPlan.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -145,4 +159,3 @@ class SubscriptionPlan {
     'prices',
   };
 }
-

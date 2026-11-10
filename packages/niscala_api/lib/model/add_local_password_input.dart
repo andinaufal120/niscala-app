@@ -24,23 +24,25 @@ class AddLocalPasswordInput {
   String password;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is AddLocalPasswordInput &&
-    other.googleIdToken == googleIdToken &&
-    other.password == password;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AddLocalPasswordInput &&
+          other.googleIdToken == googleIdToken &&
+          other.password == password;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (googleIdToken.hashCode) +
-    (password.hashCode);
+      // ignore: unnecessary_parenthesis
+      (googleIdToken.hashCode) + (password.hashCode);
 
   @override
-  String toString() => 'AddLocalPasswordInput[googleIdToken=$googleIdToken, password=$password]';
+  String toString() =>
+      'AddLocalPasswordInput[googleIdToken=$googleIdToken, password=$password]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'googleIdToken'] = this.googleIdToken;
-      json[r'password'] = this.password;
+    json[r'googleIdToken'] = this.googleIdToken;
+    json[r'password'] = this.password;
     return json;
   }
 
@@ -56,8 +58,10 @@ class AddLocalPasswordInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "AddLocalPasswordInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "AddLocalPasswordInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "AddLocalPasswordInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "AddLocalPasswordInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -70,7 +74,10 @@ class AddLocalPasswordInput {
     return null;
   }
 
-  static List<AddLocalPasswordInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<AddLocalPasswordInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <AddLocalPasswordInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -98,13 +105,19 @@ class AddLocalPasswordInput {
   }
 
   // maps a json object with a list of AddLocalPasswordInput-objects as value to a dart map
-  static Map<String, List<AddLocalPasswordInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<AddLocalPasswordInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<AddLocalPasswordInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = AddLocalPasswordInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = AddLocalPasswordInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -116,4 +129,3 @@ class AddLocalPasswordInput {
     'password',
   };
 }
-

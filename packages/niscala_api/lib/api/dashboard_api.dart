@@ -10,9 +10,9 @@
 
 part of niscala_api;
 
-
 class DashboardApi {
-  DashboardApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
+  DashboardApi([ApiClient? apiClient])
+      : apiClient = apiClient ?? defaultApiClient;
 
   final ApiClient apiClient;
 
@@ -33,7 +33,6 @@ class DashboardApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -57,9 +56,12 @@ class DashboardApi {
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'OccupancyDashboard',) as OccupancyDashboard;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'OccupancyDashboard',
+      ) as OccupancyDashboard;
     }
     return null;
   }

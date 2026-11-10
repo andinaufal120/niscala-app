@@ -11,7 +11,6 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
-
 /// tests for RoomsApi
 void main() {
   // final instance = RoomsApi();
@@ -70,6 +69,5 @@ void main() {
     test('test updateRoom', () async {
       // TODO
     });
-
   });
 }

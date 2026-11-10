@@ -41,41 +41,44 @@ class SubscriptionOrder {
   OrderStatus status;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is SubscriptionOrder &&
-    other.billingPeriod == billingPeriod &&
-    other.createdAt == createdAt &&
-    other.googlePlayBasePlanId == googlePlayBasePlanId &&
-    other.googlePlayProductId == googlePlayProductId &&
-    other.id == id &&
-    other.obfuscatedAccountId == obfuscatedAccountId &&
-    other.planCode == planCode &&
-    other.status == status;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SubscriptionOrder &&
+          other.billingPeriod == billingPeriod &&
+          other.createdAt == createdAt &&
+          other.googlePlayBasePlanId == googlePlayBasePlanId &&
+          other.googlePlayProductId == googlePlayProductId &&
+          other.id == id &&
+          other.obfuscatedAccountId == obfuscatedAccountId &&
+          other.planCode == planCode &&
+          other.status == status;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (billingPeriod.hashCode) +
-    (createdAt.hashCode) +
-    (googlePlayBasePlanId.hashCode) +
-    (googlePlayProductId.hashCode) +
-    (id.hashCode) +
-    (obfuscatedAccountId.hashCode) +
-    (planCode.hashCode) +
-    (status.hashCode);
+      // ignore: unnecessary_parenthesis
+      (billingPeriod.hashCode) +
+      (createdAt.hashCode) +
+      (googlePlayBasePlanId.hashCode) +
+      (googlePlayProductId.hashCode) +
+      (id.hashCode) +
+      (obfuscatedAccountId.hashCode) +
+      (planCode.hashCode) +
+      (status.hashCode);
 
   @override
-  String toString() => 'SubscriptionOrder[billingPeriod=$billingPeriod, createdAt=$createdAt, googlePlayBasePlanId=$googlePlayBasePlanId, googlePlayProductId=$googlePlayProductId, id=$id, obfuscatedAccountId=$obfuscatedAccountId, planCode=$planCode, status=$status]';
+  String toString() =>
+      'SubscriptionOrder[billingPeriod=$billingPeriod, createdAt=$createdAt, googlePlayBasePlanId=$googlePlayBasePlanId, googlePlayProductId=$googlePlayProductId, id=$id, obfuscatedAccountId=$obfuscatedAccountId, planCode=$planCode, status=$status]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'billingPeriod'] = this.billingPeriod;
-      json[r'createdAt'] = this.createdAt.toUtc().toIso8601String();
-      json[r'googlePlayBasePlanId'] = this.googlePlayBasePlanId;
-      json[r'googlePlayProductId'] = this.googlePlayProductId;
-      json[r'id'] = this.id;
-      json[r'obfuscatedAccountId'] = this.obfuscatedAccountId;
-      json[r'planCode'] = this.planCode;
-      json[r'status'] = this.status;
+    json[r'billingPeriod'] = this.billingPeriod;
+    json[r'createdAt'] = this.createdAt.toUtc().toIso8601String();
+    json[r'googlePlayBasePlanId'] = this.googlePlayBasePlanId;
+    json[r'googlePlayProductId'] = this.googlePlayProductId;
+    json[r'id'] = this.id;
+    json[r'obfuscatedAccountId'] = this.obfuscatedAccountId;
+    json[r'planCode'] = this.planCode;
+    json[r'status'] = this.status;
     return json;
   }
 
@@ -91,8 +94,10 @@ class SubscriptionOrder {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "SubscriptionOrder[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "SubscriptionOrder[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "SubscriptionOrder[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "SubscriptionOrder[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -100,10 +105,13 @@ class SubscriptionOrder {
       return SubscriptionOrder(
         billingPeriod: SubscriptionPeriod.fromJson(json[r'billingPeriod'])!,
         createdAt: mapDateTime(json, r'createdAt', r'')!,
-        googlePlayBasePlanId: mapValueOfType<String>(json, r'googlePlayBasePlanId')!,
-        googlePlayProductId: mapValueOfType<String>(json, r'googlePlayProductId')!,
+        googlePlayBasePlanId:
+            mapValueOfType<String>(json, r'googlePlayBasePlanId')!,
+        googlePlayProductId:
+            mapValueOfType<String>(json, r'googlePlayProductId')!,
         id: mapValueOfType<String>(json, r'id')!,
-        obfuscatedAccountId: mapValueOfType<String>(json, r'obfuscatedAccountId')!,
+        obfuscatedAccountId:
+            mapValueOfType<String>(json, r'obfuscatedAccountId')!,
         planCode: PaidPlanCode.fromJson(json[r'planCode'])!,
         status: OrderStatus.fromJson(json[r'status'])!,
       );
@@ -111,7 +119,10 @@ class SubscriptionOrder {
     return null;
   }
 
-  static List<SubscriptionOrder> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<SubscriptionOrder> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <SubscriptionOrder>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -139,13 +150,19 @@ class SubscriptionOrder {
   }
 
   // maps a json object with a list of SubscriptionOrder-objects as value to a dart map
-  static Map<String, List<SubscriptionOrder>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<SubscriptionOrder>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<SubscriptionOrder>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = SubscriptionOrder.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = SubscriptionOrder.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -163,4 +180,3 @@ class SubscriptionOrder {
     'status',
   };
 }
-

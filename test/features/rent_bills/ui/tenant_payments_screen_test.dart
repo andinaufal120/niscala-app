@@ -93,6 +93,125 @@ void main() {
     });
   });
 
+  group('property and room', () {
+    const melati = 'Kos Melati · Kamar 08';
+    const mawar = 'Kos Mawar · Kamar 12';
+
+    FakeRentBillRepository twoPlaces() => FakeRentBillRepository(
+      bills: [
+        makeRentBill(id: 'b1'),
+        makeRentBill(
+          id: 'b9',
+          amount: 900000,
+          propertyName: 'Kos Mawar',
+          roomNumber: '12',
+          roomId: 'r2',
+          tenantId: 't2',
+          periodStart: day(10, 1),
+          periodEnd: day(10, 31),
+          dueDate: day(10, 5),
+          isCurrent: false,
+        ),
+        makeRentBill(
+          id: 'b8',
+          amount: 700000,
+          status: PaymentStatus.paid,
+          propertyName: 'Kos Mawar',
+          roomNumber: '12',
+          roomId: 'r2',
+          tenantId: 't2',
+        ),
+      ],
+    );
+
+    FakeLeaseRepository severalLeases() =>
+        FakeLeaseRepository(leases: makeTwoLeases());
+
+    testWidgets('shows the property and room on each bill when the tenant '
+        'has several leases', (tester) async {
+      await pumpRentBillApp(tester, twoPlaces(), leases: severalLeases());
+
+      expect(inBill('Rp800.000', find.text(melati)), findsOneWidget);
+      expect(inBill('Rp900.000', find.text(mawar)), findsOneWidget);
+      expect(inBill('Rp800.000', find.text(mawar)), findsNothing);
+      expect(inBill('Rp900.000', find.text(melati)), findsNothing);
+    });
+
+    testWidgets('shows it on the history bills too', (tester) async {
+      await pumpRentBillApp(tester, twoPlaces(), leases: severalLeases());
+
+      await tester.tap(find.text(_history));
+      await tester.pumpAndSettle();
+
+      expect(inBill('Rp700.000', find.text(mawar)), findsOneWidget);
+    });
+
+    testWidgets('reads the property and room with the rest of the bill', (
+      tester,
+    ) async {
+      await pumpRentBillApp(tester, twoPlaces(), leases: severalLeases());
+
+      final handle = tester.ensureSemantics();
+      try {
+        final label = tester.getSemantics(find.text('Rp900.000')).label;
+        expect(label, contains(mawar));
+        expect(label, contains('Rp900.000'));
+        expect(label, isNot(contains(melati)));
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets('shows neither when the tenant has one lease', (tester) async {
+      await pumpRentBillApp(
+        tester,
+        twoPlaces(),
+        leases: FakeLeaseRepository(lease: makeCurrentLease()),
+      );
+
+      expect(find.text(melati), findsNothing);
+      expect(find.text(mawar), findsNothing);
+      expect(find.textContaining('Kos M'), findsNothing);
+    });
+
+    testWidgets('shows neither when the tenant has no lease', (tester) async {
+      await pumpRentBillApp(tester, twoPlaces());
+
+      expect(find.text(melati), findsNothing);
+      expect(find.text(mawar), findsNothing);
+    });
+
+    testWidgets('still lists the bills when the leases fail to load', (
+      tester,
+    ) async {
+      final leases = severalLeases()
+        ..script.always = const ApiFailure.network();
+      await pumpRentBillApp(tester, twoPlaces(), leases: leases);
+
+      expect(find.text('Rp800.000'), findsOneWidget);
+      expect(find.byType(ErrorView), findsNothing);
+      expect(find.text(melati), findsNothing);
+    });
+
+    testWidgets('meets the guidelines', (tester) async {
+      await pumpRentBillApp(tester, twoPlaces(), leases: severalLeases());
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+
+    testWidgets('fits at large text size', (tester) async {
+      await pumpRentBillApp(
+        tester,
+        twoPlaces(),
+        leases: severalLeases(),
+        largeText: true,
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text(melati), findsOneWidget);
+    });
+  });
+
   group('loading', () {
     testWidgets('asks for the active statuses once', (tester) async {
       final repo = sampleRepo();

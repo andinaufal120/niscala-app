@@ -326,7 +326,6 @@ void main() {
       expect(result.accountRole, UserRole.manager);
       expect(result.canAccept, isTrue);
       expect(result.blocker, isNull);
-      expect(result.activeLease, isNull);
       expect(result.invitation.status, InvitationLinkStatus.valid);
       expect(result.invitation.role, InvitationRole.manager);
       expect(result.invitation.inviterName, 'Siti Pemilik');
@@ -363,29 +362,47 @@ void main() {
       expect(result.accountRole, UserRole.owner);
     });
 
-    test('returns an active lease blocker with the lease', () async {
+    test('lets a tenant account that already rents accept a tenant '
+        'invitation', () async {
       final h = _Harness(
         (_) => _ok(
           _acceptanceJson(
             role: 'tenant',
-            canAccept: false,
-            blocker: 'activeLease',
             accountRole: 'tenant',
-            activeLease: {
-              'propertyName': 'Kos Mawar',
-              'roomNumber': '12',
-              'endDate': '2026-12-31',
-            },
+            roomNumber: '08',
+            emergencyContactsRequired: true,
           ),
         ),
       );
 
       final result = await h.repository.previewAcceptance('abc123');
 
-      expect(result.blocker, InvitationBlocker.activeLease);
-      expect(result.activeLease?.propertyName, 'Kos Mawar');
-      expect(result.activeLease?.roomNumber, '12');
+      expect(result.canAccept, isTrue);
+      expect(result.blocker, isNull);
+      expect(result.accountRole, UserRole.tenant);
+      expect(result.invitation.role, InvitationRole.tenant);
+      expect(result.invitation.roomNumber, '08');
+      expect(result.invitation.emergencyContactsRequired, isTrue);
     });
+
+    test(
+      'reports that the contacts of the tenant record are complete',
+      () async {
+        final h = _Harness(
+          (_) => _ok(
+            _acceptanceJson(
+              role: 'tenant',
+              accountRole: 'tenant',
+              roomNumber: '08',
+            ),
+          ),
+        );
+
+        final result = await h.repository.previewAcceptance('abc123');
+
+        expect(result.invitation.emergencyContactsRequired, isFalse);
+      },
+    );
 
     for (final entry in {
       'expired': InvitationLinkStatus.expired,
@@ -464,14 +481,16 @@ void main() {
   });
 
   group('accept', () {
-    test('posts only the token and completes on an empty answer', () async {
+    test('posts the token without emergency contacts and completes on an empty '
+        'answer', () async {
       final h = _Harness((_) => http.Response('', 204));
 
       await h.repository.accept('abc123');
 
       expect(h.request.method, 'POST');
       expect(h.request.url.path, '/invitations/acceptances');
-      expect(h.body, {'token': 'abc123'});
+      expect(h.body['token'], 'abc123');
+      expect((h.body['emergencyContacts'] as List?) ?? const [], isEmpty);
     });
 
     test('completes on a 200 answer without a body', () async {
@@ -487,7 +506,81 @@ void main() {
 
       await h.repository.accept('abc123');
 
-      expect(h.body.keys, ['token']);
+      expect(h.body['token'], 'abc123');
+      expect(h.body.containsKey('device'), isFalse);
+    });
+
+    test('sends no emergency contacts when none are given', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await h.repository.accept('abc123');
+
+      expect((h.body['emergencyContacts'] as List?) ?? const [], isEmpty);
+    });
+
+    test('posts the emergency contacts with the token', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await h.repository.accept(
+        'abc123',
+        emergencyContacts: [
+          EmergencyContact(
+            name: 'Ibu Budi',
+            relationship: 'Ibu',
+            phone: '081255204471',
+          ),
+          EmergencyContact(
+            name: 'Adi',
+            relationship: 'Kakak',
+            phone: '081311112222',
+          ),
+        ],
+      );
+
+      expect(h.request.method, 'POST');
+      expect(h.request.url.path, '/invitations/acceptances');
+      expect(h.body, {
+        'token': 'abc123',
+        'emergencyContacts': [
+          {'name': 'Ibu Budi', 'relationship': 'Ibu', 'phone': '081255204471'},
+          {'name': 'Adi', 'relationship': 'Kakak', 'phone': '081311112222'},
+        ],
+      });
+    });
+
+    test('posts four emergency contacts', () async {
+      final h = _Harness((_) => http.Response('', 204));
+
+      await h.repository.accept(
+        'abc123',
+        emergencyContacts: [
+          for (var i = 1; i <= 4; i++)
+            EmergencyContact(
+              name: 'Kontak $i',
+              relationship: 'Teman',
+              phone: '08125520447$i',
+            ),
+        ],
+      );
+
+      expect(h.body['emergencyContacts'], hasLength(4));
+    });
+
+    test('keeps the field of a contacts validation error', () async {
+      final h = _Harness(
+        (_) => _error(422, 'VALIDATION_FAILED', field: 'emergencyContacts'),
+      );
+
+      await expectLater(
+        h.repository.accept('abc123'),
+        throwsA(
+          _failure(
+            'VALIDATION_FAILED',
+            field: 'emergencyContacts',
+            status: 422,
+          ),
+        ),
+      );
     });
 
     for (final entry in {
@@ -507,7 +600,6 @@ void main() {
     for (final code in [
       'INVITATION_EXPIRED',
       'INVITATION_ROLE_MISMATCH',
-      'TENANT_HAS_ACTIVE_LEASE',
       'MANAGER_ALREADY_ADDED',
     ]) {
       test('keeps $code with its status', () async {
@@ -566,18 +658,18 @@ Map<String, Object?> _acceptanceJson({
   String accountRole = 'manager',
   bool canAccept = true,
   String? blocker,
-  Map<String, Object?>? activeLease,
+  String? roomNumber,
+  bool emergencyContactsRequired = false,
 }) => {
   'invitation': _previewJson(
     status: status,
     role: role,
-    roomNumber: null,
-    emergencyContactsRequired: false,
+    roomNumber: roomNumber,
+    emergencyContactsRequired: emergencyContactsRequired,
   ),
   'accountName': 'Andi Pengguna',
   'accountEmail': 'andi@example.com',
   'accountRole': accountRole,
   'canAccept': canAccept,
   'blocker': blocker,
-  'activeLease': activeLease,
 };

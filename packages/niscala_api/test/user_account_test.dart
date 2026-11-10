@@ -16,7 +16,7 @@ void main() {
   // final instance = UserAccount();
 
   group('test UserAccount', () {
-    // Owner: across owned properties. Tenant: 0 or 1. Otherwise 0.
+    // Owner: across owned properties. Tenant: across their records. Otherwise 0.
     // int activeLeaseCount
     test('to test the property `activeLeaseCount`', () async {
       // TODO
@@ -79,12 +79,10 @@ void main() {
       // TODO
     });
 
-    // AccountTenancy tenancy
-    test('to test the property `tenancy`', () async {
+    // A Tenant's active leases; empty for other roles.
+    // List<AccountTenancy> tenancies (default value: const [])
+    test('to test the property `tenancies`', () async {
       // TODO
     });
-
-
   });
-
 }

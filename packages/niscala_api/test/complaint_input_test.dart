@@ -22,7 +22,10 @@ void main() {
       // TODO
     });
 
-
+    // The room of one of the Tenant's active leases.
+    // String roomId
+    test('to test the property `roomId`', () async {
+      // TODO
+    });
   });
-
 }

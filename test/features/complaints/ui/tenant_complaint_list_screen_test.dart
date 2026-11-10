@@ -508,6 +508,141 @@ void main() {
     });
   });
 
+  group('property and room', () {
+    const melati = 'Kos Melati · Kamar 08';
+    const mawar = 'Kos Mawar · Kamar 12';
+
+    List<Complaint> twoPlaces() => [
+      makeComplaint(id: 'c1', description: 'Keran air bocor di Melati.'),
+      makeComplaint(
+        id: 'c2',
+        description: 'Lampu mati di Mawar.',
+        propertyName: 'Kos Mawar',
+        roomNumber: '12',
+        roomId: 'r2',
+      ),
+      makeComplaint(
+        id: 'c3',
+        description: 'Pintu rusak di Mawar.',
+        status: ComplaintStatus.done,
+        propertyName: 'Kos Mawar',
+        roomNumber: '12',
+        roomId: 'r2',
+      ),
+    ];
+
+    Finder inCardOf(String description, Finder matching) => find.descendant(
+      of: find.ancestor(
+        of: find.text(description),
+        matching: find.byType(Card),
+      ),
+      matching: matching,
+    );
+
+    testWidgets('shows the property and room of each complaint when the '
+        'tenant has several leases', (tester) async {
+      await pumpComplaintApp(
+        tester,
+        _repo(twoPlaces()),
+        leases: FakeLeaseRepository(leases: makeTwoLeases()),
+      );
+
+      expect(
+        inCardOf('Keran air bocor di Melati.', find.text(melati)),
+        findsOneWidget,
+      );
+      expect(
+        inCardOf('Lampu mati di Mawar.', find.text(mawar)),
+        findsOneWidget,
+      );
+      expect(inCardOf('Lampu mati di Mawar.', find.text(melati)), findsNothing);
+    });
+
+    testWidgets('shows it on the done filter too', (tester) async {
+      await pumpComplaintApp(
+        tester,
+        _repo(twoPlaces()),
+        leases: FakeLeaseRepository(leases: makeTwoLeases()),
+      );
+
+      await tester.tap(filterChip('Selesai'));
+      await tester.pumpAndSettle();
+
+      expect(
+        inCardOf('Pintu rusak di Mawar.', find.text(mawar)),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('reads the property and room with the rest of the complaint', (
+      tester,
+    ) async {
+      await pumpComplaintApp(
+        tester,
+        _repo(twoPlaces()),
+        leases: FakeLeaseRepository(leases: makeTwoLeases()),
+      );
+
+      final label = semanticsLabelOf(tester, 'Lampu mati di Mawar.');
+      expect(label, contains(mawar));
+      expect(label, contains('Baru'));
+      expect(label, isNot(contains(melati)));
+    });
+
+    testWidgets('shows neither when the tenant has one lease', (tester) async {
+      await pumpComplaintApp(tester, _repo(twoPlaces()));
+
+      expect(find.text(melati), findsNothing);
+      expect(find.text(mawar), findsNothing);
+      expect(find.textContaining('Kos M'), findsNothing);
+    });
+
+    testWidgets('shows neither when the tenant has no lease', (tester) async {
+      await pumpComplaintApp(
+        tester,
+        _repo(twoPlaces()),
+        leases: FakeLeaseRepository(),
+      );
+
+      expect(find.text(melati), findsNothing);
+      expect(find.text(mawar), findsNothing);
+    });
+
+    testWidgets('still lists the complaints when the leases fail to load', (
+      tester,
+    ) async {
+      final leases = FakeLeaseRepository(leases: makeTwoLeases())
+        ..script.always = const ApiFailure.network();
+      await pumpComplaintApp(tester, _repo(twoPlaces()), leases: leases);
+
+      expect(find.text('Keran air bocor di Melati.'), findsOneWidget);
+      expect(find.byType(ErrorView), findsNothing);
+      expect(find.text(melati), findsNothing);
+    });
+
+    testWidgets('meets the guidelines', (tester) async {
+      await pumpComplaintApp(
+        tester,
+        _repo(twoPlaces()),
+        leases: FakeLeaseRepository(leases: makeTwoLeases()),
+      );
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+
+    testWidgets('fits at large text size', (tester) async {
+      await pumpComplaintApp(
+        tester,
+        _repo(twoPlaces()),
+        leases: FakeLeaseRepository(leases: makeTwoLeases()),
+        largeText: true,
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text(melati), findsOneWidget);
+    });
+  });
+
   group('structure', () {
     testWidgets('is a tab root with a ScreenHeader and no app bar', (
       tester,

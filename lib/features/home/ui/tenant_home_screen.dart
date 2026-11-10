@@ -24,41 +24,42 @@ const _history = 'Lihat riwayat pembayaran';
 const _noBills = 'Tidak ada tagihan aktif.';
 const _noComplaints = 'Belum ada keluhan.';
 
-/// The tenant's home: a greeting with the room, the first active bill and the
-/// latest complaint. The lease decides whether the bill and complaint sections
-/// exist. Each section loads and fails on its own.
+/// The tenant's home: a greeting with the rooms, the first active bill and the
+/// latest complaint. The leases decide whether the bill and complaint sections
+/// exist. Each section loads and fails on its own, except the leases, which
+/// decide what the page shows.
 class TenantHomeScreen extends ConsumerWidget {
   const TenantHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final lease = ref.watch(myLeaseProvider);
+    final leases = ref.watch(myLeasesProvider);
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const ScreenHeader(title: 'Beranda'),
           Expanded(
-            child: lease.when(
+            child: leases.when(
               loading: () => const Center(
                 child: CircularProgressIndicator(semanticsLabel: 'Memuat'),
               ),
               error: (error, _) => ErrorView(
                 message: errorMessageFor(error),
-                onRetry: () => ref.invalidate(myLeaseProvider),
+                onRetry: () => ref.invalidate(myLeasesProvider),
               ),
-              data: (lease) => ListView(
+              data: (items) => ListView(
                 padding: const EdgeInsets.all(NiscalaSpacing.gutter),
                 children: [
-                  _Greeting(lease: lease),
+                  _Greeting(leases: items),
                   const SizedBox(height: NiscalaSpacing.l),
-                  if (lease == null)
+                  if (items.isEmpty)
                     Text(
                       noActiveLeaseMessage,
                       style: Theme.of(context).textTheme.bodyLarge,
                     )
                   else ...[
-                    const _BillSection(),
+                    _BillSection(showPlace: items.length > 1),
                     const SizedBox(height: NiscalaSpacing.l),
                     const _ComplaintSection(),
                   ],
@@ -72,16 +73,15 @@ class TenantHomeScreen extends ConsumerWidget {
   }
 }
 
-/// The account name, and the property and room when there is a lease.
+/// The account name, then the property and room of each lease.
 class _Greeting extends ConsumerWidget {
-  const _Greeting({required this.lease});
+  const _Greeting({required this.leases});
 
-  final CurrentLease? lease;
+  final List<CurrentLease> leases;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final name = ref.watch(myAccountProvider).value?.name;
-    final lease = this.lease;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -89,7 +89,7 @@ class _Greeting extends ConsumerWidget {
           name == null ? 'Halo' : 'Halo, $name',
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        if (lease != null)
+        for (final lease in leases)
           Text('${lease.property.name} · Kamar ${lease.room.number}'),
       ],
     );
@@ -99,7 +99,11 @@ class _Greeting extends ConsumerWidget {
 /// The first active bill, or the note that there is none, and the link to the
 /// payment history.
 class _BillSection extends ConsumerWidget {
-  const _BillSection();
+  const _BillSection({required this.showPlace});
+
+  /// Whether the bill names its property and room, which the tenant needs
+  /// when several leases are held.
+  final bool showPlace;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -119,7 +123,7 @@ class _BillSection extends ConsumerWidget {
             ),
             data: (items) => items.isEmpty
                 ? Text(_noBills, style: Theme.of(context).textTheme.bodyLarge)
-                : _FirstBill(bill: items.first),
+                : _FirstBill(bill: items.first, showPlace: showPlace),
           ),
           const SizedBox(height: NiscalaSpacing.s),
           Align(
@@ -138,9 +142,10 @@ class _BillSection extends ConsumerWidget {
 /// The facts of one bill, then its action once the bill detail, which holds
 /// the property's bank account, has loaded.
 class _FirstBill extends ConsumerWidget {
-  const _FirstBill({required this.bill});
+  const _FirstBill({required this.bill, required this.showPlace});
 
   final RentBillSummary bill;
+  final bool showPlace;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -149,6 +154,8 @@ class _FirstBill extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (showPlace)
+          Text('${bill.property.name} · Kamar ${bill.room.number}'),
         Wrap(
           spacing: NiscalaSpacing.s,
           runSpacing: NiscalaSpacing.xs,

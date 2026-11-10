@@ -22,18 +22,20 @@ class RoomLeaseSummary {
   String tenantName;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is RoomLeaseSummary &&
-    other.endDate == endDate &&
-    other.tenantName == tenantName;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RoomLeaseSummary &&
+          other.endDate == endDate &&
+          other.tenantName == tenantName;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (endDate == null ? 0 : endDate!.hashCode) +
-    (tenantName.hashCode);
+      // ignore: unnecessary_parenthesis
+      (endDate == null ? 0 : endDate!.hashCode) + (tenantName.hashCode);
 
   @override
-  String toString() => 'RoomLeaseSummary[endDate=$endDate, tenantName=$tenantName]';
+  String toString() =>
+      'RoomLeaseSummary[endDate=$endDate, tenantName=$tenantName]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -42,7 +44,7 @@ class RoomLeaseSummary {
     } else {
       json[r'endDate'] = null;
     }
-      json[r'tenantName'] = this.tenantName;
+    json[r'tenantName'] = this.tenantName;
     return json;
   }
 
@@ -58,8 +60,10 @@ class RoomLeaseSummary {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "RoomLeaseSummary[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "RoomLeaseSummary[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "RoomLeaseSummary[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "RoomLeaseSummary[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -72,7 +76,10 @@ class RoomLeaseSummary {
     return null;
   }
 
-  static List<RoomLeaseSummary> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<RoomLeaseSummary> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <RoomLeaseSummary>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -100,13 +107,19 @@ class RoomLeaseSummary {
   }
 
   // maps a json object with a list of RoomLeaseSummary-objects as value to a dart map
-  static Map<String, List<RoomLeaseSummary>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<RoomLeaseSummary>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<RoomLeaseSummary>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = RoomLeaseSummary.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = RoomLeaseSummary.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -117,4 +130,3 @@ class RoomLeaseSummary {
     'tenantName',
   };
 }
-

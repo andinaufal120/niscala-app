@@ -22,11 +22,13 @@ String receiptPath(String id) => '/penyewa/pembayaran/bukti/$id';
 ///
 /// With [settle] false only a few frames are pumped, so a held `gate` keeps
 /// the screen in its loading state. With [largeText] the display is 360 x 640
-/// dp at text scale 2.0 and the test fails on any overflow.
+/// dp at text scale 2.0 and the test fails on any overflow. Without [leases]
+/// the tenant has no lease.
 Future<void> pumpRentBillApp(
   WidgetTester tester,
   FakeRentBillRepository rentBills, {
   FakeReceiptPicker? picker,
+  FakeLeaseRepository? leases,
   UserRole role = UserRole.tenant,
   String path = paymentsPath,
   bool settle = true,
@@ -36,6 +38,7 @@ Future<void> pumpRentBillApp(
     store: InMemorySessionStore(storedSession(role: role)),
     rentBills: rentBills,
     receiptPicker: picker,
+    leases: leases,
   );
   if (largeText) {
     await pumpAtLargeText(tester, app);

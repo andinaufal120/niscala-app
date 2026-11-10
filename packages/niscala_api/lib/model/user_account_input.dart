@@ -26,26 +26,27 @@ class UserAccountInput {
   EditableAccountStatus status;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is UserAccountInput &&
-    other.email == email &&
-    other.name == name &&
-    other.status == status;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UserAccountInput &&
+          other.email == email &&
+          other.name == name &&
+          other.status == status;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (email.hashCode) +
-    (name.hashCode) +
-    (status.hashCode);
+      // ignore: unnecessary_parenthesis
+      (email.hashCode) + (name.hashCode) + (status.hashCode);
 
   @override
-  String toString() => 'UserAccountInput[email=$email, name=$name, status=$status]';
+  String toString() =>
+      'UserAccountInput[email=$email, name=$name, status=$status]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'email'] = this.email;
-      json[r'name'] = this.name;
-      json[r'status'] = this.status;
+    json[r'email'] = this.email;
+    json[r'name'] = this.name;
+    json[r'status'] = this.status;
     return json;
   }
 
@@ -61,8 +62,10 @@ class UserAccountInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "UserAccountInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "UserAccountInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "UserAccountInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "UserAccountInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -76,7 +79,10 @@ class UserAccountInput {
     return null;
   }
 
-  static List<UserAccountInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<UserAccountInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <UserAccountInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -104,13 +110,19 @@ class UserAccountInput {
   }
 
   // maps a json object with a list of UserAccountInput-objects as value to a dart map
-  static Map<String, List<UserAccountInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<UserAccountInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<UserAccountInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = UserAccountInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = UserAccountInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -123,4 +135,3 @@ class UserAccountInput {
     'status',
   };
 }
-

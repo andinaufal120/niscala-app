@@ -305,7 +305,145 @@ void main() {
     });
   });
 
+  group('with several leases', () {
+    List<CurrentLease> leases() => [
+      makeCurrentLease(rent: 750000, endDate: DateTime.utc(2026, 12, 31)),
+      makeCurrentLease(
+        tenantId: 't2',
+        propertyId: 'p2',
+        roomId: 'r2',
+        propertyName: 'Kos Mawar',
+        address: 'Jl. Mawar 2, Bandung',
+        roomNumber: '12',
+        billingCycle: BillingCycle.quarterly,
+        rent: 2100000,
+        startDate: DateTime.utc(2026, 3, 1),
+        endDate: DateTime.utc(2027, 2, 28),
+        noDimensions: true,
+        facilities: const ['wifi'],
+      ),
+    ];
+
+    testWidgets('shows one headed card per lease', (tester) async {
+      await pumpLeaseApp(tester, FakeLeaseRepository(leases: leases()));
+
+      expect(_textInCard(_heading), findsNWidgets(2));
+    });
+
+    testWidgets('keeps the lease section as one widget on the Akun tab', (
+      tester,
+    ) async {
+      await pumpLeaseApp(tester, FakeLeaseRepository(leases: leases()));
+
+      expect(find.byType(LeaseCard), findsOneWidget);
+    });
+
+    testWidgets('announces every heading as a header', (tester) async {
+      await pumpLeaseApp(tester, FakeLeaseRepository(leases: leases()));
+
+      final handle = tester.ensureSemantics();
+      try {
+        for (final heading in _textInCard(_heading).evaluate()) {
+          expect(
+            tester.getSemantics(find.byWidget(heading.widget)),
+            isSemantics(isHeader: true),
+          );
+        }
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets('shows the facts of each lease', (tester) async {
+      await pumpLeaseApp(tester, FakeLeaseRepository(leases: leases()));
+
+      expect(_textInCard('Kos Melati'), findsOneWidget);
+      expect(_textInCard('Kamar 08'), findsOneWidget);
+      expect(_textInCard('Jl. Melati 1, Bandung'), findsOneWidget);
+      expect(_textInCard('1 Jan 2026 - 31 Des 2026'), findsOneWidget);
+      expect(_textInCard('Rp750.000 / bulan'), findsOneWidget);
+      expect(_textInCard('3,5 × 4 m'), findsOneWidget);
+      expect(_inCard(find.textContaining('ac, kasur')), findsOneWidget);
+
+      expect(_textInCard('Kos Mawar'), findsOneWidget);
+      expect(_textInCard('Kamar 12'), findsOneWidget);
+      expect(_textInCard('Jl. Mawar 2, Bandung'), findsOneWidget);
+      expect(_textInCard('1 Mar 2026 - 28 Feb 2027'), findsOneWidget);
+      expect(_textInCard('Rp2.100.000 / 3 bulan'), findsOneWidget);
+      expect(_inCard(find.textContaining('wifi')), findsOneWidget);
+    });
+
+    testWidgets('lists the leases in the order of the API', (tester) async {
+      await pumpLeaseApp(tester, FakeLeaseRepository(leases: leases()));
+
+      expect(
+        tester.getTopLeft(_textInCard('Kos Melati')).dy,
+        lessThan(tester.getTopLeft(_textInCard('Kos Mawar')).dy),
+      );
+    });
+
+    testWidgets('keeps the order of the API when it is reversed', (
+      tester,
+    ) async {
+      await pumpLeaseApp(
+        tester,
+        FakeLeaseRepository(leases: leases().reversed.toList()),
+      );
+
+      expect(
+        tester.getTopLeft(_textInCard('Kos Mawar')).dy,
+        lessThan(tester.getTopLeft(_textInCard('Kos Melati')).dy),
+      );
+    });
+
+    testWidgets('shows neither the empty message nor an error', (tester) async {
+      await pumpLeaseApp(tester, FakeLeaseRepository(leases: leases()));
+
+      expect(_inCard(find.textContaining('Hubungi')), findsNothing);
+      expect(_inCard(find.byType(ErrorView)), findsNothing);
+    });
+
+    testWidgets('fetches the leases once', (tester) async {
+      final repository = FakeLeaseRepository(leases: leases());
+      await pumpLeaseApp(tester, repository);
+
+      expect(repository.calls, 1);
+    });
+
+    testWidgets('shows a single card for a single lease', (tester) async {
+      await pumpLeaseApp(
+        tester,
+        FakeLeaseRepository(lease: makeCurrentLease()),
+      );
+
+      expect(_textInCard(_heading), findsOneWidget);
+    });
+
+    testWidgets('meets the accessibility guidelines', (tester) async {
+      await pumpLeaseApp(tester, FakeLeaseRepository(leases: leases()));
+
+      await expectMeetsA11yGuidelines(tester);
+    });
+
+    testWidgets('fits at large text size', (tester) async {
+      await pumpLeaseApp(
+        tester,
+        FakeLeaseRepository(leases: leases()),
+        largeText: true,
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Kos Mawar', skipOffstage: false), findsOneWidget);
+    });
+  });
+
   group('without a lease', () {
+    testWidgets('shows a single card with the heading', (tester) async {
+      await pumpLeaseApp(tester, FakeLeaseRepository());
+
+      expect(_textInCard(_heading), findsOneWidget);
+    });
+
     testWidgets('tells the tenant to contact management', (tester) async {
       await pumpLeaseApp(tester, FakeLeaseRepository());
 

@@ -19,20 +19,20 @@ class Health {
   String status;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Health &&
-    other.status == status;
+  bool operator ==(Object other) =>
+      identical(this, other) || other is Health && other.status == status;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (status.hashCode);
+      // ignore: unnecessary_parenthesis
+      (status.hashCode);
 
   @override
   String toString() => 'Health[status=$status]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'status'] = this.status;
+    json[r'status'] = this.status;
     return json;
   }
 
@@ -48,8 +48,10 @@ class Health {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Health[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Health[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Health[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Health[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -61,7 +63,10 @@ class Health {
     return null;
   }
 
-  static List<Health> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Health> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Health>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -89,13 +94,19 @@ class Health {
   }
 
   // maps a json object with a list of Health-objects as value to a dart map
-  static Map<String, List<Health>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Health>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Health>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Health.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Health.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -106,4 +117,3 @@ class Health {
     'status',
   };
 }
-

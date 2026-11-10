@@ -32,9 +32,13 @@ class PaidPlanCode {
     pro,
   ];
 
-  static PaidPlanCode? fromJson(dynamic value) => PaidPlanCodeTypeTransformer().decode(value);
+  static PaidPlanCode? fromJson(dynamic value) =>
+      PaidPlanCodeTypeTransformer().decode(value);
 
-  static List<PaidPlanCode> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PaidPlanCode> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PaidPlanCode>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -51,7 +55,8 @@ class PaidPlanCode {
 /// Transformation class that can [encode] an instance of [PaidPlanCode] to String,
 /// and [decode] dynamic data back to [PaidPlanCode].
 class PaidPlanCodeTypeTransformer {
-  factory PaidPlanCodeTypeTransformer() => _instance ??= const PaidPlanCodeTypeTransformer._();
+  factory PaidPlanCodeTypeTransformer() =>
+      _instance ??= const PaidPlanCodeTypeTransformer._();
 
   const PaidPlanCodeTypeTransformer._();
 
@@ -68,8 +73,10 @@ class PaidPlanCodeTypeTransformer {
   PaidPlanCode? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'basic': return PaidPlanCode.basic;
-        case r'pro': return PaidPlanCode.pro;
+        case r'basic':
+          return PaidPlanCode.basic;
+        case r'pro':
+          return PaidPlanCode.pro;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -82,4 +89,3 @@ class PaidPlanCodeTypeTransformer {
   /// Singleton [PaidPlanCodeTypeTransformer] instance.
   static PaidPlanCodeTypeTransformer? _instance;
 }
-

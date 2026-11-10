@@ -19,20 +19,21 @@ class RoomList {
   List<RoomSummary> items;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is RoomList &&
-    _deepEquality.equals(other.items, items);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RoomList && _deepEquality.equals(other.items, items);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (items.hashCode);
+      // ignore: unnecessary_parenthesis
+      (items.hashCode);
 
   @override
   String toString() => 'RoomList[items=$items]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'items'] = this.items;
+    json[r'items'] = this.items;
     return json;
   }
 
@@ -48,8 +49,10 @@ class RoomList {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "RoomList[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "RoomList[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "RoomList[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "RoomList[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -61,7 +64,10 @@ class RoomList {
     return null;
   }
 
-  static List<RoomList> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<RoomList> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <RoomList>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -89,13 +95,19 @@ class RoomList {
   }
 
   // maps a json object with a list of RoomList-objects as value to a dart map
-  static Map<String, List<RoomList>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<RoomList>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<RoomList>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = RoomList.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = RoomList.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -106,4 +118,3 @@ class RoomList {
     'items',
   };
 }
-

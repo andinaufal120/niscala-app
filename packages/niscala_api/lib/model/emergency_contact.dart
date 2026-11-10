@@ -26,26 +26,27 @@ class EmergencyContact {
   String relationship;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is EmergencyContact &&
-    other.name == name &&
-    other.phone == phone &&
-    other.relationship == relationship;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EmergencyContact &&
+          other.name == name &&
+          other.phone == phone &&
+          other.relationship == relationship;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (name.hashCode) +
-    (phone.hashCode) +
-    (relationship.hashCode);
+      // ignore: unnecessary_parenthesis
+      (name.hashCode) + (phone.hashCode) + (relationship.hashCode);
 
   @override
-  String toString() => 'EmergencyContact[name=$name, phone=$phone, relationship=$relationship]';
+  String toString() =>
+      'EmergencyContact[name=$name, phone=$phone, relationship=$relationship]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'name'] = this.name;
-      json[r'phone'] = this.phone;
-      json[r'relationship'] = this.relationship;
+    json[r'name'] = this.name;
+    json[r'phone'] = this.phone;
+    json[r'relationship'] = this.relationship;
     return json;
   }
 
@@ -61,8 +62,10 @@ class EmergencyContact {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "EmergencyContact[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "EmergencyContact[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "EmergencyContact[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "EmergencyContact[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -76,7 +79,10 @@ class EmergencyContact {
     return null;
   }
 
-  static List<EmergencyContact> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<EmergencyContact> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <EmergencyContact>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -104,13 +110,19 @@ class EmergencyContact {
   }
 
   // maps a json object with a list of EmergencyContact-objects as value to a dart map
-  static Map<String, List<EmergencyContact>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<EmergencyContact>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<EmergencyContact>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = EmergencyContact.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = EmergencyContact.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -123,4 +135,3 @@ class EmergencyContact {
     'relationship',
   };
 }
-

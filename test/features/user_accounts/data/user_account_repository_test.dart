@@ -89,13 +89,20 @@ Map<String, dynamic> _accountJson({String role = 'tenant', bool full = true}) =>
               {'id': 'p1', 'name': 'Kos Melati'},
             ]
           : <Object>[],
-      'tenancy': full
-          ? {
-              'propertyName': 'Kos Melati',
-              'roomNumber': '08',
-              'leaseEndDate': '2026-12-31',
-            }
-          : null,
+      'tenancies': full
+          ? [
+              {
+                'propertyName': 'Kos Melati',
+                'roomNumber': '08',
+                'leaseEndDate': '2026-12-31',
+              },
+              {
+                'propertyName': 'Kos Mawar',
+                'roomNumber': '12',
+                'leaseEndDate': null,
+              },
+            ]
+          : <Object>[],
     };
 
 void main() {
@@ -234,9 +241,13 @@ void main() {
       expect(result.pendingEmail, 'baru@example.com');
       expect(result.pendingEmailExpiresAt!.toUtc().day, 25);
       expect(result.properties.single.name, 'Kos Melati');
-      expect(result.tenancy!.propertyName, 'Kos Melati');
-      expect(result.tenancy!.roomNumber, '08');
-      expect(result.tenancy!.leaseEndDate!.day, 31);
+      expect(result.tenancies, hasLength(2));
+      expect(result.tenancies.first.propertyName, 'Kos Melati');
+      expect(result.tenancies.first.roomNumber, '08');
+      expect(result.tenancies.first.leaseEndDate!.day, 31);
+      expect(result.tenancies.last.propertyName, 'Kos Mawar');
+      expect(result.tenancies.last.roomNumber, '12');
+      expect(result.tenancies.last.leaseEndDate, isNull);
     });
 
     test(
@@ -254,7 +265,7 @@ void main() {
         expect(result.pendingEmail, isNull);
         expect(result.pendingEmailExpiresAt, isNull);
         expect(result.properties, isEmpty);
-        expect(result.tenancy, isNull);
+        expect(result.tenancies, isEmpty);
       },
     );
 

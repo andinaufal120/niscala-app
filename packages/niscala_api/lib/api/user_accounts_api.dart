@@ -10,9 +10,9 @@
 
 part of niscala_api;
 
-
 class UserAccountsApi {
-  UserAccountsApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
+  UserAccountsApi([ApiClient? apiClient])
+      : apiClient = apiClient ?? defaultApiClient;
 
   final ApiClient apiClient;
 
@@ -25,10 +25,12 @@ class UserAccountsApi {
   /// Parameters:
   ///
   /// * [String] userAccountId (required):
-  Future<Response> deleteUserAccountWithHttpInfo(String userAccountId,) async {
+  Future<Response> deleteUserAccountWithHttpInfo(
+    String userAccountId,
+  ) async {
     // ignore: prefer_const_declarations
     final path = r'/user-accounts/{userAccountId}'
-      .replaceAll('{userAccountId}', userAccountId);
+        .replaceAll('{userAccountId}', userAccountId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -38,7 +40,6 @@ class UserAccountsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -58,8 +59,12 @@ class UserAccountsApi {
   /// Parameters:
   ///
   /// * [String] userAccountId (required):
-  Future<void> deleteUserAccount(String userAccountId,) async {
-    final response = await deleteUserAccountWithHttpInfo(userAccountId,);
+  Future<void> deleteUserAccount(
+    String userAccountId,
+  ) async {
+    final response = await deleteUserAccountWithHttpInfo(
+      userAccountId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -74,10 +79,12 @@ class UserAccountsApi {
   /// Parameters:
   ///
   /// * [String] userAccountId (required):
-  Future<Response> getUserAccountWithHttpInfo(String userAccountId,) async {
+  Future<Response> getUserAccountWithHttpInfo(
+    String userAccountId,
+  ) async {
     // ignore: prefer_const_declarations
     final path = r'/user-accounts/{userAccountId}'
-      .replaceAll('{userAccountId}', userAccountId);
+        .replaceAll('{userAccountId}', userAccountId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -87,7 +94,6 @@ class UserAccountsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -107,17 +113,24 @@ class UserAccountsApi {
   /// Parameters:
   ///
   /// * [String] userAccountId (required):
-  Future<UserAccount?> getUserAccount(String userAccountId,) async {
-    final response = await getUserAccountWithHttpInfo(userAccountId,);
+  Future<UserAccount?> getUserAccount(
+    String userAccountId,
+  ) async {
+    final response = await getUserAccountWithHttpInfo(
+      userAccountId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'UserAccount',) as UserAccount;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'UserAccount',
+      ) as UserAccount;
     }
     return null;
   }
@@ -137,7 +150,11 @@ class UserAccountsApi {
   ///
   /// * [bool] includeDeleted:
   ///   Include deleted accounts.
-  Future<Response> listUserAccountsWithHttpInfo({ String? email, UserRole? role, bool? includeDeleted, }) async {
+  Future<Response> listUserAccountsWithHttpInfo({
+    String? email,
+    UserRole? role,
+    bool? includeDeleted,
+  }) async {
     // ignore: prefer_const_declarations
     final path = r'/user-accounts';
 
@@ -160,7 +177,6 @@ class UserAccountsApi {
 
     const contentTypes = <String>[];
 
-
     return apiClient.invokeAPI(
       path,
       'GET',
@@ -185,17 +201,28 @@ class UserAccountsApi {
   ///
   /// * [bool] includeDeleted:
   ///   Include deleted accounts.
-  Future<UserAccountList?> listUserAccounts({ String? email, UserRole? role, bool? includeDeleted, }) async {
-    final response = await listUserAccountsWithHttpInfo( email: email, role: role, includeDeleted: includeDeleted, );
+  Future<UserAccountList?> listUserAccounts({
+    String? email,
+    UserRole? role,
+    bool? includeDeleted,
+  }) async {
+    final response = await listUserAccountsWithHttpInfo(
+      email: email,
+      role: role,
+      includeDeleted: includeDeleted,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'UserAccountList',) as UserAccountList;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'UserAccountList',
+      ) as UserAccountList;
     }
     return null;
   }
@@ -211,10 +238,13 @@ class UserAccountsApi {
   /// * [String] userAccountId (required):
   ///
   /// * [UserAccountInput] userAccountInput (required):
-  Future<Response> updateUserAccountWithHttpInfo(String userAccountId, UserAccountInput userAccountInput,) async {
+  Future<Response> updateUserAccountWithHttpInfo(
+    String userAccountId,
+    UserAccountInput userAccountInput,
+  ) async {
     // ignore: prefer_const_declarations
     final path = r'/user-accounts/{userAccountId}'
-      .replaceAll('{userAccountId}', userAccountId);
+        .replaceAll('{userAccountId}', userAccountId);
 
     // ignore: prefer_final_locals
     Object? postBody = userAccountInput;
@@ -224,7 +254,6 @@ class UserAccountsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -246,17 +275,26 @@ class UserAccountsApi {
   /// * [String] userAccountId (required):
   ///
   /// * [UserAccountInput] userAccountInput (required):
-  Future<UserAccount?> updateUserAccount(String userAccountId, UserAccountInput userAccountInput,) async {
-    final response = await updateUserAccountWithHttpInfo(userAccountId, userAccountInput,);
+  Future<UserAccount?> updateUserAccount(
+    String userAccountId,
+    UserAccountInput userAccountInput,
+  ) async {
+    final response = await updateUserAccountWithHttpInfo(
+      userAccountId,
+      userAccountInput,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'UserAccount',) as UserAccount;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'UserAccount',
+      ) as UserAccount;
     }
     return null;
   }

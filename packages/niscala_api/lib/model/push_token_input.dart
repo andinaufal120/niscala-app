@@ -19,20 +19,20 @@ class PushTokenInput {
   String token;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PushTokenInput &&
-    other.token == token;
+  bool operator ==(Object other) =>
+      identical(this, other) || other is PushTokenInput && other.token == token;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (token.hashCode);
+      // ignore: unnecessary_parenthesis
+      (token.hashCode);
 
   @override
   String toString() => 'PushTokenInput[token=$token]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'token'] = this.token;
+    json[r'token'] = this.token;
     return json;
   }
 
@@ -48,8 +48,10 @@ class PushTokenInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PushTokenInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PushTokenInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PushTokenInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PushTokenInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -61,7 +63,10 @@ class PushTokenInput {
     return null;
   }
 
-  static List<PushTokenInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PushTokenInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PushTokenInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -89,13 +94,19 @@ class PushTokenInput {
   }
 
   // maps a json object with a list of PushTokenInput-objects as value to a dart map
-  static Map<String, List<PushTokenInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PushTokenInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PushTokenInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PushTokenInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PushTokenInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -106,4 +117,3 @@ class PushTokenInput {
     'token',
   };
 }
-

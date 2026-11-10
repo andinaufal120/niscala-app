@@ -76,8 +76,5 @@ void main() {
     test('to test the property `tenantName`', () async {
       // TODO
     });
-
-
   });
-
 }

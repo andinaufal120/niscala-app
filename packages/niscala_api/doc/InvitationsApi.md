@@ -17,7 +17,7 @@ Method | HTTP request | Description
 
 
 # **acceptInvitation**
-> acceptInvitation(tokenInput)
+> acceptInvitation(invitationAcceptanceInput)
 
 Accept Invitation
 
@@ -34,10 +34,10 @@ import 'package:niscala_api/api.dart';
 //defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
 
 final api_instance = InvitationsApi();
-final tokenInput = TokenInput(); // TokenInput | 
+final invitationAcceptanceInput = InvitationAcceptanceInput(); // InvitationAcceptanceInput | 
 
 try {
-    api_instance.acceptInvitation(tokenInput);
+    api_instance.acceptInvitation(invitationAcceptanceInput);
 } catch (e) {
     print('Exception when calling InvitationsApi->acceptInvitation: $e\n');
 }
@@ -47,7 +47,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **tokenInput** | [**TokenInput**](TokenInput.md)|  | 
+ **invitationAcceptanceInput** | [**InvitationAcceptanceInput**](InvitationAcceptanceInput.md)|  | 
 
 ### Return type
 

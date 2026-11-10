@@ -32,9 +32,13 @@ class ManagerAccountStatus {
     active,
   ];
 
-  static ManagerAccountStatus? fromJson(dynamic value) => ManagerAccountStatusTypeTransformer().decode(value);
+  static ManagerAccountStatus? fromJson(dynamic value) =>
+      ManagerAccountStatusTypeTransformer().decode(value);
 
-  static List<ManagerAccountStatus> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ManagerAccountStatus> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ManagerAccountStatus>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -51,7 +55,8 @@ class ManagerAccountStatus {
 /// Transformation class that can [encode] an instance of [ManagerAccountStatus] to String,
 /// and [decode] dynamic data back to [ManagerAccountStatus].
 class ManagerAccountStatusTypeTransformer {
-  factory ManagerAccountStatusTypeTransformer() => _instance ??= const ManagerAccountStatusTypeTransformer._();
+  factory ManagerAccountStatusTypeTransformer() =>
+      _instance ??= const ManagerAccountStatusTypeTransformer._();
 
   const ManagerAccountStatusTypeTransformer._();
 
@@ -68,8 +73,10 @@ class ManagerAccountStatusTypeTransformer {
   ManagerAccountStatus? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'notActivated': return ManagerAccountStatus.notActivated;
-        case r'active': return ManagerAccountStatus.active;
+        case r'notActivated':
+          return ManagerAccountStatus.notActivated;
+        case r'active':
+          return ManagerAccountStatus.active;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -82,4 +89,3 @@ class ManagerAccountStatusTypeTransformer {
   /// Singleton [ManagerAccountStatusTypeTransformer] instance.
   static ManagerAccountStatusTypeTransformer? _instance;
 }
-

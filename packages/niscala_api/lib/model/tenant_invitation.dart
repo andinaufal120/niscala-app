@@ -28,28 +28,31 @@ class TenantInvitation {
   String? url;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is TenantInvitation &&
-    other.createdAt == createdAt &&
-    other.expired == expired &&
-    other.expiresAt == expiresAt &&
-    other.url == url;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TenantInvitation &&
+          other.createdAt == createdAt &&
+          other.expired == expired &&
+          other.expiresAt == expiresAt &&
+          other.url == url;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (createdAt.hashCode) +
-    (expired.hashCode) +
-    (expiresAt.hashCode) +
-    (url == null ? 0 : url!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (createdAt.hashCode) +
+      (expired.hashCode) +
+      (expiresAt.hashCode) +
+      (url == null ? 0 : url!.hashCode);
 
   @override
-  String toString() => 'TenantInvitation[createdAt=$createdAt, expired=$expired, expiresAt=$expiresAt, url=$url]';
+  String toString() =>
+      'TenantInvitation[createdAt=$createdAt, expired=$expired, expiresAt=$expiresAt, url=$url]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'createdAt'] = this.createdAt.toUtc().toIso8601String();
-      json[r'expired'] = this.expired;
-      json[r'expiresAt'] = this.expiresAt.toUtc().toIso8601String();
+    json[r'createdAt'] = this.createdAt.toUtc().toIso8601String();
+    json[r'expired'] = this.expired;
+    json[r'expiresAt'] = this.expiresAt.toUtc().toIso8601String();
     if (this.url != null) {
       json[r'url'] = this.url;
     } else {
@@ -70,8 +73,10 @@ class TenantInvitation {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "TenantInvitation[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "TenantInvitation[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "TenantInvitation[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "TenantInvitation[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -86,7 +91,10 @@ class TenantInvitation {
     return null;
   }
 
-  static List<TenantInvitation> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<TenantInvitation> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <TenantInvitation>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -114,13 +122,19 @@ class TenantInvitation {
   }
 
   // maps a json object with a list of TenantInvitation-objects as value to a dart map
-  static Map<String, List<TenantInvitation>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<TenantInvitation>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<TenantInvitation>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = TenantInvitation.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = TenantInvitation.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -133,4 +147,3 @@ class TenantInvitation {
     'expiresAt',
   };
 }
-

@@ -8,7 +8,7 @@ import 'package:niscala_api/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**activeLeaseCount** | **int** | Owner: across owned properties. Tenant: 0 or 1. Otherwise 0. | 
+**activeLeaseCount** | **int** | Owner: across owned properties. Tenant: across their records. Otherwise 0. | 
 **email** | **String** | The email the account logs in with. | 
 **id** | **String** |  | 
 **lastLoginAt** | [**DateTime**](DateTime.md) |  | [optional] 
@@ -20,7 +20,7 @@ Name | Type | Description | Notes
 **registeredAt** | [**DateTime**](DateTime.md) |  | 
 **role** | [**UserRole**](UserRole.md) |  | 
 **status** | [**UserAccountStatus**](UserAccountStatus.md) |  | 
-**tenancy** | [**AccountTenancy**](AccountTenancy.md) |  | [optional] 
+**tenancies** | [**List<AccountTenancy>**](AccountTenancy.md) | A Tenant's active leases; empty for other roles. | [default to const []]
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

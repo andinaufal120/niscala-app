@@ -31,28 +31,33 @@ class ComplaintClassification {
   ComplaintUrgency urgency;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ComplaintClassification &&
-    other.category == category &&
-    other.classifiedByName == classifiedByName &&
-    other.originalAiClassification == originalAiClassification &&
-    other.suggestedAction == suggestedAction &&
-    other.urgency == urgency;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ComplaintClassification &&
+          other.category == category &&
+          other.classifiedByName == classifiedByName &&
+          other.originalAiClassification == originalAiClassification &&
+          other.suggestedAction == suggestedAction &&
+          other.urgency == urgency;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (category.hashCode) +
-    (classifiedByName == null ? 0 : classifiedByName!.hashCode) +
-    (originalAiClassification == null ? 0 : originalAiClassification!.hashCode) +
-    (suggestedAction == null ? 0 : suggestedAction!.hashCode) +
-    (urgency.hashCode);
+      // ignore: unnecessary_parenthesis
+      (category.hashCode) +
+      (classifiedByName == null ? 0 : classifiedByName!.hashCode) +
+      (originalAiClassification == null
+          ? 0
+          : originalAiClassification!.hashCode) +
+      (suggestedAction == null ? 0 : suggestedAction!.hashCode) +
+      (urgency.hashCode);
 
   @override
-  String toString() => 'ComplaintClassification[category=$category, classifiedByName=$classifiedByName, originalAiClassification=$originalAiClassification, suggestedAction=$suggestedAction, urgency=$urgency]';
+  String toString() =>
+      'ComplaintClassification[category=$category, classifiedByName=$classifiedByName, originalAiClassification=$originalAiClassification, suggestedAction=$suggestedAction, urgency=$urgency]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'category'] = this.category;
+    json[r'category'] = this.category;
     if (this.classifiedByName != null) {
       json[r'classifiedByName'] = this.classifiedByName;
     } else {
@@ -68,7 +73,7 @@ class ComplaintClassification {
     } else {
       json[r'suggestedAction'] = null;
     }
-      json[r'urgency'] = this.urgency;
+    json[r'urgency'] = this.urgency;
     return json;
   }
 
@@ -84,8 +89,10 @@ class ComplaintClassification {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ComplaintClassification[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ComplaintClassification[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ComplaintClassification[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ComplaintClassification[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -93,7 +100,8 @@ class ComplaintClassification {
       return ComplaintClassification(
         category: mapValueOfType<String>(json, r'category')!,
         classifiedByName: mapValueOfType<String>(json, r'classifiedByName'),
-        originalAiClassification: AiComplaintClassification.fromJson(json[r'originalAiClassification']),
+        originalAiClassification: AiComplaintClassification.fromJson(
+            json[r'originalAiClassification']),
         suggestedAction: mapValueOfType<String>(json, r'suggestedAction'),
         urgency: ComplaintUrgency.fromJson(json[r'urgency'])!,
       );
@@ -101,7 +109,10 @@ class ComplaintClassification {
     return null;
   }
 
-  static List<ComplaintClassification> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ComplaintClassification> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ComplaintClassification>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -129,13 +140,19 @@ class ComplaintClassification {
   }
 
   // maps a json object with a list of ComplaintClassification-objects as value to a dart map
-  static Map<String, List<ComplaintClassification>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ComplaintClassification>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ComplaintClassification>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ComplaintClassification.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ComplaintClassification.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -147,4 +164,3 @@ class ComplaintClassification {
     'urgency',
   };
 }
-

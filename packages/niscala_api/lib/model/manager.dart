@@ -41,53 +41,56 @@ class Manager {
   List<ManagerProperty> properties;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Manager &&
-    other.accountStatus == accountStatus &&
-    other.email == email &&
-    other.id == id &&
-    other.invitation == invitation &&
-    other.name == name &&
-    other.nickname == nickname &&
-    other.phone == phone &&
-    _deepEquality.equals(other.properties, properties);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Manager &&
+          other.accountStatus == accountStatus &&
+          other.email == email &&
+          other.id == id &&
+          other.invitation == invitation &&
+          other.name == name &&
+          other.nickname == nickname &&
+          other.phone == phone &&
+          _deepEquality.equals(other.properties, properties);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (accountStatus.hashCode) +
-    (email == null ? 0 : email!.hashCode) +
-    (id.hashCode) +
-    (invitation == null ? 0 : invitation!.hashCode) +
-    (name.hashCode) +
-    (nickname == null ? 0 : nickname!.hashCode) +
-    (phone.hashCode) +
-    (properties.hashCode);
+      // ignore: unnecessary_parenthesis
+      (accountStatus.hashCode) +
+      (email == null ? 0 : email!.hashCode) +
+      (id.hashCode) +
+      (invitation == null ? 0 : invitation!.hashCode) +
+      (name.hashCode) +
+      (nickname == null ? 0 : nickname!.hashCode) +
+      (phone.hashCode) +
+      (properties.hashCode);
 
   @override
-  String toString() => 'Manager[accountStatus=$accountStatus, email=$email, id=$id, invitation=$invitation, name=$name, nickname=$nickname, phone=$phone, properties=$properties]';
+  String toString() =>
+      'Manager[accountStatus=$accountStatus, email=$email, id=$id, invitation=$invitation, name=$name, nickname=$nickname, phone=$phone, properties=$properties]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'accountStatus'] = this.accountStatus;
+    json[r'accountStatus'] = this.accountStatus;
     if (this.email != null) {
       json[r'email'] = this.email;
     } else {
       json[r'email'] = null;
     }
-      json[r'id'] = this.id;
+    json[r'id'] = this.id;
     if (this.invitation != null) {
       json[r'invitation'] = this.invitation;
     } else {
       json[r'invitation'] = null;
     }
-      json[r'name'] = this.name;
+    json[r'name'] = this.name;
     if (this.nickname != null) {
       json[r'nickname'] = this.nickname;
     } else {
       json[r'nickname'] = null;
     }
-      json[r'phone'] = this.phone;
-      json[r'properties'] = this.properties;
+    json[r'phone'] = this.phone;
+    json[r'properties'] = this.properties;
     return json;
   }
 
@@ -103,8 +106,10 @@ class Manager {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Manager[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Manager[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Manager[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Manager[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -123,7 +128,10 @@ class Manager {
     return null;
   }
 
-  static List<Manager> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Manager> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Manager>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -151,13 +159,19 @@ class Manager {
   }
 
   // maps a json object with a list of Manager-objects as value to a dart map
-  static Map<String, List<Manager>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Manager>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Manager>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Manager.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Manager.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -172,4 +186,3 @@ class Manager {
     'properties',
   };
 }
-

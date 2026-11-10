@@ -46,13 +46,21 @@ UserAccount _owner({
       ],
 );
 
-UserAccount _tenant({AccountTenancy? tenancy, int activeLeaseCount = 1}) =>
-    makeUserAccount(activeLeaseCount: activeLeaseCount, tenancy: tenancy);
+UserAccount _tenant({
+  List<AccountTenancy> tenancies = const [],
+  int activeLeaseCount = 1,
+}) => makeUserAccount(activeLeaseCount: activeLeaseCount, tenancies: tenancies);
 
 AccountTenancy _tenancy({bool noEnd = false}) => AccountTenancy(
   propertyName: 'Kos Melati',
   roomNumber: '08',
   leaseEndDate: noEnd ? null : DateTime.utc(2026, 12, 31),
+);
+
+AccountTenancy _secondTenancy({bool noEnd = false}) => AccountTenancy(
+  propertyName: 'Kos Mawar',
+  roomNumber: '12',
+  leaseEndDate: noEnd ? null : DateTime.utc(2027, 2, 28),
 );
 
 UserAccount _manager() => makeUserAccount(
@@ -78,7 +86,12 @@ FakeUserAccountRepository _repo([List<UserAccount>? accounts]) =>
     FakeUserAccountRepository(
       accounts:
           accounts ??
-          [_tenant(tenancy: _tenancy()), _owner(), _manager(), _admin()],
+          [
+            _tenant(tenancies: [_tenancy()]),
+            _owner(),
+            _manager(),
+            _admin(),
+          ],
     );
 
 Future<void> _open(
@@ -899,7 +912,6 @@ void main() {
     group('failure', () {
       final codes = [
         'OWNER_HAS_ACTIVE_LEASE',
-        'TENANT_HAS_ACTIVE_LEASE',
         'CANNOT_MODIFY_OWN_ACCOUNT',
         'FORBIDDEN',
         'INTERNAL_ERROR',
@@ -951,22 +963,6 @@ void main() {
           findsOneWidget,
         );
         expect(find.text(genericErrorMessage), findsNothing);
-      });
-
-      testWidgets('a tenant with an active lease is told why', (tester) async {
-        final repo = _repo()
-          ..deleteScript.queue.add(
-            const ApiFailure(code: 'TENANT_HAS_ACTIVE_LEASE', statusCode: 409),
-          );
-        await _open(tester, repo, 'u1');
-        await _askToDelete(tester);
-
-        await _confirmDelete(tester);
-
-        expect(
-          find.text('Akun ini masih memiliki masa sewa aktif.'),
-          findsOneWidget,
-        );
       });
 
       testWidgets('an unknown error code shows the generic message', (
@@ -1293,7 +1289,9 @@ void main() {
     ) async {
       await _open(
         tester,
-        _repo([_tenant(tenancy: _tenancy(noEnd: true))]),
+        _repo([
+          _tenant(tenancies: [_tenancy(noEnd: true)]),
+        ]),
         'u1',
       );
 
@@ -1303,15 +1301,119 @@ void main() {
     });
 
     testWidgets('shows no property or room without a tenancy', (tester) async {
-      await _open(
-        tester,
-        _repo([_tenant(tenancy: null, activeLeaseCount: 0)]),
-        'u1',
-      );
+      await _open(tester, _repo([_tenant(activeLeaseCount: 0)]), 'u1');
 
       expect(find.text('Kos Melati'), findsNothing);
       expect(find.byType(ErrorView), findsNothing);
       expect(find.text('budi@example.com'), findsOneWidget);
+    });
+
+    group('with several tenancies', () {
+      FakeUserAccountRepository two({
+        bool firstNoEnd = false,
+        bool secondNoEnd = false,
+      }) => _repo([
+        _tenant(
+          activeLeaseCount: 2,
+          tenancies: [
+            _tenancy(noEnd: firstNoEnd),
+            _secondTenancy(noEnd: secondNoEnd),
+          ],
+        ),
+      ]);
+
+      testWidgets('lists the property, room and lease end of each', (
+        tester,
+      ) async {
+        await _open(tester, two(), 'u1');
+
+        expect(find.text('Kos Melati'), findsOneWidget);
+        expect(find.textContaining('08'), findsOneWidget);
+        expect(find.textContaining('31 Des 2026'), findsOneWidget);
+        expect(find.text('Kos Mawar'), findsOneWidget);
+        expect(find.textContaining('12'), findsOneWidget);
+        expect(find.textContaining('28 Feb 2027'), findsOneWidget);
+      });
+
+      testWidgets('lists them in the order of the API', (tester) async {
+        await _open(tester, two(), 'u1');
+
+        expect(
+          tester.getTopLeft(find.text('Kos Melati')).dy,
+          lessThan(tester.getTopLeft(find.text('Kos Mawar')).dy),
+        );
+      });
+
+      testWidgets('keeps the order of the API when it is reversed', (
+        tester,
+      ) async {
+        await _open(
+          tester,
+          _repo([
+            _tenant(
+              activeLeaseCount: 2,
+              tenancies: [_secondTenancy(), _tenancy()],
+            ),
+          ]),
+          'u1',
+        );
+
+        expect(
+          tester.getTopLeft(find.text('Kos Mawar')).dy,
+          lessThan(tester.getTopLeft(find.text('Kos Melati')).dy),
+        );
+      });
+
+      testWidgets('still shows the number of active leases', (tester) async {
+        await _open(tester, two(), 'u1');
+
+        expect(find.text('Masa sewa aktif'), findsOneWidget);
+        expect(find.text('2'), findsOneWidget);
+      });
+
+      testWidgets('shows the lease end only for the tenancy that has one', (
+        tester,
+      ) async {
+        await _open(tester, two(firstNoEnd: true), 'u1');
+
+        expect(find.text('Kos Melati'), findsOneWidget);
+        expect(find.text('Kos Mawar'), findsOneWidget);
+        expect(find.textContaining('31 Des 2026'), findsNothing);
+        expect(find.textContaining('28 Feb 2027'), findsOneWidget);
+      });
+
+      testWidgets('shows no lease end when no tenancy has one', (tester) async {
+        await _open(tester, two(firstNoEnd: true, secondNoEnd: true), 'u1');
+
+        expect(find.textContaining('Des 2026'), findsNothing);
+        expect(find.textContaining('Feb 2027'), findsNothing);
+        expect(find.text('Kos Melati'), findsOneWidget);
+        expect(find.text('Kos Mawar'), findsOneWidget);
+      });
+
+      testWidgets('lists a third tenancy too', (tester) async {
+        await _open(
+          tester,
+          _repo([
+            _tenant(
+              activeLeaseCount: 3,
+              tenancies: [
+                _tenancy(),
+                _secondTenancy(),
+                AccountTenancy(
+                  propertyName: 'Kos Anggrek',
+                  roomNumber: '03',
+                  leaseEndDate: null,
+                ),
+              ],
+            ),
+          ]),
+          'u1',
+        );
+
+        expect(find.text('Kos Anggrek'), findsOneWidget);
+        expect(find.text('3'), findsOneWidget);
+      });
     });
   });
 
@@ -1331,7 +1433,16 @@ void main() {
     final states = <String, (FakeUserAccountRepository, String)>{
       'a tenant': (_repo(), 'u1'),
       'a tenant without a tenancy': (
-        _repo([_tenant(tenancy: null, activeLeaseCount: 0)]),
+        _repo([_tenant(activeLeaseCount: 0)]),
+        'u1',
+      ),
+      'a tenant with several tenancies': (
+        _repo([
+          _tenant(
+            activeLeaseCount: 2,
+            tenancies: [_tenancy(), _secondTenancy(noEnd: true)],
+          ),
+        ]),
         'u1',
       ),
       'an owner': (_repo(), 'u2'),

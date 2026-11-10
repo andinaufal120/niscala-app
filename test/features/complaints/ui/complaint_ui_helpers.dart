@@ -19,7 +19,8 @@ String complaintListPath(UserRole role) =>
 /// Shows the app signed in as [role] and opens [path] on top of the home
 /// route, with [complaints] behind the complaint screens.
 ///
-/// Without [path] the Keluhan list of the role opens. With [settle] false only
+/// Without [path] the Keluhan list of the role opens. Without [leases] the
+/// tenant has exactly one lease, room 08 of Kos Melati. With [settle] false only
 /// a few frames are pumped, so a held `gate` keeps the screen in its loading
 /// state. With [largeText] the display is 360 x 640 dp at text scale 2.0 and
 /// the test fails on any overflow.
@@ -28,12 +29,14 @@ Future<void> pumpComplaintApp(
   FakeComplaintRepository complaints, {
   UserRole role = UserRole.tenant,
   String? path,
+  FakeLeaseRepository? leases,
   bool settle = true,
   bool largeText = false,
 }) async {
   final app = buildTestApp(
     store: InMemorySessionStore(storedSession(role: role)),
     complaints: complaints,
+    leases: leases ?? FakeLeaseRepository(lease: makeCurrentLease()),
   );
   if (largeText) {
     await pumpAtLargeText(tester, app);
@@ -41,7 +44,11 @@ Future<void> pumpComplaintApp(
     useTallScreen(tester);
     await tester.pumpWidget(app);
   }
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+  }
   goTo(tester, path ?? complaintListPath(role));
   if (settle) {
     await tester.pumpAndSettle();

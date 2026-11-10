@@ -19,20 +19,22 @@ class ComplaintCategoryList {
   List<String> items;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ComplaintCategoryList &&
-    _deepEquality.equals(other.items, items);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ComplaintCategoryList &&
+          _deepEquality.equals(other.items, items);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (items.hashCode);
+      // ignore: unnecessary_parenthesis
+      (items.hashCode);
 
   @override
   String toString() => 'ComplaintCategoryList[items=$items]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'items'] = this.items;
+    json[r'items'] = this.items;
     return json;
   }
 
@@ -48,22 +50,29 @@ class ComplaintCategoryList {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ComplaintCategoryList[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ComplaintCategoryList[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ComplaintCategoryList[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ComplaintCategoryList[$key]" has a null value in JSON.');
         });
         return true;
       }());
 
       return ComplaintCategoryList(
         items: json[r'items'] is Iterable
-            ? (json[r'items'] as Iterable).cast<String>().toList(growable: false)
+            ? (json[r'items'] as Iterable)
+                .cast<String>()
+                .toList(growable: false)
             : const [],
       );
     }
     return null;
   }
 
-  static List<ComplaintCategoryList> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ComplaintCategoryList> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ComplaintCategoryList>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -91,13 +100,19 @@ class ComplaintCategoryList {
   }
 
   // maps a json object with a list of ComplaintCategoryList-objects as value to a dart map
-  static Map<String, List<ComplaintCategoryList>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ComplaintCategoryList>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ComplaintCategoryList>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ComplaintCategoryList.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ComplaintCategoryList.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -108,4 +123,3 @@ class ComplaintCategoryList {
     'items',
   };
 }
-

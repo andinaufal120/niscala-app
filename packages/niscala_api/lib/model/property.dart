@@ -44,48 +44,51 @@ class Property {
   int vacantRoomCount;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is Property &&
-    other.address == address &&
-    other.bankAccount == bankAccount &&
-    other.editable == editable &&
-    other.id == id &&
-    _deepEquality.equals(other.managers, managers) &&
-    other.name == name &&
-    other.occupiedRoomCount == occupiedRoomCount &&
-    other.roomCount == roomCount &&
-    other.vacantRoomCount == vacantRoomCount;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Property &&
+          other.address == address &&
+          other.bankAccount == bankAccount &&
+          other.editable == editable &&
+          other.id == id &&
+          _deepEquality.equals(other.managers, managers) &&
+          other.name == name &&
+          other.occupiedRoomCount == occupiedRoomCount &&
+          other.roomCount == roomCount &&
+          other.vacantRoomCount == vacantRoomCount;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (address.hashCode) +
-    (bankAccount == null ? 0 : bankAccount!.hashCode) +
-    (editable.hashCode) +
-    (id.hashCode) +
-    (managers.hashCode) +
-    (name.hashCode) +
-    (occupiedRoomCount.hashCode) +
-    (roomCount.hashCode) +
-    (vacantRoomCount.hashCode);
+      // ignore: unnecessary_parenthesis
+      (address.hashCode) +
+      (bankAccount == null ? 0 : bankAccount!.hashCode) +
+      (editable.hashCode) +
+      (id.hashCode) +
+      (managers.hashCode) +
+      (name.hashCode) +
+      (occupiedRoomCount.hashCode) +
+      (roomCount.hashCode) +
+      (vacantRoomCount.hashCode);
 
   @override
-  String toString() => 'Property[address=$address, bankAccount=$bankAccount, editable=$editable, id=$id, managers=$managers, name=$name, occupiedRoomCount=$occupiedRoomCount, roomCount=$roomCount, vacantRoomCount=$vacantRoomCount]';
+  String toString() =>
+      'Property[address=$address, bankAccount=$bankAccount, editable=$editable, id=$id, managers=$managers, name=$name, occupiedRoomCount=$occupiedRoomCount, roomCount=$roomCount, vacantRoomCount=$vacantRoomCount]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'address'] = this.address;
+    json[r'address'] = this.address;
     if (this.bankAccount != null) {
       json[r'bankAccount'] = this.bankAccount;
     } else {
       json[r'bankAccount'] = null;
     }
-      json[r'editable'] = this.editable;
-      json[r'id'] = this.id;
-      json[r'managers'] = this.managers;
-      json[r'name'] = this.name;
-      json[r'occupiedRoomCount'] = this.occupiedRoomCount;
-      json[r'roomCount'] = this.roomCount;
-      json[r'vacantRoomCount'] = this.vacantRoomCount;
+    json[r'editable'] = this.editable;
+    json[r'id'] = this.id;
+    json[r'managers'] = this.managers;
+    json[r'name'] = this.name;
+    json[r'occupiedRoomCount'] = this.occupiedRoomCount;
+    json[r'roomCount'] = this.roomCount;
+    json[r'vacantRoomCount'] = this.vacantRoomCount;
     return json;
   }
 
@@ -101,8 +104,10 @@ class Property {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "Property[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "Property[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "Property[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "Property[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -122,7 +127,10 @@ class Property {
     return null;
   }
 
-  static List<Property> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<Property> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <Property>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -150,13 +158,19 @@ class Property {
   }
 
   // maps a json object with a list of Property-objects as value to a dart map
-  static Map<String, List<Property>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<Property>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<Property>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Property.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = Property.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -174,4 +188,3 @@ class Property {
     'vacantRoomCount',
   };
 }
-

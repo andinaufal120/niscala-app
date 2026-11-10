@@ -19,20 +19,21 @@ class PropertyList {
   List<PropertySummary> items;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PropertyList &&
-    _deepEquality.equals(other.items, items);
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PropertyList && _deepEquality.equals(other.items, items);
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (items.hashCode);
+      // ignore: unnecessary_parenthesis
+      (items.hashCode);
 
   @override
   String toString() => 'PropertyList[items=$items]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'items'] = this.items;
+    json[r'items'] = this.items;
     return json;
   }
 
@@ -48,8 +49,10 @@ class PropertyList {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PropertyList[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PropertyList[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PropertyList[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PropertyList[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -61,7 +64,10 @@ class PropertyList {
     return null;
   }
 
-  static List<PropertyList> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PropertyList> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PropertyList>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -89,13 +95,19 @@ class PropertyList {
   }
 
   // maps a json object with a list of PropertyList-objects as value to a dart map
-  static Map<String, List<PropertyList>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PropertyList>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PropertyList>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PropertyList.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PropertyList.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -106,4 +118,3 @@ class PropertyList {
     'items',
   };
 }
-

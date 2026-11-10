@@ -3,8 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
+import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/shell/account_screen.dart';
+import 'package:niscala/features/account/data/account_repository.dart';
+import 'package:niscala/features/complaints/data/complaint_repository.dart';
+import 'package:niscala/features/lease/data/lease_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
+import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
@@ -15,6 +20,53 @@ import '../../account/ui/account_ui_helpers.dart';
 const _link = 'Tautan undangan (wajib)';
 const _tokenLink = 'https://niscala.example/undangan/abc123';
 const _path = '/akun/undangan';
+const _tenantPath = '/penyewa/akun/undangan';
+
+const _contactsHeading = 'Kontak darurat (wajib)';
+const _contactName = 'Nama kontak (wajib)';
+const _contactRelationship = 'Hubungan (wajib)';
+const _contactPhone = 'Nomor telepon kontak (wajib)';
+const _addContact = 'Tambah Kontak Darurat';
+const _contactsMinimum = 'Isi minimal 2 kontak darurat.';
+
+Finder _contactField(String label, int index) => fieldLabeled(label).at(index);
+
+Future<void> _fillContact(
+  WidgetTester tester,
+  int index, {
+  String name = 'Ibu Budi',
+  String relationship = 'Ibu',
+  String phone = '081255204471',
+}) async {
+  await tester.enterText(_contactField(_contactName, index), name);
+  await tester.enterText(
+    _contactField(_contactRelationship, index),
+    relationship,
+  );
+  await tester.enterText(_contactField(_contactPhone, index), phone);
+  await tester.pump();
+}
+
+Future<void> _fillTwoContacts(WidgetTester tester) async {
+  await _fillContact(tester, 0);
+  await _fillContact(
+    tester,
+    1,
+    name: 'Adi',
+    relationship: 'Kakak',
+    phone: '081311112222',
+  );
+}
+
+String? _contactError(WidgetTester tester, String label, int index) => tester
+    .widget<InputDecorator>(
+      find.descendant(
+        of: labeledField(label).at(index),
+        matching: find.byType(InputDecorator),
+      ),
+    )
+    .decoration
+    .errorText;
 
 const _title = 'Terima Undangan';
 const _helper = 'Tempel tautan yang dibagikan pemilik kost.';
@@ -47,16 +99,22 @@ Future<void> _open(
   FakeInvitationRepository invitations, {
   FakeAccountRepository? accounts,
   FakePropertyRepository? properties,
+  FakeLeaseRepository? leases,
+  FakeRentBillRepository? rentBills,
+  FakeComplaintRepository? complaints,
+  UserRole role = UserRole.manager,
   bool largeText = false,
-  String path = _path,
+  String? path,
 }) async {
   final app = buildTestApp(
-    store: InMemorySessionStore(storedSession(role: UserRole.manager)),
+    store: InMemorySessionStore(storedSession(role: role)),
     invitations: invitations,
     accounts:
-        accounts ??
-        FakeAccountRepository(account: makeAccount(role: UserRole.manager)),
+        accounts ?? FakeAccountRepository(account: makeAccount(role: role)),
     properties: properties,
+    leases: leases,
+    rentBills: rentBills,
+    complaints: complaints,
   );
   if (largeText) {
     await pumpAtLargeText(tester, app);
@@ -65,7 +123,7 @@ Future<void> _open(
     await tester.pumpWidget(app);
   }
   await tester.pumpAndSettle();
-  goTo(tester, path);
+  goTo(tester, path ?? '${accountPath(role)}/undangan');
   await tester.pumpAndSettle();
 }
 
@@ -80,6 +138,10 @@ Future<void> _openStepTwo(
   FakeInvitationRepository invitations, {
   FakeAccountRepository? accounts,
   FakePropertyRepository? properties,
+  FakeLeaseRepository? leases,
+  FakeRentBillRepository? rentBills,
+  FakeComplaintRepository? complaints,
+  UserRole role = UserRole.manager,
   bool largeText = false,
 }) async {
   await _open(
@@ -87,6 +149,10 @@ Future<void> _openStepTwo(
     invitations,
     accounts: accounts,
     properties: properties,
+    leases: leases,
+    rentBills: rentBills,
+    complaints: complaints,
+    role: role,
     largeText: largeText,
   );
   await _continue(tester);
@@ -94,6 +160,32 @@ Future<void> _openStepTwo(
 
 Future<void> _tapAccept(WidgetTester tester) =>
     tapVisible(tester, buttonLabelled(_accept));
+
+/// A tenant invitation to room 08 of Kos Melati from Siti Pemilik.
+InvitationPreview _tenantInvitation({
+  InvitationLinkStatus status = InvitationLinkStatus.valid,
+  bool emergencyContactsRequired = false,
+  String? roomNumber = '08',
+}) => makeInvitationPreview(
+  status: status,
+  role: InvitationRole.tenant,
+  roomNumber: roomNumber,
+  emergencyContactsRequired: emergencyContactsRequired,
+);
+
+/// A repository that lets the signed-in tenant accept a tenant invitation.
+FakeInvitationRepository _tenantPreview({
+  bool contactsRequired = false,
+  String? roomNumber = '08',
+}) => _withPreview(
+  makeAcceptancePreview(
+    invitation: _tenantInvitation(
+      emergencyContactsRequired: contactsRequired,
+      roomNumber: roomNumber,
+    ),
+    accountRole: UserRole.tenant,
+  ),
+);
 
 FakeInvitationRepository _withPreview(InvitationAcceptancePreview preview) =>
     FakeInvitationRepository()..previewAcceptanceResult = preview;
@@ -108,18 +200,6 @@ FakeInvitationRepository _roleMismatch() => _withPreview(
   makeAcceptancePreview(
     accountRole: UserRole.owner,
     blocker: InvitationBlocker.roleMismatch,
-  ),
-);
-
-FakeInvitationRepository _activeLease() => _withPreview(
-  makeAcceptancePreview(
-    accountRole: UserRole.tenant,
-    blocker: InvitationBlocker.activeLease,
-    activeLease: ActiveLeaseSummary(
-      propertyName: 'Kos Mawar',
-      roomNumber: '12',
-      endDate: DateTime.utc(2026, 12, 31),
-    ),
   ),
 );
 
@@ -535,53 +615,98 @@ void main() {
       _expectNoAcceptButton();
     });
 
-    testWidgets('an active lease shows its message and no accept button', (
+    testWidgets('a role mismatch message stays and is a live region', (
       tester,
     ) async {
-      await _open(tester, _activeLease());
+      await _open(tester, _roleMismatch());
+      await _continue(tester);
+
+      await tester.pump(const Duration(seconds: 30));
+
+      final message = messageOfCode('INVITATION_ROLE_MISMATCH');
+      expect(find.text(message), findsOneWidget);
+      expectLiveRegion(tester, message);
+      expect(_snackBar(), findsNothing);
+    });
+
+    testWidgets('a role mismatch message is not a failed request', (
+      tester,
+    ) async {
+      final repo = _roleMismatch();
+      await _open(tester, repo);
+
+      await _continue(tester);
+
+      expect(repo.acceptances, isEmpty);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
+    });
+
+    testWidgets('a tenant who opens a manager invitation gets the role '
+        'mismatch message', (tester) async {
+      final repo = _withPreview(
+        makeAcceptancePreview(
+          accountRole: UserRole.tenant,
+          blocker: InvitationBlocker.roleMismatch,
+        ),
+      );
+      await _open(tester, repo, role: UserRole.tenant);
 
       await _continue(tester);
 
       expect(
-        find.text(messageOfCode('TENANT_HAS_ACTIVE_LEASE')),
+        find.text(messageOfCode('INVITATION_ROLE_MISMATCH')),
         findsOneWidget,
       );
       _expectNoAcceptButton();
     });
 
-    for (final entry in {
-      'role mismatch': (
-        make: _roleMismatch,
-        message: 'INVITATION_ROLE_MISMATCH',
-      ),
-      'active lease': (make: _activeLease, message: 'TENANT_HAS_ACTIVE_LEASE'),
-    }.entries) {
-      testWidgets('the ${entry.key} message stays and is a live region', (
+    testWidgets('a tenant who opens an expired tenant invitation is told it '
+        'expired', (tester) async {
+      final repo = _withPreview(
+        makeAcceptancePreview(
+          invitation: _tenantInvitation(status: InvitationLinkStatus.expired),
+          accountRole: UserRole.tenant,
+        ),
+      );
+      await _open(tester, repo, role: UserRole.tenant);
+
+      await _continue(tester);
+
+      expect(find.text(_expired), findsOneWidget);
+      _expectNoAcceptButton();
+    });
+
+    testWidgets('a tenant who opens a used tenant invitation is told it was '
+        'used', (tester) async {
+      final repo = _withPreview(
+        makeAcceptancePreview(
+          invitation: _tenantInvitation(status: InvitationLinkStatus.used),
+          accountRole: UserRole.tenant,
+        ),
+      );
+      await _open(tester, repo, role: UserRole.tenant);
+
+      await _continue(tester);
+
+      expect(find.text(_used), findsOneWidget);
+      _expectNoAcceptButton();
+    });
+
+    testWidgets('a tenant who already rents elsewhere can still accept', (
+      tester,
+    ) async {
+      final repo = _tenantPreview();
+      await _open(
         tester,
-      ) async {
-        await _open(tester, entry.value.make());
-        await _continue(tester);
+        repo,
+        role: UserRole.tenant,
+        leases: FakeLeaseRepository(leases: makeTwoLeases()),
+      );
 
-        await tester.pump(const Duration(seconds: 30));
+      await _continue(tester);
 
-        final message = messageOfCode(entry.value.message);
-        expect(find.text(message), findsOneWidget);
-        expectLiveRegion(tester, message);
-        expect(_snackBar(), findsNothing);
-      });
-
-      testWidgets('the ${entry.key} message is not a failed request', (
-        tester,
-      ) async {
-        final repo = entry.value.make();
-        await _open(tester, repo);
-
-        await _continue(tester);
-
-        expect(repo.acceptances, isEmpty);
-        expect(find.text(messageOfCode('NETWORK_ERROR')), findsNothing);
-      });
-    }
+      expect(buttonLabelled(_accept), findsOneWidget);
+    });
 
     testWidgets('a preview that cannot be accepted offers no accept button', (
       tester,
@@ -956,10 +1081,6 @@ void main() {
         code: 'INVITATION_ROLE_MISMATCH',
         statusCode: 409,
       ),
-      'TENANT_HAS_ACTIVE_LEASE': const ApiFailure(
-        code: 'TENANT_HAS_ACTIVE_LEASE',
-        statusCode: 409,
-      ),
       'NETWORK_ERROR': const ApiFailure.network(),
       'INTERNAL_ERROR': const ApiFailure(
         code: 'INTERNAL_ERROR',
@@ -1101,7 +1222,7 @@ void main() {
         accounts: accounts,
         path: accountPath(UserRole.manager),
       );
-      await tester.tap(find.text('Terima undangan pengelola'));
+      await tester.tap(find.text('Terima undangan'));
       await tester.pumpAndSettle();
       await _continue(tester);
       await _tapAccept(tester);
@@ -1126,6 +1247,629 @@ void main() {
       await _tapAccept(tester);
 
       expect(accounts.meCalls, before);
+    });
+  });
+
+  group('step two: a tenant invitation', () {
+    testWidgets('names the inviter, the property and the room', (tester) async {
+      await _openStepTwo(tester, _tenantPreview(), role: UserRole.tenant);
+
+      expect(find.text('Dari Siti Pemilik'), findsOneWidget);
+      expect(find.textContaining('Kos Melati'), findsOneWidget);
+      expect(find.textContaining('Kamar 08'), findsOneWidget);
+    });
+
+    testWidgets('follows the room of the preview', (tester) async {
+      await _openStepTwo(
+        tester,
+        _tenantPreview(roomNumber: '21'),
+        role: UserRole.tenant,
+      );
+
+      expect(find.textContaining('Kamar 21'), findsOneWidget);
+      expect(find.textContaining('Kamar 08'), findsNothing);
+    });
+
+    testWidgets('shows the address of the property', (tester) async {
+      await _openStepTwo(tester, _tenantPreview(), role: UserRole.tenant);
+
+      expect(find.textContaining('Jl. Melati 1, Bandung'), findsOneWidget);
+    });
+
+    testWidgets('shows the account that will accept, name and email', (
+      tester,
+    ) async {
+      await _openStepTwo(
+        tester,
+        _withPreview(
+          makeAcceptancePreview(
+            invitation: _tenantInvitation(),
+            accountName: 'Budi Santoso',
+            accountEmail: 'budi@example.com',
+            accountRole: UserRole.tenant,
+          ),
+        ),
+        role: UserRole.tenant,
+      );
+
+      expect(find.text(_accountCard), findsOneWidget);
+      expect(find.text('Budi Santoso'), findsOneWidget);
+      expect(find.text('budi@example.com'), findsOneWidget);
+    });
+
+    testWidgets('shows the expiry date of the invitation', (tester) async {
+      await _openStepTwo(tester, _tenantPreview(), role: UserRole.tenant);
+
+      expect(find.textContaining('25 Okt 2026'), findsOneWidget);
+    });
+
+    testWidgets('keeps the title and both buttons', (tester) async {
+      await _openStepTwo(tester, _tenantPreview(), role: UserRole.tenant);
+
+      expect(_appBarTitle(), findsOneWidget);
+      expect(currentPath(tester), _tenantPath);
+      expect(buttonLabelled(_accept), findsOneWidget);
+      expect(buttonLabelled(_change), findsOneWidget);
+      expect(find.byType(NavigationBar), findsNothing);
+    });
+
+    testWidgets('checks the link with the token of the last path segment', (
+      tester,
+    ) async {
+      final repo = _tenantPreview();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+
+      expect(repo.acceptancePreviews, ['abc123']);
+      expect(repo.acceptances, isEmpty);
+    });
+
+    testWidgets('shows no emergency contact fields when the record is '
+        'complete', (tester) async {
+      await _openStepTwo(tester, _tenantPreview(), role: UserRole.tenant);
+
+      expect(find.textContaining('Kontak darurat'), findsNothing);
+      expect(fieldLabeled(_contactName), findsNothing);
+      expect(find.text(_addContact), findsNothing);
+    });
+  });
+
+  group('accepting a tenant invitation', () {
+    testWidgets('sends the token and no emergency contacts when the record '
+        'is complete', (tester) async {
+      final repo = _tenantPreview();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+
+      await _tapAccept(tester);
+
+      expect(repo.acceptances, ['abc123']);
+      expect(repo.acceptedEmergencyContacts, [isNull]);
+    });
+
+    testWidgets('a manager invitation is accepted without emergency '
+        'contacts', (tester) async {
+      await _openStepTwo(tester, invitations);
+
+      await _tapAccept(tester);
+
+      expect(invitations.acceptances, ['abc123']);
+      expect(invitations.acceptedEmergencyContacts, [isNull]);
+    });
+
+    testWidgets('lands on the tenant Akun tab with the confirmation', (
+      tester,
+    ) async {
+      await _openStepTwo(tester, _tenantPreview(), role: UserRole.tenant);
+
+      await _tapAccept(tester);
+
+      expect(currentPath(tester), accountPath(UserRole.tenant));
+      expect(find.byType(AccountScreen), findsOneWidget);
+      expect(find.byType(NavigationBar), findsOneWidget);
+      expect(find.textContaining('Undangan diterima'), findsOneWidget);
+      expect(_appBarTitle(), findsNothing);
+    });
+
+    testWidgets('shows the confirmation as a live region that stays on '
+        'screen', (tester) async {
+      await _openStepTwo(tester, _tenantPreview(), role: UserRole.tenant);
+      await _tapAccept(tester);
+
+      await tester.pump(const Duration(seconds: 30));
+
+      final confirmation = tester
+          .widget<Text>(find.textContaining('Undangan diterima'))
+          .data!;
+      expectLiveRegion(tester, confirmation);
+      expect(_snackBar(), findsNothing);
+    });
+
+    testWidgets('disables the button while the request runs', (tester) async {
+      final repo = _tenantPreview()..acceptGate = Completer<void>();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+
+      await tapAndPump(tester, buttonLabelled(_accept));
+
+      expectBusy(tester);
+      expect(currentPath(tester), _tenantPath);
+    });
+
+    testWidgets('a double tap sends one request', (tester) async {
+      final repo = _tenantPreview()..acceptGate = Completer<void>();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+      final button = buttonLabelled(_accept);
+
+      await tester.tap(button);
+      await tester.tap(button, warnIfMissed: false);
+      await tester.pump();
+      await tester.tap(busyButton(), warnIfMissed: false);
+      await tester.pump();
+
+      expect(repo.acceptances, hasLength(1));
+    });
+
+    testWidgets('reloads the leases, the bills, the complaints and the '
+        'profile', (tester) async {
+      final leases = FakeLeaseRepository(lease: makeCurrentLease());
+      final rentBills = FakeRentBillRepository(bills: [makeRentBill()]);
+      final complaints = FakeComplaintRepository(complaints: [makeComplaint()]);
+      final accounts = FakeAccountRepository(
+        account: makeAccount(role: UserRole.tenant),
+      );
+      await _openStepTwo(
+        tester,
+        _tenantPreview(),
+        role: UserRole.tenant,
+        leases: leases,
+        rentBills: rentBills,
+        complaints: complaints,
+        accounts: accounts,
+      );
+      final container = containerOf(tester);
+      for (final provider in [
+        myLeasesProvider,
+        activeRentBillsProvider,
+        paidRentBillsProvider,
+        complaintListProvider,
+        meProvider,
+      ]) {
+        final subscription = container.listen(provider, (_, _) {});
+        addTearDown(subscription.close);
+      }
+      await tester.pumpAndSettle();
+      final leaseCalls = leases.calls;
+      final billCalls = rentBills.listCalls;
+      final complaintCalls = complaints.listCalls;
+      final meCalls = accounts.meCalls;
+
+      await _tapAccept(tester);
+      await tester.pumpAndSettle();
+
+      expect(leases.calls, greaterThan(leaseCalls));
+      expect(rentBills.listCalls, greaterThan(billCalls));
+      expect(complaints.listCalls, greaterThan(complaintCalls));
+      expect(accounts.meCalls, greaterThan(meCalls));
+    });
+
+    testWidgets('shows the new lease on the Akun tab after accepting', (
+      tester,
+    ) async {
+      final leases = FakeLeaseRepository(lease: makeCurrentLease());
+      await _open(
+        tester,
+        _tenantPreview(),
+        role: UserRole.tenant,
+        leases: leases,
+        path: accountPath(UserRole.tenant),
+      );
+      expect(find.text('Kos Mawar'), findsNothing);
+      leases.leases = makeTwoLeases();
+
+      await tester.tap(find.text('Terima undangan'));
+      await tester.pumpAndSettle();
+      await _continue(tester);
+      await _tapAccept(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Kamar & masa sewa'), findsNWidgets(2));
+      expect(find.text('Kos Mawar'), findsOneWidget);
+    });
+
+    testWidgets('does not reload anything after a failure', (tester) async {
+      final leases = FakeLeaseRepository(lease: makeCurrentLease());
+      final accounts = FakeAccountRepository(
+        account: makeAccount(role: UserRole.tenant),
+      );
+      final repo = _tenantPreview()..acceptFailure = const ApiFailure.network();
+      await _openStepTwo(
+        tester,
+        repo,
+        role: UserRole.tenant,
+        leases: leases,
+        accounts: accounts,
+      );
+      final container = containerOf(tester);
+      for (final provider in [myLeasesProvider, meProvider]) {
+        final subscription = container.listen(provider, (_, _) {});
+        addTearDown(subscription.close);
+      }
+      await tester.pumpAndSettle();
+      final leaseCalls = leases.calls;
+      final meCalls = accounts.meCalls;
+
+      await _tapAccept(tester);
+      await tester.pumpAndSettle();
+
+      expect(leases.calls, leaseCalls);
+      expect(accounts.meCalls, meCalls);
+    });
+
+    for (final entry in {
+      'INVITATION_USED': const ApiFailure(
+        code: 'INVITATION_USED',
+        statusCode: 409,
+      ),
+      'INVITATION_EXPIRED': const ApiFailure(
+        code: 'INVITATION_EXPIRED',
+        statusCode: 409,
+      ),
+      'INVITATION_NOT_FOUND': const ApiFailure(
+        code: 'INVITATION_NOT_FOUND',
+        statusCode: 404,
+      ),
+      'INVITATION_ROLE_MISMATCH': const ApiFailure(
+        code: 'INVITATION_ROLE_MISMATCH',
+        statusCode: 409,
+      ),
+      'NETWORK_ERROR': const ApiFailure.network(),
+      'INTERNAL_ERROR': const ApiFailure(
+        code: 'INTERNAL_ERROR',
+        statusCode: 500,
+      ),
+    }.entries) {
+      testWidgets('${entry.key} shows its message on the page', (tester) async {
+        final repo = _tenantPreview()..acceptFailure = entry.value;
+        await _openStepTwo(tester, repo, role: UserRole.tenant);
+
+        await _tapAccept(tester);
+
+        expect(find.text(messageOfCode(entry.key)), findsOneWidget);
+        expect(currentPath(tester), _tenantPath);
+        expect(find.textContaining('Undangan diterima'), findsNothing);
+        expect(_snackBar(), findsNothing);
+        expect(buttonLabelled(_accept), findsOneWidget);
+      });
+    }
+
+    testWidgets('a rejected list of contacts shows a message in a banner', (
+      tester,
+    ) async {
+      const failure = ApiFailure(
+        code: 'VALIDATION_FAILED',
+        field: 'emergencyContacts',
+        statusCode: 422,
+      );
+      final repo = _tenantPreview(contactsRequired: true)
+        ..acceptFailure = failure;
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+      await _fillTwoContacts(tester);
+
+      await _tapAccept(tester);
+
+      expect(find.text(errorMessageFor(failure)), findsOneWidget);
+      expect(currentPath(tester), _tenantPath);
+    });
+
+    testWidgets('keeps the typed contacts after a failure and sends them '
+        'again', (tester) async {
+      final repo = _tenantPreview(contactsRequired: true)
+        ..acceptFailure = const ApiFailure.network();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+      await _fillTwoContacts(tester);
+      await _tapAccept(tester);
+      expect(find.text(messageOfCode('NETWORK_ERROR')), findsOneWidget);
+      expect(find.text('Ibu Budi'), findsOneWidget);
+      repo.acceptFailure = null;
+
+      await _tapAccept(tester);
+
+      expect(repo.acceptances, ['abc123', 'abc123']);
+      expect(repo.acceptedEmergencyContacts.last, hasLength(2));
+      expect(currentPath(tester), accountPath(UserRole.tenant));
+    });
+
+    testWidgets('Kembali leaves the page after a failure', (tester) async {
+      final repo = _tenantPreview()..acceptFailure = const ApiFailure.network();
+      await _open(
+        tester,
+        repo,
+        role: UserRole.tenant,
+        path: accountPath(UserRole.tenant),
+      );
+      await tester.tap(find.text('Terima undangan'));
+      await tester.pumpAndSettle();
+      await _continue(tester);
+      await _tapAccept(tester);
+
+      await pressBack(tester);
+
+      expect(currentPath(tester), accountPath(UserRole.tenant));
+      expect(find.textContaining('Undangan diterima'), findsNothing);
+    });
+
+    testWidgets('Ganti tautan returns to the link and the next link is the '
+        'one accepted', (tester) async {
+      final repo = _tenantPreview();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+      await tapVisible(tester, buttonLabelled(_change));
+      expect(textField(tester, _link).controller?.text, _tokenLink);
+
+      await _continue(tester, 'https://niscala.example/undangan/xyz789');
+      await _tapAccept(tester);
+
+      expect(repo.acceptancePreviews, ['abc123', 'xyz789']);
+      expect(repo.acceptances, ['xyz789']);
+    });
+  });
+
+  group('emergency contacts when accepting', () {
+    FakeInvitationRepository needsContacts() =>
+        _tenantPreview(contactsRequired: true);
+
+    testWidgets('start as two empty blocks under a required heading', (
+      tester,
+    ) async {
+      await _openStepTwo(tester, needsContacts(), role: UserRole.tenant);
+
+      expect(find.text(_contactsHeading), findsOneWidget);
+      expect(find.text('Isi 2 sampai 4 kontak.'), findsOneWidget);
+      expect(find.text('Kontak darurat 1'), findsOneWidget);
+      expect(find.text('Kontak darurat 2'), findsOneWidget);
+      expect(find.text('Kontak darurat 3'), findsNothing);
+      expect(labeledField(_contactName), findsNWidgets(2));
+      expect(labeledField(_contactRelationship), findsNWidgets(2));
+      expect(labeledField(_contactPhone), findsNWidgets(2));
+      expect(find.text(_addContact), findsOneWidget);
+    });
+
+    testWidgets('start empty and without errors', (tester) async {
+      await _openStepTwo(tester, needsContacts(), role: UserRole.tenant);
+
+      for (var i = 0; i < 2; i++) {
+        for (final label in [
+          _contactName,
+          _contactRelationship,
+          _contactPhone,
+        ]) {
+          expect(
+            tester.widget<TextField>(_contactField(label, i)).controller!.text,
+            isEmpty,
+          );
+          expect(_contactError(tester, label, i), isNull);
+        }
+      }
+    });
+
+    testWidgets('the invitation is not accepted before the button is '
+        'tapped', (tester) async {
+      final repo = needsContacts();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+      await _fillTwoContacts(tester);
+
+      expect(repo.acceptances, isEmpty);
+    });
+
+    testWidgets('can grow up to four and then hide the add button', (
+      tester,
+    ) async {
+      await _openStepTwo(tester, needsContacts(), role: UserRole.tenant);
+
+      await tapVisible(tester, find.text(_addContact));
+      expect(labeledField(_contactName), findsNWidgets(3));
+      await tapVisible(tester, find.text(_addContact));
+
+      expect(labeledField(_contactName), findsNWidgets(4));
+      expect(find.text('Kontak darurat 4'), findsOneWidget);
+      expect(find.text(_addContact), findsNothing);
+    });
+
+    testWidgets('a block can be removed and the rest are renumbered', (
+      tester,
+    ) async {
+      await _openStepTwo(tester, needsContacts(), role: UserRole.tenant);
+      await tapVisible(tester, find.text(_addContact));
+      await _fillContact(tester, 1, name: 'Adi');
+
+      final handle = tester.ensureSemantics();
+      await tester.tap(find.byTooltip('Hapus kontak darurat 1'));
+      await tester.pumpAndSettle();
+      handle.dispose();
+
+      expect(labeledField(_contactName), findsNWidgets(2));
+      expect(find.text('Kontak darurat 3'), findsNothing);
+      expect(find.text('Adi'), findsOneWidget);
+    });
+
+    testWidgets('submitting empty blocks names the missing fields and sends '
+        'nothing', (tester) async {
+      final repo = needsContacts();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+
+      await _tapAccept(tester);
+
+      for (var i = 0; i < 2; i++) {
+        expect(
+          _contactError(tester, _contactName, i),
+          'Nama kontak wajib diisi.',
+        );
+        expect(
+          _contactError(tester, _contactRelationship, i),
+          'Hubungan wajib diisi.',
+        );
+        expect(
+          _contactError(tester, _contactPhone, i),
+          'Nomor telepon kontak wajib diisi.',
+        );
+      }
+      expect(repo.acceptances, isEmpty);
+      expect(currentPath(tester), _tenantPath);
+      expect(busyButton(), findsNothing);
+    });
+
+    testWidgets('rejects an invalid contact phone number', (tester) async {
+      final repo = needsContacts();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+      await _fillContact(tester, 0);
+      await _fillContact(tester, 1, phone: '12345');
+
+      await _tapAccept(tester);
+
+      expect(_contactError(tester, _contactPhone, 0), isNull);
+      expect(
+        _contactError(tester, _contactPhone, 1),
+        contains('Nomor telepon tidak valid'),
+      );
+      expect(repo.acceptances, isEmpty);
+    });
+
+    testWidgets('exactly one contact is an error and sends nothing', (
+      tester,
+    ) async {
+      final repo = needsContacts();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+      await _fillContact(tester, 0);
+      final handle = tester.ensureSemantics();
+      await tester.tap(find.byTooltip('Hapus kontak darurat 2'));
+      await tester.pumpAndSettle();
+      handle.dispose();
+
+      await _tapAccept(tester);
+
+      expect(find.text(_contactsMinimum), findsOneWidget);
+      expect(repo.acceptances, isEmpty);
+    });
+
+    testWidgets('no contacts at all is an error and sends nothing', (
+      tester,
+    ) async {
+      final repo = needsContacts();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+      final handle = tester.ensureSemantics();
+      await tester.tap(find.byTooltip('Hapus kontak darurat 2'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Hapus kontak darurat 1'));
+      await tester.pumpAndSettle();
+      handle.dispose();
+
+      await _tapAccept(tester);
+
+      expect(find.text(_contactsMinimum), findsOneWidget);
+      expect(repo.acceptances, isEmpty);
+    });
+
+    testWidgets('sends the trimmed contacts with the acceptance', (
+      tester,
+    ) async {
+      final repo = needsContacts();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+      await _fillContact(
+        tester,
+        0,
+        name: '  Ibu Budi ',
+        relationship: ' Ibu ',
+        phone: ' 081255204471 ',
+      );
+      await _fillContact(
+        tester,
+        1,
+        name: 'Adi',
+        relationship: 'Kakak',
+        phone: '081311112222',
+      );
+
+      await _tapAccept(tester);
+
+      expect(repo.acceptances, ['abc123']);
+      expect(repo.acceptedEmergencyContacts.single, [
+        EmergencyContact(
+          name: 'Ibu Budi',
+          relationship: 'Ibu',
+          phone: '081255204471',
+        ),
+        EmergencyContact(
+          name: 'Adi',
+          relationship: 'Kakak',
+          phone: '081311112222',
+        ),
+      ]);
+      expect(currentPath(tester), accountPath(UserRole.tenant));
+    });
+
+    testWidgets('sends four contacts when four are filled', (tester) async {
+      final repo = needsContacts();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+      await tapVisible(tester, find.text(_addContact));
+      await tapVisible(tester, find.text(_addContact));
+      for (var i = 0; i < 4; i++) {
+        await _fillContact(tester, i, name: 'Kontak $i');
+      }
+
+      await _tapAccept(tester);
+
+      expect(repo.acceptedEmergencyContacts.single, hasLength(4));
+    });
+
+    testWidgets('errors disappear once the contacts are valid and '
+        'resubmitted', (tester) async {
+      final repo = needsContacts();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+      await _tapAccept(tester);
+      expect(_contactError(tester, _contactName, 0), isNotNull);
+
+      await _fillTwoContacts(tester);
+      await _tapAccept(tester);
+
+      expect(repo.acceptances, ['abc123']);
+      expect(find.text('Nama kontak wajib diisi.'), findsNothing);
+    });
+
+    testWidgets('are gone after Ganti tautan when the next invitation does '
+        'not need them', (tester) async {
+      final repo = needsContacts();
+      await _openStepTwo(tester, repo, role: UserRole.tenant);
+      await tapVisible(tester, buttonLabelled(_change));
+      repo.previewAcceptanceResult = makeAcceptancePreview(
+        invitation: _tenantInvitation(),
+        accountRole: UserRole.tenant,
+      );
+
+      await _continue(tester, 'https://niscala.example/undangan/xyz789');
+
+      expect(find.text(_contactsHeading), findsNothing);
+      expect(labeledField(_contactName), findsNothing);
+
+      await _tapAccept(tester);
+
+      expect(repo.acceptedEmergencyContacts, [isNull]);
+    });
+
+    testWidgets('the labels are read once, on the fields', (tester) async {
+      await _openStepTwo(tester, needsContacts(), role: UserRole.tenant);
+
+      final handle = tester.ensureSemantics();
+      try {
+        final node = tester.getSemantics(_contactField(_contactName, 0));
+        expect(node.label, contains(_contactName));
+      } finally {
+        handle.dispose();
+      }
+    });
+
+    testWidgets('keeps the accept button pinned below the contacts', (
+      tester,
+    ) async {
+      await _openStepTwo(tester, needsContacts(), role: UserRole.tenant);
+
+      expectPinnedFooter(tester, _accept);
     });
   });
 
@@ -1233,10 +1977,6 @@ void main() {
             await _open(tester, _roleMismatch(), largeText: largeText);
             await _continue(tester);
           },
-          'an active lease': (tester, {largeText = false}) async {
-            await _open(tester, _activeLease(), largeText: largeText);
-            await _continue(tester);
-          },
           'step two': (tester, {largeText = false}) => _openStepTwo(
             tester,
             FakeInvitationRepository(),
@@ -1263,6 +2003,95 @@ void main() {
             );
             await _tapAccept(tester);
           },
+          'a tenant invitation': (tester, {largeText = false}) => _openStepTwo(
+            tester,
+            _tenantPreview(),
+            role: UserRole.tenant,
+            largeText: largeText,
+          ),
+          'a tenant invitation with emergency contacts':
+              (tester, {largeText = false}) => _openStepTwo(
+                tester,
+                _tenantPreview(contactsRequired: true),
+                role: UserRole.tenant,
+                largeText: largeText,
+              ),
+          'a tenant invitation with four filled emergency contacts':
+              (tester, {largeText = false}) async {
+                await _openStepTwo(
+                  tester,
+                  _tenantPreview(contactsRequired: true),
+                  role: UserRole.tenant,
+                  largeText: largeText,
+                );
+                await tapVisible(tester, find.text(_addContact));
+                await tapVisible(tester, find.text(_addContact));
+                for (var i = 0; i < 4; i++) {
+                  await _fillContact(tester, i, name: 'Kontak $i');
+                }
+              },
+          'a tenant invitation with emergency contact errors':
+              (tester, {largeText = false}) async {
+                await _openStepTwo(
+                  tester,
+                  _tenantPreview(contactsRequired: true),
+                  role: UserRole.tenant,
+                  largeText: largeText,
+                );
+                await _tapAccept(tester);
+              },
+          'a tenant invitation while accepting':
+              (tester, {largeText = false}) async {
+                final repo = _tenantPreview(contactsRequired: true)
+                  ..acceptGate = Completer<void>();
+                await _openStepTwo(
+                  tester,
+                  repo,
+                  role: UserRole.tenant,
+                  largeText: largeText,
+                );
+                await _fillTwoContacts(tester);
+                await tapAndPump(tester, buttonLabelled(_accept));
+              },
+          'a tenant invitation with a failure':
+              (tester, {largeText = false}) async {
+                final repo = _tenantPreview()
+                  ..acceptFailure = const ApiFailure(
+                    code: 'INVITATION_USED',
+                    statusCode: 409,
+                  );
+                await _openStepTwo(
+                  tester,
+                  repo,
+                  role: UserRole.tenant,
+                  largeText: largeText,
+                );
+                await _tapAccept(tester);
+              },
+          'a tenant role mismatch': (tester, {largeText = false}) async {
+            await _open(
+              tester,
+              _withPreview(
+                makeAcceptancePreview(
+                  accountRole: UserRole.tenant,
+                  blocker: InvitationBlocker.roleMismatch,
+                ),
+              ),
+              role: UserRole.tenant,
+              largeText: largeText,
+            );
+            await _continue(tester);
+          },
+          'the tenant Akun tab with the confirmation':
+              (tester, {largeText = false}) async {
+                await _openStepTwo(
+                  tester,
+                  _tenantPreview(),
+                  role: UserRole.tenant,
+                  largeText: largeText,
+                );
+                await _tapAccept(tester);
+              },
           'the Akun tab with the confirmation':
               (tester, {largeText = false}) async {
                 await _openStepTwo(

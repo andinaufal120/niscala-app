@@ -20,9 +20,10 @@ abstract interface class ComplaintRepository {
     String? handlingNote,
   });
 
-  /// Saves a complaint as the calling tenant. The returned complaint may still
-  /// be unclassified; the AI classification runs in the background.
-  Future<Complaint> submit(String description);
+  /// Saves a complaint as the calling tenant about the room [roomId] of one of
+  /// the tenant's leases. The returned complaint may still be unclassified; the
+  /// AI classification runs in the background.
+  Future<Complaint> submit(String description, String roomId);
 
   /// The categories a complaint can be classified into, in the order given.
   Future<List<String>> categories();
@@ -95,11 +96,12 @@ class ApiComplaintRepository implements ComplaintRepository {
   });
 
   @override
-  Future<Complaint> submit(String description) => _guard(() async {
-    return (await complaints.createComplaint(
-      ComplaintInput(description: description),
-    ))!;
-  });
+  Future<Complaint> submit(String description, String roomId) =>
+      _guard(() async {
+        return (await complaints.createComplaint(
+          ComplaintInput(description: description, roomId: roomId),
+        ))!;
+      });
 
   @override
   Future<List<String>> categories() => _guard(() async {

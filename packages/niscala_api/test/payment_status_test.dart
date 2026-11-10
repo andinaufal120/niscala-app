@@ -13,9 +13,5 @@ import 'package:test/test.dart';
 
 // tests for PaymentStatus
 void main() {
-
-  group('test PaymentStatus', () {
-
-  });
-
+  group('test PaymentStatus', () {});
 }

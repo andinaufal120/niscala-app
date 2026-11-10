@@ -25,26 +25,27 @@ class CurrentLeaseProperty {
   String name;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is CurrentLeaseProperty &&
-    other.address == address &&
-    other.id == id &&
-    other.name == name;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CurrentLeaseProperty &&
+          other.address == address &&
+          other.id == id &&
+          other.name == name;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (address.hashCode) +
-    (id.hashCode) +
-    (name.hashCode);
+      // ignore: unnecessary_parenthesis
+      (address.hashCode) + (id.hashCode) + (name.hashCode);
 
   @override
-  String toString() => 'CurrentLeaseProperty[address=$address, id=$id, name=$name]';
+  String toString() =>
+      'CurrentLeaseProperty[address=$address, id=$id, name=$name]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'address'] = this.address;
-      json[r'id'] = this.id;
-      json[r'name'] = this.name;
+    json[r'address'] = this.address;
+    json[r'id'] = this.id;
+    json[r'name'] = this.name;
     return json;
   }
 
@@ -60,8 +61,10 @@ class CurrentLeaseProperty {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "CurrentLeaseProperty[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "CurrentLeaseProperty[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "CurrentLeaseProperty[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "CurrentLeaseProperty[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -75,7 +78,10 @@ class CurrentLeaseProperty {
     return null;
   }
 
-  static List<CurrentLeaseProperty> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<CurrentLeaseProperty> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <CurrentLeaseProperty>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -103,13 +109,19 @@ class CurrentLeaseProperty {
   }
 
   // maps a json object with a list of CurrentLeaseProperty-objects as value to a dart map
-  static Map<String, List<CurrentLeaseProperty>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<CurrentLeaseProperty>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<CurrentLeaseProperty>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = CurrentLeaseProperty.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = CurrentLeaseProperty.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -122,4 +134,3 @@ class CurrentLeaseProperty {
     'name',
   };
 }
-

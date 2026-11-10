@@ -11,7 +11,6 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
-
 /// tests for AuthApi
 void main() {
   // final instance = AuthApi();
@@ -46,7 +45,7 @@ void main() {
 
     // Login With Google
     //
-    // Log in with Google and start a session.
+    // Log in with Google and start a session; failures are not counted.
     //
     //Future<AuthSession> loginWithGoogle(GoogleAuthInput googleAuthInput) async
     test('test loginWithGoogle', () async {
@@ -124,6 +123,5 @@ void main() {
     test('test sendEmailVerification', () async {
       // TODO
     });
-
   });
 }

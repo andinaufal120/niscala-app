@@ -538,11 +538,14 @@ void main() {
         ),
       );
 
-      final c = await h.repository.submit('Keran bocor di kamar mandi.');
+      final c = await h.repository.submit('Keran bocor di kamar mandi.', 'r1');
 
       expect(h.request.method, 'POST');
       expect(h.request.url.path, '/complaints');
-      expect(h.body, {'description': 'Keran bocor di kamar mandi.'});
+      expect(h.body, {
+        'description': 'Keran bocor di kamar mandi.',
+        'roomId': 'r1',
+      });
       expect(c.id, 'c5');
       expect(c.status, ComplaintStatus.new_);
       expect(c.classificationState, ComplaintClassificationState.classifying);
@@ -551,9 +554,34 @@ void main() {
     test('sends the description exactly as given', () async {
       final h = _Harness((_) => _ok(_complaintJson(), 201));
 
-      await h.repository.submit('Baris satu\nBaris dua dengan "kutip"');
+      await h.repository.submit('Baris satu\nBaris dua dengan "kutip"', 'r1');
 
       expect(h.body['description'], 'Baris satu\nBaris dua dengan "kutip"');
+    });
+
+    test('sends the room id it is given', () async {
+      final h = _Harness((_) => _ok(_complaintJson(), 201));
+
+      await h.repository.submit('Keran bocor di kamar mandi.', 'room-42');
+
+      expect(h.body['roomId'], 'room-42');
+    });
+
+    test('sends exactly one request', () async {
+      final h = _Harness((_) => _ok(_complaintJson(), 201));
+
+      await h.repository.submit('Keran bocor di kamar mandi.', 'r1');
+
+      expect(h.requests, hasLength(1));
+    });
+
+    test('keeps the code, field and status of an unknown room', () async {
+      final h = _Harness((_) => _error(404, 'ROOM_NOT_FOUND', field: 'roomId'));
+
+      await expectLater(
+        h.repository.submit('Keran bocor di kamar mandi.', 'nope'),
+        throwsA(_failure('ROOM_NOT_FOUND', field: 'roomId', status: 404)),
+      );
     });
 
     for (final state in ['awaitingClassification', 'notClassified']) {
@@ -562,7 +590,10 @@ void main() {
           (_) => _ok(_complaintJson(classificationState: state), 201),
         );
 
-        final c = await h.repository.submit('Keran bocor di kamar mandi.');
+        final c = await h.repository.submit(
+          'Keran bocor di kamar mandi.',
+          'r1',
+        );
 
         expect(c.id, 'c1');
         expect(c.classification, isNull);
@@ -585,7 +616,7 @@ void main() {
         ),
       );
 
-      final c = await h.repository.submit('Keran bocor di kamar mandi.');
+      final c = await h.repository.submit('Keran bocor di kamar mandi.', 'r1');
 
       expect(c.classification!.category, 'Pipa dan air');
       expect(c.classificationState, isNull);
@@ -597,7 +628,7 @@ void main() {
       );
 
       await expectLater(
-        h.repository.submit('pendek'),
+        h.repository.submit('pendek', 'r1'),
         throwsA(
           _failure('VALIDATION_FAILED', field: 'description', status: 422),
         ),
@@ -608,7 +639,7 @@ void main() {
       final h = _Harness((_) => _error(409, 'NO_ACTIVE_LEASE'));
 
       await expectLater(
-        h.repository.submit('Keran bocor di kamar mandi.'),
+        h.repository.submit('Keran bocor di kamar mandi.', 'r1'),
         throwsA(_failure('NO_ACTIVE_LEASE', status: 409)),
       );
     });
@@ -617,7 +648,7 @@ void main() {
       final h = _Harness.failing(const SocketException('no route'));
 
       await expectLater(
-        h.repository.submit('Keran bocor di kamar mandi.'),
+        h.repository.submit('Keran bocor di kamar mandi.', 'r1'),
         throwsA(_failure('NETWORK_ERROR')),
       );
     });
@@ -626,7 +657,7 @@ void main() {
       final h = _Harness.failing(http.ClientException('broken'));
 
       await expectLater(
-        h.repository.submit('Keran bocor di kamar mandi.'),
+        h.repository.submit('Keran bocor di kamar mandi.', 'r1'),
         throwsA(_failure('NETWORK_ERROR')),
       );
     });
@@ -635,7 +666,7 @@ void main() {
       final h = _Harness((_) => http.Response('', 500));
 
       await expectLater(
-        h.repository.submit('Keran bocor di kamar mandi.'),
+        h.repository.submit('Keran bocor di kamar mandi.', 'r1'),
         throwsA(_failure('INTERNAL_ERROR', status: 500)),
       );
     });

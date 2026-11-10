@@ -44,38 +44,41 @@ class PropertyOccupancy {
   int vacantRoomCount;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PropertyOccupancy &&
-    other.id == id &&
-    other.name == name &&
-    other.occupancyPercentage == occupancyPercentage &&
-    other.occupiedRoomCount == occupiedRoomCount &&
-    other.roomCount == roomCount &&
-    _deepEquality.equals(other.rooms, rooms) &&
-    other.vacantRoomCount == vacantRoomCount;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PropertyOccupancy &&
+          other.id == id &&
+          other.name == name &&
+          other.occupancyPercentage == occupancyPercentage &&
+          other.occupiedRoomCount == occupiedRoomCount &&
+          other.roomCount == roomCount &&
+          _deepEquality.equals(other.rooms, rooms) &&
+          other.vacantRoomCount == vacantRoomCount;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (id.hashCode) +
-    (name.hashCode) +
-    (occupancyPercentage.hashCode) +
-    (occupiedRoomCount.hashCode) +
-    (roomCount.hashCode) +
-    (rooms.hashCode) +
-    (vacantRoomCount.hashCode);
+      // ignore: unnecessary_parenthesis
+      (id.hashCode) +
+      (name.hashCode) +
+      (occupancyPercentage.hashCode) +
+      (occupiedRoomCount.hashCode) +
+      (roomCount.hashCode) +
+      (rooms.hashCode) +
+      (vacantRoomCount.hashCode);
 
   @override
-  String toString() => 'PropertyOccupancy[id=$id, name=$name, occupancyPercentage=$occupancyPercentage, occupiedRoomCount=$occupiedRoomCount, roomCount=$roomCount, rooms=$rooms, vacantRoomCount=$vacantRoomCount]';
+  String toString() =>
+      'PropertyOccupancy[id=$id, name=$name, occupancyPercentage=$occupancyPercentage, occupiedRoomCount=$occupiedRoomCount, roomCount=$roomCount, rooms=$rooms, vacantRoomCount=$vacantRoomCount]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'id'] = this.id;
-      json[r'name'] = this.name;
-      json[r'occupancyPercentage'] = this.occupancyPercentage;
-      json[r'occupiedRoomCount'] = this.occupiedRoomCount;
-      json[r'roomCount'] = this.roomCount;
-      json[r'rooms'] = this.rooms;
-      json[r'vacantRoomCount'] = this.vacantRoomCount;
+    json[r'id'] = this.id;
+    json[r'name'] = this.name;
+    json[r'occupancyPercentage'] = this.occupancyPercentage;
+    json[r'occupiedRoomCount'] = this.occupiedRoomCount;
+    json[r'roomCount'] = this.roomCount;
+    json[r'rooms'] = this.rooms;
+    json[r'vacantRoomCount'] = this.vacantRoomCount;
     return json;
   }
 
@@ -91,8 +94,10 @@ class PropertyOccupancy {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PropertyOccupancy[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PropertyOccupancy[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PropertyOccupancy[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PropertyOccupancy[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -110,7 +115,10 @@ class PropertyOccupancy {
     return null;
   }
 
-  static List<PropertyOccupancy> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PropertyOccupancy> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PropertyOccupancy>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -138,13 +146,19 @@ class PropertyOccupancy {
   }
 
   // maps a json object with a list of PropertyOccupancy-objects as value to a dart map
-  static Map<String, List<PropertyOccupancy>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PropertyOccupancy>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PropertyOccupancy>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PropertyOccupancy.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PropertyOccupancy.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -161,4 +175,3 @@ class PropertyOccupancy {
     'vacantRoomCount',
   };
 }
-

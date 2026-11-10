@@ -11,7 +11,6 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
-
 /// tests for SessionsApi
 void main() {
   // final instance = SessionsApi();
@@ -43,6 +42,5 @@ void main() {
     test('test listMySessions', () async {
       // TODO
     });
-
   });
 }

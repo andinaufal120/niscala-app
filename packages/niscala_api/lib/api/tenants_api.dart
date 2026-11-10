@@ -10,9 +10,9 @@
 
 part of niscala_api;
 
-
 class TenantsApi {
-  TenantsApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
+  TenantsApi([ApiClient? apiClient])
+      : apiClient = apiClient ?? defaultApiClient;
 
   final ApiClient apiClient;
 
@@ -27,10 +27,13 @@ class TenantsApi {
   /// * [String] propertyId (required):
   ///
   /// * [NewTenantInput] newTenantInput (required):
-  Future<Response> createTenantWithHttpInfo(String propertyId, NewTenantInput newTenantInput,) async {
+  Future<Response> createTenantWithHttpInfo(
+    String propertyId,
+    NewTenantInput newTenantInput,
+  ) async {
     // ignore: prefer_const_declarations
     final path = r'/properties/{propertyId}/tenants'
-      .replaceAll('{propertyId}', propertyId);
+        .replaceAll('{propertyId}', propertyId);
 
     // ignore: prefer_final_locals
     Object? postBody = newTenantInput;
@@ -40,7 +43,6 @@ class TenantsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -62,17 +64,26 @@ class TenantsApi {
   /// * [String] propertyId (required):
   ///
   /// * [NewTenantInput] newTenantInput (required):
-  Future<Tenant?> createTenant(String propertyId, NewTenantInput newTenantInput,) async {
-    final response = await createTenantWithHttpInfo(propertyId, newTenantInput,);
+  Future<Tenant?> createTenant(
+    String propertyId,
+    NewTenantInput newTenantInput,
+  ) async {
+    final response = await createTenantWithHttpInfo(
+      propertyId,
+      newTenantInput,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Tenant',) as Tenant;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Tenant',
+      ) as Tenant;
     }
     return null;
   }
@@ -86,10 +97,11 @@ class TenantsApi {
   /// Parameters:
   ///
   /// * [String] tenantId (required):
-  Future<Response> deleteTenantWithHttpInfo(String tenantId,) async {
+  Future<Response> deleteTenantWithHttpInfo(
+    String tenantId,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/tenants/{tenantId}'
-      .replaceAll('{tenantId}', tenantId);
+    final path = r'/tenants/{tenantId}'.replaceAll('{tenantId}', tenantId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -99,7 +111,6 @@ class TenantsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -119,21 +130,25 @@ class TenantsApi {
   /// Parameters:
   ///
   /// * [String] tenantId (required):
-  Future<void> deleteTenant(String tenantId,) async {
-    final response = await deleteTenantWithHttpInfo(tenantId,);
+  Future<void> deleteTenant(
+    String tenantId,
+  ) async {
+    final response = await deleteTenantWithHttpInfo(
+      tenantId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
   }
 
-  /// Get My Lease
+  /// Get My Leases
   ///
-  /// Return the calling tenant's active lease, or null when it has ended.
+  /// Return the calling tenant's active leases, possibly none.
   ///
   /// Note: This method returns the HTTP [Response].
-  Future<Response> getMyLeaseWithHttpInfo() async {
+  Future<Response> getMyLeasesWithHttpInfo() async {
     // ignore: prefer_const_declarations
-    final path = r'/me/lease';
+    final path = r'/me/leases';
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -143,7 +158,6 @@ class TenantsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -156,20 +170,23 @@ class TenantsApi {
     );
   }
 
-  /// Get My Lease
+  /// Get My Leases
   ///
-  /// Return the calling tenant's active lease, or null when it has ended.
-  Future<CurrentLeaseResult?> getMyLease() async {
-    final response = await getMyLeaseWithHttpInfo();
+  /// Return the calling tenant's active leases, possibly none.
+  Future<CurrentLeaseList?> getMyLeases() async {
+    final response = await getMyLeasesWithHttpInfo();
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'CurrentLeaseResult',) as CurrentLeaseResult;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'CurrentLeaseList',
+      ) as CurrentLeaseList;
     }
     return null;
   }
@@ -183,10 +200,11 @@ class TenantsApi {
   /// Parameters:
   ///
   /// * [String] tenantId (required):
-  Future<Response> getTenantWithHttpInfo(String tenantId,) async {
+  Future<Response> getTenantWithHttpInfo(
+    String tenantId,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/tenants/{tenantId}'
-      .replaceAll('{tenantId}', tenantId);
+    final path = r'/tenants/{tenantId}'.replaceAll('{tenantId}', tenantId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -196,7 +214,6 @@ class TenantsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -216,17 +233,24 @@ class TenantsApi {
   /// Parameters:
   ///
   /// * [String] tenantId (required):
-  Future<Tenant?> getTenant(String tenantId,) async {
-    final response = await getTenantWithHttpInfo(tenantId,);
+  Future<Tenant?> getTenant(
+    String tenantId,
+  ) async {
+    final response = await getTenantWithHttpInfo(
+      tenantId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Tenant',) as Tenant;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Tenant',
+      ) as Tenant;
     }
     return null;
   }
@@ -240,10 +264,12 @@ class TenantsApi {
   /// Parameters:
   ///
   /// * [String] propertyId (required):
-  Future<Response> listTenantsWithHttpInfo(String propertyId,) async {
+  Future<Response> listTenantsWithHttpInfo(
+    String propertyId,
+  ) async {
     // ignore: prefer_const_declarations
     final path = r'/properties/{propertyId}/tenants'
-      .replaceAll('{propertyId}', propertyId);
+        .replaceAll('{propertyId}', propertyId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -253,7 +279,6 @@ class TenantsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -273,17 +298,24 @@ class TenantsApi {
   /// Parameters:
   ///
   /// * [String] propertyId (required):
-  Future<TenantList?> listTenants(String propertyId,) async {
-    final response = await listTenantsWithHttpInfo(propertyId,);
+  Future<TenantList?> listTenants(
+    String propertyId,
+  ) async {
+    final response = await listTenantsWithHttpInfo(
+      propertyId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'TenantList',) as TenantList;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'TenantList',
+      ) as TenantList;
     }
     return null;
   }
@@ -297,10 +329,12 @@ class TenantsApi {
   /// Parameters:
   ///
   /// * [String] tenantId (required):
-  Future<Response> regenerateTenantInvitationWithHttpInfo(String tenantId,) async {
+  Future<Response> regenerateTenantInvitationWithHttpInfo(
+    String tenantId,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/tenants/{tenantId}/invitation'
-      .replaceAll('{tenantId}', tenantId);
+    final path =
+        r'/tenants/{tenantId}/invitation'.replaceAll('{tenantId}', tenantId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -310,7 +344,6 @@ class TenantsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
-
 
     return apiClient.invokeAPI(
       path,
@@ -330,17 +363,24 @@ class TenantsApi {
   /// Parameters:
   ///
   /// * [String] tenantId (required):
-  Future<TenantInvitation?> regenerateTenantInvitation(String tenantId,) async {
-    final response = await regenerateTenantInvitationWithHttpInfo(tenantId,);
+  Future<TenantInvitation?> regenerateTenantInvitation(
+    String tenantId,
+  ) async {
+    final response = await regenerateTenantInvitationWithHttpInfo(
+      tenantId,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'TenantInvitation',) as TenantInvitation;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'TenantInvitation',
+      ) as TenantInvitation;
     }
     return null;
   }
@@ -356,10 +396,12 @@ class TenantsApi {
   /// * [String] tenantId (required):
   ///
   /// * [TenantInput] tenantInput (required):
-  Future<Response> updateTenantWithHttpInfo(String tenantId, TenantInput tenantInput,) async {
+  Future<Response> updateTenantWithHttpInfo(
+    String tenantId,
+    TenantInput tenantInput,
+  ) async {
     // ignore: prefer_const_declarations
-    final path = r'/tenants/{tenantId}'
-      .replaceAll('{tenantId}', tenantId);
+    final path = r'/tenants/{tenantId}'.replaceAll('{tenantId}', tenantId);
 
     // ignore: prefer_final_locals
     Object? postBody = tenantInput;
@@ -369,7 +411,6 @@ class TenantsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
-
 
     return apiClient.invokeAPI(
       path,
@@ -391,17 +432,26 @@ class TenantsApi {
   /// * [String] tenantId (required):
   ///
   /// * [TenantInput] tenantInput (required):
-  Future<Tenant?> updateTenant(String tenantId, TenantInput tenantInput,) async {
-    final response = await updateTenantWithHttpInfo(tenantId, tenantInput,);
+  Future<Tenant?> updateTenant(
+    String tenantId,
+    TenantInput tenantInput,
+  ) async {
+    final response = await updateTenantWithHttpInfo(
+      tenantId,
+      tenantInput,
+    );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Tenant',) as Tenant;
-    
+    if (response.body.isNotEmpty &&
+        response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(
+        await _decodeBodyBytes(response),
+        'Tenant',
+      ) as Tenant;
     }
     return null;
   }

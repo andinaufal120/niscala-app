@@ -34,9 +34,13 @@ class UserAccountStatus {
     deleted,
   ];
 
-  static UserAccountStatus? fromJson(dynamic value) => UserAccountStatusTypeTransformer().decode(value);
+  static UserAccountStatus? fromJson(dynamic value) =>
+      UserAccountStatusTypeTransformer().decode(value);
 
-  static List<UserAccountStatus> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<UserAccountStatus> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <UserAccountStatus>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -53,7 +57,8 @@ class UserAccountStatus {
 /// Transformation class that can [encode] an instance of [UserAccountStatus] to String,
 /// and [decode] dynamic data back to [UserAccountStatus].
 class UserAccountStatusTypeTransformer {
-  factory UserAccountStatusTypeTransformer() => _instance ??= const UserAccountStatusTypeTransformer._();
+  factory UserAccountStatusTypeTransformer() =>
+      _instance ??= const UserAccountStatusTypeTransformer._();
 
   const UserAccountStatusTypeTransformer._();
 
@@ -70,9 +75,12 @@ class UserAccountStatusTypeTransformer {
   UserAccountStatus? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'active': return UserAccountStatus.active;
-        case r'inactive': return UserAccountStatus.inactive;
-        case r'deleted': return UserAccountStatus.deleted;
+        case r'active':
+          return UserAccountStatus.active;
+        case r'inactive':
+          return UserAccountStatus.inactive;
+        case r'deleted':
+          return UserAccountStatus.deleted;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -85,4 +93,3 @@ class UserAccountStatusTypeTransformer {
   /// Singleton [UserAccountStatusTypeTransformer] instance.
   static UserAccountStatusTypeTransformer? _instance;
 }
-

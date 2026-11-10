@@ -65,8 +65,5 @@ void main() {
     test('to test the property `type`', () async {
       // TODO
     });
-
-
   });
-
 }

@@ -74,7 +74,7 @@
         "type": "object"
       },
       "AccountTenancy": {
-        "description": "The room a Tenant account currently leases.",
+        "description": "A room a Tenant account currently leases.",
         "properties": {
           "leaseEndDate": {
             "anyOf": [
@@ -102,37 +102,6 @@
           "roomNumber"
         ],
         "title": "AccountTenancy",
-        "type": "object"
-      },
-      "ActiveLeaseSummary": {
-        "description": "The active lease that prevents a Tenant from accepting an invitation.",
-        "properties": {
-          "endDate": {
-            "anyOf": [
-              {
-                "format": "date",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Enddate"
-          },
-          "propertyName": {
-            "title": "Propertyname",
-            "type": "string"
-          },
-          "roomNumber": {
-            "title": "Roomnumber",
-            "type": "string"
-          }
-        },
-        "required": [
-          "propertyName",
-          "roomNumber"
-        ],
-        "title": "ActiveLeaseSummary",
         "type": "object"
       },
       "AddLocalPasswordInput": {
@@ -527,10 +496,17 @@
             "minLength": 10,
             "title": "Description",
             "type": "string"
+          },
+          "roomId": {
+            "description": "The room of one of the Tenant's active leases.",
+            "format": "uuid",
+            "title": "Roomid",
+            "type": "string"
           }
         },
         "required": [
-          "description"
+          "description",
+          "roomId"
         ],
         "title": "ComplaintInput",
         "type": "object"
@@ -703,7 +679,7 @@
         "type": "string"
       },
       "CurrentLease": {
-        "description": "The calling tenant's active lease.",
+        "description": "One of the calling tenant's active leases.",
         "properties": {
           "billingCycle": {
             "$ref": "#/components/schemas/BillingCycle"
@@ -742,15 +718,40 @@
               }
             ],
             "title": "Startdate"
+          },
+          "tenantId": {
+            "description": "The Tenant record the lease belongs to.",
+            "format": "uuid",
+            "title": "Tenantid",
+            "type": "string"
           }
         },
         "required": [
+          "tenantId",
           "room",
           "property",
           "rent",
           "billingCycle"
         ],
         "title": "CurrentLease",
+        "type": "object"
+      },
+      "CurrentLeaseList": {
+        "description": "The calling tenant's active leases.",
+        "properties": {
+          "items": {
+            "description": "Ordered by property name, then room number.",
+            "items": {
+              "$ref": "#/components/schemas/CurrentLease"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "CurrentLeaseList",
         "type": "object"
       },
       "CurrentLeaseProperty": {
@@ -776,25 +777,6 @@
           "address"
         ],
         "title": "CurrentLeaseProperty",
-        "type": "object"
-      },
-      "CurrentLeaseResult": {
-        "description": "The calling tenant's lease.",
-        "properties": {
-          "lease": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/CurrentLease"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Null when the lease has ended."
-          }
-        },
-        "required": [],
-        "title": "CurrentLeaseResult",
         "type": "object"
       },
       "CurrentLeaseRoom": {
@@ -996,6 +978,20 @@
             "minLength": 1,
             "title": "Idtoken",
             "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Name of the new account. Used by sign-up only; ignored by login.",
+            "title": "Name"
           }
         },
         "required": [
@@ -1019,6 +1015,38 @@
         "title": "Health",
         "type": "object"
       },
+      "InvitationAcceptanceInput": {
+        "description": "Fields set when accepting an invitation with an existing account.",
+        "properties": {
+          "emergencyContacts": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/EmergencyContact"
+                },
+                "maxItems": 4,
+                "minItems": 2,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Required for a Tenant invitation when the invitation preview says they are missing; otherwise ignored.",
+            "title": "Emergencycontacts"
+          },
+          "token": {
+            "minLength": 1,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "title": "InvitationAcceptanceInput",
+        "type": "object"
+      },
       "InvitationAcceptancePreview": {
         "description": "Whether the caller's account can accept an invitation.",
         "properties": {
@@ -1033,17 +1061,6 @@
           },
           "accountRole": {
             "$ref": "#/components/schemas/UserRole"
-          },
-          "activeLease": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/ActiveLeaseSummary"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Present when the blocker is activeLease."
           },
           "blocker": {
             "anyOf": [
@@ -1077,8 +1094,7 @@
       "InvitationBlocker": {
         "description": "Why an existing account cannot accept an invitation.",
         "enum": [
-          "roleMismatch",
-          "activeLease"
+          "roleMismatch"
         ],
         "title": "InvitationBlocker",
         "type": "string"
@@ -4252,7 +4268,7 @@
         "description": "An account with its login details and what it is linked to.",
         "properties": {
           "activeLeaseCount": {
-            "description": "Owner: across owned properties. Tenant: 0 or 1. Otherwise 0.",
+            "description": "Owner: across owned properties. Tenant: across their records. Otherwise 0.",
             "minimum": 0.0,
             "title": "Activeleasecount",
             "type": "integer"
@@ -4334,16 +4350,13 @@
           "status": {
             "$ref": "#/components/schemas/UserAccountStatus"
           },
-          "tenancy": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/AccountTenancy"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Tenant with an active lease; otherwise null."
+          "tenancies": {
+            "description": "A Tenant's active leases; empty for other roles.",
+            "items": {
+              "$ref": "#/components/schemas/AccountTenancy"
+            },
+            "title": "Tenancies",
+            "type": "array"
           }
         },
         "required": [
@@ -4355,7 +4368,8 @@
           "registeredAt",
           "loginMethods",
           "properties",
-          "activeLeaseCount"
+          "activeLeaseCount",
+          "tenancies"
         ],
         "title": "UserAccount",
         "type": "object"
@@ -4469,7 +4483,7 @@
   },
   "info": {
     "title": "Niscala API",
-    "version": "0.4.0"
+    "version": "0.6.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -4596,7 +4610,7 @@
     },
     "/auth/login/google": {
       "post": {
-        "description": "Log in with Google and start a session.",
+        "description": "Log in with Google and start a session; failures are not counted.",
         "operationId": "login_with_google",
         "requestBody": {
           "content": {
@@ -5210,7 +5224,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TokenInput"
+                "$ref": "#/components/schemas/InvitationAcceptanceInput"
               }
             }
           },
@@ -5628,16 +5642,16 @@
         ]
       }
     },
-    "/me/lease": {
+    "/me/leases": {
       "get": {
-        "description": "Return the calling tenant's active lease, or null when it has ended.",
-        "operationId": "get_my_lease",
+        "description": "Return the calling tenant's active leases, possibly none.",
+        "operationId": "get_my_leases",
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CurrentLeaseResult"
+                  "$ref": "#/components/schemas/CurrentLeaseList"
                 }
               }
             },
@@ -5649,7 +5663,7 @@
             "bearerAuth": []
           }
         ],
-        "summary": "Get My Lease",
+        "summary": "Get My Leases",
         "tags": [
           "tenants"
         ]

@@ -23,8 +23,12 @@ abstract interface class InvitationRepository {
   /// and why not when it cannot.
   Future<InvitationAcceptancePreview> previewAcceptance(String token);
 
-  /// Adds the properties of the invitation [token] to the signed-in account.
-  Future<void> accept(String token);
+  /// Adds the invitation [token] to the signed-in account. A Tenant invitation
+  /// whose tenant record lacks emergency contacts takes [emergencyContacts].
+  Future<void> accept(
+    String token, {
+    List<EmergencyContact>? emergencyContacts,
+  });
 }
 
 final invitationRepositoryProvider = Provider<InvitationRepository>((ref) {
@@ -76,8 +80,17 @@ class ApiInvitationRepository implements InvitationRepository {
       });
 
   @override
-  Future<void> accept(String token) =>
-      _guard(() => invitations.acceptInvitation(TokenInput(token: token)));
+  Future<void> accept(
+    String token, {
+    List<EmergencyContact>? emergencyContacts,
+  }) => _guard(
+    () => invitations.acceptInvitation(
+      InvitationAcceptanceInput(
+        token: token,
+        emergencyContacts: emergencyContacts,
+      ),
+    ),
+  );
 
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {

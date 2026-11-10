@@ -24,23 +24,25 @@ class NotificationList {
   int unreadCount;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is NotificationList &&
-    _deepEquality.equals(other.items, items) &&
-    other.unreadCount == unreadCount;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NotificationList &&
+          _deepEquality.equals(other.items, items) &&
+          other.unreadCount == unreadCount;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (items.hashCode) +
-    (unreadCount.hashCode);
+      // ignore: unnecessary_parenthesis
+      (items.hashCode) + (unreadCount.hashCode);
 
   @override
-  String toString() => 'NotificationList[items=$items, unreadCount=$unreadCount]';
+  String toString() =>
+      'NotificationList[items=$items, unreadCount=$unreadCount]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'items'] = this.items;
-      json[r'unreadCount'] = this.unreadCount;
+    json[r'items'] = this.items;
+    json[r'unreadCount'] = this.unreadCount;
     return json;
   }
 
@@ -56,8 +58,10 @@ class NotificationList {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "NotificationList[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "NotificationList[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "NotificationList[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "NotificationList[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -70,7 +74,10 @@ class NotificationList {
     return null;
   }
 
-  static List<NotificationList> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<NotificationList> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <NotificationList>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -98,13 +105,19 @@ class NotificationList {
   }
 
   // maps a json object with a list of NotificationList-objects as value to a dart map
-  static Map<String, List<NotificationList>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<NotificationList>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<NotificationList>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = NotificationList.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = NotificationList.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -116,4 +129,3 @@ class NotificationList {
     'unreadCount',
   };
 }
-

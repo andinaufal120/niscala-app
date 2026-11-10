@@ -47,7 +47,10 @@ void main() {
       // TODO
     });
 
-
+    // The Tenant record the lease belongs to.
+    // String tenantId
+    test('to test the property `tenantId`', () async {
+      // TODO
+    });
   });
-
 }

@@ -7,6 +7,7 @@ import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/empty_state.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/screen_header.dart';
+import 'package:niscala/features/lease/data/lease_repository.dart';
 import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
 import 'package:niscala/features/rent_bills/payment_labels.dart';
 import 'package:niscala_api/api.dart';
@@ -29,6 +30,8 @@ class _TenantPaymentsScreenState extends ConsumerState<TenantPaymentsScreen> {
   Widget build(BuildContext context) {
     final provider = _history ? paidRentBillsProvider : activeRentBillsProvider;
     final bills = ref.watch(provider);
+    // A failed lease request only hides the room of each bill.
+    final showPlace = (ref.watch(myLeasesProvider).value?.length ?? 0) > 1;
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -78,7 +81,7 @@ class _TenantPaymentsScreenState extends ConsumerState<TenantPaymentsScreen> {
                       padding: const EdgeInsets.all(NiscalaSpacing.gutter),
                       children: [
                         for (final bill in items) ...[
-                          _BillCard(bill: bill),
+                          _BillCard(bill: bill, showPlace: showPlace),
                           const SizedBox(height: NiscalaSpacing.s),
                         ],
                       ],
@@ -92,10 +95,12 @@ class _TenantPaymentsScreenState extends ConsumerState<TenantPaymentsScreen> {
 }
 
 /// One bill. The facts read as one item; the actions stay separate controls.
+/// With [showPlace] the facts also name the property and room.
 class _BillCard extends StatelessWidget {
-  const _BillCard({required this.bill});
+  const _BillCard({required this.bill, required this.showPlace});
 
   final RentBillSummary bill;
+  final bool showPlace;
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +120,8 @@ class _BillCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (showPlace)
+                    Text('${bill.property.name} · Kamar ${bill.room.number}'),
                   Wrap(
                     spacing: NiscalaSpacing.s,
                     runSpacing: NiscalaSpacing.xs,

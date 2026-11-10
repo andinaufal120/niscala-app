@@ -34,26 +34,29 @@ class NotificationComplaint {
   ComplaintUrgency? urgency;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is NotificationComplaint &&
-    other.category == category &&
-    other.complaintId == complaintId &&
-    other.description == description &&
-    other.handlingNote == handlingNote &&
-    other.status == status &&
-    other.urgency == urgency;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NotificationComplaint &&
+          other.category == category &&
+          other.complaintId == complaintId &&
+          other.description == description &&
+          other.handlingNote == handlingNote &&
+          other.status == status &&
+          other.urgency == urgency;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (category == null ? 0 : category!.hashCode) +
-    (complaintId.hashCode) +
-    (description.hashCode) +
-    (handlingNote == null ? 0 : handlingNote!.hashCode) +
-    (status.hashCode) +
-    (urgency == null ? 0 : urgency!.hashCode);
+      // ignore: unnecessary_parenthesis
+      (category == null ? 0 : category!.hashCode) +
+      (complaintId.hashCode) +
+      (description.hashCode) +
+      (handlingNote == null ? 0 : handlingNote!.hashCode) +
+      (status.hashCode) +
+      (urgency == null ? 0 : urgency!.hashCode);
 
   @override
-  String toString() => 'NotificationComplaint[category=$category, complaintId=$complaintId, description=$description, handlingNote=$handlingNote, status=$status, urgency=$urgency]';
+  String toString() =>
+      'NotificationComplaint[category=$category, complaintId=$complaintId, description=$description, handlingNote=$handlingNote, status=$status, urgency=$urgency]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -62,14 +65,14 @@ class NotificationComplaint {
     } else {
       json[r'category'] = null;
     }
-      json[r'complaintId'] = this.complaintId;
-      json[r'description'] = this.description;
+    json[r'complaintId'] = this.complaintId;
+    json[r'description'] = this.description;
     if (this.handlingNote != null) {
       json[r'handlingNote'] = this.handlingNote;
     } else {
       json[r'handlingNote'] = null;
     }
-      json[r'status'] = this.status;
+    json[r'status'] = this.status;
     if (this.urgency != null) {
       json[r'urgency'] = this.urgency;
     } else {
@@ -90,8 +93,10 @@ class NotificationComplaint {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "NotificationComplaint[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "NotificationComplaint[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "NotificationComplaint[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "NotificationComplaint[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -108,7 +113,10 @@ class NotificationComplaint {
     return null;
   }
 
-  static List<NotificationComplaint> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<NotificationComplaint> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <NotificationComplaint>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -136,13 +144,19 @@ class NotificationComplaint {
   }
 
   // maps a json object with a list of NotificationComplaint-objects as value to a dart map
-  static Map<String, List<NotificationComplaint>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<NotificationComplaint>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<NotificationComplaint>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = NotificationComplaint.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = NotificationComplaint.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -155,4 +169,3 @@ class NotificationComplaint {
     'status',
   };
 }
-

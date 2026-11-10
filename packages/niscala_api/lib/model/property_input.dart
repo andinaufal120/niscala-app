@@ -26,30 +26,33 @@ class PropertyInput {
   String name;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PropertyInput &&
-    other.address == address &&
-    other.bankAccount == bankAccount &&
-    other.name == name;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PropertyInput &&
+          other.address == address &&
+          other.bankAccount == bankAccount &&
+          other.name == name;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (address.hashCode) +
-    (bankAccount == null ? 0 : bankAccount!.hashCode) +
-    (name.hashCode);
+      // ignore: unnecessary_parenthesis
+      (address.hashCode) +
+      (bankAccount == null ? 0 : bankAccount!.hashCode) +
+      (name.hashCode);
 
   @override
-  String toString() => 'PropertyInput[address=$address, bankAccount=$bankAccount, name=$name]';
+  String toString() =>
+      'PropertyInput[address=$address, bankAccount=$bankAccount, name=$name]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'address'] = this.address;
+    json[r'address'] = this.address;
     if (this.bankAccount != null) {
       json[r'bankAccount'] = this.bankAccount;
     } else {
       json[r'bankAccount'] = null;
     }
-      json[r'name'] = this.name;
+    json[r'name'] = this.name;
     return json;
   }
 
@@ -65,8 +68,10 @@ class PropertyInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PropertyInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PropertyInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PropertyInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PropertyInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -80,7 +85,10 @@ class PropertyInput {
     return null;
   }
 
-  static List<PropertyInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PropertyInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PropertyInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -108,13 +116,19 @@ class PropertyInput {
   }
 
   // maps a json object with a list of PropertyInput-objects as value to a dart map
-  static Map<String, List<PropertyInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PropertyInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PropertyInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PropertyInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PropertyInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -126,4 +140,3 @@ class PropertyInput {
     'name',
   };
 }
-

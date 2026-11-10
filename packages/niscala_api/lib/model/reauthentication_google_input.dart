@@ -19,20 +19,21 @@ class ReauthenticationGoogleInput {
   String idToken;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is ReauthenticationGoogleInput &&
-    other.idToken == idToken;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ReauthenticationGoogleInput && other.idToken == idToken;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (idToken.hashCode);
+      // ignore: unnecessary_parenthesis
+      (idToken.hashCode);
 
   @override
   String toString() => 'ReauthenticationGoogleInput[idToken=$idToken]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-      json[r'idToken'] = this.idToken;
+    json[r'idToken'] = this.idToken;
     return json;
   }
 
@@ -48,8 +49,10 @@ class ReauthenticationGoogleInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "ReauthenticationGoogleInput[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "ReauthenticationGoogleInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "ReauthenticationGoogleInput[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "ReauthenticationGoogleInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -61,7 +64,10 @@ class ReauthenticationGoogleInput {
     return null;
   }
 
-  static List<ReauthenticationGoogleInput> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<ReauthenticationGoogleInput> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <ReauthenticationGoogleInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -89,13 +95,19 @@ class ReauthenticationGoogleInput {
   }
 
   // maps a json object with a list of ReauthenticationGoogleInput-objects as value to a dart map
-  static Map<String, List<ReauthenticationGoogleInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<ReauthenticationGoogleInput>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<ReauthenticationGoogleInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ReauthenticationGoogleInput.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = ReauthenticationGoogleInput.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -106,4 +118,3 @@ class ReauthenticationGoogleInput {
     'idToken',
   };
 }
-

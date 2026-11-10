@@ -14,6 +14,7 @@ Name | Type | Description | Notes
 **rent** | **int** | Per billing cycle, in rupiah. | 
 **room** | [**CurrentLeaseRoom**](CurrentLeaseRoom.md) |  | 
 **startDate** | [**DateTime**](DateTime.md) |  | [optional] 
+**tenantId** | **String** | The Tenant record the lease belongs to. | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

@@ -34,26 +34,29 @@ class PaymentStatusChange {
   PaymentStatus status;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is PaymentStatusChange &&
-    other.actorName == actorName &&
-    other.changedAt == changedAt &&
-    other.manual == manual &&
-    other.method == method &&
-    other.reason == reason &&
-    other.status == status;
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PaymentStatusChange &&
+          other.actorName == actorName &&
+          other.changedAt == changedAt &&
+          other.manual == manual &&
+          other.method == method &&
+          other.reason == reason &&
+          other.status == status;
 
   @override
   int get hashCode =>
-    // ignore: unnecessary_parenthesis
-    (actorName == null ? 0 : actorName!.hashCode) +
-    (changedAt.hashCode) +
-    (manual.hashCode) +
-    (method == null ? 0 : method!.hashCode) +
-    (reason == null ? 0 : reason!.hashCode) +
-    (status.hashCode);
+      // ignore: unnecessary_parenthesis
+      (actorName == null ? 0 : actorName!.hashCode) +
+      (changedAt.hashCode) +
+      (manual.hashCode) +
+      (method == null ? 0 : method!.hashCode) +
+      (reason == null ? 0 : reason!.hashCode) +
+      (status.hashCode);
 
   @override
-  String toString() => 'PaymentStatusChange[actorName=$actorName, changedAt=$changedAt, manual=$manual, method=$method, reason=$reason, status=$status]';
+  String toString() =>
+      'PaymentStatusChange[actorName=$actorName, changedAt=$changedAt, manual=$manual, method=$method, reason=$reason, status=$status]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -62,8 +65,8 @@ class PaymentStatusChange {
     } else {
       json[r'actorName'] = null;
     }
-      json[r'changedAt'] = this.changedAt.toUtc().toIso8601String();
-      json[r'manual'] = this.manual;
+    json[r'changedAt'] = this.changedAt.toUtc().toIso8601String();
+    json[r'manual'] = this.manual;
     if (this.method != null) {
       json[r'method'] = this.method;
     } else {
@@ -74,7 +77,7 @@ class PaymentStatusChange {
     } else {
       json[r'reason'] = null;
     }
-      json[r'status'] = this.status;
+    json[r'status'] = this.status;
     return json;
   }
 
@@ -90,8 +93,10 @@ class PaymentStatusChange {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key), 'Required key "PaymentStatusChange[$key]" is missing from JSON.');
-          assert(json[key] != null, 'Required key "PaymentStatusChange[$key]" has a null value in JSON.');
+          assert(json.containsKey(key),
+              'Required key "PaymentStatusChange[$key]" is missing from JSON.');
+          assert(json[key] != null,
+              'Required key "PaymentStatusChange[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -108,7 +113,10 @@ class PaymentStatusChange {
     return null;
   }
 
-  static List<PaymentStatusChange> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<PaymentStatusChange> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <PaymentStatusChange>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -136,13 +144,19 @@ class PaymentStatusChange {
   }
 
   // maps a json object with a list of PaymentStatusChange-objects as value to a dart map
-  static Map<String, List<PaymentStatusChange>> mapListFromJson(dynamic json, {bool growable = false,}) {
+  static Map<String, List<PaymentStatusChange>> mapListFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final map = <String, List<PaymentStatusChange>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PaymentStatusChange.listFromJson(entry.value, growable: growable,);
+        map[entry.key] = PaymentStatusChange.listFromJson(
+          entry.value,
+          growable: growable,
+        );
       }
     }
     return map;
@@ -155,4 +169,3 @@ class PaymentStatusChange {
     'status',
   };
 }
-

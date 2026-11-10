@@ -11,7 +11,6 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
-
 /// tests for TenantsApi
 void main() {
   // final instance = TenantsApi();
@@ -35,12 +34,12 @@ void main() {
       // TODO
     });
 
-    // Get My Lease
+    // Get My Leases
     //
-    // Return the calling tenant's active lease, or null when it has ended.
+    // Return the calling tenant's active leases, possibly none.
     //
-    //Future<CurrentLeaseResult> getMyLease() async
-    test('test getMyLease', () async {
+    //Future<CurrentLeaseList> getMyLeases() async
+    test('test getMyLeases', () async {
       // TODO
     });
 
@@ -79,6 +78,5 @@ void main() {
     test('test updateTenant', () async {
       // TODO
     });
-
   });
 }

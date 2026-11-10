@@ -34,9 +34,13 @@ class InvitationLinkStatus {
     used,
   ];
 
-  static InvitationLinkStatus? fromJson(dynamic value) => InvitationLinkStatusTypeTransformer().decode(value);
+  static InvitationLinkStatus? fromJson(dynamic value) =>
+      InvitationLinkStatusTypeTransformer().decode(value);
 
-  static List<InvitationLinkStatus> listFromJson(dynamic json, {bool growable = false,}) {
+  static List<InvitationLinkStatus> listFromJson(
+    dynamic json, {
+    bool growable = false,
+  }) {
     final result = <InvitationLinkStatus>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -53,7 +57,8 @@ class InvitationLinkStatus {
 /// Transformation class that can [encode] an instance of [InvitationLinkStatus] to String,
 /// and [decode] dynamic data back to [InvitationLinkStatus].
 class InvitationLinkStatusTypeTransformer {
-  factory InvitationLinkStatusTypeTransformer() => _instance ??= const InvitationLinkStatusTypeTransformer._();
+  factory InvitationLinkStatusTypeTransformer() =>
+      _instance ??= const InvitationLinkStatusTypeTransformer._();
 
   const InvitationLinkStatusTypeTransformer._();
 
@@ -70,9 +75,12 @@ class InvitationLinkStatusTypeTransformer {
   InvitationLinkStatus? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'valid': return InvitationLinkStatus.valid;
-        case r'expired': return InvitationLinkStatus.expired;
-        case r'used': return InvitationLinkStatus.used;
+        case r'valid':
+          return InvitationLinkStatus.valid;
+        case r'expired':
+          return InvitationLinkStatus.expired;
+        case r'used':
+          return InvitationLinkStatus.used;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -85,4 +93,3 @@ class InvitationLinkStatusTypeTransformer {
   /// Singleton [InvitationLinkStatusTypeTransformer] instance.
   static InvitationLinkStatusTypeTransformer? _instance;
 }
-
