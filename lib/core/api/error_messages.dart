@@ -59,6 +59,11 @@ const _messages = {
   'GOOGLE_ACCOUNT_MISMATCH':
       'Akun Google yang dipilih berbeda dari akun yang terhubung.',
   'GOOGLE_SIGN_IN_UNAVAILABLE': 'Masuk dengan Google belum tersedia.',
+  'GOOGLE_ALREADY_LINKED': 'Akun ini sudah terhubung ke Google.',
+  'GOOGLE_NOT_LINKED': 'Akun ini belum terhubung ke Google.',
+  'PASSWORD_LOGIN_REQUIRED':
+      'Masuk dengan email dan kata sandi dulu sebelum menghubungkan Google.',
+  'PASSWORD_ALREADY_SET': 'Akun ini sudah punya kata sandi.',
   'ACCOUNT_INACTIVE': 'Akun ini dinonaktifkan. Hubungi admin.',
   'EMAIL_NOT_VERIFIED': 'Email belum diverifikasi.',
   'EMAIL_ALREADY_VERIFIED': 'Email sudah diverifikasi.',

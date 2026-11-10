@@ -56,6 +56,15 @@ class _Accounts implements AccountRepository {
     required String currentPassword,
     required String newPassword,
   }) async => false;
+
+  @override
+  Future<Account> addLocalPassword({
+    required String googleIdToken,
+    required String password,
+  }) async => account;
+
+  @override
+  Future<Account> linkGoogle(String idToken) async => account;
 }
 
 Property _melati() => makeProperty(

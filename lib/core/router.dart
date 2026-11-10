@@ -14,7 +14,9 @@ import 'package:niscala/features/auth/ui/login_screen.dart';
 import 'package:niscala/features/auth/ui/reset_password_screen.dart';
 import 'package:niscala/features/auth/ui/register_owner_screen.dart';
 import 'package:niscala/features/account/ui/active_sessions_screen.dart';
+import 'package:niscala/features/account/ui/add_password_screen.dart';
 import 'package:niscala/features/account/ui/change_password_screen.dart';
+import 'package:niscala/features/account/ui/link_google_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
 import 'package:niscala/features/complaints/ui/complaint_form_screen.dart';
 import 'package:niscala/features/complaints/ui/complaint_photo_screen.dart';
@@ -89,6 +91,8 @@ const _managementRoutes = {
   '/akun',
   '/akun/perangkat',
   '/akun/kata-sandi',
+  '/akun/tambah-kata-sandi',
+  '/akun/hubungkan-google',
   '/akun/undangan',
 };
 const _tenantRoutes = {
@@ -97,6 +101,8 @@ const _tenantRoutes = {
   '/penyewa/akun',
   '/penyewa/akun/perangkat',
   '/penyewa/akun/kata-sandi',
+  '/penyewa/akun/tambah-kata-sandi',
+  '/penyewa/akun/hubungkan-google',
   '/penyewa/akun/undangan',
 };
 
@@ -210,6 +216,14 @@ StatefulShellBranch _accountBranch(String path, {bool showLease = false}) =>
             _subPage(
               path: 'kata-sandi',
               builder: (context, state) => const ChangePasswordScreen(),
+            ),
+            _subPage(
+              path: 'tambah-kata-sandi',
+              builder: (context, state) => const AddPasswordScreen(),
+            ),
+            _subPage(
+              path: 'hubungkan-google',
+              builder: (context, state) => const LinkGoogleScreen(),
             ),
             _subPage(
               path: 'undangan',

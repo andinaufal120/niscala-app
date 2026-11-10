@@ -12,9 +12,6 @@ import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/features/account/data/account_repository.dart';
 import 'package:niscala/features/auth/ui/auth_widgets.dart';
 
-const _newPasswordHelper =
-    'Minimal 8 karakter. Boleh berupa kalimat panjang, tanpa aturan huruf '
-    'atau simbol khusus.';
 const _mismatch = 'Konfirmasi tidak sama dengan kata sandi baru.';
 const _changedNotice = 'Kata sandi diperbarui.';
 const _changedAndEndedNotice =
@@ -159,7 +156,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         LabeledField(
           label: 'Kata sandi baru',
           required: true,
-          helper: _newPasswordHelper,
+          helper: newPasswordHelper,
           child: TextField(
             controller: _next,
             decoration: InputDecoration(errorText: _nextError),

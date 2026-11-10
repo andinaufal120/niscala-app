@@ -45,8 +45,8 @@ class AccountScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // The password row is only offered to accounts that have a local password.
-    final hasPassword = ref.watch(meProvider).value?.hasPassword ?? false;
+    // The sign-in rows say what the account has, so they wait for the profile.
+    final account = ref.watch(meProvider).value;
     // The role of the session decides the rows, so they do not wait for the
     // profile to load.
     final role = ref.watch(currentRoleProvider);
@@ -98,23 +98,14 @@ class AccountScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        if (account != null)
+                          ..._signInRows(context, ref, account),
                         ActionCardRow(
                           icon: Icons.devices_outlined,
                           title: 'Perangkat aktif',
                           subtitle: 'Lihat dan keluarkan perangkat yang masuk',
                           onTap: () => _openSubPage(context, ref, 'perangkat'),
                         ),
-                        if (hasPassword) ...[
-                          formGap,
-                          ActionCardRow(
-                            icon: Icons.lock_outline,
-                            title: 'Ubah kata sandi',
-                            subtitle:
-                                'Ganti kata sandi untuk masuk dengan email',
-                            onTap: () =>
-                                _openSubPage(context, ref, 'kata-sandi'),
-                          ),
-                        ],
                       ],
                     ),
                   ),
@@ -147,6 +138,51 @@ class AccountScreen extends ConsumerWidget {
 
   void _openSubPage(BuildContext context, WidgetRef ref, String subPath) =>
       context.go('${accountTabPath(ref.read(currentRoleProvider))}/$subPath');
+
+  /// The password and Google rows of the Keamanan section. The password is
+  /// set or added, and Google is linked, shown with its email, or offered to
+  /// link when the account has a password to sign in with.
+  List<Widget> _signInRows(
+    BuildContext context,
+    WidgetRef ref,
+    Account account,
+  ) {
+    final googleEmail = account.googleEmail;
+    final hasPassword = account.hasPassword;
+    return [
+      _SecurityRow(
+        title: 'Kata sandi',
+        status: hasPassword ? 'Diatur' : 'Belum diatur',
+        action: hasPassword
+            ? _RowAction(
+                label: 'Ubah',
+                spokenLabel: 'Ubah kata sandi',
+                onPressed: () => _openSubPage(context, ref, 'kata-sandi'),
+              )
+            : _RowAction(
+                label: 'Tambah',
+                spokenLabel: 'Tambah kata sandi',
+                onPressed: () =>
+                    _openSubPage(context, ref, 'tambah-kata-sandi'),
+              ),
+      ),
+      formGap,
+      _SecurityRow(
+        title: 'Google',
+        status: googleEmail == null
+            ? 'Belum terhubung'
+            : 'Terhubung · $googleEmail',
+        action: googleEmail == null && hasPassword
+            ? _RowAction(
+                label: 'Hubungkan',
+                spokenLabel: 'Hubungkan Google',
+                onPressed: () => _openSubPage(context, ref, 'hubungkan-google'),
+              )
+            : null,
+      ),
+      formGap,
+    ];
+  }
 }
 
 /// The name, email and role of the caller, with the initials of the name as
@@ -216,6 +252,63 @@ class _ProfileDetails extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// A row of the Keamanan section: its [title] and [status], with an optional
+/// [action] at the end.
+class _SecurityRow extends StatelessWidget {
+  const _SecurityRow({required this.title, required this.status, this.action});
+
+  final String title;
+  final String status;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Expanded(
+          // Title and status are read as one item.
+          child: MergeSemantics(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: theme.textTheme.titleSmall),
+                Text(status, style: theme.textTheme.bodyMedium),
+              ],
+            ),
+          ),
+        ),
+        ?action,
+      ],
+    );
+  }
+}
+
+/// The action of a [_SecurityRow]. The visible [label] is short; the
+/// [spokenLabel] says what it acts on and starts with the label.
+class _RowAction extends StatelessWidget {
+  const _RowAction({
+    required this.label,
+    required this.spokenLabel,
+    required this.onPressed,
+  });
+
+  final String label;
+  final String spokenLabel;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: spokenLabel,
+      onTap: onPressed,
+      excludeSemantics: true,
+      child: TextButton(onPressed: onPressed, child: Text(label)),
     );
   }
 }

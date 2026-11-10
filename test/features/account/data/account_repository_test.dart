@@ -770,4 +770,306 @@ void main() {
       );
     });
   });
+
+  group('addLocalPassword', () {
+    Future<Account> add(
+      _Harness h, {
+      String token = 'google-token-1',
+      String password = 'teh manis sore hari',
+    }) =>
+        h.repository.addLocalPassword(googleIdToken: token, password: password);
+
+    http.Response added() =>
+        _ok(_accountJson(googleEmail: 'andi@gmail.com', hasPassword: true));
+
+    test('posts to the local password endpoint', () async {
+      final h = _Harness((_) => added());
+
+      await add(h);
+
+      expect(h.request.method, 'POST');
+      expect(h.request.url.path, '/me/local-password');
+      expect(h.request.url.queryParameters, isEmpty);
+      expect(h.request.headers['content-type'], contains('application/json'));
+    });
+
+    test('sends exactly the Google ID token and the password', () async {
+      final h = _Harness((_) => added());
+
+      await add(h, token: 'token-abc');
+
+      expect(jsonDecode(h.request.body), {
+        'googleIdToken': 'token-abc',
+        'password': 'teh manis sore hari',
+      });
+    });
+
+    test('sends the password untrimmed', () async {
+      final h = _Harness((_) => added());
+
+      await add(h, password: '  teh manis sore  ');
+
+      expect(jsonDecode(h.request.body), {
+        'googleIdToken': 'google-token-1',
+        'password': '  teh manis sore  ',
+      });
+    });
+
+    test('sends one request only', () async {
+      final h = _Harness((_) => added());
+
+      await add(h);
+
+      expect(h.requests, hasLength(1));
+    });
+
+    test('returns the updated account', () async {
+      final h = _Harness(
+        (_) => _ok(
+          _accountJson(
+            role: 'tenant',
+            googleEmail: 'andi@gmail.com',
+            hasPassword: true,
+          ),
+        ),
+      );
+
+      final account = await add(h);
+
+      expect(account.id, 'account-1');
+      expect(account.name, 'Andi Pengguna');
+      expect(account.email, 'andi@example.com');
+      expect(account.role, UserRole.tenant);
+      expect(account.hasPassword, isTrue);
+      expect(account.googleEmail, 'andi@gmail.com');
+    });
+
+    final failures = <String, ({int status, String code, String? field})>{
+      'an account that already has a password': (
+        status: 409,
+        code: 'PASSWORD_ALREADY_SET',
+        field: null,
+      ),
+      'an account that is not linked to Google': (
+        status: 409,
+        code: 'GOOGLE_NOT_LINKED',
+        field: null,
+      ),
+      'another Google account': (
+        status: 403,
+        code: 'GOOGLE_ACCOUNT_MISMATCH',
+        field: null,
+      ),
+      'an invalid Google token': (
+        status: 401,
+        code: 'GOOGLE_TOKEN_INVALID',
+        field: null,
+      ),
+      'an unverified Google email': (
+        status: 403,
+        code: 'GOOGLE_EMAIL_UNVERIFIED',
+        field: null,
+      ),
+      'a common password': (
+        status: 422,
+        code: 'PASSWORD_TOO_COMMON',
+        field: 'password',
+      ),
+      'an invalid password': (
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        field: 'password',
+      ),
+      'an invalid access token': (
+        status: 401,
+        code: 'ACCESS_TOKEN_INVALID',
+        field: null,
+      ),
+      'a forbidden call': (status: 403, code: 'FORBIDDEN', field: null),
+    };
+    for (final entry in failures.entries) {
+      test('keeps the code, field and status of ${entry.key}', () async {
+        final f = entry.value;
+        final h = _Harness((_) => _error(f.status, f.code, field: f.field));
+
+        await expectLater(
+          add(h),
+          throwsA(_failure(f.code, field: f.field, status: f.status)),
+        );
+      });
+    }
+
+    test('does not retry a failed request', () async {
+      final h = _Harness((_) => _error(409, 'PASSWORD_ALREADY_SET'));
+
+      await expectLater(add(h), throwsA(isA<ApiFailure>()));
+
+      expect(h.requests, hasLength(1));
+    });
+
+    test('never exposes the English text of the API', () async {
+      final h = _Harness((_) => _error(409, 'PASSWORD_ALREADY_SET'));
+
+      await expectLater(
+        add(h),
+        throwsA(
+          isA<ApiFailure>().having(
+            (f) => f.toString(),
+            'text',
+            isNot(contains('English text')),
+          ),
+        ),
+      );
+    });
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(const SocketException('no route'));
+
+      await expectLater(add(h), throwsA(_failure('NETWORK_ERROR')));
+    });
+
+    test('converts a client exception to a network failure', () async {
+      final h = _Harness.failing(http.ClientException('broken'));
+
+      await expectLater(add(h), throwsA(_failure('NETWORK_ERROR')));
+    });
+
+    test('maps a server error without a body to INTERNAL_ERROR', () async {
+      final h = _Harness((_) => http.Response('', 500));
+
+      await expectLater(
+        add(h),
+        throwsA(_failure('INTERNAL_ERROR', status: 500)),
+      );
+    });
+  });
+
+  group('linkGoogle', () {
+    Future<Account> link(_Harness h, {String token = 'google-token-1'}) =>
+        h.repository.linkGoogle(token);
+
+    http.Response linked() =>
+        _ok(_accountJson(googleEmail: 'andi@gmail.com', hasPassword: true));
+
+    test('posts to the Google link endpoint', () async {
+      final h = _Harness((_) => linked());
+
+      await link(h);
+
+      expect(h.request.method, 'POST');
+      expect(h.request.url.path, '/me/google-link');
+      expect(h.request.url.queryParameters, isEmpty);
+      expect(h.request.headers['content-type'], contains('application/json'));
+    });
+
+    test('sends exactly the Google ID token', () async {
+      final h = _Harness((_) => linked());
+
+      await link(h, token: 'token-abc');
+
+      expect(jsonDecode(h.request.body), {'idToken': 'token-abc'});
+    });
+
+    test('sends one request only', () async {
+      final h = _Harness((_) => linked());
+
+      await link(h);
+
+      expect(h.requests, hasLength(1));
+    });
+
+    test('returns the updated account', () async {
+      final h = _Harness(
+        (_) => _ok(
+          _accountJson(
+            role: 'manager',
+            googleEmail: 'andi.google@gmail.com',
+            hasPassword: true,
+          ),
+        ),
+      );
+
+      final account = await link(h);
+
+      expect(account.id, 'account-1');
+      expect(account.name, 'Andi Pengguna');
+      expect(account.email, 'andi@example.com');
+      expect(account.role, UserRole.manager);
+      expect(account.hasPassword, isTrue);
+      expect(account.googleEmail, 'andi.google@gmail.com');
+    });
+
+    final failures = <String, ({int status, String code})>{
+      'a Google account linked to another account': (
+        status: 409,
+        code: 'GOOGLE_ACCOUNT_ALREADY_REGISTERED',
+      ),
+      'an account that is already linked': (
+        status: 409,
+        code: 'GOOGLE_ALREADY_LINKED',
+      ),
+      'a session that did not log in with a password': (
+        status: 403,
+        code: 'PASSWORD_LOGIN_REQUIRED',
+      ),
+      'an invalid Google token': (status: 401, code: 'GOOGLE_TOKEN_INVALID'),
+      'an unverified Google email': (
+        status: 403,
+        code: 'GOOGLE_EMAIL_UNVERIFIED',
+      ),
+      'an invalid access token': (status: 401, code: 'ACCESS_TOKEN_INVALID'),
+    };
+    for (final entry in failures.entries) {
+      test('keeps the code and status of ${entry.key}', () async {
+        final f = entry.value;
+        final h = _Harness((_) => _error(f.status, f.code));
+
+        await expectLater(link(h), throwsA(_failure(f.code, status: f.status)));
+      });
+    }
+
+    test('does not retry a failed request', () async {
+      final h = _Harness((_) => _error(409, 'GOOGLE_ALREADY_LINKED'));
+
+      await expectLater(link(h), throwsA(isA<ApiFailure>()));
+
+      expect(h.requests, hasLength(1));
+    });
+
+    test('never exposes the English text of the API', () async {
+      final h = _Harness((_) => _error(409, 'GOOGLE_ALREADY_LINKED'));
+
+      await expectLater(
+        link(h),
+        throwsA(
+          isA<ApiFailure>().having(
+            (f) => f.toString(),
+            'text',
+            isNot(contains('English text')),
+          ),
+        ),
+      );
+    });
+
+    test('converts a transport error to a network failure', () async {
+      final h = _Harness.failing(const SocketException('no route'));
+
+      await expectLater(link(h), throwsA(_failure('NETWORK_ERROR')));
+    });
+
+    test('converts a client exception to a network failure', () async {
+      final h = _Harness.failing(http.ClientException('broken'));
+
+      await expectLater(link(h), throwsA(_failure('NETWORK_ERROR')));
+    });
+
+    test('maps a server error without a body to INTERNAL_ERROR', () async {
+      final h = _Harness((_) => http.Response('', 500));
+
+      await expectLater(
+        link(h),
+        throwsA(_failure('INTERNAL_ERROR', status: 500)),
+      );
+    });
+  });
 }

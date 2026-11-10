@@ -6,6 +6,12 @@ final _emailPattern = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
 
 const maximumPasswordLength = 128;
 
+/// The helper under a new-password field: the length rule, and that no
+/// composition rules apply.
+const newPasswordHelper =
+    'Minimal 8 karakter. Boleh berupa kalimat panjang, tanpa aturan huruf '
+    'atau simbol khusus.';
+
 bool isValidEmail(String email) => _emailPattern.hasMatch(email);
 
 /// The Indonesian error for a sign-up email, or null when it is valid.
