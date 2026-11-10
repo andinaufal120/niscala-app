@@ -604,20 +604,34 @@ void main() {
       expect(editable.focusNode.hasFocus, isTrue);
     });
 
-    testWidgets('shows the N logo tile above the heading', (tester) async {
-      await pumpLogin(tester, auth);
+    final logoFinder = find.byWidgetPredicate(
+      (w) =>
+          w is Image &&
+          w.image is AssetImage &&
+          (w.image as AssetImage).assetName == 'assets/icon/niscala_icon.png',
+    );
 
-      expect(find.text('N'), findsOneWidget);
-      final logo = tester.getRect(find.text('N'));
-      final heading = tester.getRect(find.text('Masuk ke Niscala'));
-      expect(logo.bottom, lessThanOrEqualTo(heading.top));
-    });
-
-    testWidgets('keeps the logo tile out of the semantics tree', (
+    testWidgets('shows the app icon above the heading at 56x56', (
       tester,
     ) async {
       await pumpLogin(tester, auth);
 
+      expect(logoFinder, findsOneWidget);
+      expect(find.text('N'), findsNothing);
+      final logo = tester.getRect(logoFinder);
+      expect(logo.size, const Size(56, 56));
+      final heading = tester.getRect(find.text('Masuk ke Niscala'));
+      expect(logo.bottom, lessThanOrEqualTo(heading.top));
+      expect(logo.left, lessThanOrEqualTo(heading.left));
+    });
+
+    testWidgets('keeps the logo out of the semantics tree', (tester) async {
+      await pumpLogin(tester, auth);
+
+      expect(
+        find.ancestor(of: logoFinder, matching: find.byType(ExcludeSemantics)),
+        findsWidgets,
+      );
       final handle = tester.ensureSemantics();
       try {
         final labels = allSemanticsNodes(tester).map((n) => n.label);
