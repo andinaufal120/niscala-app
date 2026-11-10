@@ -255,31 +255,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 }
 
-/// The decorative "N" mark of the app, hidden from assistive technology.
+/// The app icon shown above the heading, hidden from assistive technology.
 class _LogoTile extends StatelessWidget {
   const _LogoTile();
 
   @override
   Widget build(BuildContext context) {
     return ExcludeSemantics(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: NiscalaColors.primary,
-          borderRadius: BorderRadius.circular(NiscalaRadius.card),
-        ),
-        child: SizedBox.square(
-          dimension: 56,
-          child: Center(
-            child: Text(
-              'N',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: NiscalaColors.surface,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ),
-      ),
+      child: Image.asset('assets/icon/niscala_icon.png', width: 56, height: 56),
     );
   }
 }
