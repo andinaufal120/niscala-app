@@ -1,22 +1,22 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
+import 'package:niscala/core/image_chooser.dart';
 
 void main() {
   test('offers the camera and the gallery as sources', () {
-    expect(ReceiptSource.values, unorderedEquals(ReceiptSource.values));
+    expect(ImageOrigin.values, unorderedEquals(ImageOrigin.values));
     expect(
-      ReceiptSource.values.map((s) => s.name),
+      ImageOrigin.values.map((s) => s.name),
       containsAll(['camera', 'gallery']),
     );
-    expect(ReceiptSource.values, hasLength(2));
+    expect(ImageOrigin.values, hasLength(2));
   });
 
   test('a receipt file keeps its name and bytes', () {
     final bytes = Uint8List.fromList([1, 2, 3]);
 
-    final file = ReceiptFile(name: 'bukti.jpg', bytes: bytes);
+    final file = PickedImage(name: 'bukti.jpg', bytes: bytes);
 
     expect(file.name, 'bukti.jpg');
     expect(file.bytes, bytes);

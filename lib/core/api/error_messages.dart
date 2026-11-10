@@ -119,6 +119,10 @@ const _messages = {
       'Status keluhan sudah diubah oleh pengguna lain.',
   'COMPLAINT_CATEGORY_INVALID':
       'Kategori tidak valid. Pilih kategori dari daftar.',
+  'COMPLAINT_NOT_NEW': 'Foto hanya bisa diubah selama keluhan berstatus Baru.',
+  'PHOTO_TYPE_INVALID': 'Foto harus JPG atau PNG.',
+  'PHOTO_TOO_LARGE': 'Ukuran foto maksimal 5 MB.',
+  'PHOTO_NOT_FOUND': 'Foto tidak ditemukan.',
   'RECEIPT_TYPE_INVALID': 'Bukti transfer harus berupa gambar JPG atau PNG.',
   'RECEIPT_TOO_LARGE': 'Ukuran bukti transfer maksimal 5 MB.',
   'RENT_BILL_NOT_UPLOADABLE':
@@ -149,6 +153,11 @@ String _errorMessage(String code) => _messages[code] ?? genericErrorMessage;
 /// differently from a property. Passed as the [labels] of [validationMessage]
 /// or [errorMessageFor].
 const personFormLabels = {'name': 'Nama lengkap'};
+
+/// The label of the photo file on screens that show a complaint photo, so a
+/// validation failure on the file reads "Foto tidak valid.". Passed as the
+/// [labels] of [errorMessageFor].
+const photoFormLabels = {'file': 'Foto'};
 
 /// The Indonesian message for a validation failure on [field], such as
 /// "Email tidak valid.". [labels] replaces the label of a known field, for a

@@ -11,14 +11,11 @@ import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
-import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
+import 'package:niscala/core/image_chooser.dart';
 import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
 import 'package:niscala_api/api.dart';
 
-const _maxBytes = 5 * 1024 * 1024;
 const _chooseFirst = 'Pilih bukti transfer terlebih dahulu.';
-const _accessDenied =
-    'Tidak bisa mengakses kamera atau galeri. Periksa izin aplikasi.';
 const _sentMessage = 'Bukti transfer terkirim.';
 const _typeInvalid = ApiFailure(code: 'RECEIPT_TYPE_INVALID');
 const _tooLarge = ApiFailure(code: 'RECEIPT_TOO_LARGE');
@@ -40,7 +37,7 @@ class UploadReceiptScreen extends ConsumerStatefulWidget {
 }
 
 class _UploadReceiptScreenState extends ConsumerState<UploadReceiptScreen> {
-  ReceiptFile? _file;
+  PickedImage? _file;
   String? _fileError;
   String? _banner;
   var _busy = false;
@@ -48,21 +45,21 @@ class _UploadReceiptScreenState extends ConsumerState<UploadReceiptScreen> {
   /// Set when the API says the bill changed, so the list is stale.
   var _stale = false;
 
-  Future<void> _pick(ReceiptSource source) async {
-    final ReceiptFile? file;
+  Future<void> _pick(ImageOrigin source) async {
+    final PickedImage? file;
     try {
-      file = await ref.read(receiptPickerProvider).pick(source);
+      file = await ref.read(imageChooserProvider).pick(source);
     } on PlatformException {
       if (!mounted) return;
-      setState(() => _fileError = _accessDenied);
+      setState(() => _fileError = imageAccessDeniedMessage);
       return;
     }
     if (file == null || !mounted) return;
-    final failure = receiptMediaType(file.bytes) == null
-        ? _typeInvalid
-        : file.bytes.length > _maxBytes
-        ? _tooLarge
-        : null;
+    final failure = switch (imageRejection(file)) {
+      ImageRejection.type => _typeInvalid,
+      ImageRejection.tooLarge => _tooLarge,
+      null => null,
+    };
     setState(() {
       _file = failure == null ? file : null;
       _fileError = failure == null ? null : errorMessageFor(failure);
@@ -196,15 +193,13 @@ class _UploadReceiptScreenState extends ConsumerState<UploadReceiptScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   OutlinedButton.icon(
-                    onPressed: _busy ? null : () => _pick(ReceiptSource.camera),
+                    onPressed: _busy ? null : () => _pick(ImageOrigin.camera),
                     icon: const Icon(Icons.photo_camera_outlined),
                     label: const Text('Ambil dari kamera'),
                   ),
                   const SizedBox(height: NiscalaSpacing.s),
                   OutlinedButton.icon(
-                    onPressed: _busy
-                        ? null
-                        : () => _pick(ReceiptSource.gallery),
+                    onPressed: _busy ? null : () => _pick(ImageOrigin.gallery),
                     icon: const Icon(Icons.photo_library_outlined),
                     label: const Text('Pilih dari galeri'),
                   ),
@@ -214,13 +209,7 @@ class _UploadReceiptScreenState extends ConsumerState<UploadReceiptScreen> {
                   ],
                   if (_fileError != null) ...[
                     const SizedBox(height: NiscalaSpacing.s),
-                    Semantics(
-                      liveRegion: true,
-                      child: Text(
-                        _fileError!,
-                        style: TextStyle(color: theme.colorScheme.error),
-                      ),
-                    ),
+                    FieldMessage(_fileError!),
                   ],
                 ],
               ),

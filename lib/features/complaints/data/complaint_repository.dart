@@ -1,6 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:niscala/core/api/api_failure_mapper.dart';
 import 'package:niscala/core/api/api_providers.dart';
+import 'package:niscala/core/api/image_transfer.dart';
+import 'package:niscala/core/image_chooser.dart';
 import 'package:niscala_api/api.dart';
 
 /// Maintenance complaints. Every method throws an `ApiFailure` when the call
@@ -35,6 +39,13 @@ abstract interface class ComplaintRepository {
     required String category,
     required ComplaintUrgency urgency,
   });
+
+  /// Attaches [image] to the complaint, replacing its photo. Only a complaint
+  /// that is still new can change its photo.
+  Future<Complaint> uploadPhoto(String complaintId, PickedImage image);
+
+  /// The photo of the complaint, as received.
+  Future<Uint8List> photo(String complaintId);
 }
 
 final complaintRepositoryProvider = Provider<ComplaintRepository>((ref) {
@@ -61,6 +72,14 @@ final complaintDetailProvider = FutureProvider.family<Complaint, String>(
 /// [complaintListProvider].
 final complaintCategoriesProvider = FutureProvider<List<String>>(
   (ref) => ref.watch(complaintRepositoryProvider).categories(),
+  retry: (_, _) => null,
+);
+
+/// The photo of one complaint. Invalidate it after the photo changes. Failures
+/// are not retried in the background, see [complaintListProvider].
+final complaintPhotoBytesProvider = FutureProvider.family<Uint8List, String>(
+  (ref, complaintId) =>
+      ref.watch(complaintRepositoryProvider).photo(complaintId),
   retry: (_, _) => null,
 );
 
@@ -118,6 +137,22 @@ class ApiComplaintRepository implements ComplaintRepository {
       complaintId,
       ComplaintClassificationInput(category: category, urgency: urgency),
     ))!;
+  });
+
+  @override
+  Future<Complaint> uploadPhoto(String complaintId, PickedImage image) =>
+      _guard(() async {
+        return (await complaints.uploadComplaintPhoto(
+          complaintId,
+          imageUploadPart(image),
+        ))!;
+      });
+
+  @override
+  Future<Uint8List> photo(String complaintId) => _guard(() async {
+    return imageBytesOf(
+      await complaints.getComplaintPhotoWithHttpInfo(complaintId),
+    );
   });
 
   Future<T> _guard<T>(Future<T> Function() call) async {

@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/widgets/error_view.dart';
-import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
+import 'package:niscala/core/image_chooser.dart';
 import 'package:niscala/features/rent_bills/ui/tenant_payments_screen.dart';
 import 'package:niscala/features/rent_bills/ui/upload_receipt_screen.dart';
 import 'package:niscala_api/api.dart';
@@ -24,16 +24,16 @@ const _sentMessage = 'Bukti transfer terkirim.';
 final _typeError = errorMessage('RECEIPT_TYPE_INVALID');
 final _sizeError = errorMessage('RECEIPT_TOO_LARGE');
 
-({FakeRentBillRepository repo, FakeReceiptPicker picker}) _setup({
+({FakeRentBillRepository repo, FakeImageChooser picker}) _setup({
   List<RentBill>? bills,
 }) => (
   repo: FakeRentBillRepository(bills: bills ?? sampleBills()),
-  picker: FakeReceiptPicker(),
+  picker: FakeImageChooser(),
 );
 
 Future<void> _open(
   WidgetTester tester,
-  ({FakeRentBillRepository repo, FakeReceiptPicker picker}) s, {
+  ({FakeRentBillRepository repo, FakeImageChooser picker}) s, {
   String id = 'b1',
   bool largeText = false,
   bool settle = true,
@@ -48,8 +48,8 @@ Future<void> _open(
 
 Future<void> _pick(
   WidgetTester tester,
-  FakeReceiptPicker picker,
-  ReceiptFile? file, {
+  FakeImageChooser picker,
+  PickedImage? file, {
   String button = _gallery,
 }) async {
   picker.queue.add(file);
@@ -166,7 +166,7 @@ void main() {
 
       await _pick(tester, s.picker, null);
 
-      expect(s.picker.requested, [ReceiptSource.gallery]);
+      expect(s.picker.requested, [ImageOrigin.gallery]);
     });
 
     testWidgets('the camera button asks for the camera', (tester) async {
@@ -175,7 +175,7 @@ void main() {
 
       await _pick(tester, s.picker, null, button: _camera);
 
-      expect(s.picker.requested, [ReceiptSource.camera]);
+      expect(s.picker.requested, [ImageOrigin.camera]);
     });
 
     testWidgets('cancelling shows no error and chooses nothing', (
@@ -226,7 +226,7 @@ void main() {
       expect(s.repo.uploaded.single.file.name, 'dua.png');
     });
 
-    final accepted = <String, ReceiptFile Function()>{
+    final accepted = <String, PickedImage Function()>{
       'a JPG file': jpegFile,
       'a PNG file': pngFile,
       'a JPEG with an upper case extension': () => jpegFile(name: 'FOTO.JPEG'),
@@ -244,7 +244,7 @@ void main() {
       });
     }
 
-    final wrongType = <String, ReceiptFile Function()>{
+    final wrongType = <String, PickedImage Function()>{
       'a PDF': pdfFile,
       'a PDF renamed to JPG': pdfNamedJpg,
       'a HEIC photo': heicFile,
@@ -402,7 +402,7 @@ void main() {
   });
 
   group('success', () {
-    Future<({FakeRentBillRepository repo, FakeReceiptPicker picker})> sent(
+    Future<({FakeRentBillRepository repo, FakeImageChooser picker})> sent(
       WidgetTester tester,
     ) async {
       final s = _setup();
@@ -470,7 +470,7 @@ void main() {
   });
 
   group('failure', () {
-    Future<({FakeRentBillRepository repo, FakeReceiptPicker picker})> failing(
+    Future<({FakeRentBillRepository repo, FakeImageChooser picker})> failing(
       WidgetTester tester,
       ApiFailure failure,
     ) async {
@@ -657,11 +657,11 @@ void main() {
     final buttons = {
       _camera: (
         PlatformException(code: 'camera_access_denied'),
-        ReceiptSource.camera,
+        ImageOrigin.camera,
       ),
       _gallery: (
         PlatformException(code: 'photo_access_denied'),
-        ReceiptSource.gallery,
+        ImageOrigin.gallery,
       ),
     };
 
@@ -752,8 +752,10 @@ void main() {
       statusCode: 409,
     );
 
-    Future<({FakeRentBillRepository repo, FakeReceiptPicker picker})>
-    conflicted(WidgetTester tester, {required bool stillUploadable}) async {
+    Future<({FakeRentBillRepository repo, FakeImageChooser picker})> conflicted(
+      WidgetTester tester, {
+      required bool stillUploadable,
+    }) async {
       final s = _setup();
       s.repo.uploadScript.queue.add(conflict);
       await _open(tester, s);

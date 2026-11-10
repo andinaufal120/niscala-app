@@ -21,7 +21,7 @@ import 'package:niscala/features/managers/data/manager_repository.dart';
 import 'package:niscala/features/notifications/data/notification_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/rent_bills/data/management_rent_bill_repository.dart';
-import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
+import 'package:niscala/core/image_chooser.dart';
 import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
 import 'package:niscala/features/tenants/data/invitation_sharing.dart';
@@ -1319,7 +1319,8 @@ ComplaintClassification makeComplaintClassification({
 /// A [Complaint] with sensible defaults: new, from Budi Santoso in room 08 of
 /// Kos Melati, sent 18 Okt 2026 at 12:00 UTC.
 ///
-/// It has no classification and no classification state unless given.
+/// It has no classification, no classification state and no photo unless
+/// given.
 Complaint makeComplaint({
   String id = 'c1',
   String description = 'Keran air di kamar mandi bocor sejak kemarin.',
@@ -1333,6 +1334,7 @@ Complaint makeComplaint({
   String roomNumber = '08',
   String propertyName = 'Kos Melati',
   List<ComplaintStatusChange> statusChanges = const [],
+  bool hasPhoto = false,
 }) => Complaint(
   id: id,
   description: description,
@@ -1341,7 +1343,7 @@ Complaint makeComplaint({
   classificationState: classificationState,
   classificationWithheld: classificationWithheld,
   createdAt: createdAt ?? DateTime.utc(2026, 10, 18, 12),
-  hasPhoto: false,
+  hasPhoto: hasPhoto,
   property: PropertyRef(id: 'p1', name: propertyName),
   room: RoomRef(id: roomId, number: roomNumber),
   statusChanges: statusChanges,
@@ -1370,14 +1372,74 @@ Complaint makeComplaint({
 /// action and no classification state, and keeps the AI result it replaces as
 /// the original AI classification. Asking for the values the complaint already
 /// has changes nothing, as the API does. It is recorded as `classify:<id>`.
+///
+/// [uploadPhoto] is recorded as `uploadPhoto:<id>` in [calls] and in
+/// [uploadedPhotos] as given, before the script is consulted. When the call
+/// succeeds the bytes are kept in [photos] and the complaint in [complaints]
+/// has a photo; an unknown complaint fails with `COMPLAINT_NOT_FOUND`. [photo]
+/// is recorded as `photo:<id>` and returns the entry of [photos], or fails with
+/// `PHOTO_NOT_FOUND`. Neither checks the status of the complaint: script
+/// `uploadPhotoScript` to fail with `COMPLAINT_NOT_NEW`.
 class FakeComplaintRepository implements ComplaintRepository {
-  FakeComplaintRepository({List<Complaint>? complaints})
-    : complaints = complaints ?? [];
+  FakeComplaintRepository({
+    List<Complaint>? complaints,
+    Map<String, Uint8List>? photos,
+  }) : complaints = complaints ?? [],
+       photos = photos ?? {};
 
   final List<Complaint> complaints;
 
+  /// The photo bytes by complaint id.
+  final Map<String, Uint8List> photos;
+
   final calls = <String>[];
   final submitted = <String>[];
+
+  /// The arguments of every [uploadPhoto] call, in order, whether it succeeded
+  /// or not.
+  final uploadedPhotos = <({String id, PickedImage image})>[];
+
+  final uploadPhotoScript = CallScript();
+  final photoScript = CallScript();
+
+  int get uploadPhotoCalls =>
+      calls.where((c) => c.startsWith('uploadPhoto:')).length;
+  int get photoCalls => calls.where((c) => c.startsWith('photo:')).length;
+
+  @override
+  Future<Complaint> uploadPhoto(String complaintId, PickedImage image) async {
+    calls.add('uploadPhoto:$complaintId');
+    uploadedPhotos.add((id: complaintId, image: image));
+    final failure = await uploadPhotoScript.next();
+    if (failure != null) throw failure;
+    final index = complaints.indexWhere((c) => c.id == complaintId);
+    if (index < 0) throw const ApiFailure(code: 'COMPLAINT_NOT_FOUND');
+    final old = complaints[index];
+    photos[complaintId] = image.bytes;
+    return complaints[index] = Complaint(
+      id: old.id,
+      description: old.description,
+      status: old.status,
+      classification: old.classification,
+      classificationState: old.classificationState,
+      classificationWithheld: old.classificationWithheld,
+      createdAt: old.createdAt,
+      hasPhoto: true,
+      property: old.property,
+      room: old.room,
+      statusChanges: old.statusChanges,
+      tenantName: old.tenantName,
+    );
+  }
+
+  @override
+  Future<Uint8List> photo(String complaintId) async {
+    calls.add('photo:$complaintId');
+    final failure = await photoScript.next();
+    if (failure != null) throw failure;
+    return photos[complaintId] ??
+        (throw const ApiFailure(code: 'PHOTO_NOT_FOUND'));
+  }
 
   /// The room id of every [submit] call, in order, parallel to [submitted].
   final submittedRoomIds = <String>[];
@@ -1718,7 +1780,7 @@ class FakeRentBillRepository implements RentBillRepository {
 
   final calls = <String>[];
   final listedStatuses = <List<PaymentStatus>>[];
-  final uploaded = <({String id, ReceiptFile file})>[];
+  final uploaded = <({String id, PickedImage file})>[];
 
   final listScript = CallScript();
   final getScript = CallScript();
@@ -1756,7 +1818,7 @@ class FakeRentBillRepository implements RentBillRepository {
   }
 
   @override
-  Future<RentBill> uploadReceipt(String id, ReceiptFile file) async {
+  Future<RentBill> uploadReceipt(String id, PickedImage file) async {
     calls.add('upload:$id');
     uploaded.add((id: id, file: file));
     final failure = await uploadScript.next();
@@ -2246,21 +2308,21 @@ class FakeManagementRentBillRepository implements ManagementRentBillRepository {
   }
 }
 
-/// A [ReceiptPicker] that records the sources asked for.
+/// A [ImageChooser] that records the sources asked for.
 ///
 /// Each [pick] first takes the next entry of [queue] (null means cancelled),
 /// and falls back to [always] when the queue is empty. While [gate] is set,
 /// every call is held until it completes. While [failure] is set, every call
 /// throws it, as the device picker does when access is denied.
-class FakeReceiptPicker implements ReceiptPicker {
-  final requested = <ReceiptSource>[];
-  final queue = <ReceiptFile?>[];
-  ReceiptFile? always;
+class FakeImageChooser implements ImageChooser {
+  final requested = <ImageOrigin>[];
+  final queue = <PickedImage?>[];
+  PickedImage? always;
   Completer<void>? gate;
   Object? failure;
 
   @override
-  Future<ReceiptFile?> pick(ReceiptSource source) async {
+  Future<PickedImage?> pick(ImageOrigin source) async {
     requested.add(source);
     final file = queue.isNotEmpty ? queue.removeAt(0) : always;
     await gate?.future;
@@ -3178,7 +3240,7 @@ Widget buildTestApp({
   UserAccountRepository? userAccounts,
   HealthRepository? health,
   PushMessaging? push,
-  ReceiptPicker? receiptPicker,
+  ImageChooser? receiptPicker,
   Future<void> Function(String text)? invitationSharer,
 }) {
   return ProviderScope(
@@ -3227,8 +3289,8 @@ Widget buildTestApp({
         health ?? FakeHealthRepository(),
       ),
       pushMessagingProvider.overrideWithValue(push ?? FakePushMessaging()),
-      receiptPickerProvider.overrideWithValue(
-        receiptPicker ?? FakeReceiptPicker(),
+      imageChooserProvider.overrideWithValue(
+        receiptPicker ?? FakeImageChooser(),
       ),
       invitationSharerProvider.overrideWithValue(
         invitationSharer ?? (text) async {},

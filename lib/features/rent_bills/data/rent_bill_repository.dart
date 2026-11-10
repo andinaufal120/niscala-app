@@ -1,11 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
 import 'package:niscala/core/api/api_failure_mapper.dart';
 import 'package:niscala/core/api/api_providers.dart';
-import 'package:niscala/features/rent_bills/data/receipt_picker.dart';
+import 'package:niscala/core/api/image_transfer.dart';
+import 'package:niscala/core/image_chooser.dart';
 import 'package:niscala_api/api.dart';
 
 /// Rent bills and their transfer receipts. Every method throws an `ApiFailure`
@@ -19,7 +18,7 @@ abstract interface class RentBillRepository {
 
   /// Attaches [file] as the transfer receipt of the bill, which then awaits
   /// verification.
-  Future<RentBill> uploadReceipt(String id, ReceiptFile file);
+  Future<RentBill> uploadReceipt(String id, PickedImage file);
 
   /// The receipt image of the bill, as received.
   Future<Uint8List> receiptBytes(String id);
@@ -86,25 +85,14 @@ class ApiRentBillRepository implements RentBillRepository {
   });
 
   @override
-  Future<RentBill> uploadReceipt(String id, ReceiptFile file) =>
+  Future<RentBill> uploadReceipt(String id, PickedImage file) =>
       _guard(() async {
-        final type = receiptMediaType(file.bytes) ?? 'application/octet-stream';
-        final part = http.MultipartFile.fromBytes(
-          'file',
-          file.bytes,
-          filename: file.name,
-          contentType: MediaType.parse(type),
-        );
-        return (await rentBills.uploadReceipt(id, part))!;
+        return (await rentBills.uploadReceipt(id, imageUploadPart(file)))!;
       });
 
   @override
   Future<Uint8List> receiptBytes(String id) => _guard(() async {
-    final response = await rentBills.getReceiptWithHttpInfo(id);
-    if (response.statusCode >= 400) {
-      throw ApiException(response.statusCode, response.body);
-    }
-    return response.bodyBytes;
+    return imageBytesOf(await rentBills.getReceiptWithHttpInfo(id));
   });
 
   Future<T> _guard<T>(Future<T> Function() call) async {

@@ -138,7 +138,7 @@ void main() {
         ],
         receipts: {'b2': first.bytes},
       );
-      final picker = FakeReceiptPicker();
+      final picker = FakeImageChooser();
       await pumpRentBillApp(
         tester,
         repo,

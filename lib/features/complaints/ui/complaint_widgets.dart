@@ -162,6 +162,43 @@ class _LabelledValue extends StatelessWidget {
   }
 }
 
+/// Shown in place of a complaint photo whose bytes cannot be decoded.
+const unreadablePhotoMessage = 'Foto tidak dapat ditampilkan.';
+
+/// The photo of a complaint as a row that opens it full screen. Assistive
+/// technology reads the photo with the day the complaint was sent, e.g. "Foto
+/// keluhan, 18 Okt 2026".
+class ComplaintPhotoTile extends StatelessWidget {
+  const ComplaintPhotoTile({
+    super.key,
+    required this.sentAt,
+    required this.onOpen,
+  });
+
+  final DateTime sentAt;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    // A container of its own, so the label is not folded into the card around
+    // the tile, and TalkBack reads the photo as one button.
+    return Semantics(
+      container: true,
+      button: true,
+      label: 'Foto keluhan, ${formatDate(sentAt.toLocal())}',
+      excludeSemantics: true,
+      onTap: onOpen,
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: const Icon(Icons.photo_outlined),
+        title: const Text('Foto keluhan'),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onOpen,
+      ),
+    );
+  }
+}
+
 /// Each status change as its label and date, with the handling note under it
 /// when the change has one, in a card titled Riwayat status.
 class ComplaintStatusHistory extends StatelessWidget {

@@ -46,6 +46,25 @@ class FormMessage extends StatelessWidget {
   }
 }
 
+/// A validation message shown next to the control it names. It is announced
+/// when it appears.
+class FieldMessage extends StatelessWidget {
+  const FieldMessage(this.message, {super.key});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      liveRegion: true,
+      child: Text(
+        message,
+        style: TextStyle(color: Theme.of(context).colorScheme.error),
+      ),
+    );
+  }
+}
+
 /// A filled button that is disabled and shows progress while [busy]. A null
 /// [onPressed] disables it without progress.
 class BusyButton extends StatelessWidget {
