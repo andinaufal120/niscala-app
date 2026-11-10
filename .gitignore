@@ -55,3 +55,4 @@ app.*.map.json
 
 # Local per-developer configuration
 /.env
+/.env.production
