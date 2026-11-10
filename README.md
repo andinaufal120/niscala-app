@@ -51,6 +51,37 @@ The Web client ID is not a secret (it ends up in the APK), but it differs per en
 2. Put the Web client ID in `.env` as `GOOGLE_SERVER_CLIENT_ID`.
 3. Add the same Web client ID to `GOOGLE_CLIENT_IDS` in the niscala-api environment, so the API accepts tokens issued for it.
 
+## Release build
+
+Release builds are signed with an upload key that stays on your machine.
+
+1. Create the upload keystore once, outside the repository, and back it up together with its passwords:
+
+   ```sh
+   keytool -genkey -v -keystore ~/niscala-upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   ```
+
+2. Create `android/key.properties` (ignored by git):
+
+   ```properties
+   storePassword=...
+   keyPassword=...
+   keyAlias=upload
+   storeFile=/home/you/niscala-upload.jks
+   ```
+
+3. Put the production `API_BASE_URL` (HTTPS) and `GOOGLE_SERVER_CLIENT_ID` in `.env.production`, then build the bundle Play expects:
+
+   ```sh
+   flutter build appbundle --release --dart-define-from-file=.env.production
+   ```
+
+   The output is `build/app/outputs/bundle/release/app-release.aab`. Without `android/key.properties` the build falls back to the debug key and prints a warning; Play rejects such a bundle.
+
+4. Raise the build number (`+N`) in `pubspec.yaml` before every upload.
+
+With Play App Signing, Google re-signs the app with its own key. For Google sign-in to work on Play builds, add the *App signing key certificate* SHA-1 (Play Console, *Test and release*, *App integrity*) to the Android OAuth client for `com.andinaufal.niscala`. Keep the upload key's SHA-1 there too for release builds installed directly.
+
 ## Docs
 
 - `docs/SPEC.md`: what the app has to do
