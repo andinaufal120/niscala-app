@@ -307,7 +307,7 @@ Detail order: status first, then the AI classification, then the tenant's messag
 Offers only the next status (*Baru* → *Diproses*, *Diproses* → *Selesai*) and asks for confirmation. The optional handling note is labelled as visible to the tenant. No status action remains once a complaint is *Selesai*.
 
 **UC-36 Classify complaint manually** (FR-32) · from the complaint detail
-Set category and urgency on a complaint that is *Menunggu Klasifikasi* or *Belum Diklasifikasi*, or correct an AI classification (category list: U-16). Available without an active subscription; it is not an AI feature. A later AI result never overwrites the manual values. Submitting the current values changes nothing.
+Set category and urgency on a complaint that is *Menunggu Klasifikasi* or *Belum Diklasifikasi*, or correct an AI classification. The category list comes from the API: *Listrik (Electricity)*, *Air (Water)*, *Bangunan (Building)*, *Perabot (Furniture)*, *Kebersihan (Cleanliness)*, *Keamanan (Security)*, *Internet (Internet)* and *Lainnya (Other)*, in that order. Available without an active subscription; it is not an AI feature. A later AI result never overwrites the manual values. Submitting the current values changes nothing.
 
 **UC-25 Payment status of all tenants** (FR-17) · *Pembayaran (Payments)*
 Pick a property and a date (default: today) → each tenant with room and the bill whose period contains that date, with amount and status, or a note that no bill covers that date; default filter *Belum lunas (Unpaid)*, meaning every status except *Lunas*. Selecting a tenant shows their payment history.
@@ -404,7 +404,6 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | TBD-3 | Google Play server-side integration: how the backend learns of renewals, cancellations, expiry and refunds (real-time developer notifications endpoint, its authentication, scheduled reconciliation), service account, test environment. | UC-31, UC-32 |
 | U-4   | Invitation and password-reset link handling: how a link opens the app (Android App Links / deep link) and what happens if the app is not installed. | UC-18, UC-20, FR-01, NFR-11 |
 | U-9   | The complete list of error codes, and declaring them in the OpenAPI document.                                                    | §6, §7              |
-| U-16  | Complaint category list (the prototype list is placeholder data).                                                                | UC-02, UC-23, UC-36 |
 
 ## 11. Changelog
 
@@ -448,3 +447,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 09-11-2026 | One Tenant account may rent in several places (shared Tenant glossary row and Tenant activation rule).         | NKMA-108   |
 | 09-11-2026 | Tenant screens list every active lease; the complaint form picks the room; a Tenant accepts an invitation with an existing account from *Akun*; tenant name editable only before activation; deleting a tenant ends account access only with the last tenancy; Admin detail lists tenancies. | NKMA-108 |
 | 09-11-2026 | Optional complaint photo: UC-02 adds it with retry, UC-03 and UC-23 show it. | NKMA-107 |
+| 11-11-2026 | U-16 decided: the complaint categories are *Listrik*, *Air*, *Bangunan*, *Perabot*, *Kebersihan*, *Keamanan*, *Internet* and *Lainnya*, as served by the API. Removed from §10. | NKMA-114 |
