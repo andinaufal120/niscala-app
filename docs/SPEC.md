@@ -403,7 +403,6 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | TBD-2 | Minimum Android version (minSdk). Tracked in NKMA-24.                                                                            | Build config        |
 | TBD-3 | Google Play server-side integration: how the backend learns of renewals, cancellations, expiry and refunds (real-time developer notifications endpoint, its authentication, scheduled reconciliation), service account, test environment. | UC-31, UC-32 |
 | U-4   | Invitation and password-reset link handling: how a link opens the app (Android App Links / deep link) and what happens if the app is not installed. | UC-18, UC-20, FR-01, NFR-11 |
-| U-9   | The complete list of error codes, and declaring them in the OpenAPI document.                                                    | §6, §7              |
 | U-16  | Complaint category list (the prototype list is placeholder data).                                                                | UC-02, UC-23, UC-36 |
 
 ## 11. Changelog
@@ -448,3 +447,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 09-11-2026 | One Tenant account may rent in several places (shared Tenant glossary row and Tenant activation rule).         | NKMA-108   |
 | 09-11-2026 | Tenant screens list every active lease; the complaint form picks the room; a Tenant accepts an invitation with an existing account from *Akun*; tenant name editable only before activation; deleting a tenant ends account access only with the last tenancy; Admin detail lists tenancies. | NKMA-108 |
 | 09-11-2026 | Optional complaint photo: UC-02 adds it with retry, UC-03 and UC-23 show it. | NKMA-107 |
+| 12-11-2026 | U-9 decided: the backend lists every error code in its `docs/SPEC.md` §6 and declares the error statuses and codes of each operation in the OpenAPI document. Removed from §10. | NKMA-116 |
