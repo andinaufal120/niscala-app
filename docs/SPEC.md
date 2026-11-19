@@ -106,6 +106,7 @@ UI copy is in **Indonesian**. Menu and button names in this spec are given as *I
 | Choose and pay for a subscription                            |   —    |  ✓   |    —    |   —   |
 | View / edit / delete any user account                        |   —    |   —   |    —    |  ✓   |
 | View / end own sessions, change own password                 |   ✓   |  ✓   |    ✓    |  ✓   |
+| Delete own account                                           |   ✓   |  ✓   |    ✓    |  —   |
 | View own notifications, change own notification settings     |   ✓   |  ✓   |    ✓    |   —   |
 
 Each role sees only the menus it is allowed to use. The backend enforces permissions; the app hides what a role cannot do.
@@ -451,3 +452,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 12-11-2026 | U-9 decided: the backend lists every error code in its `docs/SPEC.md` §6 and declares the error statuses and codes of each operation in the OpenAPI document. Removed from §10. | NKMA-116 |
 | 12-11-2026 | UI rule 4 (conflict): edits send the `version` they read as `If-Match`, and a stale one answers `RESOURCE_VERSION_CONFLICT`. | NKMA-117 |
 | 12-11-2026 | U-4 decided: links are https links on the backend host that open the app through Android App Links; the backend serves the asset links file and a page that points to Google Play. The paste flows stay until the app handles the links. Removed from §10. | NKMA-118 |
+| 18-11-2026 | Permission table (shared): every role except Admin can delete their own account. The screen is not part of this change. | NKMA-121 |
