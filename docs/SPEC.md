@@ -154,7 +154,7 @@ These apply to every use case below. Use cases do not repeat them.
 1. **Expired session** → go to the login screen.
 2. **Validation errors** state the cause next to the field (for example "Nomor telepon tidak valid"), never a generic message. The text is Indonesian, mapped from the error code the API returns; the API's English message is never shown. An unknown code shows a generic Indonesian message (for example "Terjadi kesalahan. Coba lagi."); this is the only case where a generic message is allowed.
 3. **Destructive actions** (delete property, room, tenant, manager, account) always ask for confirmation. Cancelling returns to the previous detail screen with nothing changed.
-4. **Conflict** ("already changed by another user") → show a message and reload the current detail or list.
+4. **Conflict** ("already changed by another user", `RESOURCE_VERSION_CONFLICT`) → show a message and reload the current detail or list. An edit of a property, room, tenant, manager or user account sends the `version` it read as the `If-Match` header (`"<version>"`); the backend rejects the edit with that code when the record has changed since.
 5. **Server or network failure** → show an error message. Nothing is saved, and the user can retry.
 6. **Empty lists** show an explanatory empty state, not a blank screen.
 7. **Subscription-gated content** (AI classification, payment-pattern summary) is replaced by a note that it needs an active subscription. The rest of the screen still works.
@@ -448,3 +448,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 09-11-2026 | Optional complaint photo: UC-02 adds it with retry, UC-03 and UC-23 show it. | NKMA-107 |
 | 11-11-2026 | U-16 decided: the complaint categories are *Listrik*, *Air*, *Bangunan*, *Perabot*, *Kebersihan*, *Keamanan*, *Internet* and *Lainnya*, as served by the API. Removed from §10. | NKMA-114 |
 | 12-11-2026 | U-9 decided: the backend lists every error code in its `docs/SPEC.md` §6 and declares the error statuses and codes of each operation in the OpenAPI document. Removed from §10. | NKMA-116 |
+| 12-11-2026 | UI rule 4 (conflict): edits send the `version` they read as `If-Match`, and a stale one answers `RESOURCE_VERSION_CONFLICT`. | NKMA-117 |
