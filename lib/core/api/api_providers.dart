@@ -13,8 +13,11 @@ final authHttpClientProvider = Provider<AuthHttpClient>((ref) {
   return client;
 });
 
-/// The generated client that sends the signed-in user's bearer token.
+/// The generated client that sends the signed-in user's bearer token. It is
+/// rebuilt on every sign-in, which rebuilds the repositories and cached values
+/// built on it, so the new user never sees the previous user's data.
 final apiClientProvider = Provider<ApiClient>((ref) {
+  ref.watch(sessionGenerationProvider);
   return ApiClient(basePath: ref.watch(apiBaseUrlProvider))
     ..client = ref.watch(authHttpClientProvider);
 });
