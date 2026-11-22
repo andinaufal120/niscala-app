@@ -32,13 +32,9 @@ class InvitationRole {
     manager,
   ];
 
-  static InvitationRole? fromJson(dynamic value) =>
-      InvitationRoleTypeTransformer().decode(value);
+  static InvitationRole? fromJson(dynamic value) => InvitationRoleTypeTransformer().decode(value);
 
-  static List<InvitationRole> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<InvitationRole> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <InvitationRole>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -55,8 +51,7 @@ class InvitationRole {
 /// Transformation class that can [encode] an instance of [InvitationRole] to String,
 /// and [decode] dynamic data back to [InvitationRole].
 class InvitationRoleTypeTransformer {
-  factory InvitationRoleTypeTransformer() =>
-      _instance ??= const InvitationRoleTypeTransformer._();
+  factory InvitationRoleTypeTransformer() => _instance ??= const InvitationRoleTypeTransformer._();
 
   const InvitationRoleTypeTransformer._();
 
@@ -73,10 +68,8 @@ class InvitationRoleTypeTransformer {
   InvitationRole? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'tenant':
-          return InvitationRole.tenant;
-        case r'manager':
-          return InvitationRole.manager;
+        case r'tenant': return InvitationRole.tenant;
+        case r'manager': return InvitationRole.manager;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -89,3 +82,4 @@ class InvitationRoleTypeTransformer {
   /// Singleton [InvitationRoleTypeTransformer] instance.
   static InvitationRoleTypeTransformer? _instance;
 }
+

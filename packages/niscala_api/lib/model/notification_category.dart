@@ -42,13 +42,9 @@ class NotificationCategory {
     accountActivity,
   ];
 
-  static NotificationCategory? fromJson(dynamic value) =>
-      NotificationCategoryTypeTransformer().decode(value);
+  static NotificationCategory? fromJson(dynamic value) => NotificationCategoryTypeTransformer().decode(value);
 
-  static List<NotificationCategory> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<NotificationCategory> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <NotificationCategory>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -65,8 +61,7 @@ class NotificationCategory {
 /// Transformation class that can [encode] an instance of [NotificationCategory] to String,
 /// and [decode] dynamic data back to [NotificationCategory].
 class NotificationCategoryTypeTransformer {
-  factory NotificationCategoryTypeTransformer() =>
-      _instance ??= const NotificationCategoryTypeTransformer._();
+  factory NotificationCategoryTypeTransformer() => _instance ??= const NotificationCategoryTypeTransformer._();
 
   const NotificationCategoryTypeTransformer._();
 
@@ -83,20 +78,13 @@ class NotificationCategoryTypeTransformer {
   NotificationCategory? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'billing':
-          return NotificationCategory.billing;
-        case r'paymentStatus':
-          return NotificationCategory.paymentStatus;
-        case r'complaintProgress':
-          return NotificationCategory.complaintProgress;
-        case r'newComplaint':
-          return NotificationCategory.newComplaint;
-        case r'receiptUpload':
-          return NotificationCategory.receiptUpload;
-        case r'overdueBill':
-          return NotificationCategory.overdueBill;
-        case r'accountActivity':
-          return NotificationCategory.accountActivity;
+        case r'billing': return NotificationCategory.billing;
+        case r'paymentStatus': return NotificationCategory.paymentStatus;
+        case r'complaintProgress': return NotificationCategory.complaintProgress;
+        case r'newComplaint': return NotificationCategory.newComplaint;
+        case r'receiptUpload': return NotificationCategory.receiptUpload;
+        case r'overdueBill': return NotificationCategory.overdueBill;
+        case r'accountActivity': return NotificationCategory.accountActivity;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -109,3 +97,4 @@ class NotificationCategoryTypeTransformer {
   /// Singleton [NotificationCategoryTypeTransformer] instance.
   static NotificationCategoryTypeTransformer? _instance;
 }
+

@@ -13,5 +13,9 @@ import 'package:test/test.dart';
 
 // tests for NotificationUrgencyScope
 void main() {
-  group('test NotificationUrgencyScope', () {});
+
+  group('test NotificationUrgencyScope', () {
+
+  });
+
 }

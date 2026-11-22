@@ -64,6 +64,7 @@ Map<String, dynamic> _summaryJson({
   String role = 'tenant',
   String status = 'active',
 }) => {
+  'version': 1,
   'id': id,
   'name': 'Budi Santoso',
   'email': 'budi@example.com',
@@ -73,6 +74,7 @@ Map<String, dynamic> _summaryJson({
 
 Map<String, dynamic> _accountJson({String role = 'tenant', bool full = true}) =>
     {
+      'version': 1,
       'id': 'u1',
       'name': 'Budi Santoso',
       'email': 'budi@example.com',

@@ -11,6 +11,7 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
+
 /// tests for RoomsApi
 void main() {
   // final instance = RoomsApi();
@@ -65,9 +66,10 @@ void main() {
     //
     // Replace a room's fields.
     //
-    //Future<Room> updateRoom(String roomId, RoomInput roomInput) async
+    //Future<Room> updateRoom(String roomId, RoomInput roomInput, { String ifMatch }) async
     test('test updateRoom', () async {
       // TODO
     });
+
   });
 }

@@ -10,6 +10,7 @@
 
 part of niscala_api;
 
+
 class AuthApi {
   AuthApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
 
@@ -24,9 +25,7 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [EmailConfirmationInput] emailConfirmationInput (required):
-  Future<Response> confirmEmailWithHttpInfo(
-    EmailConfirmationInput emailConfirmationInput,
-  ) async {
+  Future<Response> confirmEmailWithHttpInfo(EmailConfirmationInput emailConfirmationInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/email-verification/confirmation';
 
@@ -38,6 +37,7 @@ class AuthApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -57,24 +57,17 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [EmailConfirmationInput] emailConfirmationInput (required):
-  Future<Account?> confirmEmail(
-    EmailConfirmationInput emailConfirmationInput,
-  ) async {
-    final response = await confirmEmailWithHttpInfo(
-      emailConfirmationInput,
-    );
+  Future<Account?> confirmEmail(EmailConfirmationInput emailConfirmationInput,) async {
+    final response = await confirmEmailWithHttpInfo(emailConfirmationInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'Account',
-      ) as Account;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Account',) as Account;
+    
     }
     return null;
   }
@@ -88,9 +81,7 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [TokenInput] tokenInput (required):
-  Future<Response> confirmEmailChangeWithHttpInfo(
-    TokenInput tokenInput,
-  ) async {
+  Future<Response> confirmEmailChangeWithHttpInfo(TokenInput tokenInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/email-changes';
 
@@ -103,6 +94,7 @@ class AuthApi {
 
     const contentTypes = <String>['application/json'];
 
+
     return apiClient.invokeAPI(
       path,
       'POST',
@@ -121,12 +113,8 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [TokenInput] tokenInput (required):
-  Future<void> confirmEmailChange(
-    TokenInput tokenInput,
-  ) async {
-    final response = await confirmEmailChangeWithHttpInfo(
-      tokenInput,
-    );
+  Future<void> confirmEmailChange(TokenInput tokenInput,) async {
+    final response = await confirmEmailChangeWithHttpInfo(tokenInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -141,9 +129,7 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [LoginInput] loginInput (required):
-  Future<Response> loginWithHttpInfo(
-    LoginInput loginInput,
-  ) async {
+  Future<Response> loginWithHttpInfo(LoginInput loginInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/login';
 
@@ -155,6 +141,7 @@ class AuthApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -174,24 +161,17 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [LoginInput] loginInput (required):
-  Future<AuthSession?> login(
-    LoginInput loginInput,
-  ) async {
-    final response = await loginWithHttpInfo(
-      loginInput,
-    );
+  Future<AuthSession?> login(LoginInput loginInput,) async {
+    final response = await loginWithHttpInfo(loginInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'AuthSession',
-      ) as AuthSession;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'AuthSession',) as AuthSession;
+    
     }
     return null;
   }
@@ -205,9 +185,7 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [GoogleAuthInput] googleAuthInput (required):
-  Future<Response> loginWithGoogleWithHttpInfo(
-    GoogleAuthInput googleAuthInput,
-  ) async {
+  Future<Response> loginWithGoogleWithHttpInfo(GoogleAuthInput googleAuthInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/login/google';
 
@@ -219,6 +197,7 @@ class AuthApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -238,24 +217,17 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [GoogleAuthInput] googleAuthInput (required):
-  Future<AuthSession?> loginWithGoogle(
-    GoogleAuthInput googleAuthInput,
-  ) async {
-    final response = await loginWithGoogleWithHttpInfo(
-      googleAuthInput,
-    );
+  Future<AuthSession?> loginWithGoogle(GoogleAuthInput googleAuthInput,) async {
+    final response = await loginWithGoogleWithHttpInfo(googleAuthInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'AuthSession',
-      ) as AuthSession;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'AuthSession',) as AuthSession;
+    
     }
     return null;
   }
@@ -277,6 +249,7 @@ class AuthApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -308,9 +281,7 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [TokenInput] tokenInput (required):
-  Future<Response> previewPasswordResetWithHttpInfo(
-    TokenInput tokenInput,
-  ) async {
+  Future<Response> previewPasswordResetWithHttpInfo(TokenInput tokenInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/password-reset-previews';
 
@@ -322,6 +293,7 @@ class AuthApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -341,24 +313,17 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [TokenInput] tokenInput (required):
-  Future<PasswordResetPreview?> previewPasswordReset(
-    TokenInput tokenInput,
-  ) async {
-    final response = await previewPasswordResetWithHttpInfo(
-      tokenInput,
-    );
+  Future<PasswordResetPreview?> previewPasswordReset(TokenInput tokenInput,) async {
+    final response = await previewPasswordResetWithHttpInfo(tokenInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'PasswordResetPreview',
-      ) as PasswordResetPreview;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'PasswordResetPreview',) as PasswordResetPreview;
+    
     }
     return null;
   }
@@ -372,9 +337,7 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [RefreshInput] refreshInput (required):
-  Future<Response> refreshTokensWithHttpInfo(
-    RefreshInput refreshInput,
-  ) async {
+  Future<Response> refreshTokensWithHttpInfo(RefreshInput refreshInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/refresh';
 
@@ -387,6 +350,7 @@ class AuthApi {
 
     const contentTypes = <String>['application/json'];
 
+
     return apiClient.invokeAPI(
       path,
       'POST',
@@ -405,24 +369,17 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [RefreshInput] refreshInput (required):
-  Future<AuthTokens?> refreshTokens(
-    RefreshInput refreshInput,
-  ) async {
-    final response = await refreshTokensWithHttpInfo(
-      refreshInput,
-    );
+  Future<AuthTokens?> refreshTokens(RefreshInput refreshInput,) async {
+    final response = await refreshTokensWithHttpInfo(refreshInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'AuthTokens',
-      ) as AuthTokens;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'AuthTokens',) as AuthTokens;
+    
     }
     return null;
   }
@@ -436,9 +393,7 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [RegisterOwnerInput] registerOwnerInput (required):
-  Future<Response> registerOwnerWithHttpInfo(
-    RegisterOwnerInput registerOwnerInput,
-  ) async {
+  Future<Response> registerOwnerWithHttpInfo(RegisterOwnerInput registerOwnerInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/register';
 
@@ -451,6 +406,7 @@ class AuthApi {
 
     const contentTypes = <String>['application/json'];
 
+
     return apiClient.invokeAPI(
       path,
       'POST',
@@ -469,24 +425,17 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [RegisterOwnerInput] registerOwnerInput (required):
-  Future<AuthSession?> registerOwner(
-    RegisterOwnerInput registerOwnerInput,
-  ) async {
-    final response = await registerOwnerWithHttpInfo(
-      registerOwnerInput,
-    );
+  Future<AuthSession?> registerOwner(RegisterOwnerInput registerOwnerInput,) async {
+    final response = await registerOwnerWithHttpInfo(registerOwnerInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'AuthSession',
-      ) as AuthSession;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'AuthSession',) as AuthSession;
+    
     }
     return null;
   }
@@ -500,9 +449,7 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [GoogleAuthInput] googleAuthInput (required):
-  Future<Response> registerOwnerWithGoogleWithHttpInfo(
-    GoogleAuthInput googleAuthInput,
-  ) async {
+  Future<Response> registerOwnerWithGoogleWithHttpInfo(GoogleAuthInput googleAuthInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/register/google';
 
@@ -515,6 +462,7 @@ class AuthApi {
 
     const contentTypes = <String>['application/json'];
 
+
     return apiClient.invokeAPI(
       path,
       'POST',
@@ -533,24 +481,17 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [GoogleAuthInput] googleAuthInput (required):
-  Future<AuthSession?> registerOwnerWithGoogle(
-    GoogleAuthInput googleAuthInput,
-  ) async {
-    final response = await registerOwnerWithGoogleWithHttpInfo(
-      googleAuthInput,
-    );
+  Future<AuthSession?> registerOwnerWithGoogle(GoogleAuthInput googleAuthInput,) async {
+    final response = await registerOwnerWithGoogleWithHttpInfo(googleAuthInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'AuthSession',
-      ) as AuthSession;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'AuthSession',) as AuthSession;
+    
     }
     return null;
   }
@@ -564,9 +505,7 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [PasswordResetRequestInput] passwordResetRequestInput (required):
-  Future<Response> requestPasswordResetWithHttpInfo(
-    PasswordResetRequestInput passwordResetRequestInput,
-  ) async {
+  Future<Response> requestPasswordResetWithHttpInfo(PasswordResetRequestInput passwordResetRequestInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/password-reset-requests';
 
@@ -578,6 +517,7 @@ class AuthApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -597,12 +537,8 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [PasswordResetRequestInput] passwordResetRequestInput (required):
-  Future<void> requestPasswordReset(
-    PasswordResetRequestInput passwordResetRequestInput,
-  ) async {
-    final response = await requestPasswordResetWithHttpInfo(
-      passwordResetRequestInput,
-    );
+  Future<void> requestPasswordReset(PasswordResetRequestInput passwordResetRequestInput,) async {
+    final response = await requestPasswordResetWithHttpInfo(passwordResetRequestInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -617,9 +553,7 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [PasswordResetInput] passwordResetInput (required):
-  Future<Response> resetPasswordWithHttpInfo(
-    PasswordResetInput passwordResetInput,
-  ) async {
+  Future<Response> resetPasswordWithHttpInfo(PasswordResetInput passwordResetInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/auth/password-resets';
 
@@ -631,6 +565,7 @@ class AuthApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -650,12 +585,8 @@ class AuthApi {
   /// Parameters:
   ///
   /// * [PasswordResetInput] passwordResetInput (required):
-  Future<void> resetPassword(
-    PasswordResetInput passwordResetInput,
-  ) async {
-    final response = await resetPasswordWithHttpInfo(
-      passwordResetInput,
-    );
+  Future<void> resetPassword(PasswordResetInput passwordResetInput,) async {
+    final response = await resetPasswordWithHttpInfo(passwordResetInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -679,6 +610,7 @@ class AuthApi {
 
     const contentTypes = <String>[];
 
+
     return apiClient.invokeAPI(
       path,
       'POST',
@@ -701,12 +633,9 @@ class AuthApi {
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'EmailVerificationSent',
-      ) as EmailVerificationSent;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'EmailVerificationSent',) as EmailVerificationSent;
+    
     }
     return null;
   }

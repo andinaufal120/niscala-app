@@ -84,5 +84,14 @@ void main() {
     test('to test the property `tenancies`', () async {
       // TODO
     });
+
+    // Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data.
+    // int version
+    test('to test the property `version`', () async {
+      // TODO
+    });
+
+
   });
+
 }

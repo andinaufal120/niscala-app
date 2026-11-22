@@ -32,13 +32,9 @@ class Occupancy {
     vacant,
   ];
 
-  static Occupancy? fromJson(dynamic value) =>
-      OccupancyTypeTransformer().decode(value);
+  static Occupancy? fromJson(dynamic value) => OccupancyTypeTransformer().decode(value);
 
-  static List<Occupancy> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<Occupancy> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <Occupancy>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -55,8 +51,7 @@ class Occupancy {
 /// Transformation class that can [encode] an instance of [Occupancy] to String,
 /// and [decode] dynamic data back to [Occupancy].
 class OccupancyTypeTransformer {
-  factory OccupancyTypeTransformer() =>
-      _instance ??= const OccupancyTypeTransformer._();
+  factory OccupancyTypeTransformer() => _instance ??= const OccupancyTypeTransformer._();
 
   const OccupancyTypeTransformer._();
 
@@ -73,10 +68,8 @@ class OccupancyTypeTransformer {
   Occupancy? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'occupied':
-          return Occupancy.occupied;
-        case r'vacant':
-          return Occupancy.vacant;
+        case r'occupied': return Occupancy.occupied;
+        case r'vacant': return Occupancy.vacant;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -89,3 +82,4 @@ class OccupancyTypeTransformer {
   /// Singleton [OccupancyTypeTransformer] instance.
   static OccupancyTypeTransformer? _instance;
 }
+

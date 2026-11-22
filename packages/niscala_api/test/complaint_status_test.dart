@@ -13,5 +13,9 @@ import 'package:test/test.dart';
 
 // tests for ComplaintStatus
 void main() {
-  group('test ComplaintStatus', () {});
+
+  group('test ComplaintStatus', () {
+
+  });
+
 }

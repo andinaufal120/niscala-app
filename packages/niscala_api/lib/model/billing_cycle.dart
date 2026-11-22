@@ -38,13 +38,9 @@ class BillingCycle {
     annual,
   ];
 
-  static BillingCycle? fromJson(dynamic value) =>
-      BillingCycleTypeTransformer().decode(value);
+  static BillingCycle? fromJson(dynamic value) => BillingCycleTypeTransformer().decode(value);
 
-  static List<BillingCycle> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<BillingCycle> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <BillingCycle>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -61,8 +57,7 @@ class BillingCycle {
 /// Transformation class that can [encode] an instance of [BillingCycle] to String,
 /// and [decode] dynamic data back to [BillingCycle].
 class BillingCycleTypeTransformer {
-  factory BillingCycleTypeTransformer() =>
-      _instance ??= const BillingCycleTypeTransformer._();
+  factory BillingCycleTypeTransformer() => _instance ??= const BillingCycleTypeTransformer._();
 
   const BillingCycleTypeTransformer._();
 
@@ -79,16 +74,11 @@ class BillingCycleTypeTransformer {
   BillingCycle? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'weekly':
-          return BillingCycle.weekly;
-        case r'monthly':
-          return BillingCycle.monthly;
-        case r'quarterly':
-          return BillingCycle.quarterly;
-        case r'semiannual':
-          return BillingCycle.semiannual;
-        case r'annual':
-          return BillingCycle.annual;
+        case r'weekly': return BillingCycle.weekly;
+        case r'monthly': return BillingCycle.monthly;
+        case r'quarterly': return BillingCycle.quarterly;
+        case r'semiannual': return BillingCycle.semiannual;
+        case r'annual': return BillingCycle.annual;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -101,3 +91,4 @@ class BillingCycleTypeTransformer {
   /// Singleton [BillingCycleTypeTransformer] instance.
   static BillingCycleTypeTransformer? _instance;
 }
+

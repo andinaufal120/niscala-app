@@ -10,9 +10,9 @@
 
 part of niscala_api;
 
+
 class SubscriptionsApi {
-  SubscriptionsApi([ApiClient? apiClient])
-      : apiClient = apiClient ?? defaultApiClient;
+  SubscriptionsApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
 
   final ApiClient apiClient;
 
@@ -33,6 +33,7 @@ class SubscriptionsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -64,9 +65,7 @@ class SubscriptionsApi {
   /// Parameters:
   ///
   /// * [SubscriptionOrderInput] subscriptionOrderInput (required):
-  Future<Response> createSubscriptionOrderWithHttpInfo(
-    SubscriptionOrderInput subscriptionOrderInput,
-  ) async {
+  Future<Response> createSubscriptionOrderWithHttpInfo(SubscriptionOrderInput subscriptionOrderInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/subscription/orders';
 
@@ -78,6 +77,7 @@ class SubscriptionsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -97,24 +97,17 @@ class SubscriptionsApi {
   /// Parameters:
   ///
   /// * [SubscriptionOrderInput] subscriptionOrderInput (required):
-  Future<SubscriptionOrder?> createSubscriptionOrder(
-    SubscriptionOrderInput subscriptionOrderInput,
-  ) async {
-    final response = await createSubscriptionOrderWithHttpInfo(
-      subscriptionOrderInput,
-    );
+  Future<SubscriptionOrder?> createSubscriptionOrder(SubscriptionOrderInput subscriptionOrderInput,) async {
+    final response = await createSubscriptionOrderWithHttpInfo(subscriptionOrderInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'SubscriptionOrder',
-      ) as SubscriptionOrder;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'SubscriptionOrder',) as SubscriptionOrder;
+    
     }
     return null;
   }
@@ -136,6 +129,7 @@ class SubscriptionsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -159,12 +153,9 @@ class SubscriptionsApi {
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'Subscription',
-      ) as Subscription;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Subscription',) as Subscription;
+    
     }
     return null;
   }
@@ -178,12 +169,10 @@ class SubscriptionsApi {
   /// Parameters:
   ///
   /// * [String] orderId (required):
-  Future<Response> getSubscriptionOrderWithHttpInfo(
-    String orderId,
-  ) async {
+  Future<Response> getSubscriptionOrderWithHttpInfo(String orderId,) async {
     // ignore: prefer_const_declarations
-    final path =
-        r'/subscription/orders/{orderId}'.replaceAll('{orderId}', orderId);
+    final path = r'/subscription/orders/{orderId}'
+      .replaceAll('{orderId}', orderId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -193,6 +182,7 @@ class SubscriptionsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -212,24 +202,17 @@ class SubscriptionsApi {
   /// Parameters:
   ///
   /// * [String] orderId (required):
-  Future<SubscriptionOrder?> getSubscriptionOrder(
-    String orderId,
-  ) async {
-    final response = await getSubscriptionOrderWithHttpInfo(
-      orderId,
-    );
+  Future<SubscriptionOrder?> getSubscriptionOrder(String orderId,) async {
+    final response = await getSubscriptionOrderWithHttpInfo(orderId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'SubscriptionOrder',
-      ) as SubscriptionOrder;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'SubscriptionOrder',) as SubscriptionOrder;
+    
     }
     return null;
   }
@@ -251,6 +234,7 @@ class SubscriptionsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -274,12 +258,9 @@ class SubscriptionsApi {
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'SubscriptionPlanList',
-      ) as SubscriptionPlanList;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'SubscriptionPlanList',) as SubscriptionPlanList;
+    
     }
     return null;
   }
@@ -293,9 +274,7 @@ class SubscriptionsApi {
   /// Parameters:
   ///
   /// * [ScheduledDowngradeInput] scheduledDowngradeInput (required):
-  Future<Response> scheduleSubscriptionDowngradeWithHttpInfo(
-    ScheduledDowngradeInput scheduledDowngradeInput,
-  ) async {
+  Future<Response> scheduleSubscriptionDowngradeWithHttpInfo(ScheduledDowngradeInput scheduledDowngradeInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/subscription/scheduled-downgrade';
 
@@ -307,6 +286,7 @@ class SubscriptionsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -326,24 +306,17 @@ class SubscriptionsApi {
   /// Parameters:
   ///
   /// * [ScheduledDowngradeInput] scheduledDowngradeInput (required):
-  Future<ScheduledDowngrade?> scheduleSubscriptionDowngrade(
-    ScheduledDowngradeInput scheduledDowngradeInput,
-  ) async {
-    final response = await scheduleSubscriptionDowngradeWithHttpInfo(
-      scheduledDowngradeInput,
-    );
+  Future<ScheduledDowngrade?> scheduleSubscriptionDowngrade(ScheduledDowngradeInput scheduledDowngradeInput,) async {
+    final response = await scheduleSubscriptionDowngradeWithHttpInfo(scheduledDowngradeInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'ScheduledDowngrade',
-      ) as ScheduledDowngrade;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'ScheduledDowngrade',) as ScheduledDowngrade;
+    
     }
     return null;
   }
@@ -359,13 +332,10 @@ class SubscriptionsApi {
   /// * [String] orderId (required):
   ///
   /// * [PurchaseVerificationInput] purchaseVerificationInput (required):
-  Future<Response> verifySubscriptionPurchaseWithHttpInfo(
-    String orderId,
-    PurchaseVerificationInput purchaseVerificationInput,
-  ) async {
+  Future<Response> verifySubscriptionPurchaseWithHttpInfo(String orderId, PurchaseVerificationInput purchaseVerificationInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/subscription/orders/{orderId}/purchase-verification'
-        .replaceAll('{orderId}', orderId);
+      .replaceAll('{orderId}', orderId);
 
     // ignore: prefer_final_locals
     Object? postBody = purchaseVerificationInput;
@@ -375,6 +345,7 @@ class SubscriptionsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -396,26 +367,17 @@ class SubscriptionsApi {
   /// * [String] orderId (required):
   ///
   /// * [PurchaseVerificationInput] purchaseVerificationInput (required):
-  Future<SubscriptionOrder?> verifySubscriptionPurchase(
-    String orderId,
-    PurchaseVerificationInput purchaseVerificationInput,
-  ) async {
-    final response = await verifySubscriptionPurchaseWithHttpInfo(
-      orderId,
-      purchaseVerificationInput,
-    );
+  Future<SubscriptionOrder?> verifySubscriptionPurchase(String orderId, PurchaseVerificationInput purchaseVerificationInput,) async {
+    final response = await verifySubscriptionPurchaseWithHttpInfo(orderId, purchaseVerificationInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'SubscriptionOrder',
-      ) as SubscriptionOrder;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'SubscriptionOrder',) as SubscriptionOrder;
+    
     }
     return null;
   }

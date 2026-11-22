@@ -22,22 +22,23 @@ class DeviceInfo {
   String platform;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is DeviceInfo && other.name == name && other.platform == platform;
+  bool operator ==(Object other) => identical(this, other) || other is DeviceInfo &&
+    other.name == name &&
+    other.platform == platform;
 
   @override
   int get hashCode =>
-      // ignore: unnecessary_parenthesis
-      (name.hashCode) + (platform.hashCode);
+    // ignore: unnecessary_parenthesis
+    (name.hashCode) +
+    (platform.hashCode);
 
   @override
   String toString() => 'DeviceInfo[name=$name, platform=$platform]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    json[r'name'] = this.name;
-    json[r'platform'] = this.platform;
+      json[r'name'] = this.name;
+      json[r'platform'] = this.platform;
     return json;
   }
 
@@ -53,10 +54,8 @@ class DeviceInfo {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key),
-              'Required key "DeviceInfo[$key]" is missing from JSON.');
-          assert(json[key] != null,
-              'Required key "DeviceInfo[$key]" has a null value in JSON.');
+          assert(json.containsKey(key), 'Required key "DeviceInfo[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "DeviceInfo[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -69,10 +68,7 @@ class DeviceInfo {
     return null;
   }
 
-  static List<DeviceInfo> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<DeviceInfo> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <DeviceInfo>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -100,19 +96,13 @@ class DeviceInfo {
   }
 
   // maps a json object with a list of DeviceInfo-objects as value to a dart map
-  static Map<String, List<DeviceInfo>> mapListFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static Map<String, List<DeviceInfo>> mapListFromJson(dynamic json, {bool growable = false,}) {
     final map = <String, List<DeviceInfo>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = DeviceInfo.listFromJson(
-          entry.value,
-          growable: growable,
-        );
+        map[entry.key] = DeviceInfo.listFromJson(entry.value, growable: growable,);
       }
     }
     return map;
@@ -124,3 +114,4 @@ class DeviceInfo {
     'platform',
   };
 }
+

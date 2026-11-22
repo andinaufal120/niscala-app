@@ -68,6 +68,7 @@ Map<String, dynamic> _summaryJson({
   String id = 'p1',
   String name = 'Kos Melati',
 }) => {
+  'version': 1,
   'id': id,
   'name': name,
   'address': 'Jl. Melati 1',

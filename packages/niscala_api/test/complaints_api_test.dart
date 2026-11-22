@@ -11,6 +11,7 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
+
 /// tests for ComplaintsApi
 void main() {
   // final instance = ComplaintsApi();
@@ -87,5 +88,6 @@ void main() {
     test('test uploadComplaintPhoto', () async {
       // TODO
     });
+
   });
 }

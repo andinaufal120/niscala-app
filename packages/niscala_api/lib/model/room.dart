@@ -22,6 +22,7 @@ class Room {
     required this.number,
     required this.occupancy,
     required this.propertyId,
+    required this.version,
     this.widthM,
   });
 
@@ -45,47 +46,49 @@ class Room {
 
   String propertyId;
 
+  /// Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data.
+  int version;
+
   num? widthM;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Room &&
-          other.baseRate == baseRate &&
-          other.editable == editable &&
-          _deepEquality.equals(other.facilities, facilities) &&
-          other.id == id &&
-          other.lease == lease &&
-          other.lengthM == lengthM &&
-          other.number == number &&
-          other.occupancy == occupancy &&
-          other.propertyId == propertyId &&
-          other.widthM == widthM;
+  bool operator ==(Object other) => identical(this, other) || other is Room &&
+    other.baseRate == baseRate &&
+    other.editable == editable &&
+    _deepEquality.equals(other.facilities, facilities) &&
+    other.id == id &&
+    other.lease == lease &&
+    other.lengthM == lengthM &&
+    other.number == number &&
+    other.occupancy == occupancy &&
+    other.propertyId == propertyId &&
+    other.version == version &&
+    other.widthM == widthM;
 
   @override
   int get hashCode =>
-      // ignore: unnecessary_parenthesis
-      (baseRate.hashCode) +
-      (editable.hashCode) +
-      (facilities.hashCode) +
-      (id.hashCode) +
-      (lease == null ? 0 : lease!.hashCode) +
-      (lengthM == null ? 0 : lengthM!.hashCode) +
-      (number.hashCode) +
-      (occupancy.hashCode) +
-      (propertyId.hashCode) +
-      (widthM == null ? 0 : widthM!.hashCode);
+    // ignore: unnecessary_parenthesis
+    (baseRate.hashCode) +
+    (editable.hashCode) +
+    (facilities.hashCode) +
+    (id.hashCode) +
+    (lease == null ? 0 : lease!.hashCode) +
+    (lengthM == null ? 0 : lengthM!.hashCode) +
+    (number.hashCode) +
+    (occupancy.hashCode) +
+    (propertyId.hashCode) +
+    (version.hashCode) +
+    (widthM == null ? 0 : widthM!.hashCode);
 
   @override
-  String toString() =>
-      'Room[baseRate=$baseRate, editable=$editable, facilities=$facilities, id=$id, lease=$lease, lengthM=$lengthM, number=$number, occupancy=$occupancy, propertyId=$propertyId, widthM=$widthM]';
+  String toString() => 'Room[baseRate=$baseRate, editable=$editable, facilities=$facilities, id=$id, lease=$lease, lengthM=$lengthM, number=$number, occupancy=$occupancy, propertyId=$propertyId, version=$version, widthM=$widthM]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    json[r'baseRate'] = this.baseRate;
-    json[r'editable'] = this.editable;
-    json[r'facilities'] = this.facilities;
-    json[r'id'] = this.id;
+      json[r'baseRate'] = this.baseRate;
+      json[r'editable'] = this.editable;
+      json[r'facilities'] = this.facilities;
+      json[r'id'] = this.id;
     if (this.lease != null) {
       json[r'lease'] = this.lease;
     } else {
@@ -96,9 +99,10 @@ class Room {
     } else {
       json[r'lengthM'] = null;
     }
-    json[r'number'] = this.number;
-    json[r'occupancy'] = this.occupancy;
-    json[r'propertyId'] = this.propertyId;
+      json[r'number'] = this.number;
+      json[r'occupancy'] = this.occupancy;
+      json[r'propertyId'] = this.propertyId;
+      json[r'version'] = this.version;
     if (this.widthM != null) {
       json[r'widthM'] = this.widthM;
     } else {
@@ -119,10 +123,8 @@ class Room {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key),
-              'Required key "Room[$key]" is missing from JSON.');
-          assert(json[key] != null,
-              'Required key "Room[$key]" has a null value in JSON.');
+          assert(json.containsKey(key), 'Required key "Room[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "Room[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -131,28 +133,26 @@ class Room {
         baseRate: mapValueOfType<int>(json, r'baseRate')!,
         editable: mapValueOfType<bool>(json, r'editable')!,
         facilities: json[r'facilities'] is Iterable
-            ? (json[r'facilities'] as Iterable)
-                .cast<String>()
-                .toList(growable: false)
+            ? (json[r'facilities'] as Iterable).cast<String>().toList(growable: false)
             : const [],
         id: mapValueOfType<String>(json, r'id')!,
         lease: RoomLease.fromJson(json[r'lease']),
-        lengthM:
-            json[r'lengthM'] == null ? null : num.parse('${json[r'lengthM']}'),
+        lengthM: json[r'lengthM'] == null
+            ? null
+            : num.parse('${json[r'lengthM']}'),
         number: mapValueOfType<String>(json, r'number')!,
         occupancy: Occupancy.fromJson(json[r'occupancy'])!,
         propertyId: mapValueOfType<String>(json, r'propertyId')!,
-        widthM:
-            json[r'widthM'] == null ? null : num.parse('${json[r'widthM']}'),
+        version: mapValueOfType<int>(json, r'version')!,
+        widthM: json[r'widthM'] == null
+            ? null
+            : num.parse('${json[r'widthM']}'),
       );
     }
     return null;
   }
 
-  static List<Room> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<Room> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <Room>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -180,19 +180,13 @@ class Room {
   }
 
   // maps a json object with a list of Room-objects as value to a dart map
-  static Map<String, List<Room>> mapListFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static Map<String, List<Room>> mapListFromJson(dynamic json, {bool growable = false,}) {
     final map = <String, List<Room>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Room.listFromJson(
-          entry.value,
-          growable: growable,
-        );
+        map[entry.key] = Room.listFromJson(entry.value, growable: growable,);
       }
     }
     return map;
@@ -207,5 +201,7 @@ class Room {
     'number',
     'occupancy',
     'propertyId',
+    'version',
   };
 }
+

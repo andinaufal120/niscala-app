@@ -59,7 +59,7 @@ void (empty response body)
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -166,7 +166,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **updateUserAccount**
-> UserAccount updateUserAccount(userAccountId, userAccountInput)
+> UserAccount updateUserAccount(userAccountId, userAccountInput, ifMatch)
 
 Update User Account
 
@@ -185,9 +185,10 @@ import 'package:niscala_api/api.dart';
 final api_instance = UserAccountsApi();
 final userAccountId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 final userAccountInput = UserAccountInput(); // UserAccountInput | 
+final ifMatch = ifMatch_example; // String | The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.
 
 try {
-    final result = api_instance.updateUserAccount(userAccountId, userAccountInput);
+    final result = api_instance.updateUserAccount(userAccountId, userAccountInput, ifMatch);
     print(result);
 } catch (e) {
     print('Exception when calling UserAccountsApi->updateUserAccount: $e\n');
@@ -200,6 +201,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **userAccountId** | **String**|  | 
  **userAccountInput** | [**UserAccountInput**](UserAccountInput.md)|  | 
+ **ifMatch** | **String**| The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version. | [optional] 
 
 ### Return type
 

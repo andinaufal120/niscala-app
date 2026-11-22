@@ -1534,10 +1534,16 @@
             },
             "title": "Properties",
             "type": "array"
+          },
+          "version": {
+            "description": "Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data.",
+            "title": "Version",
+            "type": "integer"
           }
         },
         "required": [
           "id",
+          "version",
           "name",
           "phone",
           "accountStatus",
@@ -1749,10 +1755,16 @@
             },
             "title": "Properties",
             "type": "array"
+          },
+          "version": {
+            "description": "Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data.",
+            "title": "Version",
+            "type": "integer"
           }
         },
         "required": [
           "id",
+          "version",
           "name",
           "phone",
           "accountStatus",
@@ -2741,10 +2753,16 @@
           "vacantRoomCount": {
             "title": "Vacantroomcount",
             "type": "integer"
+          },
+          "version": {
+            "description": "Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data.",
+            "title": "Version",
+            "type": "integer"
           }
         },
         "required": [
           "id",
+          "version",
           "name",
           "address",
           "roomCount",
@@ -2915,10 +2933,16 @@
           "roomCount": {
             "title": "Roomcount",
             "type": "integer"
+          },
+          "version": {
+            "description": "Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data.",
+            "title": "Version",
+            "type": "integer"
           }
         },
         "required": [
           "id",
+          "version",
           "name",
           "address",
           "roomCount",
@@ -3314,6 +3338,11 @@
             "title": "Propertyid",
             "type": "string"
           },
+          "version": {
+            "description": "Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data.",
+            "title": "Version",
+            "type": "integer"
+          },
           "widthM": {
             "anyOf": [
               {
@@ -3329,6 +3358,7 @@
         },
         "required": [
           "id",
+          "version",
           "propertyId",
           "number",
           "baseRate",
@@ -3571,6 +3601,11 @@
           "occupancy": {
             "$ref": "#/components/schemas/Occupancy"
           },
+          "version": {
+            "description": "Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data.",
+            "title": "Version",
+            "type": "integer"
+          },
           "widthM": {
             "anyOf": [
               {
@@ -3586,6 +3621,7 @@
         },
         "required": [
           "id",
+          "version",
           "number",
           "baseRate",
           "occupancy",
@@ -4048,10 +4084,16 @@
           },
           "room": {
             "$ref": "#/components/schemas/RoomRef"
+          },
+          "version": {
+            "description": "Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data.",
+            "title": "Version",
+            "type": "integer"
           }
         },
         "required": [
           "id",
+          "version",
           "name",
           "phone",
           "accountStatus",
@@ -4237,10 +4279,16 @@
           },
           "room": {
             "$ref": "#/components/schemas/RoomRef"
+          },
+          "version": {
+            "description": "Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data.",
+            "title": "Version",
+            "type": "integer"
           }
         },
         "required": [
           "id",
+          "version",
           "name",
           "room",
           "accountStatus",
@@ -4357,10 +4405,16 @@
             },
             "title": "Tenancies",
             "type": "array"
+          },
+          "version": {
+            "description": "Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data.",
+            "title": "Version",
+            "type": "integer"
           }
         },
         "required": [
           "id",
+          "version",
           "name",
           "email",
           "role",
@@ -4449,10 +4503,16 @@
           },
           "status": {
             "$ref": "#/components/schemas/UserAccountStatus"
+          },
+          "version": {
+            "description": "Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data.",
+            "title": "Version",
+            "type": "integer"
           }
         },
         "required": [
           "id",
+          "version",
           "name",
           "email",
           "role",
@@ -4483,7 +4543,7 @@
   },
   "info": {
     "title": "Niscala API",
-    "version": "0.6.0"
+    "version": "0.7.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -4504,11 +4564,38 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: EMAIL_CHANGE_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: EMAIL_ALREADY_REGISTERED, EMAIL_CHANGE_EXPIRED, EMAIL_CHANGE_USED"
           }
         },
         "summary": "Confirm Email Change",
         "tags": [
           "auth"
+        ],
+        "x-error-codes": [
+          "EMAIL_CHANGE_NOT_FOUND",
+          "EMAIL_ALREADY_REGISTERED",
+          "EMAIL_CHANGE_EXPIRED",
+          "EMAIL_CHANGE_USED",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -4526,6 +4613,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: EMAIL_ALREADY_VERIFIED"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests: VERIFICATION_CODE_TOO_SOON"
           }
         },
         "security": [
@@ -4536,6 +4653,11 @@
         "summary": "Send Email Verification",
         "tags": [
           "auth"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_ALREADY_VERIFIED",
+          "VERIFICATION_CODE_TOO_SOON"
         ]
       }
     },
@@ -4563,6 +4685,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: EMAIL_ALREADY_VERIFIED"
           }
         },
         "security": [
@@ -4573,6 +4715,13 @@
         "summary": "Confirm Email",
         "tags": [
           "auth"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_ALREADY_VERIFIED",
+          "VALIDATION_FAILED",
+          "VERIFICATION_CODE_EXPIRED",
+          "VERIFICATION_CODE_INVALID"
         ]
       }
     },
@@ -4600,11 +4749,47 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: INVALID_CREDENTIALS"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: ACCOUNT_INACTIVE"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests: TOO_MANY_LOGIN_ATTEMPTS"
           }
         },
         "summary": "Login",
         "tags": [
           "auth"
+        ],
+        "x-error-codes": [
+          "INVALID_CREDENTIALS",
+          "ACCOUNT_INACTIVE",
+          "VALIDATION_FAILED",
+          "TOO_MANY_LOGIN_ATTEMPTS"
         ]
       }
     },
@@ -4632,11 +4817,37 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: GOOGLE_TOKEN_INVALID, INVALID_CREDENTIALS"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: ACCOUNT_INACTIVE"
           }
         },
         "summary": "Login With Google",
         "tags": [
           "auth"
+        ],
+        "x-error-codes": [
+          "GOOGLE_TOKEN_INVALID",
+          "INVALID_CREDENTIALS",
+          "ACCOUNT_INACTIVE",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -4647,6 +4858,16 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
           }
         },
         "security": [
@@ -4657,6 +4878,9 @@
         "summary": "Logout",
         "tags": [
           "auth"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID"
         ]
       }
     },
@@ -4684,11 +4908,37 @@
               }
             },
             "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PASSWORD_RESET_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: PASSWORD_RESET_EXPIRED, PASSWORD_RESET_USED"
           }
         },
         "summary": "Preview Password Reset",
         "tags": [
           "auth"
+        ],
+        "x-error-codes": [
+          "PASSWORD_RESET_NOT_FOUND",
+          "PASSWORD_RESET_EXPIRED",
+          "PASSWORD_RESET_USED",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -4714,6 +4964,9 @@
         "summary": "Request Password Reset",
         "tags": [
           "auth"
+        ],
+        "x-error-codes": [
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -4734,11 +4987,38 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PASSWORD_RESET_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: PASSWORD_RESET_EXPIRED, PASSWORD_RESET_USED"
           }
         },
         "summary": "Reset Password",
         "tags": [
           "auth"
+        ],
+        "x-error-codes": [
+          "PASSWORD_RESET_NOT_FOUND",
+          "PASSWORD_RESET_EXPIRED",
+          "PASSWORD_RESET_USED",
+          "PASSWORD_TOO_COMMON",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -4766,11 +5046,25 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: REFRESH_TOKEN_INVALID"
           }
         },
         "summary": "Refresh Tokens",
         "tags": [
           "auth"
+        ],
+        "x-error-codes": [
+          "REFRESH_TOKEN_INVALID",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -4798,11 +5092,37 @@
               }
             },
             "description": "Successful Response"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: EMAIL_ALREADY_REGISTERED"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests: VERIFICATION_CODE_TOO_SOON"
           }
         },
         "summary": "Register Owner",
         "tags": [
           "auth"
+        ],
+        "x-error-codes": [
+          "EMAIL_ALREADY_REGISTERED",
+          "PASSWORD_TOO_COMMON",
+          "VALIDATION_FAILED",
+          "VERIFICATION_CODE_TOO_SOON"
         ]
       }
     },
@@ -4830,11 +5150,38 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: GOOGLE_TOKEN_INVALID"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: EMAIL_ALREADY_REGISTERED, GOOGLE_ACCOUNT_ALREADY_REGISTERED"
           }
         },
         "summary": "Register Owner With Google",
         "tags": [
           "auth"
+        ],
+        "x-error-codes": [
+          "GOOGLE_TOKEN_INVALID",
+          "EMAIL_ALREADY_REGISTERED",
+          "GOOGLE_ACCOUNT_ALREADY_REGISTERED",
+          "GOOGLE_EMAIL_UNVERIFIED",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -4852,6 +5199,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED"
           }
         },
         "security": [
@@ -4862,6 +5229,10 @@
         "summary": "List Complaint Categories",
         "tags": [
           "complaints"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED"
         ]
       }
     },
@@ -4879,6 +5250,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -4889,6 +5280,11 @@
         "summary": "List Complaints",
         "tags": [
           "complaints"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN"
         ]
       },
       "post": {
@@ -4914,6 +5310,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN, NO_ACTIVE_LEASE"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: COMPLAINT_NOT_FOUND, ROOM_NOT_FOUND"
           }
         },
         "security": [
@@ -4924,6 +5350,15 @@
         "summary": "Create Complaint",
         "tags": [
           "complaints"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "NO_ACTIVE_LEASE",
+          "COMPLAINT_NOT_FOUND",
+          "ROOM_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -4953,6 +5388,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: COMPLAINT_NOT_FOUND"
           }
         },
         "security": [
@@ -4963,6 +5428,13 @@
         "summary": "Get Complaint",
         "tags": [
           "complaints"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "COMPLAINT_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -5002,6 +5474,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: COMPLAINT_NOT_FOUND"
           }
         },
         "security": [
@@ -5012,6 +5514,14 @@
         "summary": "Classify Complaint",
         "tags": [
           "complaints"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "COMPLAINT_NOT_FOUND",
+          "COMPLAINT_CATEGORY_INVALID",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -5038,6 +5548,46 @@
               "image/png": {}
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: COMPLAINT_NOT_FOUND, PHOTO_NOT_FOUND"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error: INTERNAL_ERROR"
           }
         },
         "security": [
@@ -5048,6 +5598,15 @@
         "summary": "Get Complaint Photo",
         "tags": [
           "complaints"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "COMPLAINT_NOT_FOUND",
+          "PHOTO_NOT_FOUND",
+          "VALIDATION_FAILED",
+          "INTERNAL_ERROR"
         ]
       },
       "put": {
@@ -5085,6 +5644,46 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: COMPLAINT_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: COMPLAINT_NOT_NEW"
           }
         },
         "security": [
@@ -5095,6 +5694,16 @@
         "summary": "Upload Complaint Photo",
         "tags": [
           "complaints"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "COMPLAINT_NOT_FOUND",
+          "COMPLAINT_NOT_NEW",
+          "PHOTO_TOO_LARGE",
+          "PHOTO_TYPE_INVALID",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -5134,6 +5743,46 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: COMPLAINT_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: COMPLAINT_STATUS_NOT_NEXT"
           }
         },
         "security": [
@@ -5144,6 +5793,14 @@
         "summary": "Change Complaint Status",
         "tags": [
           "complaints"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "COMPLAINT_NOT_FOUND",
+          "COMPLAINT_STATUS_NOT_NEXT",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -5176,7 +5833,8 @@
         "summary": "Get Health",
         "tags": [
           "health"
-        ]
+        ],
+        "x-error-codes": []
       }
     },
     "/invitations/acceptance-previews": {
@@ -5203,6 +5861,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: INVITATION_NOT_FOUND"
           }
         },
         "security": [
@@ -5213,6 +5901,12 @@
         "summary": "Preview Invitation Acceptance",
         "tags": [
           "invitations"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "INVITATION_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -5233,6 +5927,46 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: INVITATION_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: INVITATION_EXPIRED, INVITATION_ROLE_MISMATCH, INVITATION_USED, MANAGER_ALREADY_ADDED"
           }
         },
         "security": [
@@ -5243,6 +5977,16 @@
         "summary": "Accept Invitation",
         "tags": [
           "invitations"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "INVITATION_NOT_FOUND",
+          "INVITATION_EXPIRED",
+          "INVITATION_ROLE_MISMATCH",
+          "INVITATION_USED",
+          "MANAGER_ALREADY_ADDED",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -5270,11 +6014,51 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: GOOGLE_TOKEN_INVALID"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: INVITATION_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: EMAIL_ALREADY_REGISTERED, GOOGLE_ACCOUNT_ALREADY_REGISTERED, INVITATION_EXPIRED, INVITATION_USED"
           }
         },
         "summary": "Activate Invitation With Google",
         "tags": [
           "invitations"
+        ],
+        "x-error-codes": [
+          "GOOGLE_TOKEN_INVALID",
+          "INVITATION_NOT_FOUND",
+          "EMAIL_ALREADY_REGISTERED",
+          "GOOGLE_ACCOUNT_ALREADY_REGISTERED",
+          "INVITATION_EXPIRED",
+          "INVITATION_USED",
+          "GOOGLE_EMAIL_UNVERIFIED",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -5302,11 +6086,50 @@
               }
             },
             "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: INVITATION_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: EMAIL_ALREADY_REGISTERED, INVITATION_EXPIRED, INVITATION_USED"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests: VERIFICATION_CODE_TOO_SOON"
           }
         },
         "summary": "Activate Invitation With Password",
         "tags": [
           "invitations"
+        ],
+        "x-error-codes": [
+          "INVITATION_NOT_FOUND",
+          "EMAIL_ALREADY_REGISTERED",
+          "INVITATION_EXPIRED",
+          "INVITATION_USED",
+          "PASSWORD_TOO_COMMON",
+          "VALIDATION_FAILED",
+          "VERIFICATION_CODE_TOO_SOON"
         ]
       }
     },
@@ -5334,11 +6157,25 @@
               }
             },
             "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: INVITATION_NOT_FOUND"
           }
         },
         "summary": "Preview Invitation",
         "tags": [
           "invitations"
+        ],
+        "x-error-codes": [
+          "INVITATION_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -5375,6 +6212,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND"
           }
         },
         "security": [
@@ -5385,6 +6252,13 @@
         "summary": "List Managers",
         "tags": [
           "managers"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       },
       "post": {
@@ -5410,6 +6284,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND"
           }
         },
         "security": [
@@ -5420,6 +6324,13 @@
         "summary": "Create Manager",
         "tags": [
           "managers"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -5442,6 +6353,36 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: MANAGER_NOT_FOUND"
           }
         },
         "security": [
@@ -5452,6 +6393,13 @@
         "summary": "Delete Manager",
         "tags": [
           "managers"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "MANAGER_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       },
       "get": {
@@ -5479,6 +6427,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: MANAGER_NOT_FOUND"
           }
         },
         "security": [
@@ -5489,6 +6467,13 @@
         "summary": "Get Manager",
         "tags": [
           "managers"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "MANAGER_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       },
       "put": {
@@ -5503,6 +6488,24 @@
               "format": "uuid",
               "title": "Managerid",
               "type": "string"
+            }
+          },
+          {
+            "description": "The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.",
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.",
+              "title": "If-Match"
             }
           }
         ],
@@ -5526,6 +6529,46 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: MANAGER_NOT_FOUND, PROPERTY_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: RESOURCE_VERSION_CONFLICT"
           }
         },
         "security": [
@@ -5536,6 +6579,16 @@
         "summary": "Update Manager",
         "tags": [
           "managers"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "MANAGER_NOT_FOUND",
+          "PROPERTY_NOT_FOUND",
+          "RESOURCE_VERSION_CONFLICT",
+          "MANAGER_NAME_NOT_EDITABLE",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -5565,6 +6618,46 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: MANAGER_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: MANAGER_ALREADY_ACTIVE"
           }
         },
         "security": [
@@ -5575,10 +6668,75 @@
         "summary": "Regenerate Manager Invitation",
         "tags": [
           "managers"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "MANAGER_NOT_FOUND",
+          "MANAGER_ALREADY_ACTIVE",
+          "VALIDATION_FAILED"
         ]
       }
     },
     "/me": {
+      "delete": {
+        "description": "Delete the caller's own account and erase its personal data.",
+        "operationId": "delete_my_account",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN, REAUTHENTICATION_REQUIRED"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: OWNER_HAS_ACTIVE_LEASE, SUBSCRIPTION_AUTO_RENEWING, TENANT_HAS_ACTIVE_LEASE"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Delete My Account",
+        "tags": [
+          "tenants"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "REAUTHENTICATION_REQUIRED",
+          "OWNER_HAS_ACTIVE_LEASE",
+          "SUBSCRIPTION_AUTO_RENEWING",
+          "TENANT_HAS_ACTIVE_LEASE"
+        ]
+      },
       "get": {
         "description": "Return the caller's account and sign-in methods.",
         "operationId": "get_my_account",
@@ -5592,6 +6750,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
           }
         },
         "security": [
@@ -5602,6 +6770,9 @@
         "summary": "Get My Account",
         "tags": [
           "account"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID"
         ]
       }
     },
@@ -5629,6 +6800,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID, GOOGLE_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, PASSWORD_LOGIN_REQUIRED"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: GOOGLE_ACCOUNT_ALREADY_REGISTERED, GOOGLE_ALREADY_LINKED"
           }
         },
         "security": [
@@ -5639,6 +6840,16 @@
         "summary": "Link Google",
         "tags": [
           "account"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "GOOGLE_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "PASSWORD_LOGIN_REQUIRED",
+          "GOOGLE_ACCOUNT_ALREADY_REGISTERED",
+          "GOOGLE_ALREADY_LINKED",
+          "GOOGLE_EMAIL_UNVERIFIED",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -5656,6 +6867,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -5666,6 +6897,11 @@
         "summary": "Get My Leases",
         "tags": [
           "tenants"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN"
         ]
       }
     },
@@ -5693,6 +6929,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID, GOOGLE_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: GOOGLE_NOT_LINKED, PASSWORD_ALREADY_SET"
           }
         },
         "security": [
@@ -5703,6 +6969,16 @@
         "summary": "Add Local Password",
         "tags": [
           "account"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "GOOGLE_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "GOOGLE_NOT_LINKED",
+          "PASSWORD_ALREADY_SET",
+          "GOOGLE_ACCOUNT_MISMATCH",
+          "PASSWORD_TOO_COMMON",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -5720,6 +6996,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -5730,6 +7026,11 @@
         "summary": "Get Notification Settings",
         "tags": [
           "notifications"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN"
         ]
       },
       "put": {
@@ -5755,6 +7056,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -5765,6 +7086,13 @@
         "summary": "Update Notification Settings",
         "tags": [
           "notifications"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "NOTIFICATION_CATEGORIES_INVALID",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -5792,6 +7120,46 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: PASSWORD_NOT_SET"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests: TOO_MANY_ATTEMPTS"
           }
         },
         "security": [
@@ -5802,6 +7170,16 @@
         "summary": "Change My Password",
         "tags": [
           "account"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "PASSWORD_NOT_SET",
+          "CURRENT_PASSWORD_INCORRECT",
+          "PASSWORD_TOO_COMMON",
+          "PASSWORD_UNCHANGED",
+          "VALIDATION_FAILED",
+          "TOO_MANY_ATTEMPTS"
         ]
       }
     },
@@ -5822,6 +7200,26 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -5832,6 +7230,12 @@
         "summary": "Register Push Token",
         "tags": [
           "notifications"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -5859,6 +7263,46 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID, GOOGLE_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: GOOGLE_NOT_LINKED"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests: TOO_MANY_LOGIN_ATTEMPTS"
           }
         },
         "security": [
@@ -5869,6 +7313,15 @@
         "summary": "Reauthenticate With Google",
         "tags": [
           "account"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "GOOGLE_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "GOOGLE_NOT_LINKED",
+          "GOOGLE_ACCOUNT_MISMATCH",
+          "VALIDATION_FAILED",
+          "TOO_MANY_LOGIN_ATTEMPTS"
         ]
       }
     },
@@ -5896,6 +7349,46 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: PASSWORD_NOT_SET"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Too Many Requests: TOO_MANY_LOGIN_ATTEMPTS"
           }
         },
         "security": [
@@ -5906,6 +7399,14 @@
         "summary": "Reauthenticate With Password",
         "tags": [
           "account"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "PASSWORD_NOT_SET",
+          "PASSWORD_INCORRECT",
+          "VALIDATION_FAILED",
+          "TOO_MANY_LOGIN_ATTEMPTS"
         ]
       }
     },
@@ -5916,6 +7417,26 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED"
           }
         },
         "security": [
@@ -5926,6 +7447,10 @@
         "summary": "End My Other Sessions",
         "tags": [
           "sessions"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED"
         ]
       },
       "get": {
@@ -5941,6 +7466,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED"
           }
         },
         "security": [
@@ -5951,6 +7496,10 @@
         "summary": "List My Sessions",
         "tags": [
           "sessions"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED"
         ]
       }
     },
@@ -5973,6 +7522,46 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: SESSION_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: SESSION_IS_CURRENT"
           }
         },
         "security": [
@@ -5983,6 +7572,13 @@
         "summary": "End My Session",
         "tags": [
           "sessions"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "SESSION_NOT_FOUND",
+          "SESSION_IS_CURRENT",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -6000,6 +7596,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -6010,6 +7626,11 @@
         "summary": "List Notifications",
         "tags": [
           "notifications"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN"
         ]
       }
     },
@@ -6020,6 +7641,26 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -6030,6 +7671,11 @@
         "summary": "Mark All Notifications Read",
         "tags": [
           "notifications"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN"
         ]
       }
     },
@@ -6059,6 +7705,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: NOTIFICATION_NOT_FOUND"
           }
         },
         "security": [
@@ -6069,6 +7745,13 @@
         "summary": "Mark Notification Read",
         "tags": [
           "notifications"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "NOTIFICATION_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -6086,6 +7769,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -6096,6 +7799,11 @@
         "summary": "Get Occupancy Dashboard",
         "tags": [
           "dashboard"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN"
         ]
       }
     },
@@ -6113,6 +7821,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -6123,6 +7851,11 @@
         "summary": "List Properties",
         "tags": [
           "properties"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN"
         ]
       },
       "post": {
@@ -6148,6 +7881,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN, PROPERTY_LIMIT_REACHED"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: PROPERTY_NAME_TAKEN"
           }
         },
         "security": [
@@ -6158,6 +7921,14 @@
         "summary": "Create Property",
         "tags": [
           "properties"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_LIMIT_REACHED",
+          "PROPERTY_NAME_TAKEN",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -6180,6 +7951,46 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: PROPERTY_HAS_ACTIVE_LEASE"
           }
         },
         "security": [
@@ -6190,6 +8001,14 @@
         "summary": "Delete Property",
         "tags": [
           "properties"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_NOT_FOUND",
+          "PROPERTY_HAS_ACTIVE_LEASE",
+          "VALIDATION_FAILED"
         ]
       },
       "get": {
@@ -6217,6 +8036,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND"
           }
         },
         "security": [
@@ -6227,6 +8076,13 @@
         "summary": "Get Property",
         "tags": [
           "properties"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       },
       "put": {
@@ -6241,6 +8097,24 @@
               "format": "uuid",
               "title": "Propertyid",
               "type": "string"
+            }
+          },
+          {
+            "description": "The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.",
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.",
+              "title": "If-Match"
             }
           }
         ],
@@ -6264,6 +8138,46 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN, PROPERTY_READ_ONLY, REAUTHENTICATION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: PROPERTY_NAME_TAKEN, RESOURCE_VERSION_CONFLICT"
           }
         },
         "security": [
@@ -6274,6 +8188,17 @@
         "summary": "Update Property",
         "tags": [
           "properties"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_READ_ONLY",
+          "REAUTHENTICATION_REQUIRED",
+          "PROPERTY_NOT_FOUND",
+          "PROPERTY_NAME_TAKEN",
+          "RESOURCE_VERSION_CONFLICT",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -6303,6 +8228,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND"
           }
         },
         "security": [
@@ -6313,6 +8268,13 @@
         "summary": "List Facility Suggestions",
         "tags": [
           "rooms"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -6359,6 +8321,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND"
           }
         },
         "security": [
@@ -6369,6 +8361,13 @@
         "summary": "Get Payment Overview",
         "tags": [
           "rent-bills"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -6398,6 +8397,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND"
           }
         },
         "security": [
@@ -6408,6 +8437,13 @@
         "summary": "Get Payment Patterns",
         "tags": [
           "rent-bills"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -6437,6 +8473,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND"
           }
         },
         "security": [
@@ -6447,6 +8513,13 @@
         "summary": "List Rooms",
         "tags": [
           "rooms"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       },
       "post": {
@@ -6484,6 +8557,46 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN, PROPERTY_READ_ONLY, ROOM_LIMIT_REACHED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: ROOM_NUMBER_TAKEN"
           }
         },
         "security": [
@@ -6494,6 +8607,16 @@
         "summary": "Create Room",
         "tags": [
           "rooms"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_READ_ONLY",
+          "ROOM_LIMIT_REACHED",
+          "PROPERTY_NOT_FOUND",
+          "ROOM_NUMBER_TAKEN",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -6523,6 +8646,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND"
           }
         },
         "security": [
@@ -6533,6 +8686,13 @@
         "summary": "List Tenants",
         "tags": [
           "tenants"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       },
       "post": {
@@ -6570,6 +8730,46 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN, PROPERTY_READ_ONLY, ROOM_READ_ONLY"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND, ROOM_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: ROOM_NOT_VACANT"
           }
         },
         "security": [
@@ -6580,6 +8780,17 @@
         "summary": "Create Tenant",
         "tags": [
           "tenants"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_READ_ONLY",
+          "ROOM_READ_ONLY",
+          "PROPERTY_NOT_FOUND",
+          "ROOM_NOT_FOUND",
+          "ROOM_NOT_VACANT",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -6653,6 +8864,16 @@
             },
             "description": "Successful Response"
           },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
           "403": {
             "content": {
               "application/json": {
@@ -6661,7 +8882,7 @@
                 }
               }
             },
-            "description": "Forbidden"
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -6672,6 +8893,12 @@
         "summary": "List Rent Bills",
         "tags": [
           "rent-bills"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -6702,6 +8929,16 @@
             },
             "description": "Successful Response"
           },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
           "403": {
             "content": {
               "application/json": {
@@ -6710,7 +8947,7 @@
                 }
               }
             },
-            "description": "Forbidden"
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           },
           "404": {
             "content": {
@@ -6720,7 +8957,7 @@
                 }
               }
             },
-            "description": "Not Found"
+            "description": "Not Found: RENT_BILL_NOT_FOUND"
           }
         },
         "security": [
@@ -6731,6 +8968,13 @@
         "summary": "Get Rent Bill",
         "tags": [
           "rent-bills"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "RENT_BILL_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -6771,6 +9015,16 @@
             },
             "description": "Successful Response"
           },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
           "403": {
             "content": {
               "application/json": {
@@ -6779,7 +9033,7 @@
                 }
               }
             },
-            "description": "Forbidden"
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           },
           "404": {
             "content": {
@@ -6789,7 +9043,7 @@
                 }
               }
             },
-            "description": "Not Found"
+            "description": "Not Found: RENT_BILL_NOT_FOUND"
           },
           "409": {
             "content": {
@@ -6799,7 +9053,7 @@
                 }
               }
             },
-            "description": "Conflict"
+            "description": "Conflict: RENT_BILL_NOT_PAYABLE"
           }
         },
         "security": [
@@ -6810,6 +9064,15 @@
         "summary": "Record Cash Payment",
         "tags": [
           "rent-bills"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "RENT_BILL_NOT_FOUND",
+          "RENT_BILL_NOT_PAYABLE",
+          "RECEIVED_ON_IN_FUTURE",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -6837,6 +9100,16 @@
             },
             "description": "Successful Response"
           },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
           "403": {
             "content": {
               "application/json": {
@@ -6845,7 +9118,7 @@
                 }
               }
             },
-            "description": "Forbidden"
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           },
           "404": {
             "content": {
@@ -6855,7 +9128,17 @@
                 }
               }
             },
-            "description": "Not Found"
+            "description": "Not Found: RECEIPT_NOT_FOUND, RENT_BILL_NOT_FOUND"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Internal Server Error: INTERNAL_ERROR"
           }
         },
         "security": [
@@ -6866,6 +9149,15 @@
         "summary": "Get Receipt",
         "tags": [
           "rent-bills"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "RECEIPT_NOT_FOUND",
+          "RENT_BILL_NOT_FOUND",
+          "VALIDATION_FAILED",
+          "INTERNAL_ERROR"
         ]
       },
       "put": {
@@ -6904,6 +9196,16 @@
             },
             "description": "Successful Response"
           },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
           "403": {
             "content": {
               "application/json": {
@@ -6912,7 +9214,7 @@
                 }
               }
             },
-            "description": "Forbidden"
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           },
           "404": {
             "content": {
@@ -6922,7 +9224,7 @@
                 }
               }
             },
-            "description": "Not Found"
+            "description": "Not Found: RENT_BILL_NOT_FOUND"
           },
           "409": {
             "content": {
@@ -6932,7 +9234,7 @@
                 }
               }
             },
-            "description": "Conflict"
+            "description": "Conflict: PROPERTY_BANK_ACCOUNT_MISSING, RENT_BILL_NOT_UPLOADABLE"
           }
         },
         "security": [
@@ -6943,6 +9245,17 @@
         "summary": "Upload Receipt",
         "tags": [
           "rent-bills"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "RENT_BILL_NOT_FOUND",
+          "PROPERTY_BANK_ACCOUNT_MISSING",
+          "RENT_BILL_NOT_UPLOADABLE",
+          "RECEIPT_TOO_LARGE",
+          "RECEIPT_TYPE_INVALID",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -6983,6 +9296,16 @@
             },
             "description": "Successful Response"
           },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
           "403": {
             "content": {
               "application/json": {
@@ -6991,7 +9314,7 @@
                 }
               }
             },
-            "description": "Forbidden"
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           },
           "404": {
             "content": {
@@ -7001,7 +9324,7 @@
                 }
               }
             },
-            "description": "Not Found"
+            "description": "Not Found: RENT_BILL_NOT_FOUND"
           },
           "409": {
             "content": {
@@ -7011,7 +9334,7 @@
                 }
               }
             },
-            "description": "Conflict"
+            "description": "Conflict: RENT_BILL_NOT_AWAITING_VERIFICATION"
           }
         },
         "security": [
@@ -7022,6 +9345,15 @@
         "summary": "Reject Receipt",
         "tags": [
           "rent-bills"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "RENT_BILL_NOT_FOUND",
+          "RENT_BILL_NOT_AWAITING_VERIFICATION",
+          "REASON_REQUIRED",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -7062,6 +9394,16 @@
             },
             "description": "Successful Response"
           },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
           "403": {
             "content": {
               "application/json": {
@@ -7070,7 +9412,7 @@
                 }
               }
             },
-            "description": "Forbidden"
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           },
           "404": {
             "content": {
@@ -7080,7 +9422,7 @@
                 }
               }
             },
-            "description": "Not Found"
+            "description": "Not Found: RENT_BILL_NOT_FOUND"
           }
         },
         "security": [
@@ -7091,6 +9433,16 @@
         "summary": "Change Payment Status",
         "tags": [
           "rent-bills"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "RENT_BILL_NOT_FOUND",
+          "REASON_REQUIRED",
+          "RECEIVED_ON_IN_FUTURE",
+          "STATUS_UNCHANGED",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -7121,6 +9473,16 @@
             },
             "description": "Successful Response"
           },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
           "403": {
             "content": {
               "application/json": {
@@ -7129,7 +9491,7 @@
                 }
               }
             },
-            "description": "Forbidden"
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           },
           "404": {
             "content": {
@@ -7139,7 +9501,7 @@
                 }
               }
             },
-            "description": "Not Found"
+            "description": "Not Found: RENT_BILL_NOT_FOUND"
           },
           "409": {
             "content": {
@@ -7149,7 +9511,7 @@
                 }
               }
             },
-            "description": "Conflict"
+            "description": "Conflict: RENT_BILL_NOT_AWAITING_VERIFICATION"
           }
         },
         "security": [
@@ -7160,6 +9522,14 @@
         "summary": "Verify Receipt",
         "tags": [
           "rent-bills"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "RENT_BILL_NOT_FOUND",
+          "RENT_BILL_NOT_AWAITING_VERIFICATION",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -7182,6 +9552,46 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: ROOM_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: ROOM_HAS_ACTIVE_LEASE"
           }
         },
         "security": [
@@ -7192,6 +9602,14 @@
         "summary": "Delete Room",
         "tags": [
           "rooms"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "ROOM_NOT_FOUND",
+          "ROOM_HAS_ACTIVE_LEASE",
+          "VALIDATION_FAILED"
         ]
       },
       "get": {
@@ -7219,6 +9637,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: ROOM_NOT_FOUND"
           }
         },
         "security": [
@@ -7229,6 +9677,13 @@
         "summary": "Get Room",
         "tags": [
           "rooms"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "ROOM_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       },
       "put": {
@@ -7243,6 +9698,24 @@
               "format": "uuid",
               "title": "Roomid",
               "type": "string"
+            }
+          },
+          {
+            "description": "The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.",
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.",
+              "title": "If-Match"
             }
           }
         ],
@@ -7266,6 +9739,46 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN, PROPERTY_READ_ONLY, ROOM_READ_ONLY"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: ROOM_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: RESOURCE_VERSION_CONFLICT, ROOM_NUMBER_TAKEN"
           }
         },
         "security": [
@@ -7276,6 +9789,17 @@
         "summary": "Update Room",
         "tags": [
           "rooms"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_READ_ONLY",
+          "ROOM_READ_ONLY",
+          "ROOM_NOT_FOUND",
+          "RESOURCE_VERSION_CONFLICT",
+          "ROOM_NUMBER_TAKEN",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -7293,6 +9817,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -7303,6 +9847,11 @@
         "summary": "Get Subscription",
         "tags": [
           "subscriptions"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN"
         ]
       }
     },
@@ -7320,6 +9869,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -7330,6 +9899,11 @@
         "summary": "List Subscription Plans",
         "tags": [
           "subscriptions"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN"
         ]
       }
     },
@@ -7357,6 +9931,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: SUBSCRIPTION_NOT_AN_UPGRADE"
           }
         },
         "security": [
@@ -7367,6 +9971,13 @@
         "summary": "Create Subscription Order",
         "tags": [
           "subscriptions"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "SUBSCRIPTION_NOT_AN_UPGRADE",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -7396,6 +10007,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: SUBSCRIPTION_ORDER_NOT_FOUND"
           }
         },
         "security": [
@@ -7406,6 +10047,13 @@
         "summary": "Get Subscription Order",
         "tags": [
           "subscriptions"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "SUBSCRIPTION_ORDER_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -7445,6 +10093,56 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: SUBSCRIPTION_ORDER_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: PURCHASE_TOKEN_IN_USE, SUBSCRIPTION_ORDER_CLOSED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Service Unavailable: GOOGLE_PLAY_UNREACHABLE"
           }
         },
         "security": [
@@ -7455,6 +10153,18 @@
         "summary": "Verify Subscription Purchase",
         "tags": [
           "subscriptions"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "SUBSCRIPTION_ORDER_NOT_FOUND",
+          "PURCHASE_TOKEN_IN_USE",
+          "SUBSCRIPTION_ORDER_CLOSED",
+          "PURCHASE_PRODUCT_MISMATCH",
+          "PURCHASE_TOKEN_INVALID",
+          "VALIDATION_FAILED",
+          "GOOGLE_PLAY_UNREACHABLE"
         ]
       }
     },
@@ -7465,6 +10175,26 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -7475,6 +10205,11 @@
         "summary": "Cancel Subscription Downgrade",
         "tags": [
           "subscriptions"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN"
         ]
       },
       "put": {
@@ -7500,6 +10235,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -7510,6 +10265,15 @@
         "summary": "Schedule Subscription Downgrade",
         "tags": [
           "subscriptions"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "KEPT_PROPERTIES_INVALID",
+          "KEPT_ROOMS_INVALID",
+          "SUBSCRIPTION_NOT_A_DOWNGRADE",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -7532,6 +10296,36 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN, PROPERTY_READ_ONLY, ROOM_READ_ONLY"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND, TENANT_NOT_FOUND"
           }
         },
         "security": [
@@ -7542,6 +10336,16 @@
         "summary": "Delete Tenant",
         "tags": [
           "tenants"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_READ_ONLY",
+          "ROOM_READ_ONLY",
+          "PROPERTY_NOT_FOUND",
+          "TENANT_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       },
       "get": {
@@ -7569,6 +10373,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND, TENANT_NOT_FOUND"
           }
         },
         "security": [
@@ -7579,6 +10413,14 @@
         "summary": "Get Tenant",
         "tags": [
           "tenants"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_NOT_FOUND",
+          "TENANT_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       },
       "put": {
@@ -7593,6 +10435,24 @@
               "format": "uuid",
               "title": "Tenantid",
               "type": "string"
+            }
+          },
+          {
+            "description": "The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.",
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.",
+              "title": "If-Match"
             }
           }
         ],
@@ -7616,6 +10476,46 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN, PROPERTY_READ_ONLY, ROOM_READ_ONLY"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND, TENANT_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: RESOURCE_VERSION_CONFLICT"
           }
         },
         "security": [
@@ -7626,6 +10526,18 @@
         "summary": "Update Tenant",
         "tags": [
           "tenants"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_READ_ONLY",
+          "ROOM_READ_ONLY",
+          "PROPERTY_NOT_FOUND",
+          "TENANT_NOT_FOUND",
+          "RESOURCE_VERSION_CONFLICT",
+          "TENANT_NAME_NOT_EDITABLE",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -7655,6 +10567,46 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: PROPERTY_NOT_FOUND, TENANT_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: TENANT_ALREADY_ACTIVE"
           }
         },
         "security": [
@@ -7665,6 +10617,15 @@
         "summary": "Regenerate Tenant Invitation",
         "tags": [
           "tenants"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "PROPERTY_NOT_FOUND",
+          "TENANT_NOT_FOUND",
+          "TENANT_ALREADY_ACTIVE",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -7731,6 +10692,26 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
           }
         },
         "security": [
@@ -7741,6 +10722,12 @@
         "summary": "List User Accounts",
         "tags": [
           "user-accounts"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "VALIDATION_FAILED"
         ]
       }
     },
@@ -7763,6 +10750,46 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: USER_ACCOUNT_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: CANNOT_MODIFY_OWN_ACCOUNT, OWNER_HAS_ACTIVE_LEASE, SUBSCRIPTION_AUTO_RENEWING, TENANT_HAS_ACTIVE_LEASE, USER_ACCOUNT_DELETED"
           }
         },
         "security": [
@@ -7773,6 +10800,18 @@
         "summary": "Delete User Account",
         "tags": [
           "user-accounts"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "USER_ACCOUNT_NOT_FOUND",
+          "CANNOT_MODIFY_OWN_ACCOUNT",
+          "OWNER_HAS_ACTIVE_LEASE",
+          "SUBSCRIPTION_AUTO_RENEWING",
+          "TENANT_HAS_ACTIVE_LEASE",
+          "USER_ACCOUNT_DELETED",
+          "VALIDATION_FAILED"
         ]
       },
       "get": {
@@ -7800,6 +10839,36 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: USER_ACCOUNT_NOT_FOUND"
           }
         },
         "security": [
@@ -7810,6 +10879,13 @@
         "summary": "Get User Account",
         "tags": [
           "user-accounts"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "USER_ACCOUNT_NOT_FOUND",
+          "VALIDATION_FAILED"
         ]
       },
       "put": {
@@ -7824,6 +10900,24 @@
               "format": "uuid",
               "title": "Useraccountid",
               "type": "string"
+            }
+          },
+          {
+            "description": "The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.",
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.",
+              "title": "If-Match"
             }
           }
         ],
@@ -7847,6 +10941,46 @@
               }
             },
             "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Unauthorized: ACCESS_TOKEN_INVALID"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Forbidden: EMAIL_NOT_VERIFIED, FORBIDDEN"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Not Found: USER_ACCOUNT_NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": "Conflict: CANNOT_MODIFY_OWN_ACCOUNT, EMAIL_ALREADY_REGISTERED, RESOURCE_VERSION_CONFLICT, USER_ACCOUNT_DELETED"
           }
         },
         "security": [
@@ -7857,6 +10991,17 @@
         "summary": "Update User Account",
         "tags": [
           "user-accounts"
+        ],
+        "x-error-codes": [
+          "ACCESS_TOKEN_INVALID",
+          "EMAIL_NOT_VERIFIED",
+          "FORBIDDEN",
+          "USER_ACCOUNT_NOT_FOUND",
+          "CANNOT_MODIFY_OWN_ACCOUNT",
+          "EMAIL_ALREADY_REGISTERED",
+          "RESOURCE_VERSION_CONFLICT",
+          "USER_ACCOUNT_DELETED",
+          "VALIDATION_FAILED"
         ]
       }
     }

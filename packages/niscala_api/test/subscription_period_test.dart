@@ -13,5 +13,9 @@ import 'package:test/test.dart';
 
 // tests for SubscriptionPeriod
 void main() {
-  group('test SubscriptionPeriod', () {});
+
+  group('test SubscriptionPeriod', () {
+
+  });
+
 }

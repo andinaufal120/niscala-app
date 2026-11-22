@@ -10,6 +10,7 @@
 
 part of niscala_api;
 
+
 class RoomsApi {
   RoomsApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
 
@@ -26,13 +27,10 @@ class RoomsApi {
   /// * [String] propertyId (required):
   ///
   /// * [RoomInput] roomInput (required):
-  Future<Response> createRoomWithHttpInfo(
-    String propertyId,
-    RoomInput roomInput,
-  ) async {
+  Future<Response> createRoomWithHttpInfo(String propertyId, RoomInput roomInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/properties/{propertyId}/rooms'
-        .replaceAll('{propertyId}', propertyId);
+      .replaceAll('{propertyId}', propertyId);
 
     // ignore: prefer_final_locals
     Object? postBody = roomInput;
@@ -42,6 +40,7 @@ class RoomsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -63,26 +62,17 @@ class RoomsApi {
   /// * [String] propertyId (required):
   ///
   /// * [RoomInput] roomInput (required):
-  Future<Room?> createRoom(
-    String propertyId,
-    RoomInput roomInput,
-  ) async {
-    final response = await createRoomWithHttpInfo(
-      propertyId,
-      roomInput,
-    );
+  Future<Room?> createRoom(String propertyId, RoomInput roomInput,) async {
+    final response = await createRoomWithHttpInfo(propertyId, roomInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'Room',
-      ) as Room;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Room',) as Room;
+    
     }
     return null;
   }
@@ -96,11 +86,10 @@ class RoomsApi {
   /// Parameters:
   ///
   /// * [String] roomId (required):
-  Future<Response> deleteRoomWithHttpInfo(
-    String roomId,
-  ) async {
+  Future<Response> deleteRoomWithHttpInfo(String roomId,) async {
     // ignore: prefer_const_declarations
-    final path = r'/rooms/{roomId}'.replaceAll('{roomId}', roomId);
+    final path = r'/rooms/{roomId}'
+      .replaceAll('{roomId}', roomId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -110,6 +99,7 @@ class RoomsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -129,12 +119,8 @@ class RoomsApi {
   /// Parameters:
   ///
   /// * [String] roomId (required):
-  Future<void> deleteRoom(
-    String roomId,
-  ) async {
-    final response = await deleteRoomWithHttpInfo(
-      roomId,
-    );
+  Future<void> deleteRoom(String roomId,) async {
+    final response = await deleteRoomWithHttpInfo(roomId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -149,11 +135,10 @@ class RoomsApi {
   /// Parameters:
   ///
   /// * [String] roomId (required):
-  Future<Response> getRoomWithHttpInfo(
-    String roomId,
-  ) async {
+  Future<Response> getRoomWithHttpInfo(String roomId,) async {
     // ignore: prefer_const_declarations
-    final path = r'/rooms/{roomId}'.replaceAll('{roomId}', roomId);
+    final path = r'/rooms/{roomId}'
+      .replaceAll('{roomId}', roomId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -163,6 +148,7 @@ class RoomsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -182,24 +168,17 @@ class RoomsApi {
   /// Parameters:
   ///
   /// * [String] roomId (required):
-  Future<Room?> getRoom(
-    String roomId,
-  ) async {
-    final response = await getRoomWithHttpInfo(
-      roomId,
-    );
+  Future<Room?> getRoom(String roomId,) async {
+    final response = await getRoomWithHttpInfo(roomId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'Room',
-      ) as Room;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Room',) as Room;
+    
     }
     return null;
   }
@@ -213,12 +192,10 @@ class RoomsApi {
   /// Parameters:
   ///
   /// * [String] propertyId (required):
-  Future<Response> listFacilitySuggestionsWithHttpInfo(
-    String propertyId,
-  ) async {
+  Future<Response> listFacilitySuggestionsWithHttpInfo(String propertyId,) async {
     // ignore: prefer_const_declarations
     final path = r'/properties/{propertyId}/facility-suggestions'
-        .replaceAll('{propertyId}', propertyId);
+      .replaceAll('{propertyId}', propertyId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -228,6 +205,7 @@ class RoomsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -247,24 +225,17 @@ class RoomsApi {
   /// Parameters:
   ///
   /// * [String] propertyId (required):
-  Future<FacilitySuggestionList?> listFacilitySuggestions(
-    String propertyId,
-  ) async {
-    final response = await listFacilitySuggestionsWithHttpInfo(
-      propertyId,
-    );
+  Future<FacilitySuggestionList?> listFacilitySuggestions(String propertyId,) async {
+    final response = await listFacilitySuggestionsWithHttpInfo(propertyId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'FacilitySuggestionList',
-      ) as FacilitySuggestionList;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'FacilitySuggestionList',) as FacilitySuggestionList;
+    
     }
     return null;
   }
@@ -278,12 +249,10 @@ class RoomsApi {
   /// Parameters:
   ///
   /// * [String] propertyId (required):
-  Future<Response> listRoomsWithHttpInfo(
-    String propertyId,
-  ) async {
+  Future<Response> listRoomsWithHttpInfo(String propertyId,) async {
     // ignore: prefer_const_declarations
     final path = r'/properties/{propertyId}/rooms'
-        .replaceAll('{propertyId}', propertyId);
+      .replaceAll('{propertyId}', propertyId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -293,6 +262,7 @@ class RoomsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -312,24 +282,17 @@ class RoomsApi {
   /// Parameters:
   ///
   /// * [String] propertyId (required):
-  Future<RoomList?> listRooms(
-    String propertyId,
-  ) async {
-    final response = await listRoomsWithHttpInfo(
-      propertyId,
-    );
+  Future<RoomList?> listRooms(String propertyId,) async {
+    final response = await listRoomsWithHttpInfo(propertyId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'RoomList',
-      ) as RoomList;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'RoomList',) as RoomList;
+    
     }
     return null;
   }
@@ -345,12 +308,13 @@ class RoomsApi {
   /// * [String] roomId (required):
   ///
   /// * [RoomInput] roomInput (required):
-  Future<Response> updateRoomWithHttpInfo(
-    String roomId,
-    RoomInput roomInput,
-  ) async {
+  ///
+  /// * [String] ifMatch:
+  ///   The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.
+  Future<Response> updateRoomWithHttpInfo(String roomId, RoomInput roomInput, { String? ifMatch, }) async {
     // ignore: prefer_const_declarations
-    final path = r'/rooms/{roomId}'.replaceAll('{roomId}', roomId);
+    final path = r'/rooms/{roomId}'
+      .replaceAll('{roomId}', roomId);
 
     // ignore: prefer_final_locals
     Object? postBody = roomInput;
@@ -359,7 +323,12 @@ class RoomsApi {
     final headerParams = <String, String>{};
     final formParams = <String, String>{};
 
+    if (ifMatch != null) {
+      headerParams[r'If-Match'] = parameterToString(ifMatch);
+    }
+
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -381,26 +350,20 @@ class RoomsApi {
   /// * [String] roomId (required):
   ///
   /// * [RoomInput] roomInput (required):
-  Future<Room?> updateRoom(
-    String roomId,
-    RoomInput roomInput,
-  ) async {
-    final response = await updateRoomWithHttpInfo(
-      roomId,
-      roomInput,
-    );
+  ///
+  /// * [String] ifMatch:
+  ///   The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.
+  Future<Room?> updateRoom(String roomId, RoomInput roomInput, { String? ifMatch, }) async {
+    final response = await updateRoomWithHttpInfo(roomId, roomInput,  ifMatch: ifMatch, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'Room',
-      ) as Room;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Room',) as Room;
+    
     }
     return null;
   }

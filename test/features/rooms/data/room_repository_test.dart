@@ -65,6 +65,7 @@ Map<String, dynamic> _roomJson({
   Object? widthM = 4,
   List<String> facilities = const ['ac', 'kasur'],
 }) => {
+  'version': 1,
   'id': id,
   'propertyId': 'p1',
   'number': number,
@@ -91,6 +92,7 @@ Map<String, dynamic> _summaryJson({
   String number = '08',
   bool occupied = false,
 }) => {
+  'version': 1,
   'id': id,
   'number': number,
   'baseRate': 800000,

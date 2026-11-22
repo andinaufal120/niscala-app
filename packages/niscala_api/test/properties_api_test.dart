@@ -11,6 +11,7 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
+
 /// tests for PropertiesApi
 void main() {
   // final instance = PropertiesApi();
@@ -56,9 +57,10 @@ void main() {
     //
     // Replace a property's name, address and bank account.
     //
-    //Future<Property> updateProperty(String propertyId, PropertyInput propertyInput) async
+    //Future<Property> updateProperty(String propertyId, PropertyInput propertyInput, { String ifMatch }) async
     test('test updateProperty', () async {
       // TODO
     });
+
   });
 }

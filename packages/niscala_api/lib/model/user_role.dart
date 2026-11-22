@@ -36,13 +36,9 @@ class UserRole {
     admin,
   ];
 
-  static UserRole? fromJson(dynamic value) =>
-      UserRoleTypeTransformer().decode(value);
+  static UserRole? fromJson(dynamic value) => UserRoleTypeTransformer().decode(value);
 
-  static List<UserRole> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<UserRole> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <UserRole>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -59,8 +55,7 @@ class UserRole {
 /// Transformation class that can [encode] an instance of [UserRole] to String,
 /// and [decode] dynamic data back to [UserRole].
 class UserRoleTypeTransformer {
-  factory UserRoleTypeTransformer() =>
-      _instance ??= const UserRoleTypeTransformer._();
+  factory UserRoleTypeTransformer() => _instance ??= const UserRoleTypeTransformer._();
 
   const UserRoleTypeTransformer._();
 
@@ -77,14 +72,10 @@ class UserRoleTypeTransformer {
   UserRole? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'tenant':
-          return UserRole.tenant;
-        case r'owner':
-          return UserRole.owner;
-        case r'manager':
-          return UserRole.manager;
-        case r'admin':
-          return UserRole.admin;
+        case r'tenant': return UserRole.tenant;
+        case r'owner': return UserRole.owner;
+        case r'manager': return UserRole.manager;
+        case r'admin': return UserRole.admin;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -97,3 +88,4 @@ class UserRoleTypeTransformer {
   /// Singleton [UserRoleTypeTransformer] instance.
   static UserRoleTypeTransformer? _instance;
 }
+

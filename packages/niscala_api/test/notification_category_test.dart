@@ -13,5 +13,9 @@ import 'package:test/test.dart';
 
 // tests for NotificationCategory
 void main() {
-  group('test NotificationCategory', () {});
+
+  group('test NotificationCategory', () {
+
+  });
+
 }

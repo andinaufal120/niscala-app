@@ -11,6 +11,7 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
+
 /// tests for DashboardApi
 void main() {
   // final instance = DashboardApi();
@@ -24,5 +25,6 @@ void main() {
     test('test getOccupancyDashboard', () async {
       // TODO
     });
+
   });
 }

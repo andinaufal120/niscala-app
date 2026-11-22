@@ -11,6 +11,7 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
+
 /// tests for SubscriptionsApi
 void main() {
   // final instance = SubscriptionsApi();
@@ -78,5 +79,6 @@ void main() {
     test('test verifySubscriptionPurchase', () async {
       // TODO
     });
+
   });
 }

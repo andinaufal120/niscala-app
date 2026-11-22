@@ -11,6 +11,7 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
+
 /// tests for ManagersApi
 void main() {
   // final instance = ManagersApi();
@@ -65,9 +66,10 @@ void main() {
     //
     // Replace a manager's fields; access to removed properties is revoked.
     //
-    //Future<Manager> updateManager(String managerId, ManagerInput managerInput) async
+    //Future<Manager> updateManager(String managerId, ManagerInput managerInput, { String ifMatch }) async
     test('test updateManager', () async {
       // TODO
     });
+
   });
 }

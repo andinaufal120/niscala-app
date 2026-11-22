@@ -26,5 +26,8 @@ void main() {
     test('to test the property `newPassword`', () async {
       // TODO
     });
+
+
   });
+
 }

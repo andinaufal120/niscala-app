@@ -13,5 +13,9 @@ import 'package:test/test.dart';
 
 // tests for SubscriptionStatus
 void main() {
-  group('test SubscriptionStatus', () {});
+
+  group('test SubscriptionStatus', () {
+
+  });
+
 }

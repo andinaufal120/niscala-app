@@ -15,6 +15,7 @@ Name | Type | Description | Notes
 **nickname** | **String** |  | [optional] 
 **phone** | **String** | Indonesian mobile number; returned as digits starting with 08. | 
 **properties** | [**List<ManagerProperty>**](ManagerProperty.md) |  | [default to const []]
+**version** | **int** | Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data. | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 
