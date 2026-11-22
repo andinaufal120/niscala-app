@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
-import 'package:niscala/features/account/data/account_repository.dart';
 import 'package:niscala/features/properties/ui/property_detail_screen.dart';
 import 'package:niscala/features/properties/ui/property_form_screen.dart';
 import 'package:niscala_api/api.dart';
@@ -33,39 +32,8 @@ Account _googleOnlyAccount() => Account(
   role: UserRole.owner,
 );
 
-/// An [AccountRepository] that answers with the given account.
-class _Accounts implements AccountRepository {
-  _Accounts(this.account);
-
-  final Account account;
-
-  @override
-  Future<Account> me() async => account;
-
-  @override
-  Future<List<Session>> sessions() async => [];
-
-  @override
-  Future<void> endSession(String id) async {}
-
-  @override
-  Future<void> endOtherSessions() async {}
-
-  @override
-  Future<bool> changePassword({
-    required String currentPassword,
-    required String newPassword,
-  }) async => false;
-
-  @override
-  Future<Account> addLocalPassword({
-    required String googleIdToken,
-    required String password,
-  }) async => account;
-
-  @override
-  Future<Account> linkGoogle(String idToken) async => account;
-}
+/// The account repository behind the screens of the current test.
+late FakeAccountRepository _accounts;
 
 Property _melati() => makeProperty(
   id: 'p1',
@@ -101,7 +69,7 @@ Future<void> _pumpAndOpenDialog(
     path: '/properti/p1/ubah',
     largeText: largeText,
     auth: auth,
-    accounts: _Accounts(_googleOnlyAccount()),
+    accounts: _accounts,
     google: google,
   );
   await typeInto(tester, _bankName, 'BCA');
@@ -120,6 +88,7 @@ void main() {
   late FakeGoogleIdentity google;
 
   setUp(() {
+    _accounts = FakeAccountRepository(account: _googleOnlyAccount());
     repo = FakePropertyRepository(properties: [_melati()]);
     google = FakeGoogleIdentity();
   });
@@ -136,7 +105,7 @@ void main() {
       expect(_inDialog(find.text('Lanjutkan')), findsNothing);
       expect(find.textContaining('Masukkan kata sandi'), findsNothing);
       expect(google.requests, 0);
-      expect(repo.googleReauthentications, isEmpty);
+      expect(_accounts.googleReauthentications, isEmpty);
     });
 
     testWidgets('the Google action is a labelled button of at least 48 dp', (
@@ -167,15 +136,17 @@ void main() {
       await _tapGoogle(tester);
 
       expect(google.requests, 1);
-      expect(repo.googleReauthentications, ['token-abc']);
-      expect(repo.reauthentications, isEmpty);
+      expect(_accounts.googleReauthentications, ['token-abc']);
+      expect(_accounts.reauthentications, isEmpty);
       expect(repo.updated, hasLength(2));
       expect(repo.updated.last.id, repo.updated.first.id);
       expect(repo.updated.last.input, repo.updated.first.input);
       expect(repo.calls.where((c) => c != 'list' && !c.startsWith('get:')), [
         'update:p1',
-        'reauthenticateGoogle',
         'update:p1',
+      ]);
+      expect(_accounts.calls.where((c) => c == 'reauthenticateGoogle'), [
+        'reauthenticateGoogle',
       ]);
     });
 
@@ -204,7 +175,7 @@ void main() {
       expect(_dialog(), findsOneWidget);
       expect(_googleButton(), findsOneWidget);
       expect(_enabled(tester, _googleButton()), isTrue);
-      expect(repo.googleReauthentications, isEmpty);
+      expect(_accounts.googleReauthentications, isEmpty);
       expect(repo.updated, hasLength(1));
       expect(_inDialog(find.byType(CircularProgressIndicator)), findsNothing);
       expect(find.text(genericErrorMessage), findsNothing);
@@ -222,7 +193,7 @@ void main() {
       await _tapGoogle(tester);
 
       expect(google.requests, 2);
-      expect(repo.googleReauthentications, ['token-2']);
+      expect(_accounts.googleReauthentications, ['token-2']);
       expect(_dialog(), findsNothing);
       expect(snackBar('Perubahan tersimpan'), findsOneWidget);
     });
@@ -242,7 +213,7 @@ void main() {
         '1234567890',
       );
       expect(google.requests, 0);
-      expect(repo.googleReauthentications, isEmpty);
+      expect(_accounts.googleReauthentications, isEmpty);
       expect(repo.updated, hasLength(1));
       expect(snackBar('Perubahan tersimpan'), findsNothing);
     });
@@ -275,7 +246,7 @@ void main() {
       testWidgets('${entry.key} keeps the dialog open with the message', (
         tester,
       ) async {
-        repo.reauthScript.always = ApiFailure(code: entry.key);
+        _accounts.reauthScript.always = ApiFailure(code: entry.key);
         await _pumpAndOpenDialog(tester, repo, google);
 
         await _tapGoogle(tester);
@@ -292,7 +263,7 @@ void main() {
     testWidgets('the mismatch message is announced as a live region', (
       tester,
     ) async {
-      repo.reauthScript.always = const ApiFailure(
+      _accounts.reauthScript.always = const ApiFailure(
         code: 'GOOGLE_ACCOUNT_MISMATCH',
       );
       await _pumpAndOpenDialog(tester, repo, google);
@@ -305,7 +276,7 @@ void main() {
     testWidgets('the user can choose another account after a mismatch', (
       tester,
     ) async {
-      repo.reauthScript.queue.add(
+      _accounts.reauthScript.queue.add(
         const ApiFailure(code: 'GOOGLE_ACCOUNT_MISMATCH'),
       );
       await _pumpAndOpenDialog(tester, repo, google);
@@ -313,7 +284,7 @@ void main() {
 
       await _tapGoogle(tester);
 
-      expect(repo.googleReauthentications, hasLength(2));
+      expect(_accounts.googleReauthentications, hasLength(2));
       expect(repo.updated, hasLength(2));
       expect(_dialog(), findsNothing);
       expect(snackBar('Perubahan tersimpan'), findsOneWidget);
@@ -322,7 +293,7 @@ void main() {
     testWidgets('the message goes away when the next attempt starts', (
       tester,
     ) async {
-      repo.reauthScript.queue.add(
+      _accounts.reauthScript.queue.add(
         const ApiFailure(code: 'GOOGLE_ACCOUNT_MISMATCH'),
       );
       await _pumpAndOpenDialog(tester, repo, google);
@@ -350,7 +321,7 @@ void main() {
         _inDialog(find.text('Masuk dengan Google belum tersedia.')),
         findsOneWidget,
       );
-      expect(repo.googleReauthentications, isEmpty);
+      expect(_accounts.googleReauthentications, isEmpty);
     });
 
     testWidgets('any other error of the Google chooser shows the generic '
@@ -363,7 +334,7 @@ void main() {
       expect(_dialog(), findsOneWidget);
       expect(_inDialog(find.text(genericErrorMessage)), findsOneWidget);
       expect(find.textContaining('plugin broke'), findsNothing);
-      expect(repo.googleReauthentications, isEmpty);
+      expect(_accounts.googleReauthentications, isEmpty);
     });
 
     testWidgets('a second failure with another code closes the dialog', (
@@ -398,11 +369,11 @@ void main() {
       expect(google.requests, 1);
       google.gate!.complete();
       await tester.pumpAndSettle();
-      expect(repo.googleReauthentications, hasLength(1));
+      expect(_accounts.googleReauthentications, hasLength(1));
     });
 
     testWidgets('a second tap sends one request', (tester) async {
-      repo.reauthScript.gate = Completer<void>();
+      _accounts.reauthScript.gate = Completer<void>();
       await _pumpAndOpenDialog(tester, repo, google);
 
       await tester.tap(_googleButton());
@@ -413,21 +384,21 @@ void main() {
       }
 
       expect(google.requests, 1);
-      expect(repo.googleReauthentications, hasLength(1));
-      repo.reauthScript.gate!.complete();
+      expect(_accounts.googleReauthentications, hasLength(1));
+      _accounts.reauthScript.gate!.complete();
       await tester.pumpAndSettle();
     });
 
     testWidgets('restores the Google action when the request fails', (
       tester,
     ) async {
-      repo.reauthScript.gate = Completer<void>();
-      repo.reauthScript.always = const ApiFailure.network();
+      _accounts.reauthScript.gate = Completer<void>();
+      _accounts.reauthScript.always = const ApiFailure.network();
       await _pumpAndOpenDialog(tester, repo, google);
       await tester.tap(_googleButton());
       await tester.pump();
 
-      repo.reauthScript.gate!.complete();
+      _accounts.reauthScript.gate!.complete();
       await tester.pumpAndSettle();
 
       expect(_inDialog(find.byType(CircularProgressIndicator)), findsNothing);
@@ -444,6 +415,7 @@ void main() {
         tester,
         repo,
         path: '/properti/p1/ubah',
+        accounts: FakeAccountRepository(),
         google: google,
       );
       await typeInto(tester, _bankName, 'BCA');
@@ -465,14 +437,14 @@ void main() {
         await _pumpAndOpenDialog(tester, repo, google, largeText: large);
       },
       'the Google dialog with a mismatch': (tester, large) async {
-        repo.reauthScript.always = const ApiFailure(
+        _accounts.reauthScript.always = const ApiFailure(
           code: 'GOOGLE_ACCOUNT_MISMATCH',
         );
         await _pumpAndOpenDialog(tester, repo, google, largeText: large);
         await _tapGoogle(tester);
       },
       'the Google dialog in flight': (tester, large) async {
-        repo.reauthScript.gate = Completer<void>();
+        _accounts.reauthScript.gate = Completer<void>();
         await _pumpAndOpenDialog(tester, repo, google, largeText: large);
         await tester.tap(_googleButton());
         await tester.pump();
@@ -505,7 +477,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(repo.googleReauthentications, hasLength(1));
+      expect(_accounts.googleReauthentications, hasLength(1));
     });
   });
 }

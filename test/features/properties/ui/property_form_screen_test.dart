@@ -51,6 +51,7 @@ Future<void> _pumpAdd(
   path: '/properti/tambah',
   settle: settle,
   largeText: largeText,
+  accounts: _accounts,
 );
 
 Future<void> _pumpEdit(
@@ -64,7 +65,12 @@ Future<void> _pumpEdit(
   path: '/properti/p1/ubah',
   settle: settle,
   largeText: largeText,
+  accounts: _accounts,
 );
+
+/// The account repository behind the screens of the current test; its account
+/// has a password.
+late FakeAccountRepository _accounts;
 
 String _text(WidgetTester tester, String label) =>
     labeledTextField(tester, label).controller!.text;
@@ -107,6 +113,8 @@ Future<void> _openReauthDialog(
 }
 
 void main() {
+  setUp(() => _accounts = FakeAccountRepository());
+
   group('add form', () {
     testWidgets('shows the title and the submit button', (tester) async {
       await _pumpAdd(tester, FakePropertyRepository());
@@ -894,7 +902,7 @@ void main() {
       await _submitEdit(tester);
 
       expect(_dialog(), findsNothing);
-      expect(repo.reauthentications, isEmpty);
+      expect(_accounts.reauthentications, isEmpty);
       expect(repo.updated, hasLength(1));
     });
 
@@ -961,7 +969,7 @@ void main() {
       expect(fieldLabeled(_password), findsOneWidget);
       expect(_inDialog(find.text('Batal')), findsOneWidget);
       expect(_inDialog(find.text('Lanjutkan')), findsOneWidget);
-      expect(repo.reauthentications, isEmpty);
+      expect(_accounts.reauthentications, isEmpty);
     });
 
     testWidgets('does not show the required code as a form banner', (
@@ -1026,15 +1034,18 @@ void main() {
       await tester.tap(find.text('Lanjutkan'));
       await tester.pumpAndSettle();
 
-      expect(repo.reauthentications, ['rahasia panjang']);
+      expect(_accounts.reauthentications, ['rahasia panjang']);
+      expect(_accounts.googleReauthentications, isEmpty);
       expect(repo.updated, hasLength(2));
       expect(repo.updated.last.id, repo.updated.first.id);
       expect(repo.updated.last.input, repo.updated.first.input);
       expect(repo.updated.last.input.bankAccount, bankAccount);
       expect(repo.calls.where((c) => c != 'list' && !c.startsWith('get:')), [
         'update:p1',
-        'reauthenticate',
         'update:p1',
+      ]);
+      expect(_accounts.calls.where((c) => c == 'reauthenticate'), [
+        'reauthenticate',
       ]);
     });
 
@@ -1066,7 +1077,7 @@ void main() {
 
       expect(labeledFieldError(tester, _password), 'Kata sandi wajib diisi.');
       expect(_dialog(), findsOneWidget);
-      expect(repo.reauthentications, isEmpty);
+      expect(_accounts.reauthentications, isEmpty);
       expect(repo.updated, hasLength(1));
     });
 
@@ -1079,8 +1090,8 @@ void main() {
       testWidgets('${entry.key} keeps the dialog open with the message', (
         tester,
       ) async {
-        final repo = FakePropertyRepository(properties: [_melati()])
-          ..reauthScript.always = ApiFailure(code: entry.value);
+        final repo = FakePropertyRepository(properties: [_melati()]);
+        _accounts.reauthScript.always = ApiFailure(code: entry.value);
         await _openReauthDialog(tester, repo);
         await typeInto(tester, _password, 'salah');
 
@@ -1100,8 +1111,10 @@ void main() {
     testWidgets('the password can be corrected after a failure', (
       tester,
     ) async {
-      final repo = FakePropertyRepository(properties: [_melati()])
-        ..reauthScript.queue.add(const ApiFailure(code: 'PASSWORD_INCORRECT'));
+      final repo = FakePropertyRepository(properties: [_melati()]);
+      _accounts.reauthScript.queue.add(
+        const ApiFailure(code: 'PASSWORD_INCORRECT'),
+      );
       await _openReauthDialog(tester, repo);
       await typeInto(tester, _password, 'salah');
       await tester.tap(find.text('Lanjutkan'));
@@ -1111,7 +1124,7 @@ void main() {
       await tester.tap(find.text('Lanjutkan'));
       await tester.pumpAndSettle();
 
-      expect(repo.reauthentications, ['salah', 'benar sekali']);
+      expect(_accounts.reauthentications, ['salah', 'benar sekali']);
       expect(repo.updated, hasLength(2));
       expect(_dialog(), findsNothing);
       expect(snackBar('Perubahan tersimpan'), findsOneWidget);
@@ -1120,8 +1133,8 @@ void main() {
     testWidgets(
       'a network failure of the re-authentication stays in the dialog',
       (tester) async {
-        final repo = FakePropertyRepository(properties: [_melati()])
-          ..reauthScript.always = const ApiFailure.network();
+        final repo = FakePropertyRepository(properties: [_melati()]);
+        _accounts.reauthScript.always = const ApiFailure.network();
         await _openReauthDialog(tester, repo);
         await typeInto(tester, _password, 'rahasia panjang');
 
@@ -1149,7 +1162,7 @@ void main() {
       expect(_text(tester, _bankName), 'BCA');
       expect(_text(tester, _accountNumber), '1234567890');
       expect(_text(tester, _holder), 'Budi Santoso');
-      expect(repo.reauthentications, isEmpty);
+      expect(_accounts.reauthentications, isEmpty);
       expect(repo.updated, hasLength(1));
       expect(repo.properties.single.bankAccount, isNull);
       expect(snackBar('Perubahan tersimpan'), findsNothing);
@@ -1599,8 +1612,10 @@ void main() {
       },
       'the password dialog with a failure': (tester, large) async {
         final repo = FakePropertyRepository(properties: [_melati()])
-          ..updateScript.queue.add(_reauthRequired)
-          ..reauthScript.always = const ApiFailure(code: 'PASSWORD_INCORRECT');
+          ..updateScript.queue.add(_reauthRequired);
+        _accounts.reauthScript.always = const ApiFailure(
+          code: 'PASSWORD_INCORRECT',
+        );
         await _pumpEdit(tester, repo, largeText: large);
         await _fillBank(tester);
         await _submitEdit(tester);
