@@ -12,8 +12,13 @@ abstract interface class TenantRepository {
   Future<Tenant> create(String propertyId, NewTenantInput input);
 
   /// Replaces the editable fields of a tenant. The room and the account status
-  /// do not change.
-  Future<Tenant> update(String tenantId, TenantInput input);
+  /// do not change. [version] is the version the caller read; a stale one fails
+  /// with `RESOURCE_VERSION_CONFLICT`.
+  Future<Tenant> update(
+    String tenantId,
+    TenantInput input, {
+    required int version,
+  });
 
   /// Gives a tenant a new invitation link. The old link stops working.
   Future<TenantInvitation> regenerateInvitation(String tenantId);
@@ -64,8 +69,16 @@ class ApiTenantRepository implements TenantRepository {
       });
 
   @override
-  Future<Tenant> update(String tenantId, TenantInput input) => _guard(() async {
-    return (await tenants.updateTenant(tenantId, input))!;
+  Future<Tenant> update(
+    String tenantId,
+    TenantInput input, {
+    required int version,
+  }) => _guard(() async {
+    return (await tenants.updateTenant(
+      tenantId,
+      input,
+      ifMatch: '"$version"',
+    ))!;
   });
 
   @override

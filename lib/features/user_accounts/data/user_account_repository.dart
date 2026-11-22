@@ -25,8 +25,13 @@ abstract interface class UserAccountRepository {
   Future<UserAccount> get(String userAccountId);
 
   /// Saves the name, email and status of the account and returns it. A new
-  /// email stays pending until its link is confirmed.
-  Future<UserAccount> update(String userAccountId, UserAccountInput input);
+  /// email stays pending until its link is confirmed. [version] is the version
+  /// the caller read; a stale one fails with `RESOURCE_VERSION_CONFLICT`.
+  Future<UserAccount> update(
+    String userAccountId,
+    UserAccountInput input, {
+    required int version,
+  });
 
   /// Soft-deletes the account and ends its sessions. The account stays
   /// readable with the status deleted.
@@ -86,10 +91,17 @@ class ApiUserAccountRepository implements UserAccountRepository {
   });
 
   @override
-  Future<UserAccount> update(String userAccountId, UserAccountInput input) =>
-      _guard(() async {
-        return (await userAccounts.updateUserAccount(userAccountId, input))!;
-      });
+  Future<UserAccount> update(
+    String userAccountId,
+    UserAccountInput input, {
+    required int version,
+  }) => _guard(() async {
+    return (await userAccounts.updateUserAccount(
+      userAccountId,
+      input,
+      ifMatch: '"$version"',
+    ))!;
+  });
 
   @override
   Future<void> delete(String userAccountId) =>

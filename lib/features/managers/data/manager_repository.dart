@@ -12,7 +12,13 @@ abstract interface class ManagerRepository {
 
   Future<Manager> create(ManagerInput input);
 
-  Future<Manager> update(String managerId, ManagerInput input);
+  /// [version] is the version the caller read; a stale one fails with
+  /// `RESOURCE_VERSION_CONFLICT`.
+  Future<Manager> update(
+    String managerId,
+    ManagerInput input, {
+    required int version,
+  });
 
   Future<void> delete(String managerId);
 
@@ -62,10 +68,17 @@ class ApiManagerRepository implements ManagerRepository {
   });
 
   @override
-  Future<Manager> update(String managerId, ManagerInput input) =>
-      _guard(() async {
-        return (await managers.updateManager(managerId, input))!;
-      });
+  Future<Manager> update(
+    String managerId,
+    ManagerInput input, {
+    required int version,
+  }) => _guard(() async {
+    return (await managers.updateManager(
+      managerId,
+      input,
+      ifMatch: '"$version"',
+    ))!;
+  });
 
   @override
   Future<void> delete(String managerId) =>

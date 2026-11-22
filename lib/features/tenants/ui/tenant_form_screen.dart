@@ -12,6 +12,7 @@ import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/core/widgets/tappable_date_field.dart';
+import 'package:niscala/core/widgets/version_conflict.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
 import 'package:niscala/features/tenants/data/tenant_repository.dart';
 import 'package:niscala/features/tenants/tenant_format.dart';
@@ -360,7 +361,7 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
       );
     } else {
       await _update(
-        tenant.id,
+        tenant,
         TenantInput(
           name: name,
           phone: phone,
@@ -390,18 +391,35 @@ class _TenantFormState extends ConsumerState<_TenantForm> {
     }
   }
 
-  /// Saves the edited tenant. On success the detail opens in place of the form,
-  /// and the lists and the detail are reloaded.
-  Future<void> _update(String tenantId, TenantInput input) async {
+  /// Saves the edited tenant, sending the version it was loaded with. On
+  /// success the detail opens in place of the form, and the lists and the
+  /// detail are reloaded. A version conflict does the same and shows its
+  /// message on the detail.
+  Future<void> _update(Tenant tenant, TenantInput input) async {
+    final tenantId = tenant.id;
     try {
-      await ref.read(tenantRepositoryProvider).update(tenantId, input);
+      await ref
+          .read(tenantRepositoryProvider)
+          .update(tenantId, input, version: tenant.version);
       if (!mounted) return;
-      ref.invalidate(tenantDetailProvider(tenantId));
-      ref.invalidate(tenantListProvider(widget.propertyId));
+      _refresh(tenantId);
       context.go('/properti/${widget.propertyId}/penyewa/$tenantId');
     } on ApiFailure catch (failure) {
-      if (mounted) _showFailure(failure);
+      if (!mounted) return;
+      if (!isVersionConflict(failure)) {
+        _showFailure(failure);
+        return;
+      }
+      _refresh(tenantId);
+      final messenger = ScaffoldMessenger.of(context);
+      context.go('/properti/${widget.propertyId}/penyewa/$tenantId');
+      showVersionConflict(messenger, failure);
     }
+  }
+
+  void _refresh(String tenantId) {
+    ref.invalidate(tenantDetailProvider(tenantId));
+    ref.invalidate(tenantListProvider(widget.propertyId));
   }
 
   /// Shows a failure next to the field it belongs to, or as a banner.
