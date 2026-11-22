@@ -248,7 +248,11 @@ void main() {
       final updated = makeProperty(name: 'Kos Baru', bankAccount: _bank);
       final h = _Harness((_) => _ok(_propertyJson(updated)));
 
-      final result = await h.repository.update('p1', _input(bank: _bank));
+      final result = await h.repository.update(
+        'p1',
+        _input(bank: _bank),
+        version: 1,
+      );
 
       expect(h.request.method, 'PUT');
       expect(h.request.url.path, '/properties/p1');
@@ -265,16 +269,52 @@ void main() {
     test('sends no bank account when there is none', () async {
       final h = _Harness((_) => _ok(_propertyJson(makeProperty())));
 
-      await h.repository.update('p1', _input());
+      await h.repository.update('p1', _input(), version: 1);
 
       expect(h.body['bankAccount'], isNull);
+    });
+
+    test('sends the version of version 1 as a quoted If-Match', () async {
+      final h = _Harness((_) => _ok(_propertyJson(makeProperty())));
+
+      await h.repository.update('p1', _input(), version: 1);
+
+      expect(h.request.headers['If-Match'], '"1"');
+    });
+
+    test('sends a larger version as a quoted If-Match', () async {
+      final h = _Harness((_) => _ok(_propertyJson(makeProperty())));
+
+      await h.repository.update('p1', _input(), version: 7);
+
+      expect(h.request.headers['If-Match'], '"7"');
+    });
+
+    test('create sends no If-Match', () async {
+      final h = _Harness((_) => _ok(_propertyJson(makeProperty()), 201));
+
+      await h.repository.create(_input());
+
+      expect(
+        h.request.headers.keys.map((k) => k.toLowerCase()),
+        isNot(contains('if-match')),
+      );
+    });
+
+    test('keeps the code and status of a version conflict', () async {
+      final h = _Harness((_) => _error(409, 'RESOURCE_VERSION_CONFLICT'));
+
+      await expectLater(
+        h.repository.update('p1', _input(), version: 1),
+        throwsA(_failure('RESOURCE_VERSION_CONFLICT', status: 409)),
+      );
     });
 
     test('keeps the code of a re-authentication error', () async {
       final h = _Harness((_) => _error(403, 'REAUTHENTICATION_REQUIRED'));
 
       await expectLater(
-        h.repository.update('p1', _input(bank: _bank)),
+        h.repository.update('p1', _input(bank: _bank), version: 1),
         throwsA(_failure('REAUTHENTICATION_REQUIRED', status: 403)),
       );
     });
@@ -285,7 +325,7 @@ void main() {
       );
 
       await expectLater(
-        h.repository.update('p1', _input(bank: _bank)),
+        h.repository.update('p1', _input(bank: _bank), version: 1),
         throwsA(
           _failure(
             'VALIDATION_FAILED',
@@ -300,7 +340,7 @@ void main() {
       final h = _Harness((_) => _error(403, 'PROPERTY_READ_ONLY'));
 
       await expectLater(
-        h.repository.update('p1', _input()),
+        h.repository.update('p1', _input(), version: 1),
         throwsA(_failure('PROPERTY_READ_ONLY', status: 403)),
       );
     });
@@ -309,7 +349,7 @@ void main() {
       final h = _Harness.failing(const SocketException('no route'));
 
       await expectLater(
-        h.repository.update('p1', _input()),
+        h.repository.update('p1', _input(), version: 1),
         throwsA(_failure('NETWORK_ERROR')),
       );
     });

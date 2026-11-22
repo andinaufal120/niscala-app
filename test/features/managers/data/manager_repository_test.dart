@@ -369,7 +369,7 @@ void main() {
     test('puts the full input to the manager', () async {
       final h = _Harness((_) => _ok(_managerJson()));
 
-      final result = await h.repository.update('m1', _input());
+      final result = await h.repository.update('m1', _input(), version: 1);
 
       expect(h.request.method, 'PUT');
       expect(h.request.url.path, '/managers/m1');
@@ -386,10 +386,50 @@ void main() {
     test('sends a cleared nickname as null', () async {
       final h = _Harness((_) => _ok(_managerJson(withNickname: false)));
 
-      final result = await h.repository.update('m1', _input(nickname: null));
+      final result = await h.repository.update(
+        'm1',
+        _input(nickname: null),
+        version: 1,
+      );
 
       expect(h.body['nickname'], isNull);
       expect(result.nickname, isNull);
+    });
+
+    test('sends version 1 as a quoted If-Match', () async {
+      final h = _Harness((_) => _ok(_managerJson()));
+
+      await h.repository.update('m1', _input(), version: 1);
+
+      expect(h.request.headers['If-Match'], '"1"');
+    });
+
+    test('sends a larger version as a quoted If-Match', () async {
+      final h = _Harness((_) => _ok(_managerJson()));
+
+      await h.repository.update('m1', _input(), version: 7);
+
+      expect(h.request.headers['If-Match'], '"7"');
+    });
+
+    test('create sends no If-Match', () async {
+      final h = _Harness((_) => _ok(_managerJson(), 201));
+
+      await h.repository.create(_input());
+
+      expect(
+        h.request.headers.keys.map((k) => k.toLowerCase()),
+        isNot(contains('if-match')),
+      );
+    });
+
+    test('keeps the code and status of a version conflict', () async {
+      final h = _Harness((_) => _error(409, 'RESOURCE_VERSION_CONFLICT'));
+
+      await expectLater(
+        h.repository.update('m1', _input(), version: 1),
+        throwsA(_failure('RESOURCE_VERSION_CONFLICT', status: 409)),
+      );
     });
 
     test('keeps the field of a name that cannot be changed', () async {
@@ -398,7 +438,7 @@ void main() {
       );
 
       await expectLater(
-        h.repository.update('m1', _input()),
+        h.repository.update('m1', _input(), version: 1),
         throwsA(
           _failure('MANAGER_NAME_NOT_EDITABLE', field: 'name', status: 422),
         ),
@@ -409,7 +449,7 @@ void main() {
       final h = _Harness((_) => _error(404, 'MANAGER_NOT_FOUND'));
 
       await expectLater(
-        h.repository.update('m1', _input()),
+        h.repository.update('m1', _input(), version: 1),
         throwsA(_failure('MANAGER_NOT_FOUND', status: 404)),
       );
     });
@@ -420,7 +460,7 @@ void main() {
       );
 
       await expectLater(
-        h.repository.update('m1', _input()),
+        h.repository.update('m1', _input(), version: 1),
         throwsA(
           _failure('PROPERTY_NOT_FOUND', field: 'propertyIds.0', status: 404),
         ),
@@ -433,7 +473,7 @@ void main() {
       );
 
       await expectLater(
-        h.repository.update('m1', _input()),
+        h.repository.update('m1', _input(), version: 1),
         throwsA(_failure('VALIDATION_FAILED', field: 'phone', status: 422)),
       );
     });
@@ -442,7 +482,7 @@ void main() {
       final h = _Harness.failing(const SocketException('no route'));
 
       await expectLater(
-        h.repository.update('m1', _input()),
+        h.repository.update('m1', _input(), version: 1),
         throwsA(_failure('NETWORK_ERROR')),
       );
     });
