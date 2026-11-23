@@ -50,6 +50,8 @@ import 'package:niscala/features/rent_bills/ui/upload_receipt_screen.dart';
 import 'package:niscala/features/rooms/ui/room_detail_screen.dart';
 import 'package:niscala/features/rooms/ui/room_form_screen.dart';
 import 'package:niscala/features/rooms/ui/room_list_screen.dart';
+import 'package:niscala/features/subscription/ui/downgrade_screen.dart';
+import 'package:niscala/features/subscription/ui/subscription_screen.dart';
 import 'package:niscala/features/tenants/ui/invitation_qr_screen.dart';
 import 'package:niscala/features/tenants/ui/invitation_share_screen.dart';
 import 'package:niscala/features/tenants/ui/tenant_detail_screen.dart';
@@ -77,6 +79,7 @@ const _activationScreen = '/aktivasi';
 const _resetScreen = '/atur-ulang-kata-sandi';
 const _confirmEmailScreen = '/konfirmasi-email-baru';
 const _managementAcceptScreen = '/akun/undangan';
+const _subscriptionRoot = '/akun/langganan';
 const _tenantAcceptScreen = '/penyewa/akun/undangan';
 
 /// The navigator of the whole app. Sub-pages are shown on it, above the tab
@@ -150,6 +153,9 @@ String? redirectFor(SessionState session, String location) {
       }
       if (role == UserRole.manager && _isManagerScreen(location)) {
         return _managementHome;
+      }
+      if (_isUnder(location, _subscriptionRoot)) {
+        return role == UserRole.owner ? null : _managementHome;
       }
       final allowed =
           _managementRoutes.contains(location) ||
@@ -266,11 +272,33 @@ StatefulShellBranch _nestedBranch(
   ],
 );
 
+/// The Owner's subscription page and its downgrade page, sub-pages of the Akun
+/// tab. The downgrade page takes its plan from the `paket` query. A query that
+/// names no plan a downgrade can go to shows the subscription page instead.
+List<RouteBase> _subscriptionRoutes() => [
+  _subPage(
+    path: 'langganan',
+    builder: (context, state) => const SubscriptionScreen(),
+    routes: [
+      _subPage(
+        path: 'turunkan',
+        builder: (context, state) {
+          final plan = downgradePlanOf(state.uri.queryParameters['paket']);
+          return plan == null
+              ? const SubscriptionScreen()
+              : DowngradeScreen(planCode: plan);
+        },
+      ),
+    ],
+  ),
+];
+
 /// The Akun tab of a role and its sub-pages. The tab reads the notice that a
 /// sub-page passes with `extra`, such as the result of a password change.
 StatefulShellBranch _accountBranch(
   String path, {
   bool showLease = false,
+  bool showSubscription = false,
 }) => StatefulShellBranch(
   routes: [
     GoRoute(
@@ -278,6 +306,7 @@ StatefulShellBranch _accountBranch(
       builder: (context, state) =>
           AccountScreen(showLease: showLease, notice: state.extra as String?),
       routes: [
+        if (showSubscription) ..._subscriptionRoutes(),
         _subPage(
           path: 'perangkat',
           builder: (context, state) => const ActiveSessionsScreen(),
@@ -633,7 +662,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ]),
           _propertiesBranch(),
-          _accountBranch('/akun'),
+          _accountBranch('/akun', showSubscription: true),
         ],
       ),
       StatefulShellRoute(

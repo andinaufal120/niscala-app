@@ -336,8 +336,10 @@ Change name, nickname, phone or assigned properties, with at least one property.
 **UC-30 Delete manager** (FR-22) · *[manager] → Hapus (Delete)*
 Asks for confirmation. Revokes this Owner's property assignments for the Manager. A Manager who also works for another Owner keeps that access; otherwise their sessions end. The Manager's action history is kept.
 
-**UC-31 Choose subscription plan** (FR-23, FR-25) · *Akun → Langganan (Account → Subscription)*
-Shows the current status and the available plans (features, price). With an active plan, also show the end date and offer renewal or a plan change. Pick a plan → order summary → confirm → order *Menunggu Pembayaran* → UC-32.
+**UC-31 Choose subscription plan** (FR-23, FR-25) · Owner only · *Akun → Langganan (Account → Subscription)*
+Shows the current subscription: plan, status (*Gratis* or *Aktif*), the billing period, end date and whether it renews automatically while *Aktif*, the number of properties in use, a scheduled downgrade with its date, and an open order *Menunggu Pembayaran*. Below it are the plans from the API (name, price for the chosen period, property and room limits, whether AI features are included), with a *Bulanan*/*Tahunan* filter; the current plan is marked and the plans below it are collapsed. Prices and limits come from the API, so they can change without an app release.
+- **Upgrade or first purchase:** *Pilih (plan)* on a higher plan opens an order summary (plan and period, property limit, total). Confirming creates an order *Menunggu Pembayaran*, which UC-32 pays. A plan that is not higher than the current one is refused (`SUBSCRIPTION_NOT_AN_UPGRADE`).
+- **Downgrade:** offered only while the subscription is *Aktif*, as *Turunkan ke (plan)* on a lower plan. It takes effect when the paid period ends, and until then the current plan stays fully active. The Owner confirms which properties stay editable (exactly the target plan's property limit, or all of them when there are fewer) and, for Gratis, which rooms of the kept property stay editable (exactly the room limit, or all of them when there are fewer). Everything not kept becomes view-only. The confirmation can be replaced by confirming again, or cancelled with *Batalkan penurunan paket*. The API checks the choice (`KEPT_PROPERTIES_INVALID`, `KEPT_ROOMS_INVALID`, `SUBSCRIPTION_NOT_A_DOWNGRADE`). The renewal itself is changed or cancelled in Google Play.
 
 **UC-32 Pay for subscription** (FR-24, FR-25, FR-27) · from a pending order → *Bayar (Pay)*
 Opens the payment gateway page (provider: TBD-3). Results:
@@ -458,3 +460,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 18-11-2026 | Permission table (shared): every role except Admin can delete their own account. The screen is not part of this change. | NKMA-121 |
 | 23-11-2026 | UC-39 delete own account added and *Hapus Akun* listed under *Akun* (§6a); the screen follows the permission table row of 18-11-2026. | NKMA-121 |
 | 23-11-2026 | Links open in the app: an invitation, reset or email-change link is routed by the session to the existing screens with its token (§7); the paste flows remain for links opened elsewhere. | NKMA-118 |
+| 23-11-2026 | UC-31 rewritten for the built screens: current subscription, plans with a period filter, upgrade through an order summary, and a scheduled downgrade with the properties and rooms to keep. UC-32 (payment) follows separately. | NKMA-77 |

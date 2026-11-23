@@ -25,6 +25,7 @@ import 'package:niscala/features/rent_bills/data/management_rent_bill_repository
 import 'package:niscala/core/image_chooser.dart';
 import 'package:niscala/features/rent_bills/data/rent_bill_repository.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
+import 'package:niscala/features/subscription/data/subscription_repository.dart';
 import 'package:niscala/features/tenants/data/invitation_sharing.dart';
 import 'package:niscala/features/tenants/data/tenant_repository.dart';
 import 'package:niscala/features/user_accounts/data/user_account_repository.dart';
@@ -3471,9 +3472,323 @@ class FakeHealthRepository implements HealthRepository {
   }
 }
 
+/// A [SubscriptionPlanPrice] of [period] for [plan]: the Google Play product is
+/// `niscala_<plan>` and the base plan is the name of the period.
+SubscriptionPlanPrice makeSubscriptionPlanPrice({
+  required PaidPlanCode plan,
+  required SubscriptionPeriod period,
+  required int amount,
+}) => SubscriptionPlanPrice(
+  amount: amount,
+  billingPeriod: period,
+  googlePlayBasePlanId: period.value,
+  googlePlayProductId: 'niscala_${plan.value}',
+);
+
+/// A [SubscriptionPlan]. A null limit means unlimited. Without [prices] the
+/// plan has none, like the free plan.
+SubscriptionPlan makeSubscriptionPlan({
+  required PlanCode code,
+  bool aiEnabled = false,
+  int? maxProperties,
+  int? maxRoomsPerProperty,
+  List<SubscriptionPlanPrice> prices = const [],
+}) => SubscriptionPlan(
+  code: code,
+  aiEnabled: aiEnabled,
+  maxProperties: maxProperties,
+  maxRoomsPerProperty: maxRoomsPerProperty,
+  prices: prices,
+);
+
+/// The plans of the real API, in the order free, basic, pro.
+///
+/// Free: 1 property, 15 rooms per property, no AI, no prices. Basic: 3
+/// properties, unlimited rooms, AI, Rp49.000 a month or Rp490.000 a year. Pro:
+/// unlimited properties and rooms, AI, Rp129.000 a month or Rp1.290.000 a year.
+List<SubscriptionPlan> makeSubscriptionPlans() => [
+  makeSubscriptionPlan(
+    code: PlanCode.free,
+    maxProperties: 1,
+    maxRoomsPerProperty: 15,
+  ),
+  makeSubscriptionPlan(
+    code: PlanCode.basic,
+    aiEnabled: true,
+    maxProperties: 3,
+    prices: [
+      makeSubscriptionPlanPrice(
+        plan: PaidPlanCode.basic,
+        period: SubscriptionPeriod.monthly,
+        amount: 49000,
+      ),
+      makeSubscriptionPlanPrice(
+        plan: PaidPlanCode.basic,
+        period: SubscriptionPeriod.yearly,
+        amount: 490000,
+      ),
+    ],
+  ),
+  makeSubscriptionPlan(
+    code: PlanCode.pro,
+    aiEnabled: true,
+    prices: [
+      makeSubscriptionPlanPrice(
+        plan: PaidPlanCode.pro,
+        period: SubscriptionPeriod.monthly,
+        amount: 129000,
+      ),
+      makeSubscriptionPlanPrice(
+        plan: PaidPlanCode.pro,
+        period: SubscriptionPeriod.yearly,
+        amount: 1290000,
+      ),
+    ],
+  ),
+];
+
+/// An order awaiting payment for a monthly Basic plan, created 23 Nov 2026.
+SubscriptionOrder makeSubscriptionOrder({
+  String id = 'o1',
+  PaidPlanCode planCode = PaidPlanCode.basic,
+  SubscriptionPeriod billingPeriod = SubscriptionPeriod.monthly,
+  OrderStatus status = OrderStatus.awaitingPayment,
+}) => SubscriptionOrder(
+  id: id,
+  planCode: planCode,
+  billingPeriod: billingPeriod,
+  status: status,
+  createdAt: DateTime.utc(2026, 11, 23, 12),
+  googlePlayProductId: 'niscala_${planCode.value}',
+  googlePlayBasePlanId: billingPeriod.value,
+  obfuscatedAccountId: 'obfuscated-$id',
+);
+
+/// A downgrade to [planCode] that applies from 16 Des 2026.
+ScheduledDowngrade makeScheduledDowngrade({
+  PlanCode planCode = PlanCode.free,
+  DateTime? effectiveDate,
+  List<String> keptPropertyIds = const ['p1'],
+  List<String> keptRoomIds = const [],
+}) => ScheduledDowngrade(
+  planCode: planCode,
+  effectiveDate: effectiveDate ?? DateTime.utc(2026, 12, 16),
+  keptPropertyIds: keptPropertyIds,
+  keptRoomIds: keptRoomIds,
+);
+
+/// A [Subscription]. By default it is the free one: one property, no end date,
+/// no period, no scheduled downgrade and no open order.
+Subscription makeSubscription({
+  SubscriptionStatus status = SubscriptionStatus.free,
+  PlanCode planCode = PlanCode.free,
+  SubscriptionPeriod? billingPeriod,
+  DateTime? endDate,
+  bool autoRenew = false,
+  int propertyCount = 1,
+  ScheduledDowngrade? scheduledDowngrade,
+  SubscriptionOrder? openOrder,
+}) => Subscription(
+  status: status,
+  planCode: planCode,
+  billingPeriod: billingPeriod,
+  endDate: endDate,
+  autoRenew: autoRenew,
+  propertyCount: propertyCount,
+  scheduledDowngrade: scheduledDowngrade,
+  openOrder: openOrder,
+);
+
+/// An active paid [Subscription], by default Basic, monthly, renewing
+/// automatically, until 15 Des 2026, with one property.
+Subscription makeActiveSubscription({
+  PlanCode planCode = PlanCode.basic,
+  SubscriptionPeriod billingPeriod = SubscriptionPeriod.monthly,
+  DateTime? endDate,
+  bool autoRenew = true,
+  int propertyCount = 1,
+  ScheduledDowngrade? scheduledDowngrade,
+  SubscriptionOrder? openOrder,
+}) => makeSubscription(
+  status: SubscriptionStatus.active,
+  planCode: planCode,
+  billingPeriod: billingPeriod,
+  endDate: endDate ?? DateTime.utc(2026, 12, 15),
+  autoRenew: autoRenew,
+  propertyCount: propertyCount,
+  scheduledDowngrade: scheduledDowngrade,
+  openOrder: openOrder,
+);
+
+/// A [SubscriptionRepository] that keeps one subscription in memory and records
+/// its calls.
+///
+/// [subscription] returns [subscriptionResult] and [plans] returns
+/// [plansResult]. [createOrder] gives the subscription an open order, [order]
+/// is answered from [orders], [scheduleDowngrade] gives it a scheduled downgrade
+/// that takes effect the day after the end date, and [cancelDowngrade] removes
+/// it; each changes [subscriptionResult] only when the call succeeds, so the
+/// next [subscription] call shows it.
+///
+/// Script failures and gates per method with the `*Script` fields. Every call
+/// is appended to [calls] in order, as `subscription`, `plans`, `createOrder`,
+/// `order:<id>`, `scheduleDowngrade` or `cancelDowngrade`. [createOrder] and
+/// [scheduleDowngrade] record their arguments, before the script is consulted,
+/// in [createdOrders] and [scheduled].
+class FakeSubscriptionRepository implements SubscriptionRepository {
+  FakeSubscriptionRepository({
+    Subscription? subscription,
+    List<SubscriptionPlan>? plans,
+    List<SubscriptionOrder>? orders,
+  }) : subscriptionResult = subscription ?? makeSubscription(),
+       plansResult = plans ?? makeSubscriptionPlans(),
+       orders = orders ?? [];
+
+  Subscription subscriptionResult;
+  List<SubscriptionPlan> plansResult;
+  final List<SubscriptionOrder> orders;
+
+  final calls = <String>[];
+  final createdOrders =
+      <({PaidPlanCode planCode, SubscriptionPeriod billingPeriod})>[];
+  final scheduled =
+      <
+        ({
+          PlanCode planCode,
+          List<String> keptPropertyIds,
+          List<String> keptRoomIds,
+        })
+      >[];
+
+  final subscriptionScript = CallScript();
+  final plansScript = CallScript();
+  final createOrderScript = CallScript();
+  final orderScript = CallScript();
+  final scheduleScript = CallScript();
+  final cancelScript = CallScript();
+
+  var _nextOrder = 1;
+
+  int get subscriptionCalls => calls.where((c) => c == 'subscription').length;
+  int get plansCalls => calls.where((c) => c == 'plans').length;
+  int get createOrderCalls => calls.where((c) => c == 'createOrder').length;
+  int get scheduleCalls => calls.where((c) => c == 'scheduleDowngrade').length;
+  int get cancelCalls => calls.where((c) => c == 'cancelDowngrade').length;
+
+  Subscription _copy({
+    SubscriptionOrder? openOrder,
+    ScheduledDowngrade? scheduledDowngrade,
+  }) {
+    final old = subscriptionResult;
+    return Subscription(
+      status: old.status,
+      planCode: old.planCode,
+      billingPeriod: old.billingPeriod,
+      endDate: old.endDate,
+      autoRenew: old.autoRenew,
+      propertyCount: old.propertyCount,
+      openOrder: openOrder,
+      scheduledDowngrade: scheduledDowngrade,
+    );
+  }
+
+  @override
+  Future<Subscription> subscription() async {
+    calls.add('subscription');
+    final failure = await subscriptionScript.next();
+    if (failure != null) throw failure;
+    return subscriptionResult;
+  }
+
+  @override
+  Future<List<SubscriptionPlan>> plans() async {
+    calls.add('plans');
+    final failure = await plansScript.next();
+    if (failure != null) throw failure;
+    return List.of(plansResult);
+  }
+
+  @override
+  Future<SubscriptionOrder> createOrder({
+    required PaidPlanCode planCode,
+    required SubscriptionPeriod billingPeriod,
+  }) async {
+    calls.add('createOrder');
+    createdOrders.add((planCode: planCode, billingPeriod: billingPeriod));
+    final failure = await createOrderScript.next();
+    if (failure != null) throw failure;
+    final order = makeSubscriptionOrder(
+      id: 'new-${_nextOrder++}',
+      planCode: planCode,
+      billingPeriod: billingPeriod,
+    );
+    orders.add(order);
+    subscriptionResult = _copy(
+      openOrder: order,
+      scheduledDowngrade: subscriptionResult.scheduledDowngrade,
+    );
+    return order;
+  }
+
+  @override
+  Future<SubscriptionOrder> order(String id) async {
+    calls.add('order:$id');
+    final failure = await orderScript.next();
+    if (failure != null) throw failure;
+    return orders.firstWhere(
+      (o) => o.id == id,
+      orElse: () => throw const ApiFailure(
+        code: 'SUBSCRIPTION_ORDER_NOT_FOUND',
+        statusCode: 404,
+      ),
+    );
+  }
+
+  @override
+  Future<ScheduledDowngrade> scheduleDowngrade({
+    required PlanCode planCode,
+    required List<String> keptPropertyIds,
+    required List<String> keptRoomIds,
+  }) async {
+    calls.add('scheduleDowngrade');
+    scheduled.add((
+      planCode: planCode,
+      keptPropertyIds: List.of(keptPropertyIds),
+      keptRoomIds: List.of(keptRoomIds),
+    ));
+    final failure = await scheduleScript.next();
+    if (failure != null) throw failure;
+    final end = subscriptionResult.endDate ?? DateTime.utc(2026, 12, 15);
+    final downgrade = makeScheduledDowngrade(
+      planCode: planCode,
+      effectiveDate: end.add(const Duration(days: 1)),
+      keptPropertyIds: keptPropertyIds,
+      keptRoomIds: keptRoomIds,
+    );
+    subscriptionResult = _copy(
+      openOrder: subscriptionResult.openOrder,
+      scheduledDowngrade: downgrade,
+    );
+    return downgrade;
+  }
+
+  @override
+  Future<void> cancelDowngrade() async {
+    calls.add('cancelDowngrade');
+    final failure = await cancelScript.next();
+    if (failure != null) throw failure;
+    subscriptionResult = _copy(
+      openOrder: subscriptionResult.openOrder,
+      scheduledDowngrade: null,
+    );
+  }
+}
+
 /// The whole app with a fake session store and no network.
 ///
 /// Without [health] every server check succeeds.
+///
+/// Without [subscriptions] the Owner has the free plan.
 ///
 /// Without [push] the app gets a [FakePushMessaging] that grants the permission
 /// and has no token, so nothing is registered.
@@ -3497,6 +3812,7 @@ Widget buildTestApp({
   DashboardRepository? dashboard,
   NotificationRepository? notifications,
   UserAccountRepository? userAccounts,
+  SubscriptionRepository? subscriptions,
   HealthRepository? health,
   PushMessaging? push,
   GoogleIdentity? google,
@@ -3544,6 +3860,9 @@ Widget buildTestApp({
       ),
       userAccountRepositoryProvider.overrideWithValue(
         userAccounts ?? FakeUserAccountRepository(),
+      ),
+      subscriptionRepositoryProvider.overrideWithValue(
+        subscriptions ?? FakeSubscriptionRepository(),
       ),
       healthRepositoryProvider.overrideWithValue(
         health ?? FakeHealthRepository(),

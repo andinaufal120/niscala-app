@@ -125,6 +125,14 @@ const _messages = {
   'SUBSCRIPTION_AUTO_RENEWING':
       'Langganan Google Play masih berjalan otomatis. Batalkan langganan di '
       'Google Play lebih dulu.',
+  'SUBSCRIPTION_NOT_AN_UPGRADE':
+      'Paket yang dipilih harus lebih tinggi dari paket Anda saat ini.',
+  'SUBSCRIPTION_NOT_A_DOWNGRADE':
+      'Paket tujuan harus lebih rendah dari paket Anda saat ini.',
+  'KEPT_PROPERTIES_INVALID':
+      'Pilihan properti tidak sesuai dengan paket tujuan.',
+  'KEPT_ROOMS_INVALID': 'Pilihan kamar tidak sesuai dengan paket tujuan.',
+  'SUBSCRIPTION_ORDER_NOT_FOUND': 'Pesanan langganan tidak ditemukan.',
   'MANAGER_ALREADY_ADDED': 'Anda sudah menjadi pengelola untuk pemilik ini.',
   'NO_ACTIVE_LEASE':
       'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.',
