@@ -36,6 +36,18 @@ abstract interface class AccountRepository {
   /// Links the Google account of [idToken] to an account that has a password.
   /// Returns the updated account.
   Future<Account> linkGoogle(String idToken);
+
+  /// Confirms the caller's password, which the API asks for before a change
+  /// that needs a recent re-authentication.
+  Future<void> reauthenticateWithPassword(String password);
+
+  /// Confirms the caller's identity with the Google account of [idToken], for
+  /// an account that has no password.
+  Future<void> reauthenticateWithGoogle(String idToken);
+
+  /// Deletes the account of the caller. Fails with the code of the refusal,
+  /// such as `TENANT_HAS_ACTIVE_LEASE`, when the account cannot be deleted yet.
+  Future<void> deleteMyAccount();
 }
 
 final accountRepositoryProvider = Provider<AccountRepository>((ref) {
@@ -117,6 +129,26 @@ class ApiAccountRepository implements AccountRepository {
   Future<Account> linkGoogle(String idToken) => _guard(() async {
     return (await accountApi.linkGoogle(LinkGoogleInput(idToken: idToken)))!;
   });
+
+  @override
+  Future<void> reauthenticateWithPassword(String password) => _guard(() async {
+    await accountApi.reauthenticateWithPassword(
+      ReauthenticationPasswordInput(password: password),
+    );
+  });
+
+  @override
+  Future<void> reauthenticateWithGoogle(String idToken) => _guard(() async {
+    await accountApi.reauthenticateWithGoogle(
+      ReauthenticationGoogleInput(idToken: idToken),
+    );
+  });
+
+  /// The endpoint is filed under the tenants tag of the backend, so it is
+  /// called through a [TenantsApi] on the same client, and nowhere else.
+  @override
+  Future<void> deleteMyAccount() =>
+      _guard(() => TenantsApi(accountApi.apiClient).deleteMyAccount());
 
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {

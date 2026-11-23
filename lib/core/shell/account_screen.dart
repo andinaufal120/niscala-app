@@ -52,6 +52,8 @@ class AccountScreen extends ConsumerWidget {
     final role = ref.watch(currentRoleProvider);
     final acceptsInvitation =
         role == UserRole.manager || role == UserRole.tenant;
+    // Admins manage other accounts and have no account of their own to delete.
+    final canDeleteAccount = role != UserRole.admin && role != null;
     final notice = this.notice;
     return Scaffold(
       body: Column(
@@ -109,6 +111,16 @@ class AccountScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
+                  if (canDeleteAccount) ...[
+                    const SizedBox(height: NiscalaSpacing.l),
+                    ActionCardRow(
+                      icon: Icons.delete_outline,
+                      title: 'Hapus akun',
+                      subtitle:
+                          'Hapus akun dan data pribadi Anda secara permanen',
+                      onTap: () => _openSubPage(context, ref, 'hapus-akun'),
+                    ),
+                  ],
                 ],
               ),
             ),

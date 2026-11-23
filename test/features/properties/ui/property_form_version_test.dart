@@ -32,7 +32,11 @@ Future<void> _pumpEdit(
   repo,
   path: '/properti/p1/ubah',
   largeText: largeText,
+  accounts: _accounts,
 );
+
+/// The account repository behind the screens of the current test.
+late FakeAccountRepository _accounts;
 
 Future<void> _submit(WidgetTester tester) =>
     tapVisible(tester, find.text('Simpan Perubahan'));
@@ -54,6 +58,8 @@ Future<void> _reauthenticate(WidgetTester tester) async {
 }
 
 void main() {
+  setUp(() => _accounts = FakeAccountRepository());
+
   group('the edit form sends the version it read', () {
     testWidgets('sends the version of the loaded property', (tester) async {
       final repo = FakePropertyRepository(properties: [_melati(version: 3)]);
@@ -121,6 +127,7 @@ void main() {
 
       await _reauthenticate(tester);
 
+      expect(_accounts.reauthentications, ['rahasia panjang']);
       expect(repo.updated, hasLength(2));
       expect(repo.updatedVersions, [5, 5]);
     });
@@ -214,7 +221,7 @@ void main() {
 
       expect(repo.updated, hasLength(1));
       expect(repo.updatedVersions, [3]);
-      expect(repo.reauthentications, isEmpty);
+      expect(_accounts.reauthentications, isEmpty);
       expect(find.byType(AlertDialog), findsNothing);
     });
 

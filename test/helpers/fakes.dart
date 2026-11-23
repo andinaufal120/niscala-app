@@ -344,8 +344,8 @@ Property makeProperty({
 /// [list] returns summaries of [properties]; [create], [update] and [delete]
 /// change [properties] only when the call succeeds. Script failures and gates
 /// per method with the `*Script` fields. Every call is also appended to
-/// [calls] in order, as `list`, `get:<id>`, `create`, `update:<id>`,
-/// `delete:<id>` or `reauthenticate`.
+/// [calls] in order, as `list`, `get:<id>`, `create`, `update:<id>` or
+/// `delete:<id>`.
 class FakePropertyRepository implements PropertyRepository {
   FakePropertyRepository({List<Property>? properties})
     : properties = properties ?? [];
@@ -361,14 +361,12 @@ class FakePropertyRepository implements PropertyRepository {
   /// in [updateScript].
   final updatedVersions = <int>[];
   final deleted = <String>[];
-  final reauthentications = <String>[];
 
   final listScript = CallScript();
   final getScript = CallScript();
   final createScript = CallScript();
   final updateScript = CallScript();
   final deleteScript = CallScript();
-  final reauthScript = CallScript();
 
   var _nextId = 1;
 
@@ -453,27 +451,6 @@ class FakePropertyRepository implements PropertyRepository {
     final failure = await deleteScript.next();
     if (failure != null) throw failure;
     properties.removeWhere((p) => p.id == id);
-  }
-
-  @override
-  Future<void> reauthenticateWithPassword(String password) async {
-    calls.add('reauthenticate');
-    reauthentications.add(password);
-    final failure = await reauthScript.next();
-    if (failure != null) throw failure;
-  }
-
-  /// The ID token of every [reauthenticateWithGoogle] call, in order.
-  final googleReauthentications = <String>[];
-
-  /// Recorded as `reauthenticateGoogle` in [calls]; scripted by
-  /// [reauthScript] like the password method.
-  @override
-  Future<void> reauthenticateWithGoogle(String idToken) async {
-    calls.add('reauthenticateGoogle');
-    googleReauthentications.add(idToken);
-    final failure = await reauthScript.next();
-    if (failure != null) throw failure;
   }
 }
 
@@ -2765,6 +2742,47 @@ class FakeAccountRepository implements AccountRepository {
     final failure = await linkGoogleScript.next();
     if (failure != null) throw failure;
     return account = _withSignIn(googleEmail: linkedGoogleEmail);
+  }
+
+  final reauthScript = CallScript();
+
+  /// The password of every [reauthenticateWithPassword] call, in order.
+  final reauthentications = <String>[];
+
+  /// The ID token of every [reauthenticateWithGoogle] call, in order.
+  final googleReauthentications = <String>[];
+
+  /// Recorded as `reauthenticate` in [calls]; scripted by [reauthScript].
+  @override
+  Future<void> reauthenticateWithPassword(String password) async {
+    calls.add('reauthenticate');
+    reauthentications.add(password);
+    final failure = await reauthScript.next();
+    if (failure != null) throw failure;
+  }
+
+  /// Recorded as `reauthenticateGoogle` in [calls]; scripted by
+  /// [reauthScript] like the password method.
+  @override
+  Future<void> reauthenticateWithGoogle(String idToken) async {
+    calls.add('reauthenticateGoogle');
+    googleReauthentications.add(idToken);
+    final failure = await reauthScript.next();
+    if (failure != null) throw failure;
+  }
+
+  final deleteAccountScript = CallScript();
+
+  int get deleteAccountCalls =>
+      calls.where((c) => c == 'deleteMyAccount').length;
+
+  /// Recorded as `deleteMyAccount` in [calls], whether it succeeds or not;
+  /// scripted by [deleteAccountScript]. A success changes nothing else.
+  @override
+  Future<void> deleteMyAccount() async {
+    calls.add('deleteMyAccount');
+    final failure = await deleteAccountScript.next();
+    if (failure != null) throw failure;
   }
 }
 

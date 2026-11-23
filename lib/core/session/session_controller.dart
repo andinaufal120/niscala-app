@@ -8,6 +8,8 @@ import 'package:niscala/core/session/secure_session_store.dart';
 import 'package:niscala/core/session/session_store.dart';
 import 'package:niscala_api/api.dart';
 
+export 'package:niscala/core/session/session_store.dart' show StoredSession;
+
 sealed class SessionState {
   const SessionState();
 }
@@ -18,7 +20,11 @@ class SessionLoading extends SessionState {
 }
 
 class SignedOut extends SessionState {
-  const SignedOut();
+  const SignedOut({this.accountDeleted = false});
+
+  /// Whether the session ended because the account was deleted, so the sign in
+  /// screen can say so.
+  final bool accountDeleted;
 }
 
 class SignedIn extends SessionState {
@@ -118,9 +124,16 @@ class SessionController extends Notifier<SessionState> implements TokenSource {
     state = _stateFor(stored);
   }
 
-  Future<void> signOut() async {
+  Future<void> signOut() => _endSession(const SignedOut());
+
+  /// Ends the session after the account was deleted. It clears the local
+  /// session only and makes no logout request.
+  Future<void> endAfterAccountDeletion() =>
+      _endSession(const SignedOut(accountDeleted: true));
+
+  Future<void> _endSession(SignedOut ended) async {
     _session = null;
-    state = const SignedOut();
+    state = ended;
     await _store.clear();
   }
 

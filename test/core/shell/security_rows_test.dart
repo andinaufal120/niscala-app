@@ -238,7 +238,14 @@ void main() {
         await pumpAccountApp(tester, _repo(_State.both, role), role: role);
 
         for (final word in ['Putuskan', 'putus', 'Lepas', 'Hapus']) {
-          expect(find.textContaining(word), findsNothing, reason: word);
+          expect(
+            find.descendant(
+              of: sectionCardOf('Keamanan'),
+              matching: find.textContaining(word),
+            ),
+            findsNothing,
+            reason: word,
+          );
         }
       });
     });

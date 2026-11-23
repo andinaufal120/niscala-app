@@ -21,22 +21,11 @@ abstract interface class PropertyRepository {
   });
 
   Future<void> delete(String id);
-
-  /// Confirms the caller's password, which the API asks for before a change
-  /// that needs a recent re-authentication.
-  Future<void> reauthenticateWithPassword(String password);
-
-  /// Confirms the caller's identity with the Google account of [idToken], for
-  /// an account that has no password.
-  Future<void> reauthenticateWithGoogle(String idToken);
 }
 
 final propertyRepositoryProvider = Provider<PropertyRepository>((ref) {
   final client = ref.watch(apiClientProvider);
-  return ApiPropertyRepository(
-    properties: PropertiesApi(client),
-    account: AccountApi(client),
-  );
+  return ApiPropertyRepository(properties: PropertiesApi(client));
 });
 
 /// The properties the caller can see. Invalidate it after a change. Failures
@@ -55,10 +44,9 @@ final propertyDetailProvider = FutureProvider.family<Property, String>(
 );
 
 class ApiPropertyRepository implements PropertyRepository {
-  ApiPropertyRepository({required this.properties, required this.account});
+  ApiPropertyRepository({required this.properties});
 
   final PropertiesApi properties;
-  final AccountApi account;
 
   @override
   Future<List<PropertySummary>> list() => _guard(() async {
@@ -86,20 +74,6 @@ class ApiPropertyRepository implements PropertyRepository {
 
   @override
   Future<void> delete(String id) => _guard(() => properties.deleteProperty(id));
-
-  @override
-  Future<void> reauthenticateWithPassword(String password) => _guard(() async {
-    await account.reauthenticateWithPassword(
-      ReauthenticationPasswordInput(password: password),
-    );
-  });
-
-  @override
-  Future<void> reauthenticateWithGoogle(String idToken) => _guard(() async {
-    await account.reauthenticateWithGoogle(
-      ReauthenticationGoogleInput(idToken: idToken),
-    );
-  });
 
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {

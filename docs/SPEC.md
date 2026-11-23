@@ -177,7 +177,7 @@ Bottom navigation:
 
 Tenant *Beranda*: a greeting with the tenant's name and, for each active lease, its property and room; the first bill of *Tagihan aktif* (UC-04) with amount, due date, days overdue when the API reports them, and the UC-05 upload action or the pay-cash note; a link to *Riwayat*; the latest complaint with its status and handling note, and *Ajukan Keluhan* (UC-02) for a tenant with at least one active lease. Without an active lease it shows the UC-01 message to contact management.
 
-*Akun (Account)*, for every role: profile; security (Google and local password, active devices (UC-37), change password (UC-38)); help; notifications; log out. In addition:
+*Akun (Account)*, for every role: profile; security (Google and local password, active devices (UC-37), change password (UC-38)); help; notifications; log out. Every role except Admin also has *Hapus Akun (Delete account)* (UC-39). In addition:
 - Owner: *Langganan (Subscription)*.
 - Manager: their assigned properties, read-only.
 - Tenant: room and lease details of each active lease (UC-01).
@@ -365,6 +365,9 @@ List of the user's sessions with device name, platform, login method and last ac
 **UC-38 Change password** (FR-33, NFR-11) · *Akun → Keamanan → Ubah Kata Sandi (Account → Security → Change password)*
 Fields: current password, new password with a strength meter, confirm new password. One show-password toggle applies to all three. The strength meter is a hint only; the API decides. After a successful change, if the user has other sessions, offer to log out all other devices (*log out others* / *stay logged in*); with no other sessions, skip the prompt.
 
+**UC-39 Delete own account** (Google Play account deletion) · Tenant, Owner, Manager · *Akun → Hapus Akun (Account → Delete account)*
+Explains that deletion is permanent: profile, email and sign-in methods are erased, every device is signed out, and records of bills, receipts and complaints stay with the property without naming the person. An Owner is also told that their property data is deleted for good 90 days later. The user types *HAPUS* to enable the action; this is the confirmation of §6 rule 3. Refused, with the reason shown, for an Owner whose property has an active lease (`OWNER_HAS_ACTIVE_LEASE`), a Tenant with an active lease (`TENANT_HAS_ACTIVE_LEASE`) and an Owner whose Google Play subscription still renews (`SUBSCRIPTION_AUTO_RENEWING`). On `REAUTHENTICATION_REQUIRED` the app asks for the password (or Google), re-authenticates and retries once. On success the app is signed out on this device, without a logout call, and the login screen confirms the deletion. Admin has no such action.
+
 ## 9. API contract
 
 The backend repository (`andinaufal120/niscala-api`) owns the contract. Its OpenAPI document is the source; the app consumes a **Dart client generated from it** and committed to this repo. Regenerate the client to pick up contract changes, and never hand-edit generated code.
@@ -453,3 +456,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 12-11-2026 | UI rule 4 (conflict): edits send the `version` they read as `If-Match`, and a stale one answers `RESOURCE_VERSION_CONFLICT`. | NKMA-117 |
 | 12-11-2026 | U-4 decided: links are https links on the backend host that open the app through Android App Links; the backend serves the asset links file and a page that points to Google Play. The paste flows stay until the app handles the links. Removed from §10. | NKMA-118 |
 | 18-11-2026 | Permission table (shared): every role except Admin can delete their own account. The screen is not part of this change. | NKMA-121 |
+| 23-11-2026 | UC-39 delete own account added and *Hapus Akun* listed under *Akun* (§6a); the screen follows the permission table row of 18-11-2026. | NKMA-121 |

@@ -91,7 +91,7 @@ void main() {
 
   test('falls back to the generic message for a code the API no longer '
       'sends', () {
-    expect(_messageOf('TENANT_HAS_ACTIVE_LEASE'), _fallback);
+    expect(_messageOf('SOMETHING_NO_LONGER_SENT'), _fallback);
   });
 
   test('falls back to the generic message for an empty code', () {
