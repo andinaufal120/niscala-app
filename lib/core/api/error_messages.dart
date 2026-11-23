@@ -115,6 +115,9 @@ const _messages = {
       'Undangan ini untuk peran lain. Akun Anda tidak dapat menerimanya.',
   'TENANT_NAME_NOT_EDITABLE':
       'Nama penyewa yang sudah aktif mengikuti akunnya dan tidak bisa diubah.',
+  'TENANT_ALREADY_ACTIVE': 'Penyewa sudah mengaktifkan akunnya, jadi tautan undangan tidak diperlukan lagi.',
+  'NOTIFICATION_NOT_FOUND': 'Notifikasi tidak ditemukan.',
+  'NOTIFICATION_CATEGORIES_INVALID': 'Pengaturan notifikasi tidak sesuai dengan peran Anda. Muat ulang dan coba lagi.',
   'OWNER_HAS_ACTIVE_LEASE':
       'Pemilik ini masih memiliki properti dengan masa sewa aktif.',
   'MANAGER_ALREADY_ADDED': 'Anda sudah menjadi pengelola untuk pemilik ini.',
