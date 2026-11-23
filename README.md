@@ -51,6 +51,17 @@ The Web client ID is not a secret (it ends up in the APK), but it differs per en
 2. Put the Web client ID in `.env` as `GOOGLE_SERVER_CLIENT_ID`.
 3. Add the same Web client ID to `GOOGLE_CLIENT_IDS` in the niscala-api environment, so the API accepts tokens issued for it.
 
+### Opening links in the app
+
+Invitation, password-reset and email-change links are https links on the API host. The app opens them through Android App Links: the host in the manifest is taken from `API_BASE_URL` at build time, and Android only verifies it when the API serves `/.well-known/assetlinks.json` for this app (the API needs `GOOGLE_PLAY_PACKAGE_NAME` and the signing fingerprints in `ANDROID_CERT_SHA256`; each build you test with, debug, upload or Play signing, has its own fingerprint). Without verification you can still try a link on a device or emulator by naming the app:
+
+```sh
+adb shell am start -n com.andinaufal.niscala/.MainActivity -a android.intent.action.VIEW \
+  -d "https://<api-host>/invitations/<token>"
+```
+
+The same works for `/password-reset?token=<token>` and `/email-change?token=<token>`. The links of a development API point at its `INVITATION_BASE_URL`; use the same host here.
+
 ## Release build
 
 Release builds are signed with an upload key that stays on your machine.

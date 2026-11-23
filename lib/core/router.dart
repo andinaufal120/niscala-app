@@ -73,6 +73,11 @@ const _tenantPayments = '/penyewa/pembayaran';
 const _managementPayments = '/pembayaran';
 const _managementNotifications = '/akun/notifikasi';
 const _tenantNotifications = '/penyewa/akun/notifikasi';
+const _activationScreen = '/aktivasi';
+const _resetScreen = '/atur-ulang-kata-sandi';
+const _confirmEmailScreen = '/konfirmasi-email-baru';
+const _managementAcceptScreen = '/akun/undangan';
+const _tenantAcceptScreen = '/penyewa/akun/undangan';
 
 /// The navigator of the whole app. Sub-pages are shown on it, above the tab
 /// shell, so they cover the bottom navigation bar. Tab roots stay in the shell.
@@ -156,6 +161,62 @@ String? redirectFor(SessionState session, String location) {
   }
 }
 
+/// Whether [uri] is a link from outside the app: an invitation link with a
+/// token segment, a password reset link or an email change link.
+bool isAppLink(Uri uri) {
+  return switch (uri.pathSegments) {
+    ['invitations', final token] => token.isNotEmpty,
+    ['password-reset'] || ['email-change'] => true,
+    _ => false,
+  };
+}
+
+/// Where a link must be redirected for the session, or null to stay on the
+/// loading screen while the session loads. Only links of [isAppLink] are
+/// expected here.
+String? redirectForLink(SessionState session, Uri uri) {
+  final segments = uri.pathSegments;
+  final isInvitation = segments.first == 'invitations';
+  final token = isInvitation ? segments[1] : uri.queryParameters['token'];
+  return switch (session) {
+    SessionLoading() => null,
+    SignedOut() => _signedOutLink(segments.first, token),
+    SignedIn(emailVerified: false) => _verifyEmail,
+    SignedIn(:final role) when isInvitation => _invitationAcceptance(
+      role,
+      segments[1],
+    ),
+    SignedIn(:final role) => _homeOf(role),
+  };
+}
+
+String _signedOutLink(String kind, String? token) => switch (kind) {
+  'invitations' => _location(_activationScreen, token),
+  'password-reset' => _location(_resetScreen, token),
+  _ => _location(_confirmEmailScreen, token),
+};
+
+/// The Terima Undangan screen of a signed in user for an invitation link. Owners
+/// and admins have no such screen, so they go to their home.
+String _invitationAcceptance(UserRole role, String token) => switch (role) {
+  UserRole.tenant => _location(_tenantAcceptScreen, token),
+  UserRole.manager => _location(_managementAcceptScreen, token),
+  _ => _homeOf(role),
+};
+
+String _homeOf(UserRole role) => switch (role) {
+  UserRole.tenant => _tenantHome,
+  UserRole.admin => _admin,
+  _ => _managementHome,
+};
+
+/// [path] with [token] in its query. Without a token it is the bare path, so
+/// the screen shows its paste step.
+String _location(String path, String? token) => Uri(
+  path: path,
+  queryParameters: token == null || token.isEmpty ? null : {'token': token},
+).toString();
+
 /// Cross-fades the tabs of a shell when the tab changes.
 Widget _fadingTabs(
   BuildContext context,
@@ -165,6 +226,11 @@ Widget _fadingTabs(
 
 GoRoute _screen(String path, Widget screen) =>
     GoRoute(path: path, builder: (context, state) => screen);
+
+/// A link path. It only shows the loading screen: [redirectForLink] moves the
+/// user on once the session is known.
+GoRoute _linkRoute(String path) =>
+    GoRoute(path: path, builder: (context, state) => const LoadingScreen());
 
 /// A sub-page of a tab root. It is shown on the root navigator, so it covers
 /// the shell and its bottom navigation bar. As a [MaterialPage] it takes the
@@ -202,63 +268,63 @@ StatefulShellBranch _nestedBranch(
 
 /// The Akun tab of a role and its sub-pages. The tab reads the notice that a
 /// sub-page passes with `extra`, such as the result of a password change.
-StatefulShellBranch _accountBranch(String path, {bool showLease = false}) =>
-    StatefulShellBranch(
+StatefulShellBranch _accountBranch(
+  String path, {
+  bool showLease = false,
+}) => StatefulShellBranch(
+  routes: [
+    GoRoute(
+      path: path,
+      builder: (context, state) =>
+          AccountScreen(showLease: showLease, notice: state.extra as String?),
       routes: [
-        GoRoute(
-          path: path,
-          builder: (context, state) => AccountScreen(
-            showLease: showLease,
-            notice: state.extra as String?,
-          ),
+        _subPage(
+          path: 'perangkat',
+          builder: (context, state) => const ActiveSessionsScreen(),
+        ),
+        _subPage(
+          path: 'kata-sandi',
+          builder: (context, state) => const ChangePasswordScreen(),
+        ),
+        _subPage(
+          path: 'tambah-kata-sandi',
+          builder: (context, state) => const AddPasswordScreen(),
+        ),
+        _subPage(
+          path: 'hubungkan-google',
+          builder: (context, state) => const LinkGoogleScreen(),
+        ),
+        _subPage(
+          path: 'undangan',
+          builder: (context, state) =>
+              AcceptInvitationScreen(token: state.uri.queryParameters['token']),
+        ),
+        _subPage(
+          path: 'hapus-akun',
+          builder: (context, state) => const DeleteAccountScreen(),
+        ),
+        _subPage(
+          path: 'notifikasi',
+          builder: (context, state) => const NotificationListScreen(),
           routes: [
+            // The settings route comes before `:notificationId`, so that
+            // `pengaturan` is not read as a notification id.
             _subPage(
-              path: 'perangkat',
-              builder: (context, state) => const ActiveSessionsScreen(),
+              path: 'pengaturan',
+              builder: (context, state) => const NotificationSettingsScreen(),
             ),
             _subPage(
-              path: 'kata-sandi',
-              builder: (context, state) => const ChangePasswordScreen(),
-            ),
-            _subPage(
-              path: 'tambah-kata-sandi',
-              builder: (context, state) => const AddPasswordScreen(),
-            ),
-            _subPage(
-              path: 'hubungkan-google',
-              builder: (context, state) => const LinkGoogleScreen(),
-            ),
-            _subPage(
-              path: 'undangan',
-              builder: (context, state) => const AcceptInvitationScreen(),
-            ),
-            _subPage(
-              path: 'hapus-akun',
-              builder: (context, state) => const DeleteAccountScreen(),
-            ),
-            _subPage(
-              path: 'notifikasi',
-              builder: (context, state) => const NotificationListScreen(),
-              routes: [
-                // The settings route comes before `:notificationId`, so that
-                // `pengaturan` is not read as a notification id.
-                _subPage(
-                  path: 'pengaturan',
-                  builder: (context, state) =>
-                      const NotificationSettingsScreen(),
-                ),
-                _subPage(
-                  path: ':notificationId',
-                  builder: (context, state) => NotificationDetailScreen(
-                    notificationId: state.pathParameters['notificationId']!,
-                  ),
-                ),
-              ],
+              path: ':notificationId',
+              builder: (context, state) => NotificationDetailScreen(
+                notificationId: state.pathParameters['notificationId']!,
+              ),
             ),
           ],
         ),
       ],
-    );
+    ),
+  ],
+);
 
 /// The rooms of a property: the list, the add form, and one room with its edit
 /// form. The add route comes before `:roomId` so it is not read as a room id.
@@ -446,18 +512,37 @@ final routerProvider = Provider<GoRouter>((ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: _loading,
     refreshListenable: session,
-    redirect: (context, state) => redirectFor(session.value, state.uri.path),
+    redirect: (context, state) => isAppLink(state.uri)
+        ? redirectForLink(session.value, state.uri)
+        : redirectFor(session.value, state.uri.path),
     routes: [
       GoRoute(
         path: _loading,
         builder: (context, state) => const LoadingScreen(),
       ),
+      // A link is redirected once the session is known; until then it shows
+      // the loading screen.
+      _linkRoute('/invitations/:token'),
+      _linkRoute('/password-reset'),
+      _linkRoute('/email-change'),
       _screen(_signIn, const LoginScreen()),
       _screen('/daftar', const RegisterOwnerScreen()),
-      _screen('/aktivasi', const ActivationScreen()),
+      GoRoute(
+        path: _activationScreen,
+        builder: (context, state) =>
+            ActivationScreen(token: state.uri.queryParameters['token']),
+      ),
       _screen('/lupa-kata-sandi', const ForgotPasswordScreen()),
-      _screen('/atur-ulang-kata-sandi', const ResetPasswordScreen()),
-      _screen('/konfirmasi-email-baru', const ConfirmEmailChangeScreen()),
+      GoRoute(
+        path: _resetScreen,
+        builder: (context, state) =>
+            ResetPasswordScreen(token: state.uri.queryParameters['token']),
+      ),
+      GoRoute(
+        path: _confirmEmailScreen,
+        builder: (context, state) =>
+            ConfirmEmailChangeScreen(token: state.uri.queryParameters['token']),
+      ),
       _screen(_verifyEmail, const VerifyEmailScreen()),
       GoRoute(
         path: _admin,

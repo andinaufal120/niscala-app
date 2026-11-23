@@ -20,7 +20,11 @@ import 'package:niscala_api/api.dart';
 /// Activates an account from a pasted invitation link. A valid link turns the
 /// same screen into the activation form.
 class ActivationScreen extends ConsumerStatefulWidget {
-  const ActivationScreen({super.key});
+  const ActivationScreen({super.key, this.token});
+
+  /// The token of the invitation link that opened the screen. When it is set
+  /// the link is checked at once and the paste step is skipped.
+  final String? token;
 
   @override
   ConsumerState<ActivationScreen> createState() => _ActivationScreenState();
@@ -32,6 +36,13 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
   String? _linkError;
   String? _banner;
   ({String token, InvitationPreview preview})? _invitation;
+
+  @override
+  void initState() {
+    super.initState();
+    final token = widget.token;
+    if (token != null && token.isNotEmpty) _checkToken(token);
+  }
 
   @override
   void dispose() {
@@ -46,6 +57,10 @@ class _ActivationScreenState extends ConsumerState<ActivationScreen> {
       setState(() => _linkError = invitationLinkRequiredMessage);
       return;
     }
+    await _checkToken(token);
+  }
+
+  Future<void> _checkToken(String token) async {
     setState(() {
       _linkError = null;
       _banner = null;

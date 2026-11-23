@@ -59,6 +59,8 @@ Signing in raises `sessionGenerationProvider`. `apiClientProvider` watches it, s
 
 Each shell is a `StatefulShellRoute` with a bottom navigation bar (SPEC §6a).
 
+Links that Android opens in the app (invitation, password reset and email change) arrive as the router's location. `isAppLink` recognises the three paths, and `redirectForLink` maps them by session to the existing screens with the token in the query (`/aktivasi?token=`, `<akun>/undangan?token=`, `/atur-ulang-kata-sandi?token=`, `/konfirmasi-email-baru?token=`); while the session is loading the link route shows the loading screen. A signed-in user stays on their home for reset and email-change links, and an Owner or Admin for invitation links. The manifest's intent filter takes its host from the `API_BASE_URL` dart-define through the `appLinkHost` manifest placeholder in `android/app/build.gradle.kts`; the paste flows remain for links opened elsewhere.
+
 ## 5. UI conventions
 
 - Colours, type, spacing and radii come from `tokens.dart` through `buildTheme()` and the `NiscalaTokens` extension; widgets do not hard-code them. Form fields are wrapped in `LabeledField`.
@@ -73,4 +75,4 @@ Tests are written before the code (`CLAUDE.md`, Workflow). Widget tests override
 
 ## 7. Open points
 
-Deep links for invitation and password-reset links (U-4), the minimum Android version (TBD-2) and the list of API error codes (U-9) are in `docs/SPEC.md` §10.
+The minimum Android version (TBD-2) and the Google Play integration of the backend (TBD-3) are in `docs/SPEC.md` §10.

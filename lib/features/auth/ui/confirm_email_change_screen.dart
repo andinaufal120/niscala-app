@@ -16,7 +16,11 @@ const _linkHelper = 'Tempel tautan konfirmasi dari email Anda.';
 /// Confirms a new login email from a pasted email-change link. Success does not
 /// sign the user in.
 class ConfirmEmailChangeScreen extends ConsumerStatefulWidget {
-  const ConfirmEmailChangeScreen({super.key});
+  const ConfirmEmailChangeScreen({super.key, this.token});
+
+  /// The token of the email change link that opened the screen. When it is set
+  /// the change is confirmed at once and the paste step is skipped.
+  final String? token;
 
   @override
   ConsumerState<ConfirmEmailChangeScreen> createState() =>
@@ -30,6 +34,13 @@ class _ConfirmEmailChangeScreenState
   var _done = false;
   String? _linkError;
   String? _banner;
+
+  @override
+  void initState() {
+    super.initState();
+    final token = widget.token;
+    if (token != null && token.isNotEmpty) _confirm(token);
+  }
 
   @override
   void dispose() {
@@ -47,6 +58,10 @@ class _ConfirmEmailChangeScreenState
       });
       return;
     }
+    await _confirm(token);
+  }
+
+  Future<void> _confirm(String token) async {
     setState(() {
       _linkError = null;
       _banner = null;

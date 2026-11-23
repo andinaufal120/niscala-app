@@ -1,3 +1,5 @@
+import java.net.URI
+import java.util.Base64
 import java.util.Properties
 
 plugins {
@@ -14,6 +16,15 @@ val hasUploadKey = keyPropertiesFile.exists()
 if (hasUploadKey) {
     keyPropertiesFile.inputStream().use { keyProperties.load(it) }
 }
+
+// Host of API_BASE_URL, the host of the app links. Flutter passes the
+// dart-defines to Gradle as comma-separated base64 `KEY=VALUE` strings.
+val appLinkHost: String = (project.findProperty("dart-defines") as String?)
+    ?.split(",")
+    ?.map { String(Base64.getDecoder().decode(it)) }
+    ?.firstOrNull { it.startsWith("API_BASE_URL=") }
+    ?.let { URI(it.substringAfter("=")).host }
+    ?: "10.0.2.2"
 
 android {
     namespace = "com.andinaufal.niscala"
@@ -37,6 +48,7 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["appLinkHost"] = appLinkHost
     }
 
     signingConfigs {
