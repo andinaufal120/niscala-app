@@ -9,6 +9,7 @@ import 'package:niscala/app.dart';
 import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/api/health_repository.dart';
+import 'package:niscala/core/billing/play_billing.dart';
 import 'package:niscala/core/google/google_identity.dart';
 import 'package:niscala/core/push/push_messaging.dart';
 import 'package:niscala/core/shell/account_screen.dart';
@@ -3782,6 +3783,137 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
       scheduledDowngrade: null,
     );
   }
+
+  /// The status [verifyPurchase] reports once [verifyStatuses] is empty.
+  OrderStatus verifyStatus = OrderStatus.succeeded;
+
+  /// The statuses the next [verifyPurchase] calls report, one per call.
+  final verifyStatuses = <OrderStatus>[];
+
+  /// The arguments of every [verifyPurchase] call, in order, before the script
+  /// is consulted.
+  final verifications = <({String orderId, String purchaseToken})>[];
+
+  final verifyScript = CallScript();
+
+  int get verifyCalls => verifications.length;
+
+  /// Returns the order with the status that is next in [verifyStatuses] (else
+  /// [verifyStatus]). As the backend does, a succeeded order makes the
+  /// subscription active with the plan and period of the order and no open
+  /// order, and a failed or expired order closes the open order. The
+  /// subscription changes only when the call succeeds.
+  @override
+  Future<SubscriptionOrder> verifyPurchase({
+    required String orderId,
+    required String purchaseToken,
+  }) async {
+    calls.add('verifyPurchase');
+    verifications.add((orderId: orderId, purchaseToken: purchaseToken));
+    final failure = await verifyScript.next();
+    if (failure != null) throw failure;
+    final status = verifyStatuses.isNotEmpty
+        ? verifyStatuses.removeAt(0)
+        : verifyStatus;
+    final known = [
+      ...orders,
+      if (subscriptionResult.openOrder != null) subscriptionResult.openOrder!,
+    ].where((o) => o.id == orderId);
+    final base = known.isEmpty
+        ? makeSubscriptionOrder(id: orderId)
+        : known.first;
+    final result = makeSubscriptionOrder(
+      id: base.id,
+      planCode: base.planCode,
+      billingPeriod: base.billingPeriod,
+      status: status,
+    );
+    if (status == OrderStatus.succeeded) {
+      final old = subscriptionResult;
+      subscriptionResult = Subscription(
+        status: SubscriptionStatus.active,
+        planCode: PlanCode.values.firstWhere(
+          (code) => code.value == base.planCode.value,
+        ),
+        billingPeriod: base.billingPeriod,
+        endDate: DateTime.utc(2026, 12, 23),
+        autoRenew: true,
+        propertyCount: old.propertyCount,
+      );
+    } else if (status != OrderStatus.awaitingPayment) {
+      subscriptionResult = _copy(
+        openOrder: null,
+        scheduledDowngrade: subscriptionResult.scheduledDowngrade,
+      );
+    }
+    return result;
+  }
+}
+
+/// A [PlayBilling] that never touches Google Play. It answers from fields,
+/// records its calls, and emits the purchases that a test triggers.
+///
+/// [isAvailable] returns [available]. [purchase] records its arguments in
+/// [purchaseRequests], then waits for [purchaseGate] if set, then throws the
+/// next entry of [purchaseFailures] (null means success) or else
+/// [purchaseFailure]. It never emits by itself: the outcome of a purchase is
+/// whatever the test passes to [emit]. [complete] records the purchase in
+/// [completed] and throws [completeFailure] if set. [purchases] is a broadcast
+/// stream, so an event that no one listens to is dropped.
+class FakePlayBilling implements PlayBilling {
+  bool available = true;
+  PlayBillingException? purchaseFailure;
+  final purchaseFailures = <PlayBillingException?>[];
+  Completer<void>? purchaseGate;
+  Object? completeFailure;
+
+  var availabilityChecks = 0;
+  final purchaseRequests =
+      <({String productId, String basePlanId, String obfuscatedAccountId})>[];
+  final completed = <PlayPurchase>[];
+
+  final _purchases = StreamController<PlayPurchase>.broadcast();
+
+  int get purchaseCalls => purchaseRequests.length;
+
+  /// Whether anything listens to [purchases].
+  bool get hasListener => _purchases.hasListener;
+
+  @override
+  Future<bool> isAvailable() async {
+    availabilityChecks++;
+    return available;
+  }
+
+  @override
+  Stream<PlayPurchase> get purchases => _purchases.stream;
+
+  @override
+  Future<void> purchase({
+    required String productId,
+    required String basePlanId,
+    required String obfuscatedAccountId,
+  }) async {
+    purchaseRequests.add((
+      productId: productId,
+      basePlanId: basePlanId,
+      obfuscatedAccountId: obfuscatedAccountId,
+    ));
+    await purchaseGate?.future;
+    final failure = purchaseFailures.isNotEmpty
+        ? purchaseFailures.removeAt(0)
+        : purchaseFailure;
+    if (failure != null) throw failure;
+  }
+
+  @override
+  Future<void> complete(PlayPurchase purchase) async {
+    completed.add(purchase);
+    if (completeFailure != null) throw completeFailure!;
+  }
+
+  /// Delivers [purchase] on [purchases], as Google Play does.
+  void emit(PlayPurchase purchase) => _purchases.add(purchase);
 }
 
 /// The whole app with a fake session store and no network.
@@ -3815,6 +3947,7 @@ Widget buildTestApp({
   SubscriptionRepository? subscriptions,
   HealthRepository? health,
   PushMessaging? push,
+  PlayBilling? playBilling,
   GoogleIdentity? google,
   ImageChooser? receiptPicker,
   Future<void> Function(String text)? invitationSharer,
@@ -3868,6 +4001,7 @@ Widget buildTestApp({
         health ?? FakeHealthRepository(),
       ),
       pushMessagingProvider.overrideWithValue(push ?? FakePushMessaging()),
+      playBillingProvider.overrideWithValue(playBilling ?? FakePlayBilling()),
       googleIdentityProvider.overrideWithValue(google ?? FakeGoogleIdentity()),
       imageChooserProvider.overrideWithValue(
         receiptPicker ?? FakeImageChooser(),
