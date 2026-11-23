@@ -29,7 +29,11 @@ const _linkCodes = {
 /// first; the new password is then typed twice. Success does not sign the user
 /// in.
 class ResetPasswordScreen extends ConsumerStatefulWidget {
-  const ResetPasswordScreen({super.key});
+  const ResetPasswordScreen({super.key, this.token});
+
+  /// The token of the password reset link that opened the screen. When it is
+  /// set the link is checked at once and the paste step is skipped.
+  final String? token;
 
   @override
   ConsumerState<ResetPasswordScreen> createState() =>
@@ -53,6 +57,13 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   ({String token, String email})? _verified;
 
   @override
+  void initState() {
+    super.initState();
+    final token = widget.token;
+    if (token != null && token.isNotEmpty) _checkToken(token);
+  }
+
+  @override
   void dispose() {
     _link.dispose();
     _password.dispose();
@@ -67,6 +78,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
       setState(() => _linkError = _invalidLink);
       return;
     }
+    await _checkToken(token);
+  }
+
+  Future<void> _checkToken(String token) async {
     setState(() {
       _linkError = null;
       _banner = null;

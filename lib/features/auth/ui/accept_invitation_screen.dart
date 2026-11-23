@@ -32,7 +32,11 @@ const _acceptedTenant =
 /// accept it and the buttons to accept or to paste another link. A Tenant
 /// invitation whose tenant record lacks emergency contacts also asks for them.
 class AcceptInvitationScreen extends ConsumerStatefulWidget {
-  const AcceptInvitationScreen({super.key});
+  const AcceptInvitationScreen({super.key, this.token});
+
+  /// The token of the invitation link that opened the screen. When it is set
+  /// the invitation is checked at once and the paste step is skipped.
+  final String? token;
 
   @override
   ConsumerState<AcceptInvitationScreen> createState() =>
@@ -52,6 +56,13 @@ class _AcceptInvitationScreenState
   String? _contactsError;
 
   @override
+  void initState() {
+    super.initState();
+    final token = widget.token;
+    if (token != null && token.isNotEmpty) _checkToken(token);
+  }
+
+  @override
   void dispose() {
     _link.dispose();
     for (final draft in _contacts) {
@@ -67,6 +78,10 @@ class _AcceptInvitationScreenState
       setState(() => _linkError = invitationLinkRequiredMessage);
       return;
     }
+    await _checkToken(token);
+  }
+
+  Future<void> _checkToken(String token) async {
     setState(() {
       _linkError = null;
       _banner = null;
