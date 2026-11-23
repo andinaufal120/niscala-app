@@ -13,6 +13,8 @@ import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/account/data/account_repository.dart';
 import 'package:niscala/features/lease/ui/lease_card.dart';
+import 'package:niscala/features/subscription/data/subscription_repository.dart';
+import 'package:niscala/features/subscription/subscription_labels.dart';
 import 'package:niscala_api/api.dart';
 
 /// Ends the session. The server-side logout is best effort: the device is
@@ -95,6 +97,14 @@ class AccountScreen extends ConsumerWidget {
                     onTap: () => _openSubPage(context, ref, 'notifikasi'),
                   ),
                   const SizedBox(height: NiscalaSpacing.l),
+                  // Only the Owner has a subscription, so only the Owner's tab
+                  // fetches it.
+                  if (role == UserRole.owner) ...[
+                    _SubscriptionRow(
+                      onTap: () => _openSubPage(context, ref, 'langganan'),
+                    ),
+                    const SizedBox(height: NiscalaSpacing.l),
+                  ],
                   SectionCard(
                     title: 'Keamanan',
                     child: Column(
@@ -264,6 +274,28 @@ class _ProfileDetails extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The Langganan row of the Owner. Its subtitle names the plan once the
+/// subscription has loaded; while it loads or when it fails, the row still
+/// opens the subscription page.
+class _SubscriptionRow extends ConsumerWidget {
+  const _SubscriptionRow({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final subscription = ref.watch(subscriptionProvider).value;
+    return ActionCardRow(
+      icon: Icons.workspace_premium_outlined,
+      title: 'Langganan',
+      subtitle: subscription == null
+          ? 'Lihat paket dan langganan Anda'
+          : subscriptionSummary(subscription),
+      onTap: onTap,
     );
   }
 }
