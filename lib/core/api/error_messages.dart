@@ -133,6 +133,14 @@ const _messages = {
       'Pilihan properti tidak sesuai dengan paket tujuan.',
   'KEPT_ROOMS_INVALID': 'Pilihan kamar tidak sesuai dengan paket tujuan.',
   'SUBSCRIPTION_ORDER_NOT_FOUND': 'Pesanan langganan tidak ditemukan.',
+  'SUBSCRIPTION_ORDER_CLOSED':
+      'Pesanan ini sudah ditutup. Buat pesanan baru untuk membayar.',
+  'PURCHASE_TOKEN_IN_USE': 'Pembelian ini sudah dipakai oleh akun lain.',
+  'PURCHASE_TOKEN_INVALID':
+      'Google Play tidak mengenali pembelian ini. Coba bayar lagi.',
+  'PURCHASE_PRODUCT_MISMATCH': 'Paket yang dibeli tidak sesuai dengan pesanan.',
+  'GOOGLE_PLAY_UNREACHABLE':
+      'Google Play sedang tidak dapat dijangkau. Coba lagi nanti.',
   'MANAGER_ALREADY_ADDED': 'Anda sudah menjadi pengelola untuk pemilik ini.',
   'NO_ACTIVE_LEASE':
       'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.',

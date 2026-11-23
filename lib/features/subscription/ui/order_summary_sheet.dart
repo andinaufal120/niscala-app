@@ -6,10 +6,11 @@ import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/features/subscription/data/subscription_repository.dart';
 import 'package:niscala/features/subscription/subscription_labels.dart';
+import 'package:niscala/features/subscription/subscription_payment_controller.dart';
 import 'package:niscala_api/api.dart';
 
 /// The summary of a plan order, shown as a bottom sheet. Confirming creates the
-/// order only: the payment happens in Google Play.
+/// order and starts its payment in Google Play.
 class OrderSummarySheet extends ConsumerStatefulWidget {
   const OrderSummarySheet({
     super.key,
@@ -33,8 +34,9 @@ class _OrderSummarySheetState extends ConsumerState<OrderSummarySheet> {
       _busy = true;
       _error = null;
     });
+    final SubscriptionOrder order;
     try {
-      await ref
+      order = await ref
           .read(subscriptionRepositoryProvider)
           .createOrder(
             planCode: _paidPlanOf(widget.plan),
@@ -50,7 +52,9 @@ class _OrderSummarySheetState extends ConsumerState<OrderSummarySheet> {
     }
     if (!mounted) return;
     ref.invalidate(subscriptionProvider);
+    final payment = ref.read(subscriptionPaymentProvider.notifier);
     Navigator.of(context).pop();
+    payment.pay(order);
   }
 
   @override

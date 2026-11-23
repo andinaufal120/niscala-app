@@ -341,12 +341,12 @@ Shows the current subscription: plan, status (*Gratis* or *Aktif*), the billing 
 - **Upgrade or first purchase:** *Pilih (plan)* on a higher plan opens an order summary (plan and period, property limit, total). Confirming creates an order *Menunggu Pembayaran*, which UC-32 pays. A plan that is not higher than the current one is refused (`SUBSCRIPTION_NOT_AN_UPGRADE`).
 - **Downgrade:** offered only while the subscription is *Aktif*, as *Turunkan ke (plan)* on a lower plan. It takes effect when the paid period ends, and until then the current plan stays fully active. The Owner confirms which properties stay editable (exactly the target plan's property limit, or all of them when there are fewer) and, for Gratis, which rooms of the kept property stay editable (exactly the room limit, or all of them when there are fewer). Everything not kept becomes view-only. The confirmation can be replaced by confirming again, or cancelled with *Batalkan penurunan paket*. The API checks the choice (`KEPT_PROPERTIES_INVALID`, `KEPT_ROOMS_INVALID`, `SUBSCRIPTION_NOT_A_DOWNGRADE`). The renewal itself is changed or cancelled in Google Play.
 
-**UC-32 Pay for subscription** (FR-24, FR-25, FR-27) · from a pending order → *Bayar (Pay)*
-Opens the payment gateway page (provider: TBD-3). Results:
-- *Berhasil* → subscription active, with confirmation;
-- *Gagal* or *Kedaluwarsa* → offer to pay again;
-- still pending → stays *Menunggu Pembayaran* and can be re-checked from *Langganan*.
-  If the gateway is unreachable, show an error; no transaction is created.
+**UC-32 Pay for subscription** (FR-24, FR-25, FR-27) · Owner only · from the order summary (*Lanjut ke Google Play*) or from an open order → *Bayar (Pay)*
+Payment runs in the Google Play purchase sheet, started for the order's product and base plan with the order's obfuscated account id. When Google Play reports a purchase, the app sends its purchase token to the API and shows the order status the API returns:
+- *Berhasil* → the subscription is active, with confirmation;
+- still *Menunggu Pembayaran* (for example Google reports the purchase as pending) → the user is told to complete the payment and can check again; the same token is sent again;
+- *Gagal* or *Kedaluwarsa* → offer to pay again with a new order for the same plan and period.
+A purchase the user cancels in the Google Play sheet changes nothing: the order stays *Menunggu Pembayaran* and can be paid with *Bayar* until it expires. A purchase Google reports again while the *Langganan* screen is open, for a product with an open order, is verified without another tap. If Google Play is unavailable on the device, or the API cannot reach Google Play (`GOOGLE_PLAY_UNREACHABLE`), the app shows an error and the user can try again; nothing is saved.
 
 ### 8.4 Admin
 
@@ -409,7 +409,6 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | ID    | Item                                                                                                                             | Affects             |
 |-------|----------------------------------------------------------------------------------------------------------------------------------|---------------------|
 | TBD-2 | Minimum Android version (minSdk). Tracked in NKMA-24.                                                                            | Build config        |
-| TBD-3 | Google Play server-side integration: how the backend learns of renewals, cancellations, expiry and refunds (real-time developer notifications endpoint, its authentication, scheduled reconciliation), service account, test environment. | UC-31, UC-32 |
 
 ## 11. Changelog
 
@@ -461,3 +460,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 23-11-2026 | UC-39 delete own account added and *Hapus Akun* listed under *Akun* (§6a); the screen follows the permission table row of 18-11-2026. | NKMA-121 |
 | 23-11-2026 | Links open in the app: an invitation, reset or email-change link is routed by the session to the existing screens with its token (§7); the paste flows remain for links opened elsewhere. | NKMA-118 |
 | 23-11-2026 | UC-31 rewritten for the built screens: current subscription, plans with a period filter, upgrade through an order summary, and a scheduled downgrade with the properties and rooms to keep. UC-32 (payment) follows separately. | NKMA-77 |
+| 23-11-2026 | UC-32 rewritten for Google Play Billing: the purchase sheet, verification of the purchase token by the API and the order outcomes; TBD-3 removed because the backend decided it. | NKMA-78 |

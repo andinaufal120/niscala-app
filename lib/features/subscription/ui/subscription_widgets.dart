@@ -6,19 +6,22 @@ import 'package:niscala/features/subscription/subscription_labels.dart';
 import 'package:niscala_api/api.dart';
 
 /// The plan, status and renewal of the subscription, with its scheduled
-/// downgrade and open order. [error] is a failed cancellation.
+/// downgrade and open order. [onPay] starts the payment of the open order.
+/// [error] is a failed cancellation.
 class CurrentStatus extends StatelessWidget {
   const CurrentStatus({
     super.key,
     required this.subscription,
     required this.cancelling,
     required this.onCancelDowngrade,
+    required this.onPay,
     this.error,
   });
 
   final Subscription subscription;
   final bool cancelling;
   final VoidCallback onCancelDowngrade;
+  final ValueChanged<SubscriptionOrder> onPay;
   final String? error;
 
   @override
@@ -62,6 +65,11 @@ class CurrentStatus extends StatelessWidget {
           Text(
             'Pesanan paket ${planName(order.planCode.value)} '
             '(${periodName(order.billingPeriod)}) menunggu pembayaran.',
+          ),
+          const SizedBox(height: NiscalaSpacing.s),
+          FilledButton(
+            onPressed: () => onPay(order),
+            child: const Text('Bayar'),
           ),
         ],
         if (error != null) ...[formGap, FormMessage(error)],
