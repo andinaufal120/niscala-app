@@ -10,6 +10,7 @@ import 'package:niscala/core/api/api_failure.dart';
 import 'package:niscala/core/api/error_messages.dart';
 import 'package:niscala/core/api/health_repository.dart';
 import 'package:niscala/core/billing/play_billing.dart';
+import 'package:niscala/core/external_link.dart';
 import 'package:niscala/core/google/google_identity.dart';
 import 'package:niscala/core/push/push_messaging.dart';
 import 'package:niscala/core/screen_brightness.dart';
@@ -3943,6 +3944,24 @@ class FakeScreenBrightness implements ScreenBrightnessControl {
   }
 }
 
+/// An [ExternalLinkOpener] that never touches the platform. It records every
+/// [open] call in [opened], in order, before it answers.
+///
+/// [open] returns [result]; set [failure] to make it throw that value instead
+/// (asynchronously, as a failed future).
+class FakeExternalLinkOpener implements ExternalLinkOpener {
+  final opened = <Uri>[];
+  bool result = true;
+  Object? failure;
+
+  @override
+  Future<bool> open(Uri uri) async {
+    opened.add(uri);
+    if (failure != null) throw failure!;
+    return result;
+  }
+}
+
 /// The whole app with a fake session store and no network.
 ///
 /// Without [health] every server check succeeds.
@@ -3956,6 +3975,9 @@ class FakeScreenBrightness implements ScreenBrightnessControl {
 ///
 /// Without [screenBrightness] the app gets a [FakeScreenBrightness], so the
 /// screen brightness of the platform is never touched.
+///
+/// Without [externalLinks] the app gets a [FakeExternalLinkOpener], so no
+/// browser is ever opened.
 Widget buildTestApp({
   SessionStore? store,
   Future<AuthTokens> Function(String refreshToken)? refresh,
@@ -3982,6 +4004,7 @@ Widget buildTestApp({
   ImageChooser? receiptPicker,
   Future<void> Function(String text)? invitationSharer,
   ScreenBrightnessControl? screenBrightness,
+  ExternalLinkOpener? externalLinks,
 }) {
   return ProviderScope(
     overrides: [
@@ -4042,6 +4065,9 @@ Widget buildTestApp({
       ),
       screenBrightnessProvider.overrideWithValue(
         screenBrightness ?? FakeScreenBrightness(),
+      ),
+      externalLinkOpenerProvider.overrideWithValue(
+        externalLinks ?? FakeExternalLinkOpener(),
       ),
       if (logout != null) logoutProvider.overrideWithValue(logout),
     ],
