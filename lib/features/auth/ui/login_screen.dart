@@ -18,6 +18,8 @@ const _googleAccountNotRegistered =
     'Akun Google ini belum terdaftar. Daftar atau aktifkan akun lewat tautan '
     'undangan dulu.';
 
+const _accountDeletedNotice = 'Akun Anda sudah dihapus.';
+
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -114,6 +116,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final accountDeleted = switch (ref.watch(sessionControllerProvider)) {
+      SignedOut(:final accountDeleted) => accountDeleted,
+      _ => false,
+    };
     return Scaffold(
       body: SafeArea(
         child: LayoutBuilder(
@@ -130,6 +136,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          if (accountDeleted) ...[
+                            const FormMessage(
+                              _accountDeletedNotice,
+                              isError: false,
+                            ),
+                            formGap,
+                          ],
                           const SizedBox(height: 28),
                           const Align(
                             alignment: Alignment.centerLeft,

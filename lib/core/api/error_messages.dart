@@ -120,6 +120,11 @@ const _messages = {
   'NOTIFICATION_CATEGORIES_INVALID': 'Pengaturan notifikasi tidak sesuai dengan peran Anda. Muat ulang dan coba lagi.',
   'OWNER_HAS_ACTIVE_LEASE':
       'Pemilik ini masih memiliki properti dengan masa sewa aktif.',
+  'TENANT_HAS_ACTIVE_LEASE':
+      'Penyewa ini masih punya sewa aktif. Akhiri sewa itu lebih dulu.',
+  'SUBSCRIPTION_AUTO_RENEWING':
+      'Langganan Google Play masih berjalan otomatis. Batalkan langganan di '
+      'Google Play lebih dulu.',
   'MANAGER_ALREADY_ADDED': 'Anda sudah menjadi pengelola untuk pemilik ini.',
   'NO_ACTIVE_LEASE':
       'Anda belum memiliki masa sewa aktif. Hubungi pengelola kost.',

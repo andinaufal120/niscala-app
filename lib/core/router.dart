@@ -16,6 +16,7 @@ import 'package:niscala/features/auth/ui/register_owner_screen.dart';
 import 'package:niscala/features/account/ui/active_sessions_screen.dart';
 import 'package:niscala/features/account/ui/add_password_screen.dart';
 import 'package:niscala/features/account/ui/change_password_screen.dart';
+import 'package:niscala/features/account/ui/delete_account_screen.dart';
 import 'package:niscala/features/account/ui/link_google_screen.dart';
 import 'package:niscala/features/auth/ui/verify_email_screen.dart';
 import 'package:niscala/features/complaints/ui/complaint_form_screen.dart';
@@ -94,6 +95,7 @@ const _managementRoutes = {
   '/akun/tambah-kata-sandi',
   '/akun/hubungkan-google',
   '/akun/undangan',
+  '/akun/hapus-akun',
 };
 const _tenantRoutes = {
   _tenantHome,
@@ -104,6 +106,7 @@ const _tenantRoutes = {
   '/penyewa/akun/tambah-kata-sandi',
   '/penyewa/akun/hubungkan-google',
   '/penyewa/akun/undangan',
+  '/penyewa/akun/hapus-akun',
 };
 
 /// [root] itself or any location below it.
@@ -228,6 +231,10 @@ StatefulShellBranch _accountBranch(String path, {bool showLease = false}) =>
             _subPage(
               path: 'undangan',
               builder: (context, state) => const AcceptInvitationScreen(),
+            ),
+            _subPage(
+              path: 'hapus-akun',
+              builder: (context, state) => const DeleteAccountScreen(),
             ),
             _subPage(
               path: 'notifikasi',

@@ -44,6 +44,10 @@ abstract interface class AccountRepository {
   /// Confirms the caller's identity with the Google account of [idToken], for
   /// an account that has no password.
   Future<void> reauthenticateWithGoogle(String idToken);
+
+  /// Deletes the account of the caller. Fails with the code of the refusal,
+  /// such as `TENANT_HAS_ACTIVE_LEASE`, when the account cannot be deleted yet.
+  Future<void> deleteMyAccount();
 }
 
 final accountRepositoryProvider = Provider<AccountRepository>((ref) {
@@ -139,6 +143,12 @@ class ApiAccountRepository implements AccountRepository {
       ReauthenticationGoogleInput(idToken: idToken),
     );
   });
+
+  /// The endpoint is filed under the tenants tag of the backend, so it is
+  /// called through a [TenantsApi] on the same client, and nowhere else.
+  @override
+  Future<void> deleteMyAccount() =>
+      _guard(() => TenantsApi(accountApi.apiClient).deleteMyAccount());
 
   Future<T> _guard<T>(Future<T> Function() call) async {
     try {
