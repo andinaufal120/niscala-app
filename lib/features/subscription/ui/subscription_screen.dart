@@ -11,7 +11,9 @@ import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/section_card.dart';
 import 'package:niscala/features/subscription/data/subscription_repository.dart';
 import 'package:niscala/features/subscription/subscription_labels.dart';
+import 'package:niscala/features/subscription/subscription_payment_controller.dart';
 import 'package:niscala/features/subscription/ui/order_summary_sheet.dart';
+import 'package:niscala/features/subscription/ui/payment_sheet.dart';
 import 'package:niscala/features/subscription/ui/subscription_widgets.dart';
 import 'package:niscala_api/api.dart';
 
@@ -67,8 +69,28 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     );
   }
 
+  void _pay(SubscriptionOrder order) {
+    ref.read(subscriptionPaymentProvider.notifier).pay(order);
+  }
+
+  /// Shows the payment sheet when a payment reaches a phase with a sheet. The
+  /// sheet is not dismissed by a tap outside it, so each phase has its own button.
+  void _showPaymentSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (_) => const PaymentSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen(subscriptionPaymentProvider, (previous, next) {
+      if (next.showsSheet && !(previous?.showsSheet ?? false)) {
+        _showPaymentSheet();
+      }
+    });
     final subscription = ref.watch(subscriptionProvider);
     final plans = ref.watch(subscriptionPlansProvider);
     return Scaffold(
@@ -113,6 +135,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
               subscription: current,
               cancelling: _cancelling,
               onCancelDowngrade: _cancelDowngrade,
+              onPay: _pay,
               error: _error,
             ),
           ),

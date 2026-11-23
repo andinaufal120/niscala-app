@@ -13,6 +13,7 @@ lib/
     api/                     # HTTP client, error mapping, providers for the generated client
     session/                 # tokens, secure storage, session state
     push/                    # FCM token registration and opened pushes, behind PushMessaging
+    billing/                 # Google Play Billing purchases, behind PlayBilling
     shell/                   # bottom-navigation shells and the account screen
     widgets/                 # shared widgets (status badge, empty/error states, dialogs, the re-authentication dialog)
     router.dart              # routes and the role-based redirect
@@ -28,7 +29,7 @@ test/                        # mirrors lib/; shared helpers in test/helpers/
 
 ## 2. Stack
 
-Riverpod 3 (no code generation) for state and dependency injection, `go_router` for navigation, `flutter_secure_storage` for tokens, `device_info_plus` for the device sent at login, `google_sign_in` for Google ID tokens (behind `GoogleIdentity`), `firebase_messaging` for push (FCM, Android; `android/app/google-services.json` is local and not committed), `intl` with `flutter_localizations` for Indonesian formatting. Plus Jakarta Sans is bundled under `assets/fonts/`; the app fetches no fonts at run time.
+Riverpod 3 (no code generation) for state and dependency injection, `go_router` for navigation, `flutter_secure_storage` for tokens, `device_info_plus` for the device sent at login, `google_sign_in` for Google ID tokens (behind `GoogleIdentity`), `firebase_messaging` for push (FCM, Android; `android/app/google-services.json` is local and not committed), `in_app_purchase` for Google Play Billing (behind `PlayBilling`; the API verifies the purchase token), `intl` with `flutter_localizations` for Indonesian formatting. Plus Jakarta Sans is bundled under `assets/fonts/`; the app fetches no fonts at run time.
 
 ## 3. The API boundary
 
@@ -71,8 +72,8 @@ Links that Android opens in the app (invitation, password reset and email change
 
 ## 6. Testing
 
-Tests are written before the code (`CLAUDE.md`, Workflow). Widget tests override the providers that cross the boundary (`sessionStoreProvider`, `refreshTokensProvider`, `logoutProvider`, `healthRepositoryProvider`, `googleIdentityProvider`, and each feature's repository provider) with fakes from `test/helpers/fakes.dart`; no test calls a real server.
+Tests are written before the code (`CLAUDE.md`, Workflow). Widget tests override the providers that cross the boundary (`sessionStoreProvider`, `refreshTokensProvider`, `logoutProvider`, `healthRepositoryProvider`, `googleIdentityProvider`, `playBillingProvider`, and each feature's repository provider) with fakes from `test/helpers/fakes.dart`; no test calls a real server.
 
 ## 7. Open points
 
-The minimum Android version (TBD-2) and the Google Play integration of the backend (TBD-3) are in `docs/SPEC.md` §10.
+The minimum Android version (TBD-2) is in `docs/SPEC.md` §10.

@@ -21,6 +21,13 @@ abstract interface class SubscriptionRepository {
 
   Future<SubscriptionOrder> order(String id);
 
+  /// Verifies a Google Play [purchaseToken] of the order [orderId] and returns
+  /// the order as the backend now has it.
+  Future<SubscriptionOrder> verifyPurchase({
+    required String orderId,
+    required String purchaseToken,
+  });
+
   /// Schedules a downgrade at the end of the paid period. [keptPropertyIds] and
   /// [keptRoomIds] are the properties and rooms that stay editable.
   Future<ScheduledDowngrade> scheduleDowngrade({
@@ -100,6 +107,17 @@ class ApiSubscriptionRepository implements SubscriptionRepository {
   @override
   Future<SubscriptionOrder> order(String id) => _guard(() async {
     return (await subscriptions.getSubscriptionOrder(id))!;
+  });
+
+  @override
+  Future<SubscriptionOrder> verifyPurchase({
+    required String orderId,
+    required String purchaseToken,
+  }) => _guard(() async {
+    return (await subscriptions.verifySubscriptionPurchase(
+      orderId,
+      PurchaseVerificationInput(purchaseToken: purchaseToken),
+    ))!;
   });
 
   @override

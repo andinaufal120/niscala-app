@@ -28,12 +28,14 @@ Future<void> pumpSubscriptionApp(
   String path = subscriptionPath,
   FakePropertyRepository? properties,
   FakeRoomRepository? rooms,
+  FakePlayBilling? playBilling,
   bool settle = true,
   bool largeText = false,
 }) async {
   final app = buildTestApp(
     store: InMemorySessionStore(storedSession(role: role)),
     subscriptions: subscriptions,
+    playBilling: playBilling,
     properties: properties ?? ownerPropertiesForPlans(),
     rooms: rooms ?? FakeRoomRepository(),
   );
