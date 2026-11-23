@@ -6,6 +6,7 @@ import 'package:niscala/core/navigation.dart';
 import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/full_brightness.dart';
 import 'package:niscala/features/tenants/data/invitation_sharing.dart';
 import 'package:niscala/features/tenants/data/tenant_repository.dart';
 import 'package:niscala/features/tenants/tenant_format.dart';
@@ -28,18 +29,20 @@ class InvitationQrScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tenant = ref.watch(tenantDetailProvider(tenantId));
-    return Scaffold(
-      appBar: const DetailAppBar(title: 'Kode QR undangan'),
-      body: tenant.when(
-        skipLoadingOnReload: true,
-        loading: () => const Center(
-          child: CircularProgressIndicator(semanticsLabel: 'Memuat'),
+    return FullBrightness(
+      child: Scaffold(
+        appBar: const DetailAppBar(title: 'Kode QR undangan'),
+        body: tenant.when(
+          skipLoadingOnReload: true,
+          loading: () => const Center(
+            child: CircularProgressIndicator(semanticsLabel: 'Memuat'),
+          ),
+          error: (error, _) => ErrorView(
+            message: errorMessageFor(error),
+            onRetry: () => ref.invalidate(tenantDetailProvider(tenantId)),
+          ),
+          data: (t) => _body(context, ref, t),
         ),
-        error: (error, _) => ErrorView(
-          message: errorMessageFor(error),
-          onRetry: () => ref.invalidate(tenantDetailProvider(tenantId)),
-        ),
-        data: (t) => _body(context, ref, t),
       ),
     );
   }
