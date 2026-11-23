@@ -2770,6 +2770,20 @@ class FakeAccountRepository implements AccountRepository {
     final failure = await reauthScript.next();
     if (failure != null) throw failure;
   }
+
+  final deleteAccountScript = CallScript();
+
+  int get deleteAccountCalls =>
+      calls.where((c) => c == 'deleteMyAccount').length;
+
+  /// Recorded as `deleteMyAccount` in [calls], whether it succeeds or not;
+  /// scripted by [deleteAccountScript]. A success changes nothing else.
+  @override
+  Future<void> deleteMyAccount() async {
+    calls.add('deleteMyAccount');
+    final failure = await deleteAccountScript.next();
+    if (failure != null) throw failure;
+  }
 }
 
 /// An [OccupancyRoom] with sensible defaults: room 08, occupied.

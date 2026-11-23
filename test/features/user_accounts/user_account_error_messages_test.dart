@@ -28,12 +28,12 @@ void main() {
     );
   });
 
-  test('a tenant with an active lease falls back to the generic message', () {
+  test('a tenant with an active lease has its own Indonesian message', () {
     expect(
       errorMessageFor(
         const ApiFailure(code: 'TENANT_HAS_ACTIVE_LEASE', statusCode: 409),
       ),
-      genericErrorMessage,
+      'Penyewa ini masih punya sewa aktif. Akhiri sewa itu lebih dulu.',
     );
   });
 
