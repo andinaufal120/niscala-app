@@ -56,6 +56,20 @@ final refreshTokensProvider = Provider<Future<AuthTokens> Function(String)>((
 final sessionControllerProvider =
     NotifierProvider<SessionController, SessionState>(SessionController.new);
 
+/// Rises on every sign-in. Providers that hold one user's data are rebuilt when
+/// it rises, so the next user starts with an empty cache. Nothing is rebuilt on
+/// sign-out, so no request is sent while signed out.
+final sessionGenerationProvider = NotifierProvider<SessionGeneration, int>(
+  SessionGeneration.new,
+);
+
+class SessionGeneration extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void advance() => state++;
+}
+
 /// The role of the signed-in user, or null when no one is signed in.
 final currentRoleProvider = Provider<UserRole?>((ref) {
   return switch (ref.watch(sessionControllerProvider)) {
@@ -90,6 +104,9 @@ class SessionController extends Notifier<SessionState> implements TokenSource {
     );
     await _store.write(stored);
     _session = stored;
+    // Raised before the state is published, so a listener of SignedIn already
+    // sees the new generation and the new access token.
+    ref.read(sessionGenerationProvider.notifier).advance();
     state = _stateFor(stored);
   }
 
