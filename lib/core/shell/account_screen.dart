@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:niscala/core/api/api_providers.dart';
 import 'package:niscala/core/api/error_messages.dart';
+import 'package:niscala/core/external_link.dart';
 import 'package:niscala/core/session/session_controller.dart';
 import 'package:niscala/core/tokens.dart';
 import 'package:niscala/core/widgets/action_card_row.dart';
 import 'package:niscala/core/widgets/danger_button.dart';
 import 'package:niscala/core/widgets/error_view.dart';
+import 'package:niscala/core/widgets/failure_dialog.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/screen_header.dart';
 import 'package:niscala/core/widgets/section_card.dart';
@@ -124,6 +126,15 @@ class AccountScreen extends ConsumerWidget {
                   if (canDeleteAccount) ...[
                     const SizedBox(height: NiscalaSpacing.l),
                     ActionCardRow(
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'Kebijakan Privasi',
+                      subtitle: 'Baca bagaimana Niscala memakai data Anda',
+                      trailingIcon: Icons.open_in_new,
+                      hint: 'Membuka di peramban',
+                      onTap: () => _openPrivacyPolicy(context, ref),
+                    ),
+                    const SizedBox(height: NiscalaSpacing.l),
+                    ActionCardRow(
                       icon: Icons.delete_outline,
                       title: 'Hapus akun',
                       subtitle:
@@ -160,6 +171,26 @@ class AccountScreen extends ConsumerWidget {
 
   void _openSubPage(BuildContext context, WidgetRef ref, String subPath) =>
       context.go('${accountTabPath(ref.read(currentRoleProvider))}/$subPath');
+
+  /// Opens the privacy policy in the browser. When the browser cannot open it,
+  /// the user is told so and can try again.
+  Future<void> _openPrivacyPolicy(BuildContext context, WidgetRef ref) async {
+    var opened = false;
+    try {
+      opened = await ref
+          .read(externalLinkOpenerProvider)
+          .open(privacyPolicyUri);
+    } on Object {
+      // A launch that throws counts as not opened, so the user is told below.
+    }
+    if (!opened && context.mounted) {
+      await showFailureDialog(
+        context,
+        title: 'Halaman tidak bisa dibuka',
+        message: 'Tidak dapat membuka halaman. Coba lagi.',
+      );
+    }
+  }
 
   /// The password and Google rows of the Keamanan section. The password is
   /// set or added, and Google is linked, shown with its email, or offered to

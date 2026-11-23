@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:niscala/core/tokens.dart';
 
 /// A tappable card row with a leading icon, a bold [title], a [subtitle] and a
-/// chevron. Screen readers get it as one button. A [filled] row is white on the
-/// primary colour; otherwise it is dark on white with an outline.
+/// trailing icon, a chevron by default. Screen readers get it as one button,
+/// with the [hint] when given. A [filled] row is white on the primary colour;
+/// otherwise it is dark on white with an outline.
 class ActionCardRow extends StatelessWidget {
   const ActionCardRow({
     super.key,
@@ -11,6 +12,8 @@ class ActionCardRow extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.trailingIcon = Icons.chevron_right,
+    this.hint,
     this.filled = false,
   });
 
@@ -18,6 +21,8 @@ class ActionCardRow extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback? onTap;
+  final IconData trailingIcon;
+  final String? hint;
   final bool filled;
 
   @override
@@ -28,6 +33,7 @@ class ActionCardRow extends StatelessWidget {
     return MergeSemantics(
       child: Semantics(
         button: true,
+        hint: hint,
         child: Material(
           color: filled ? NiscalaColors.primary : NiscalaColors.surface,
           shape: RoundedRectangleBorder(
@@ -65,7 +71,7 @@ class ActionCardRow extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: NiscalaSpacing.s),
-                  Icon(Icons.chevron_right, color: foreground),
+                  Icon(trailingIcon, color: foreground),
                 ],
               ),
             ),

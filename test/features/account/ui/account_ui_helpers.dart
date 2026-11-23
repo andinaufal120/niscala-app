@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:niscala/core/external_link.dart';
 import 'package:niscala_api/api.dart';
 
 import '../../../helpers/a11y.dart';
@@ -29,10 +30,12 @@ Future<void> pumpAccountApp(
   FakeLeaseRepository? leases,
   Future<void> Function()? logout,
   FakeGoogleIdentity? google,
+  ExternalLinkOpener? externalLinks,
   bool settle = true,
   bool largeText = false,
 }) async {
   final app = buildTestApp(
+    externalLinks: externalLinks,
     store: InMemorySessionStore(storedSession(role: role)),
     accounts: accounts,
     leases: leases ?? FakeLeaseRepository(lease: makeCurrentLease()),

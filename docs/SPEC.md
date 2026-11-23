@@ -177,7 +177,7 @@ Bottom navigation:
 
 Tenant *Beranda*: a greeting with the tenant's name and, for each active lease, its property and room; the first bill of *Tagihan aktif* (UC-04) with amount, due date, days overdue when the API reports them, and the UC-05 upload action or the pay-cash note; a link to *Riwayat*; the latest complaint with its status and handling note, and *Ajukan Keluhan* (UC-02) for a tenant with at least one active lease. Without an active lease it shows the UC-01 message to contact management.
 
-*Akun (Account)*, for every role: profile; security (Google and local password, active devices (UC-37), change password (UC-38)); help; notifications; log out. Every role except Admin also has *Hapus Akun (Delete account)* (UC-39). In addition:
+*Akun (Account)*, for every role: profile; security (Google and local password, active devices (UC-37), change password (UC-38)); help; notifications; log out. Every role except Admin also has *Kebijakan Privasi (Privacy policy)*, which opens `https://niscala.andinaufal.com/privacy/` in the browser, and *Hapus Akun (Delete account)* (UC-39). In addition:
 - Owner: *Langganan (Subscription)*.
 - Manager: their assigned properties, read-only.
 - Tenant: room and lease details of each active lease (UC-01).
@@ -462,3 +462,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 23-11-2026 | UC-31 rewritten for the built screens: current subscription, plans with a period filter, upgrade through an order summary, and a scheduled downgrade with the properties and rooms to keep. UC-32 (payment) follows separately. | NKMA-77 |
 | 23-11-2026 | UC-32 rewritten for Google Play Billing: the purchase sheet, verification of the purchase token by the API and the order outcomes; TBD-3 removed because the backend decided it. | NKMA-78 |
 | 23-11-2026 | The invitation QR screen raises the screen brightness while it is open (UC-18, also used by UC-27). | — |
+| 23-11-2026 | *Akun* has *Kebijakan Privasi*, which opens the policy published at https://niscala.andinaufal.com/privacy/ in the browser (§6a). | — |
