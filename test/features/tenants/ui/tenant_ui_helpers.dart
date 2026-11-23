@@ -89,8 +89,10 @@ Future<void> pumpTenantApp(
   bool settle = true,
   bool largeText = false,
   ShareRecorder? sharer,
+  FakeScreenBrightness? screenBrightness,
 }) async {
   final app = buildTestApp(
+    screenBrightness: screenBrightness,
     store: InMemorySessionStore(storedSession(role: role)),
     properties: properties ?? propertiesWithMelati(),
     rooms: rooms ?? FakeRoomRepository(rooms: tenantRooms()),

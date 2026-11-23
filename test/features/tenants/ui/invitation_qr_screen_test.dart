@@ -14,6 +14,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../helpers/a11y.dart';
 import '../../../helpers/fakes.dart';
+import '../../../helpers/lifecycle.dart';
 import 'tenant_ui_helpers.dart';
 
 const _url = 'https://niscala.example/undangan/abc123';
@@ -32,11 +33,13 @@ Future<void> _open(
   ShareRecorder? sharer,
   bool settle = true,
   bool largeText = false,
+  FakeScreenBrightness? screenBrightness,
 }) => pumpTenantApp(
   tester,
   repo,
   role: role,
   sharer: sharer,
+  screenBrightness: screenBrightness,
   path: '/properti/p1/penyewa/t1/undangan/qr',
   settle: settle,
   largeText: largeText,
@@ -345,6 +348,199 @@ void main() {
       await _open(tester, _repo());
 
       expectCardLook(tester, find.byType(Card));
+    });
+  });
+
+  group('screen brightness', () {
+    setUp(() {
+      moveLifecycleTo(
+        TestWidgetsFlutterBinding.ensureInitialized(),
+        AppLifecycleState.resumed,
+      );
+    });
+
+    void lifecycle(WidgetTester tester, AppLifecycleState state) =>
+        moveLifecycleTo(tester.binding, state);
+
+    testWidgets('opening the screen raises the brightness exactly once', (
+      tester,
+    ) async {
+      final brightness = FakeScreenBrightness();
+      await _open(tester, _repo(), screenBrightness: brightness);
+
+      expect(brightness.events, ['raise']);
+    });
+
+    testWidgets('a manager opening the screen raises it as well', (
+      tester,
+    ) async {
+      final brightness = FakeScreenBrightness();
+      await _open(
+        tester,
+        _repo(),
+        role: UserRole.manager,
+        screenBrightness: brightness,
+      );
+
+      expect(brightness.events, ['raise']);
+    });
+
+    testWidgets('going back restores the brightness exactly once', (
+      tester,
+    ) async {
+      final brightness = FakeScreenBrightness();
+      await _open(tester, _repo(), screenBrightness: brightness);
+
+      await pressBack(tester);
+
+      expect(find.byType(InvitationQrScreen), findsNothing);
+      expect(brightness.events, ['raise', 'restore']);
+    });
+
+    testWidgets('Tutup restores the brightness exactly once', (tester) async {
+      final brightness = FakeScreenBrightness();
+      await _open(tester, _repo(), screenBrightness: brightness);
+
+      await tapVisible(tester, find.text('Tutup'));
+
+      expect(find.byType(InvitationQrScreen), findsNothing);
+      expect(brightness.events, ['raise', 'restore']);
+    });
+
+    testWidgets('a tenant without an invitation raises it too', (tester) async {
+      final brightness = FakeScreenBrightness();
+      final repo = FakeTenantRepository(
+        tenants: [makeTenant(id: 't1', withoutInvitation: true)],
+      );
+      await _open(tester, repo, screenBrightness: brightness);
+
+      expect(find.text('Tautan undangan belum tersedia.'), findsOneWidget);
+      expect(brightness.events, ['raise']);
+    });
+
+    testWidgets('while loading it is raised once and not again when the '
+        'tenant arrives', (tester) async {
+      final brightness = FakeScreenBrightness();
+      final gate = Completer<void>();
+      final repo = _repo()..getScript.gate = gate;
+      await _open(tester, repo, settle: false, screenBrightness: brightness);
+
+      expect(brightness.events, ['raise']);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(QrImageView), findsOneWidget);
+      expect(brightness.events, ['raise']);
+    });
+
+    testWidgets('when loading fails it is raised, and Coba lagi does not '
+        'raise it again', (tester) async {
+      final brightness = FakeScreenBrightness();
+      final repo = _repo()..getScript.queue.add(const ApiFailure.network());
+      await _open(tester, repo, screenBrightness: brightness);
+
+      expect(find.byType(ErrorView), findsOneWidget);
+      expect(brightness.events, ['raise']);
+
+      await tester.tap(find.text('Coba lagi'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(QrImageView), findsOneWidget);
+      expect(brightness.events, ['raise']);
+    });
+
+    testWidgets('a missing tenant raises it and going back restores it', (
+      tester,
+    ) async {
+      final brightness = FakeScreenBrightness();
+      await _open(tester, FakeTenantRepository(), screenBrightness: brightness);
+
+      expect(brightness.events, ['raise']);
+
+      await pressBack(tester);
+
+      expect(brightness.events, ['raise', 'restore']);
+    });
+
+    testWidgets('sharing leaves the brightness alone', (tester) async {
+      final brightness = FakeScreenBrightness();
+      await _open(
+        tester,
+        _repo(),
+        sharer: ShareRecorder(),
+        screenBrightness: brightness,
+      );
+
+      await tapVisible(tester, find.text('Bagikan via WhatsApp'));
+
+      expect(brightness.events, ['raise']);
+    });
+
+    testWidgets('going to the background restores it and resuming raises it '
+        'again', (tester) async {
+      final brightness = FakeScreenBrightness();
+      await _open(tester, _repo(), screenBrightness: brightness);
+
+      lifecycle(tester, AppLifecycleState.paused);
+      await tester.pump();
+
+      expect(brightness.events, ['raise', 'restore']);
+
+      lifecycle(tester, AppLifecycleState.resumed);
+      await tester.pump();
+
+      expect(brightness.events, ['raise', 'restore', 'raise']);
+    });
+
+    testWidgets('going back after a background round trip restores once more', (
+      tester,
+    ) async {
+      final brightness = FakeScreenBrightness();
+      await _open(tester, _repo(), screenBrightness: brightness);
+      lifecycle(tester, AppLifecycleState.paused);
+      lifecycle(tester, AppLifecycleState.resumed);
+      await tester.pump();
+
+      await pressBack(tester);
+
+      expect(brightness.events, ['raise', 'restore', 'raise', 'restore']);
+    });
+
+    testWidgets('a failing raise still shows the QR code and the link', (
+      tester,
+    ) async {
+      final brightness = FakeScreenBrightness()
+        ..raiseFailure = Exception('no window');
+      await _open(tester, _repo(), screenBrightness: brightness);
+
+      expect(tester.takeException(), isNull);
+      expect(brightness.events, ['raise']);
+      expect(find.byType(QrImageView), findsOneWidget);
+      expect(find.text(_url), findsOneWidget);
+      expect(find.text('Bagikan via WhatsApp'), findsOneWidget);
+    });
+
+    testWidgets('a failing restore does not stop going back', (tester) async {
+      final brightness = FakeScreenBrightness()
+        ..restoreFailure = Exception('no window');
+      await _open(tester, _repo(), screenBrightness: brightness);
+
+      await pressBack(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(InvitationShareScreen), findsOneWidget);
+      expect(brightness.events, ['raise', 'restore']);
+    });
+
+    testWidgets('meets the guidelines while the brightness cannot be raised', (
+      tester,
+    ) async {
+      final brightness = FakeScreenBrightness()
+        ..raiseFailure = Exception('no window');
+      await _open(tester, _repo(), screenBrightness: brightness);
+
+      await expectMeetsA11yGuidelines(tester);
     });
   });
 
