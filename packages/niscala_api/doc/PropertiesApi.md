@@ -109,7 +109,7 @@ void (empty response body)
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -208,7 +208,7 @@ This endpoint does not need any parameter.
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **updateProperty**
-> Property updateProperty(propertyId, propertyInput)
+> Property updateProperty(propertyId, propertyInput, ifMatch)
 
 Update Property
 
@@ -227,9 +227,10 @@ import 'package:niscala_api/api.dart';
 final api_instance = PropertiesApi();
 final propertyId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 final propertyInput = PropertyInput(); // PropertyInput | 
+final ifMatch = ifMatch_example; // String | The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.
 
 try {
-    final result = api_instance.updateProperty(propertyId, propertyInput);
+    final result = api_instance.updateProperty(propertyId, propertyInput, ifMatch);
     print(result);
 } catch (e) {
     print('Exception when calling PropertiesApi->updateProperty: $e\n');
@@ -242,6 +243,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **propertyId** | **String**|  | 
  **propertyInput** | [**PropertyInput**](PropertyInput.md)|  | 
+ **ifMatch** | **String**| The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version. | [optional] 
 
 ### Return type
 

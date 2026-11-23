@@ -10,9 +10,9 @@
 
 part of niscala_api;
 
+
 class RentBillsApi {
-  RentBillsApi([ApiClient? apiClient])
-      : apiClient = apiClient ?? defaultApiClient;
+  RentBillsApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
 
   final ApiClient apiClient;
 
@@ -27,13 +27,10 @@ class RentBillsApi {
   /// * [String] rentBillId (required):
   ///
   /// * [PaymentStatusChangeInput] paymentStatusChangeInput (required):
-  Future<Response> changePaymentStatusWithHttpInfo(
-    String rentBillId,
-    PaymentStatusChangeInput paymentStatusChangeInput,
-  ) async {
+  Future<Response> changePaymentStatusWithHttpInfo(String rentBillId, PaymentStatusChangeInput paymentStatusChangeInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/rent-bills/{rentBillId}/status-changes'
-        .replaceAll('{rentBillId}', rentBillId);
+      .replaceAll('{rentBillId}', rentBillId);
 
     // ignore: prefer_final_locals
     Object? postBody = paymentStatusChangeInput;
@@ -43,6 +40,7 @@ class RentBillsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -64,26 +62,17 @@ class RentBillsApi {
   /// * [String] rentBillId (required):
   ///
   /// * [PaymentStatusChangeInput] paymentStatusChangeInput (required):
-  Future<RentBill?> changePaymentStatus(
-    String rentBillId,
-    PaymentStatusChangeInput paymentStatusChangeInput,
-  ) async {
-    final response = await changePaymentStatusWithHttpInfo(
-      rentBillId,
-      paymentStatusChangeInput,
-    );
+  Future<RentBill?> changePaymentStatus(String rentBillId, PaymentStatusChangeInput paymentStatusChangeInput,) async {
+    final response = await changePaymentStatusWithHttpInfo(rentBillId, paymentStatusChangeInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'RentBill',
-      ) as RentBill;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'RentBill',) as RentBill;
+    
     }
     return null;
   }
@@ -99,13 +88,10 @@ class RentBillsApi {
   /// * [String] propertyId (required):
   ///
   /// * [DateTime] date:
-  Future<Response> getPaymentOverviewWithHttpInfo(
-    String propertyId, {
-    DateTime? date,
-  }) async {
+  Future<Response> getPaymentOverviewWithHttpInfo(String propertyId, { DateTime? date, }) async {
     // ignore: prefer_const_declarations
     final path = r'/properties/{propertyId}/payment-overview'
-        .replaceAll('{propertyId}', propertyId);
+      .replaceAll('{propertyId}', propertyId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -120,6 +106,7 @@ class RentBillsApi {
 
     const contentTypes = <String>[];
 
+
     return apiClient.invokeAPI(
       path,
       'GET',
@@ -140,26 +127,17 @@ class RentBillsApi {
   /// * [String] propertyId (required):
   ///
   /// * [DateTime] date:
-  Future<PaymentOverview?> getPaymentOverview(
-    String propertyId, {
-    DateTime? date,
-  }) async {
-    final response = await getPaymentOverviewWithHttpInfo(
-      propertyId,
-      date: date,
-    );
+  Future<PaymentOverview?> getPaymentOverview(String propertyId, { DateTime? date, }) async {
+    final response = await getPaymentOverviewWithHttpInfo(propertyId,  date: date, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'PaymentOverview',
-      ) as PaymentOverview;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'PaymentOverview',) as PaymentOverview;
+    
     }
     return null;
   }
@@ -173,12 +151,10 @@ class RentBillsApi {
   /// Parameters:
   ///
   /// * [String] propertyId (required):
-  Future<Response> getPaymentPatternsWithHttpInfo(
-    String propertyId,
-  ) async {
+  Future<Response> getPaymentPatternsWithHttpInfo(String propertyId,) async {
     // ignore: prefer_const_declarations
     final path = r'/properties/{propertyId}/payment-patterns'
-        .replaceAll('{propertyId}', propertyId);
+      .replaceAll('{propertyId}', propertyId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -188,6 +164,7 @@ class RentBillsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -207,24 +184,17 @@ class RentBillsApi {
   /// Parameters:
   ///
   /// * [String] propertyId (required):
-  Future<PaymentPatternList?> getPaymentPatterns(
-    String propertyId,
-  ) async {
-    final response = await getPaymentPatternsWithHttpInfo(
-      propertyId,
-    );
+  Future<PaymentPatternList?> getPaymentPatterns(String propertyId,) async {
+    final response = await getPaymentPatternsWithHttpInfo(propertyId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'PaymentPatternList',
-      ) as PaymentPatternList;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'PaymentPatternList',) as PaymentPatternList;
+    
     }
     return null;
   }
@@ -238,12 +208,10 @@ class RentBillsApi {
   /// Parameters:
   ///
   /// * [String] rentBillId (required):
-  Future<Response> getReceiptWithHttpInfo(
-    String rentBillId,
-  ) async {
+  Future<Response> getReceiptWithHttpInfo(String rentBillId,) async {
     // ignore: prefer_const_declarations
     final path = r'/rent-bills/{rentBillId}/receipt'
-        .replaceAll('{rentBillId}', rentBillId);
+      .replaceAll('{rentBillId}', rentBillId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -253,6 +221,7 @@ class RentBillsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -272,12 +241,8 @@ class RentBillsApi {
   /// Parameters:
   ///
   /// * [String] rentBillId (required):
-  Future<void> getReceipt(
-    String rentBillId,
-  ) async {
-    final response = await getReceiptWithHttpInfo(
-      rentBillId,
-    );
+  Future<void> getReceipt(String rentBillId,) async {
+    final response = await getReceiptWithHttpInfo(rentBillId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -292,12 +257,10 @@ class RentBillsApi {
   /// Parameters:
   ///
   /// * [String] rentBillId (required):
-  Future<Response> getRentBillWithHttpInfo(
-    String rentBillId,
-  ) async {
+  Future<Response> getRentBillWithHttpInfo(String rentBillId,) async {
     // ignore: prefer_const_declarations
-    final path =
-        r'/rent-bills/{rentBillId}'.replaceAll('{rentBillId}', rentBillId);
+    final path = r'/rent-bills/{rentBillId}'
+      .replaceAll('{rentBillId}', rentBillId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -307,6 +270,7 @@ class RentBillsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -326,24 +290,17 @@ class RentBillsApi {
   /// Parameters:
   ///
   /// * [String] rentBillId (required):
-  Future<RentBill?> getRentBill(
-    String rentBillId,
-  ) async {
-    final response = await getRentBillWithHttpInfo(
-      rentBillId,
-    );
+  Future<RentBill?> getRentBill(String rentBillId,) async {
+    final response = await getRentBillWithHttpInfo(rentBillId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'RentBill',
-      ) as RentBill;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'RentBill',) as RentBill;
+    
     }
     return null;
   }
@@ -361,11 +318,7 @@ class RentBillsApi {
   /// * [String] propertyId:
   ///
   /// * [List<PaymentStatus>] paymentStatus:
-  Future<Response> listRentBillsWithHttpInfo({
-    String? tenantId,
-    String? propertyId,
-    List<PaymentStatus>? paymentStatus,
-  }) async {
+  Future<Response> listRentBillsWithHttpInfo({ String? tenantId, String? propertyId, List<PaymentStatus>? paymentStatus, }) async {
     // ignore: prefer_const_declarations
     final path = r'/rent-bills';
 
@@ -388,6 +341,7 @@ class RentBillsApi {
 
     const contentTypes = <String>[];
 
+
     return apiClient.invokeAPI(
       path,
       'GET',
@@ -410,28 +364,17 @@ class RentBillsApi {
   /// * [String] propertyId:
   ///
   /// * [List<PaymentStatus>] paymentStatus:
-  Future<RentBillList?> listRentBills({
-    String? tenantId,
-    String? propertyId,
-    List<PaymentStatus>? paymentStatus,
-  }) async {
-    final response = await listRentBillsWithHttpInfo(
-      tenantId: tenantId,
-      propertyId: propertyId,
-      paymentStatus: paymentStatus,
-    );
+  Future<RentBillList?> listRentBills({ String? tenantId, String? propertyId, List<PaymentStatus>? paymentStatus, }) async {
+    final response = await listRentBillsWithHttpInfo( tenantId: tenantId, propertyId: propertyId, paymentStatus: paymentStatus, );
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'RentBillList',
-      ) as RentBillList;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'RentBillList',) as RentBillList;
+    
     }
     return null;
   }
@@ -447,13 +390,10 @@ class RentBillsApi {
   /// * [String] rentBillId (required):
   ///
   /// * [CashPaymentInput] cashPaymentInput (required):
-  Future<Response> recordCashPaymentWithHttpInfo(
-    String rentBillId,
-    CashPaymentInput cashPaymentInput,
-  ) async {
+  Future<Response> recordCashPaymentWithHttpInfo(String rentBillId, CashPaymentInput cashPaymentInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/rent-bills/{rentBillId}/cash-payment'
-        .replaceAll('{rentBillId}', rentBillId);
+      .replaceAll('{rentBillId}', rentBillId);
 
     // ignore: prefer_final_locals
     Object? postBody = cashPaymentInput;
@@ -464,6 +404,7 @@ class RentBillsApi {
 
     const contentTypes = <String>['application/json'];
 
+
     return apiClient.invokeAPI(
       path,
       'POST',
@@ -484,26 +425,17 @@ class RentBillsApi {
   /// * [String] rentBillId (required):
   ///
   /// * [CashPaymentInput] cashPaymentInput (required):
-  Future<RentBill?> recordCashPayment(
-    String rentBillId,
-    CashPaymentInput cashPaymentInput,
-  ) async {
-    final response = await recordCashPaymentWithHttpInfo(
-      rentBillId,
-      cashPaymentInput,
-    );
+  Future<RentBill?> recordCashPayment(String rentBillId, CashPaymentInput cashPaymentInput,) async {
+    final response = await recordCashPaymentWithHttpInfo(rentBillId, cashPaymentInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'RentBill',
-      ) as RentBill;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'RentBill',) as RentBill;
+    
     }
     return null;
   }
@@ -519,13 +451,10 @@ class RentBillsApi {
   /// * [String] rentBillId (required):
   ///
   /// * [ReceiptRejectionInput] receiptRejectionInput (required):
-  Future<Response> rejectReceiptWithHttpInfo(
-    String rentBillId,
-    ReceiptRejectionInput receiptRejectionInput,
-  ) async {
+  Future<Response> rejectReceiptWithHttpInfo(String rentBillId, ReceiptRejectionInput receiptRejectionInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/rent-bills/{rentBillId}/rejection'
-        .replaceAll('{rentBillId}', rentBillId);
+      .replaceAll('{rentBillId}', rentBillId);
 
     // ignore: prefer_final_locals
     Object? postBody = receiptRejectionInput;
@@ -535,6 +464,7 @@ class RentBillsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -556,26 +486,17 @@ class RentBillsApi {
   /// * [String] rentBillId (required):
   ///
   /// * [ReceiptRejectionInput] receiptRejectionInput (required):
-  Future<RentBill?> rejectReceipt(
-    String rentBillId,
-    ReceiptRejectionInput receiptRejectionInput,
-  ) async {
-    final response = await rejectReceiptWithHttpInfo(
-      rentBillId,
-      receiptRejectionInput,
-    );
+  Future<RentBill?> rejectReceipt(String rentBillId, ReceiptRejectionInput receiptRejectionInput,) async {
+    final response = await rejectReceiptWithHttpInfo(rentBillId, receiptRejectionInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'RentBill',
-      ) as RentBill;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'RentBill',) as RentBill;
+    
     }
     return null;
   }
@@ -591,13 +512,10 @@ class RentBillsApi {
   /// * [String] rentBillId (required):
   ///
   /// * [MultipartFile] file (required):
-  Future<Response> uploadReceiptWithHttpInfo(
-    String rentBillId,
-    MultipartFile file,
-  ) async {
+  Future<Response> uploadReceiptWithHttpInfo(String rentBillId, MultipartFile file,) async {
     // ignore: prefer_const_declarations
     final path = r'/rent-bills/{rentBillId}/receipt'
-        .replaceAll('{rentBillId}', rentBillId);
+      .replaceAll('{rentBillId}', rentBillId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -639,26 +557,17 @@ class RentBillsApi {
   /// * [String] rentBillId (required):
   ///
   /// * [MultipartFile] file (required):
-  Future<RentBill?> uploadReceipt(
-    String rentBillId,
-    MultipartFile file,
-  ) async {
-    final response = await uploadReceiptWithHttpInfo(
-      rentBillId,
-      file,
-    );
+  Future<RentBill?> uploadReceipt(String rentBillId, MultipartFile file,) async {
+    final response = await uploadReceiptWithHttpInfo(rentBillId, file,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'RentBill',
-      ) as RentBill;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'RentBill',) as RentBill;
+    
     }
     return null;
   }
@@ -672,12 +581,10 @@ class RentBillsApi {
   /// Parameters:
   ///
   /// * [String] rentBillId (required):
-  Future<Response> verifyReceiptWithHttpInfo(
-    String rentBillId,
-  ) async {
+  Future<Response> verifyReceiptWithHttpInfo(String rentBillId,) async {
     // ignore: prefer_const_declarations
     final path = r'/rent-bills/{rentBillId}/verification'
-        .replaceAll('{rentBillId}', rentBillId);
+      .replaceAll('{rentBillId}', rentBillId);
 
     // ignore: prefer_final_locals
     Object? postBody;
@@ -687,6 +594,7 @@ class RentBillsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>[];
+
 
     return apiClient.invokeAPI(
       path,
@@ -706,24 +614,17 @@ class RentBillsApi {
   /// Parameters:
   ///
   /// * [String] rentBillId (required):
-  Future<RentBill?> verifyReceipt(
-    String rentBillId,
-  ) async {
-    final response = await verifyReceiptWithHttpInfo(
-      rentBillId,
-    );
+  Future<RentBill?> verifyReceipt(String rentBillId,) async {
+    final response = await verifyReceiptWithHttpInfo(rentBillId,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'RentBill',
-      ) as RentBill;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'RentBill',) as RentBill;
+    
     }
     return null;
   }

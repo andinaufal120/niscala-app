@@ -324,7 +324,9 @@ Property makeProperty({
   int occupiedRoomCount = 4,
   List<ManagerRef> managers = const [],
   bool editable = true,
+  int version = 1,
 }) => Property(
+  version: version,
   id: id,
   name: name,
   address: address,
@@ -376,6 +378,7 @@ class FakePropertyRepository implements PropertyRepository {
     return [
       for (final p in properties)
         PropertySummary(
+          version: p.version,
           id: p.id,
           name: p.name,
           address: p.address,
@@ -494,7 +497,9 @@ Room makeRoom({
   num? widthM,
   List<String> facilities = const [],
   bool editable = true,
+  int version = 1,
 }) => Room(
+  version: version,
   id: id,
   propertyId: propertyId,
   number: number,
@@ -519,7 +524,9 @@ RoomSummary makeRoomSummary({
   num? widthM,
   List<String> facilities = const [],
   bool editable = true,
+  int version = 1,
 }) => RoomSummary(
+  version: version,
   id: id,
   number: number,
   baseRate: baseRate,
@@ -576,6 +583,7 @@ class FakeRoomRepository implements RoomRepository {
       for (final r in rooms)
         if (r.propertyId == propertyId)
           makeRoomSummary(
+            version: r.version,
             id: r.id,
             number: r.number,
             baseRate: r.baseRate,
@@ -703,7 +711,9 @@ Tenant makeTenant({
   bool noNextBillDate = false,
   int gracePeriodDays = 0,
   int rent = 750000,
+  int version = 1,
 }) => Tenant(
+  version: version,
   id: id,
   name: name,
   phone: phone,
@@ -742,7 +752,9 @@ TenantSummary makeTenantSummary({
   DateTime? leaseEndDate,
   bool noEndDate = false,
   DateTime? invitationExpiresAt,
+  int version = 1,
 }) => TenantSummary(
+  version: version,
   id: id,
   name: name,
   room: RoomRef(id: roomId, number: roomNumber),
@@ -847,6 +859,7 @@ class FakeTenantRepository implements TenantRepository {
     return _change(tenantId, (old) {
       final lease = input.lease ?? LeaseInput();
       return Tenant(
+        version: old.version,
         id: old.id,
         name: input.name,
         phone: input.phone,
@@ -879,6 +892,7 @@ class FakeTenantRepository implements TenantRepository {
     _change(
       tenantId,
       (old) => Tenant(
+        version: old.version,
         id: old.id,
         name: old.name,
         phone: old.phone,
@@ -902,6 +916,7 @@ class FakeTenantRepository implements TenantRepository {
     return [
       for (final t in _byProperty[propertyId] ?? <Tenant>[])
         TenantSummary(
+          version: t.version,
           id: t.id,
           name: t.name,
           room: t.room,
@@ -935,6 +950,7 @@ class FakeTenantRepository implements TenantRepository {
     final id = 'new-${_nextId++}';
     final lease = input.lease ?? LeaseInput();
     final tenant = Tenant(
+      version: 1,
       id: id,
       name: input.name,
       phone: input.phone,
@@ -1013,7 +1029,9 @@ Manager makeManager({
   ManagerInvitation? invitation,
   bool withoutInvitation = false,
   List<ManagerProperty>? properties,
+  int version = 1,
 }) => Manager(
+  version: version,
   id: id,
   name: name,
   nickname: nickname,
@@ -1031,6 +1049,7 @@ Manager makeManager({
 
 /// The list entry of [manager].
 ManagerSummary managerSummaryOf(Manager manager) => ManagerSummary(
+  version: manager.version,
   id: manager.id,
   name: manager.name,
   nickname: manager.nickname,
@@ -1133,6 +1152,7 @@ class FakeManagerRepository implements ManagerRepository {
     if (failure != null) throw failure;
     final id = 'new-${_nextId++}';
     final manager = Manager(
+      version: 1,
       id: id,
       name: input.name,
       nickname: input.nickname,
@@ -1156,6 +1176,7 @@ class FakeManagerRepository implements ManagerRepository {
     final index = _indexOf(managerId);
     final old = managers[index];
     return managers[index] = Manager(
+      version: old.version,
       id: old.id,
       name: input.name,
       nickname: input.nickname,
@@ -1190,6 +1211,7 @@ class FakeManagerRepository implements ManagerRepository {
       url: 'https://niscala.example/undangan/$managerId-${++_regenerations}',
     );
     managers[index] = Manager(
+      version: old.version,
       id: old.id,
       name: old.name,
       nickname: old.nickname,
@@ -2805,7 +2827,9 @@ UserAccountSummary makeUserAccountSummary({
   String email = 'budi@example.com',
   UserRole role = UserRole.tenant,
   UserAccountStatus status = UserAccountStatus.active,
+  int version = 1,
 }) => UserAccountSummary(
+  version: version,
   id: id,
   name: name,
   email: email,
@@ -2833,7 +2857,9 @@ UserAccount makeUserAccount({
   DateTime? pendingEmailExpiresAt,
   List<AccountPropertyRef> properties = const [],
   List<AccountTenancy> tenancies = const [],
+  int version = 1,
 }) => UserAccount(
+  version: version,
   id: id,
   name: name,
   email: email,
@@ -2914,6 +2940,7 @@ class FakeUserAccountRepository implements UserAccountRepository {
       throw const ApiFailure(code: 'USER_ACCOUNT_DELETED', statusCode: 409);
     }
     accounts[index] = makeUserAccount(
+      version: old.version,
       id: old.id,
       name: old.name,
       email: old.email,
@@ -2948,6 +2975,7 @@ class FakeUserAccountRepository implements UserAccountRepository {
     final email = input.email.trim().toLowerCase();
     final changesEmail = email != old.email.toLowerCase();
     return accounts[index] = makeUserAccount(
+      version: old.version,
       id: old.id,
       name: input.name.trim(),
       email: old.email,
@@ -2984,6 +3012,7 @@ class FakeUserAccountRepository implements UserAccountRepository {
             (role == null || a.role == role) &&
             (includeDeleted || a.status != UserAccountStatus.deleted))
           makeUserAccountSummary(
+            version: a.version,
             id: a.id,
             name: a.name,
             email: a.email,

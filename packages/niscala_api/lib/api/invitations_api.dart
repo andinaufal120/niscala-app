@@ -10,9 +10,9 @@
 
 part of niscala_api;
 
+
 class InvitationsApi {
-  InvitationsApi([ApiClient? apiClient])
-      : apiClient = apiClient ?? defaultApiClient;
+  InvitationsApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
 
   final ApiClient apiClient;
 
@@ -25,9 +25,7 @@ class InvitationsApi {
   /// Parameters:
   ///
   /// * [InvitationAcceptanceInput] invitationAcceptanceInput (required):
-  Future<Response> acceptInvitationWithHttpInfo(
-    InvitationAcceptanceInput invitationAcceptanceInput,
-  ) async {
+  Future<Response> acceptInvitationWithHttpInfo(InvitationAcceptanceInput invitationAcceptanceInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/invitations/acceptances';
 
@@ -39,6 +37,7 @@ class InvitationsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -58,12 +57,8 @@ class InvitationsApi {
   /// Parameters:
   ///
   /// * [InvitationAcceptanceInput] invitationAcceptanceInput (required):
-  Future<void> acceptInvitation(
-    InvitationAcceptanceInput invitationAcceptanceInput,
-  ) async {
-    final response = await acceptInvitationWithHttpInfo(
-      invitationAcceptanceInput,
-    );
+  Future<void> acceptInvitation(InvitationAcceptanceInput invitationAcceptanceInput,) async {
+    final response = await acceptInvitationWithHttpInfo(invitationAcceptanceInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
@@ -78,9 +73,7 @@ class InvitationsApi {
   /// Parameters:
   ///
   /// * [InvitationGoogleActivationInput] invitationGoogleActivationInput (required):
-  Future<Response> activateInvitationWithGoogleWithHttpInfo(
-    InvitationGoogleActivationInput invitationGoogleActivationInput,
-  ) async {
+  Future<Response> activateInvitationWithGoogleWithHttpInfo(InvitationGoogleActivationInput invitationGoogleActivationInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/invitations/activations/google';
 
@@ -93,6 +86,7 @@ class InvitationsApi {
 
     const contentTypes = <String>['application/json'];
 
+
     return apiClient.invokeAPI(
       path,
       'POST',
@@ -111,24 +105,17 @@ class InvitationsApi {
   /// Parameters:
   ///
   /// * [InvitationGoogleActivationInput] invitationGoogleActivationInput (required):
-  Future<AuthSession?> activateInvitationWithGoogle(
-    InvitationGoogleActivationInput invitationGoogleActivationInput,
-  ) async {
-    final response = await activateInvitationWithGoogleWithHttpInfo(
-      invitationGoogleActivationInput,
-    );
+  Future<AuthSession?> activateInvitationWithGoogle(InvitationGoogleActivationInput invitationGoogleActivationInput,) async {
+    final response = await activateInvitationWithGoogleWithHttpInfo(invitationGoogleActivationInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'AuthSession',
-      ) as AuthSession;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'AuthSession',) as AuthSession;
+    
     }
     return null;
   }
@@ -142,9 +129,7 @@ class InvitationsApi {
   /// Parameters:
   ///
   /// * [InvitationPasswordActivationInput] invitationPasswordActivationInput (required):
-  Future<Response> activateInvitationWithPasswordWithHttpInfo(
-    InvitationPasswordActivationInput invitationPasswordActivationInput,
-  ) async {
+  Future<Response> activateInvitationWithPasswordWithHttpInfo(InvitationPasswordActivationInput invitationPasswordActivationInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/invitations/activations/password';
 
@@ -157,6 +142,7 @@ class InvitationsApi {
 
     const contentTypes = <String>['application/json'];
 
+
     return apiClient.invokeAPI(
       path,
       'POST',
@@ -175,24 +161,17 @@ class InvitationsApi {
   /// Parameters:
   ///
   /// * [InvitationPasswordActivationInput] invitationPasswordActivationInput (required):
-  Future<AuthSession?> activateInvitationWithPassword(
-    InvitationPasswordActivationInput invitationPasswordActivationInput,
-  ) async {
-    final response = await activateInvitationWithPasswordWithHttpInfo(
-      invitationPasswordActivationInput,
-    );
+  Future<AuthSession?> activateInvitationWithPassword(InvitationPasswordActivationInput invitationPasswordActivationInput,) async {
+    final response = await activateInvitationWithPasswordWithHttpInfo(invitationPasswordActivationInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'AuthSession',
-      ) as AuthSession;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'AuthSession',) as AuthSession;
+    
     }
     return null;
   }
@@ -206,9 +185,7 @@ class InvitationsApi {
   /// Parameters:
   ///
   /// * [TokenInput] tokenInput (required):
-  Future<Response> previewInvitationWithHttpInfo(
-    TokenInput tokenInput,
-  ) async {
+  Future<Response> previewInvitationWithHttpInfo(TokenInput tokenInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/invitations/previews';
 
@@ -221,6 +198,7 @@ class InvitationsApi {
 
     const contentTypes = <String>['application/json'];
 
+
     return apiClient.invokeAPI(
       path,
       'POST',
@@ -239,24 +217,17 @@ class InvitationsApi {
   /// Parameters:
   ///
   /// * [TokenInput] tokenInput (required):
-  Future<InvitationPreview?> previewInvitation(
-    TokenInput tokenInput,
-  ) async {
-    final response = await previewInvitationWithHttpInfo(
-      tokenInput,
-    );
+  Future<InvitationPreview?> previewInvitation(TokenInput tokenInput,) async {
+    final response = await previewInvitationWithHttpInfo(tokenInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'InvitationPreview',
-      ) as InvitationPreview;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'InvitationPreview',) as InvitationPreview;
+    
     }
     return null;
   }
@@ -270,9 +241,7 @@ class InvitationsApi {
   /// Parameters:
   ///
   /// * [TokenInput] tokenInput (required):
-  Future<Response> previewInvitationAcceptanceWithHttpInfo(
-    TokenInput tokenInput,
-  ) async {
+  Future<Response> previewInvitationAcceptanceWithHttpInfo(TokenInput tokenInput,) async {
     // ignore: prefer_const_declarations
     final path = r'/invitations/acceptance-previews';
 
@@ -284,6 +253,7 @@ class InvitationsApi {
     final formParams = <String, String>{};
 
     const contentTypes = <String>['application/json'];
+
 
     return apiClient.invokeAPI(
       path,
@@ -303,24 +273,17 @@ class InvitationsApi {
   /// Parameters:
   ///
   /// * [TokenInput] tokenInput (required):
-  Future<InvitationAcceptancePreview?> previewInvitationAcceptance(
-    TokenInput tokenInput,
-  ) async {
-    final response = await previewInvitationAcceptanceWithHttpInfo(
-      tokenInput,
-    );
+  Future<InvitationAcceptancePreview?> previewInvitationAcceptance(TokenInput tokenInput,) async {
+    final response = await previewInvitationAcceptanceWithHttpInfo(tokenInput,);
     if (response.statusCode >= HttpStatus.badRequest) {
       throw ApiException(response.statusCode, await _decodeBodyBytes(response));
     }
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'InvitationAcceptancePreview',
-      ) as InvitationAcceptancePreview;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'InvitationAcceptancePreview',) as InvitationAcceptancePreview;
+    
     }
     return null;
   }

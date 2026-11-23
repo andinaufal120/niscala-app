@@ -29,32 +29,29 @@ class RegisterOwnerInput {
   String password;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is RegisterOwnerInput &&
-          other.device == device &&
-          other.email == email &&
-          other.name == name &&
-          other.password == password;
+  bool operator ==(Object other) => identical(this, other) || other is RegisterOwnerInput &&
+    other.device == device &&
+    other.email == email &&
+    other.name == name &&
+    other.password == password;
 
   @override
   int get hashCode =>
-      // ignore: unnecessary_parenthesis
-      (device.hashCode) +
-      (email.hashCode) +
-      (name.hashCode) +
-      (password.hashCode);
+    // ignore: unnecessary_parenthesis
+    (device.hashCode) +
+    (email.hashCode) +
+    (name.hashCode) +
+    (password.hashCode);
 
   @override
-  String toString() =>
-      'RegisterOwnerInput[device=$device, email=$email, name=$name, password=$password]';
+  String toString() => 'RegisterOwnerInput[device=$device, email=$email, name=$name, password=$password]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    json[r'device'] = this.device;
-    json[r'email'] = this.email;
-    json[r'name'] = this.name;
-    json[r'password'] = this.password;
+      json[r'device'] = this.device;
+      json[r'email'] = this.email;
+      json[r'name'] = this.name;
+      json[r'password'] = this.password;
     return json;
   }
 
@@ -70,10 +67,8 @@ class RegisterOwnerInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key),
-              'Required key "RegisterOwnerInput[$key]" is missing from JSON.');
-          assert(json[key] != null,
-              'Required key "RegisterOwnerInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key), 'Required key "RegisterOwnerInput[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "RegisterOwnerInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -88,10 +83,7 @@ class RegisterOwnerInput {
     return null;
   }
 
-  static List<RegisterOwnerInput> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<RegisterOwnerInput> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <RegisterOwnerInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -119,19 +111,13 @@ class RegisterOwnerInput {
   }
 
   // maps a json object with a list of RegisterOwnerInput-objects as value to a dart map
-  static Map<String, List<RegisterOwnerInput>> mapListFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static Map<String, List<RegisterOwnerInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
     final map = <String, List<RegisterOwnerInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = RegisterOwnerInput.listFromJson(
-          entry.value,
-          growable: growable,
-        );
+        map[entry.key] = RegisterOwnerInput.listFromJson(entry.value, growable: growable,);
       }
     }
     return map;
@@ -145,3 +131,4 @@ class RegisterOwnerInput {
     'password',
   };
 }
+

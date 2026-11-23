@@ -30,36 +30,33 @@ class ManagerInput {
   List<String> propertyIds;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ManagerInput &&
-          other.name == name &&
-          other.nickname == nickname &&
-          other.phone == phone &&
-          _deepEquality.equals(other.propertyIds, propertyIds);
+  bool operator ==(Object other) => identical(this, other) || other is ManagerInput &&
+    other.name == name &&
+    other.nickname == nickname &&
+    other.phone == phone &&
+    _deepEquality.equals(other.propertyIds, propertyIds);
 
   @override
   int get hashCode =>
-      // ignore: unnecessary_parenthesis
-      (name.hashCode) +
-      (nickname == null ? 0 : nickname!.hashCode) +
-      (phone.hashCode) +
-      (propertyIds.hashCode);
+    // ignore: unnecessary_parenthesis
+    (name.hashCode) +
+    (nickname == null ? 0 : nickname!.hashCode) +
+    (phone.hashCode) +
+    (propertyIds.hashCode);
 
   @override
-  String toString() =>
-      'ManagerInput[name=$name, nickname=$nickname, phone=$phone, propertyIds=$propertyIds]';
+  String toString() => 'ManagerInput[name=$name, nickname=$nickname, phone=$phone, propertyIds=$propertyIds]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    json[r'name'] = this.name;
+      json[r'name'] = this.name;
     if (this.nickname != null) {
       json[r'nickname'] = this.nickname;
     } else {
       json[r'nickname'] = null;
     }
-    json[r'phone'] = this.phone;
-    json[r'propertyIds'] = this.propertyIds;
+      json[r'phone'] = this.phone;
+      json[r'propertyIds'] = this.propertyIds;
     return json;
   }
 
@@ -75,10 +72,8 @@ class ManagerInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key),
-              'Required key "ManagerInput[$key]" is missing from JSON.');
-          assert(json[key] != null,
-              'Required key "ManagerInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key), 'Required key "ManagerInput[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "ManagerInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -88,19 +83,14 @@ class ManagerInput {
         nickname: mapValueOfType<String>(json, r'nickname'),
         phone: mapValueOfType<String>(json, r'phone')!,
         propertyIds: json[r'propertyIds'] is Iterable
-            ? (json[r'propertyIds'] as Iterable)
-                .cast<String>()
-                .toList(growable: false)
+            ? (json[r'propertyIds'] as Iterable).cast<String>().toList(growable: false)
             : const [],
       );
     }
     return null;
   }
 
-  static List<ManagerInput> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<ManagerInput> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <ManagerInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -128,19 +118,13 @@ class ManagerInput {
   }
 
   // maps a json object with a list of ManagerInput-objects as value to a dart map
-  static Map<String, List<ManagerInput>> mapListFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static Map<String, List<ManagerInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
     final map = <String, List<ManagerInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = ManagerInput.listFromJson(
-          entry.value,
-          growable: growable,
-        );
+        map[entry.key] = ManagerInput.listFromJson(entry.value, growable: growable,);
       }
     }
     return map;
@@ -153,3 +137,4 @@ class ManagerInput {
     'propertyIds',
   };
 }
+

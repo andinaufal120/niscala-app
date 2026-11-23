@@ -24,8 +24,7 @@ class ComplaintClassificationState {
   String toJson() => value;
 
   static const classifying = ComplaintClassificationState._(r'classifying');
-  static const awaitingClassification =
-      ComplaintClassificationState._(r'awaitingClassification');
+  static const awaitingClassification = ComplaintClassificationState._(r'awaitingClassification');
   static const notClassified = ComplaintClassificationState._(r'notClassified');
 
   /// List of all possible values in this [enum][ComplaintClassificationState].
@@ -35,13 +34,9 @@ class ComplaintClassificationState {
     notClassified,
   ];
 
-  static ComplaintClassificationState? fromJson(dynamic value) =>
-      ComplaintClassificationStateTypeTransformer().decode(value);
+  static ComplaintClassificationState? fromJson(dynamic value) => ComplaintClassificationStateTypeTransformer().decode(value);
 
-  static List<ComplaintClassificationState> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<ComplaintClassificationState> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <ComplaintClassificationState>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -58,8 +53,7 @@ class ComplaintClassificationState {
 /// Transformation class that can [encode] an instance of [ComplaintClassificationState] to String,
 /// and [decode] dynamic data back to [ComplaintClassificationState].
 class ComplaintClassificationStateTypeTransformer {
-  factory ComplaintClassificationStateTypeTransformer() =>
-      _instance ??= const ComplaintClassificationStateTypeTransformer._();
+  factory ComplaintClassificationStateTypeTransformer() => _instance ??= const ComplaintClassificationStateTypeTransformer._();
 
   const ComplaintClassificationStateTypeTransformer._();
 
@@ -76,12 +70,9 @@ class ComplaintClassificationStateTypeTransformer {
   ComplaintClassificationState? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'classifying':
-          return ComplaintClassificationState.classifying;
-        case r'awaitingClassification':
-          return ComplaintClassificationState.awaitingClassification;
-        case r'notClassified':
-          return ComplaintClassificationState.notClassified;
+        case r'classifying': return ComplaintClassificationState.classifying;
+        case r'awaitingClassification': return ComplaintClassificationState.awaitingClassification;
+        case r'notClassified': return ComplaintClassificationState.notClassified;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -94,3 +85,4 @@ class ComplaintClassificationStateTypeTransformer {
   /// Singleton [ComplaintClassificationStateTypeTransformer] instance.
   static ComplaintClassificationStateTypeTransformer? _instance;
 }
+

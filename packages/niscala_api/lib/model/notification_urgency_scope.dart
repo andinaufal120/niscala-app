@@ -32,13 +32,9 @@ class NotificationUrgencyScope {
     highOnly,
   ];
 
-  static NotificationUrgencyScope? fromJson(dynamic value) =>
-      NotificationUrgencyScopeTypeTransformer().decode(value);
+  static NotificationUrgencyScope? fromJson(dynamic value) => NotificationUrgencyScopeTypeTransformer().decode(value);
 
-  static List<NotificationUrgencyScope> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<NotificationUrgencyScope> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <NotificationUrgencyScope>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -55,8 +51,7 @@ class NotificationUrgencyScope {
 /// Transformation class that can [encode] an instance of [NotificationUrgencyScope] to String,
 /// and [decode] dynamic data back to [NotificationUrgencyScope].
 class NotificationUrgencyScopeTypeTransformer {
-  factory NotificationUrgencyScopeTypeTransformer() =>
-      _instance ??= const NotificationUrgencyScopeTypeTransformer._();
+  factory NotificationUrgencyScopeTypeTransformer() => _instance ??= const NotificationUrgencyScopeTypeTransformer._();
 
   const NotificationUrgencyScopeTypeTransformer._();
 
@@ -73,10 +68,8 @@ class NotificationUrgencyScopeTypeTransformer {
   NotificationUrgencyScope? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'allUrgencies':
-          return NotificationUrgencyScope.allUrgencies;
-        case r'highOnly':
-          return NotificationUrgencyScope.highOnly;
+        case r'allUrgencies': return NotificationUrgencyScope.allUrgencies;
+        case r'highOnly': return NotificationUrgencyScope.highOnly;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -89,3 +82,4 @@ class NotificationUrgencyScopeTypeTransformer {
   /// Singleton [NotificationUrgencyScopeTypeTransformer] instance.
   static NotificationUrgencyScopeTypeTransformer? _instance;
 }
+

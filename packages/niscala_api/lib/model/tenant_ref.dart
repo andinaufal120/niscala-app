@@ -22,22 +22,23 @@ class TenantRef {
   String name;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TenantRef && other.id == id && other.name == name;
+  bool operator ==(Object other) => identical(this, other) || other is TenantRef &&
+    other.id == id &&
+    other.name == name;
 
   @override
   int get hashCode =>
-      // ignore: unnecessary_parenthesis
-      (id.hashCode) + (name.hashCode);
+    // ignore: unnecessary_parenthesis
+    (id.hashCode) +
+    (name.hashCode);
 
   @override
   String toString() => 'TenantRef[id=$id, name=$name]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    json[r'id'] = this.id;
-    json[r'name'] = this.name;
+      json[r'id'] = this.id;
+      json[r'name'] = this.name;
     return json;
   }
 
@@ -53,10 +54,8 @@ class TenantRef {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key),
-              'Required key "TenantRef[$key]" is missing from JSON.');
-          assert(json[key] != null,
-              'Required key "TenantRef[$key]" has a null value in JSON.');
+          assert(json.containsKey(key), 'Required key "TenantRef[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "TenantRef[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -69,10 +68,7 @@ class TenantRef {
     return null;
   }
 
-  static List<TenantRef> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<TenantRef> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <TenantRef>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -100,19 +96,13 @@ class TenantRef {
   }
 
   // maps a json object with a list of TenantRef-objects as value to a dart map
-  static Map<String, List<TenantRef>> mapListFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static Map<String, List<TenantRef>> mapListFromJson(dynamic json, {bool growable = false,}) {
     final map = <String, List<TenantRef>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = TenantRef.listFromJson(
-          entry.value,
-          growable: growable,
-        );
+        map[entry.key] = TenantRef.listFromJson(entry.value, growable: growable,);
       }
     }
     return map;
@@ -124,3 +114,4 @@ class TenantRef {
     'name',
   };
 }
+

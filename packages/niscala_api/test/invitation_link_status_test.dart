@@ -13,5 +13,9 @@ import 'package:test/test.dart';
 
 // tests for InvitationLinkStatus
 void main() {
-  group('test InvitationLinkStatus', () {});
+
+  group('test InvitationLinkStatus', () {
+
+  });
+
 }

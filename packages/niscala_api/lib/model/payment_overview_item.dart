@@ -25,21 +25,20 @@ class PaymentOverviewItem {
   TenantRef tenant;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PaymentOverviewItem &&
-          other.bill == bill &&
-          other.room == room &&
-          other.tenant == tenant;
+  bool operator ==(Object other) => identical(this, other) || other is PaymentOverviewItem &&
+    other.bill == bill &&
+    other.room == room &&
+    other.tenant == tenant;
 
   @override
   int get hashCode =>
-      // ignore: unnecessary_parenthesis
-      (bill == null ? 0 : bill!.hashCode) + (room.hashCode) + (tenant.hashCode);
+    // ignore: unnecessary_parenthesis
+    (bill == null ? 0 : bill!.hashCode) +
+    (room.hashCode) +
+    (tenant.hashCode);
 
   @override
-  String toString() =>
-      'PaymentOverviewItem[bill=$bill, room=$room, tenant=$tenant]';
+  String toString() => 'PaymentOverviewItem[bill=$bill, room=$room, tenant=$tenant]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
@@ -48,8 +47,8 @@ class PaymentOverviewItem {
     } else {
       json[r'bill'] = null;
     }
-    json[r'room'] = this.room;
-    json[r'tenant'] = this.tenant;
+      json[r'room'] = this.room;
+      json[r'tenant'] = this.tenant;
     return json;
   }
 
@@ -65,10 +64,8 @@ class PaymentOverviewItem {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key),
-              'Required key "PaymentOverviewItem[$key]" is missing from JSON.');
-          assert(json[key] != null,
-              'Required key "PaymentOverviewItem[$key]" has a null value in JSON.');
+          assert(json.containsKey(key), 'Required key "PaymentOverviewItem[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "PaymentOverviewItem[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -82,10 +79,7 @@ class PaymentOverviewItem {
     return null;
   }
 
-  static List<PaymentOverviewItem> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<PaymentOverviewItem> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <PaymentOverviewItem>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -113,19 +107,13 @@ class PaymentOverviewItem {
   }
 
   // maps a json object with a list of PaymentOverviewItem-objects as value to a dart map
-  static Map<String, List<PaymentOverviewItem>> mapListFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static Map<String, List<PaymentOverviewItem>> mapListFromJson(dynamic json, {bool growable = false,}) {
     final map = <String, List<PaymentOverviewItem>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PaymentOverviewItem.listFromJson(
-          entry.value,
-          growable: growable,
-        );
+        map[entry.key] = PaymentOverviewItem.listFromJson(entry.value, growable: growable,);
       }
     }
     return map;
@@ -137,3 +125,4 @@ class PaymentOverviewItem {
     'tenant',
   };
 }
+

@@ -13,5 +13,9 @@ import 'package:test/test.dart';
 
 // tests for EditableAccountStatus
 void main() {
-  group('test EditableAccountStatus', () {});
+
+  group('test EditableAccountStatus', () {
+
+  });
+
 }

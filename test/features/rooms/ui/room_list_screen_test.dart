@@ -691,6 +691,7 @@ void main() {
 
 extension on Room {
   Room copyWithProperty(String propertyId) => Room(
+    version: version,
     id: id,
     propertyId: propertyId,
     number: number,

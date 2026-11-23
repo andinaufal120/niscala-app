@@ -13,5 +13,9 @@ import 'package:test/test.dart';
 
 // tests for TenantAccountStatus
 void main() {
-  group('test TenantAccountStatus', () {});
+
+  group('test TenantAccountStatus', () {
+
+  });
+
 }

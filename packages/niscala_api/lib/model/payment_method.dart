@@ -32,13 +32,9 @@ class PaymentMethod {
     cash,
   ];
 
-  static PaymentMethod? fromJson(dynamic value) =>
-      PaymentMethodTypeTransformer().decode(value);
+  static PaymentMethod? fromJson(dynamic value) => PaymentMethodTypeTransformer().decode(value);
 
-  static List<PaymentMethod> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<PaymentMethod> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <PaymentMethod>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -55,8 +51,7 @@ class PaymentMethod {
 /// Transformation class that can [encode] an instance of [PaymentMethod] to String,
 /// and [decode] dynamic data back to [PaymentMethod].
 class PaymentMethodTypeTransformer {
-  factory PaymentMethodTypeTransformer() =>
-      _instance ??= const PaymentMethodTypeTransformer._();
+  factory PaymentMethodTypeTransformer() => _instance ??= const PaymentMethodTypeTransformer._();
 
   const PaymentMethodTypeTransformer._();
 
@@ -73,10 +68,8 @@ class PaymentMethodTypeTransformer {
   PaymentMethod? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'transfer':
-          return PaymentMethod.transfer;
-        case r'cash':
-          return PaymentMethod.cash;
+        case r'transfer': return PaymentMethod.transfer;
+        case r'cash': return PaymentMethod.cash;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -89,3 +82,4 @@ class PaymentMethodTypeTransformer {
   /// Singleton [PaymentMethodTypeTransformer] instance.
   static PaymentMethodTypeTransformer? _instance;
 }
+

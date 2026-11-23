@@ -10,6 +10,7 @@ All URIs are relative to *http://localhost*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**createTenant**](TenantsApi.md#createtenant) | **POST** /properties/{propertyId}/tenants | Create Tenant
+[**deleteMyAccount**](TenantsApi.md#deletemyaccount) | **DELETE** /me | Delete My Account
 [**deleteTenant**](TenantsApi.md#deletetenant) | **DELETE** /tenants/{tenantId} | Delete Tenant
 [**getMyLeases**](TenantsApi.md#getmyleases) | **GET** /me/leases | Get My Leases
 [**getTenant**](TenantsApi.md#gettenant) | **GET** /tenants/{tenantId} | Get Tenant
@@ -69,6 +70,50 @@ Name | Type | Description  | Notes
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **deleteMyAccount**
+> deleteMyAccount()
+
+Delete My Account
+
+Delete the caller's own account and erase its personal data.
+
+### Example
+```dart
+import 'package:niscala_api/api.dart';
+// TODO Configure HTTP Bearer authorization: bearerAuth
+// Case 1. Use String Token
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken('YOUR_ACCESS_TOKEN');
+// Case 2. Use Function which generate token.
+// String yourTokenGeneratorFunction() { ... }
+//defaultApiClient.getAuthentication<HttpBearerAuth>('bearerAuth').setAccessToken(yourTokenGeneratorFunction);
+
+final api_instance = TenantsApi();
+
+try {
+    api_instance.deleteMyAccount();
+} catch (e) {
+    print('Exception when calling TenantsApi->deleteMyAccount: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **deleteTenant**
 > deleteTenant(tenantId)
 
@@ -113,7 +158,7 @@ void (empty response body)
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -310,7 +355,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **updateTenant**
-> Tenant updateTenant(tenantId, tenantInput)
+> Tenant updateTenant(tenantId, tenantInput, ifMatch)
 
 Update Tenant
 
@@ -329,9 +374,10 @@ import 'package:niscala_api/api.dart';
 final api_instance = TenantsApi();
 final tenantId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 final tenantInput = TenantInput(); // TenantInput | 
+final ifMatch = ifMatch_example; // String | The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.
 
 try {
-    final result = api_instance.updateTenant(tenantId, tenantInput);
+    final result = api_instance.updateTenant(tenantId, tenantInput, ifMatch);
     print(result);
 } catch (e) {
     print('Exception when calling TenantsApi->updateTenant: $e\n');
@@ -344,6 +390,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **tenantId** | **String**|  | 
  **tenantInput** | [**TenantInput**](TenantInput.md)|  | 
+ **ifMatch** | **String**| The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version. | [optional] 
 
 ### Return type
 

@@ -13,5 +13,9 @@ import 'package:test/test.dart';
 
 // tests for InvitationBlocker
 void main() {
-  group('test InvitationBlocker', () {});
+
+  group('test InvitationBlocker', () {
+
+  });
+
 }

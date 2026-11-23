@@ -23,6 +23,7 @@ class Tenant {
     this.occupation,
     required this.phone,
     required this.room,
+    required this.version,
   });
 
   TenantAccountStatus accountStatus;
@@ -46,63 +47,66 @@ class Tenant {
 
   RoomRef room;
 
+  /// Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data.
+  int version;
+
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Tenant &&
-          other.accountStatus == accountStatus &&
-          other.email == email &&
-          _deepEquality.equals(other.emergencyContacts, emergencyContacts) &&
-          other.id == id &&
-          other.invitation == invitation &&
-          other.lease == lease &&
-          other.name == name &&
-          other.occupation == occupation &&
-          other.phone == phone &&
-          other.room == room;
+  bool operator ==(Object other) => identical(this, other) || other is Tenant &&
+    other.accountStatus == accountStatus &&
+    other.email == email &&
+    _deepEquality.equals(other.emergencyContacts, emergencyContacts) &&
+    other.id == id &&
+    other.invitation == invitation &&
+    other.lease == lease &&
+    other.name == name &&
+    other.occupation == occupation &&
+    other.phone == phone &&
+    other.room == room &&
+    other.version == version;
 
   @override
   int get hashCode =>
-      // ignore: unnecessary_parenthesis
-      (accountStatus.hashCode) +
-      (email == null ? 0 : email!.hashCode) +
-      (emergencyContacts.hashCode) +
-      (id.hashCode) +
-      (invitation == null ? 0 : invitation!.hashCode) +
-      (lease.hashCode) +
-      (name.hashCode) +
-      (occupation == null ? 0 : occupation!.hashCode) +
-      (phone.hashCode) +
-      (room.hashCode);
+    // ignore: unnecessary_parenthesis
+    (accountStatus.hashCode) +
+    (email == null ? 0 : email!.hashCode) +
+    (emergencyContacts.hashCode) +
+    (id.hashCode) +
+    (invitation == null ? 0 : invitation!.hashCode) +
+    (lease.hashCode) +
+    (name.hashCode) +
+    (occupation == null ? 0 : occupation!.hashCode) +
+    (phone.hashCode) +
+    (room.hashCode) +
+    (version.hashCode);
 
   @override
-  String toString() =>
-      'Tenant[accountStatus=$accountStatus, email=$email, emergencyContacts=$emergencyContacts, id=$id, invitation=$invitation, lease=$lease, name=$name, occupation=$occupation, phone=$phone, room=$room]';
+  String toString() => 'Tenant[accountStatus=$accountStatus, email=$email, emergencyContacts=$emergencyContacts, id=$id, invitation=$invitation, lease=$lease, name=$name, occupation=$occupation, phone=$phone, room=$room, version=$version]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    json[r'accountStatus'] = this.accountStatus;
+      json[r'accountStatus'] = this.accountStatus;
     if (this.email != null) {
       json[r'email'] = this.email;
     } else {
       json[r'email'] = null;
     }
-    json[r'emergencyContacts'] = this.emergencyContacts;
-    json[r'id'] = this.id;
+      json[r'emergencyContacts'] = this.emergencyContacts;
+      json[r'id'] = this.id;
     if (this.invitation != null) {
       json[r'invitation'] = this.invitation;
     } else {
       json[r'invitation'] = null;
     }
-    json[r'lease'] = this.lease;
-    json[r'name'] = this.name;
+      json[r'lease'] = this.lease;
+      json[r'name'] = this.name;
     if (this.occupation != null) {
       json[r'occupation'] = this.occupation;
     } else {
       json[r'occupation'] = null;
     }
-    json[r'phone'] = this.phone;
-    json[r'room'] = this.room;
+      json[r'phone'] = this.phone;
+      json[r'room'] = this.room;
+      json[r'version'] = this.version;
     return json;
   }
 
@@ -118,10 +122,8 @@ class Tenant {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key),
-              'Required key "Tenant[$key]" is missing from JSON.');
-          assert(json[key] != null,
-              'Required key "Tenant[$key]" has a null value in JSON.');
+          assert(json.containsKey(key), 'Required key "Tenant[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "Tenant[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -129,8 +131,7 @@ class Tenant {
       return Tenant(
         accountStatus: TenantAccountStatus.fromJson(json[r'accountStatus'])!,
         email: mapValueOfType<String>(json, r'email'),
-        emergencyContacts:
-            EmergencyContact.listFromJson(json[r'emergencyContacts']),
+        emergencyContacts: EmergencyContact.listFromJson(json[r'emergencyContacts']),
         id: mapValueOfType<String>(json, r'id')!,
         invitation: TenantInvitation.fromJson(json[r'invitation']),
         lease: Lease.fromJson(json[r'lease'])!,
@@ -138,15 +139,13 @@ class Tenant {
         occupation: mapValueOfType<String>(json, r'occupation'),
         phone: mapValueOfType<String>(json, r'phone')!,
         room: RoomRef.fromJson(json[r'room'])!,
+        version: mapValueOfType<int>(json, r'version')!,
       );
     }
     return null;
   }
 
-  static List<Tenant> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<Tenant> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <Tenant>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -174,19 +173,13 @@ class Tenant {
   }
 
   // maps a json object with a list of Tenant-objects as value to a dart map
-  static Map<String, List<Tenant>> mapListFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static Map<String, List<Tenant>> mapListFromJson(dynamic json, {bool growable = false,}) {
     final map = <String, List<Tenant>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = Tenant.listFromJson(
-          entry.value,
-          growable: growable,
-        );
+        map[entry.key] = Tenant.listFromJson(entry.value, growable: growable,);
       }
     }
     return map;
@@ -201,5 +194,7 @@ class Tenant {
     'name',
     'phone',
     'room',
+    'version',
   };
 }
+

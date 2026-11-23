@@ -20,6 +20,7 @@ class PropertySummary {
     required this.name,
     required this.occupiedRoomCount,
     required this.roomCount,
+    required this.version,
   });
 
   String address;
@@ -37,42 +38,45 @@ class PropertySummary {
 
   int roomCount;
 
+  /// Rises by one with every edit. Send it back in the If-Match header, as a quoted number such as \"3\", to refuse an edit made on stale data.
+  int version;
+
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PropertySummary &&
-          other.address == address &&
-          other.editable == editable &&
-          other.id == id &&
-          _deepEquality.equals(other.managers, managers) &&
-          other.name == name &&
-          other.occupiedRoomCount == occupiedRoomCount &&
-          other.roomCount == roomCount;
+  bool operator ==(Object other) => identical(this, other) || other is PropertySummary &&
+    other.address == address &&
+    other.editable == editable &&
+    other.id == id &&
+    _deepEquality.equals(other.managers, managers) &&
+    other.name == name &&
+    other.occupiedRoomCount == occupiedRoomCount &&
+    other.roomCount == roomCount &&
+    other.version == version;
 
   @override
   int get hashCode =>
-      // ignore: unnecessary_parenthesis
-      (address.hashCode) +
-      (editable.hashCode) +
-      (id.hashCode) +
-      (managers.hashCode) +
-      (name.hashCode) +
-      (occupiedRoomCount.hashCode) +
-      (roomCount.hashCode);
+    // ignore: unnecessary_parenthesis
+    (address.hashCode) +
+    (editable.hashCode) +
+    (id.hashCode) +
+    (managers.hashCode) +
+    (name.hashCode) +
+    (occupiedRoomCount.hashCode) +
+    (roomCount.hashCode) +
+    (version.hashCode);
 
   @override
-  String toString() =>
-      'PropertySummary[address=$address, editable=$editable, id=$id, managers=$managers, name=$name, occupiedRoomCount=$occupiedRoomCount, roomCount=$roomCount]';
+  String toString() => 'PropertySummary[address=$address, editable=$editable, id=$id, managers=$managers, name=$name, occupiedRoomCount=$occupiedRoomCount, roomCount=$roomCount, version=$version]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    json[r'address'] = this.address;
-    json[r'editable'] = this.editable;
-    json[r'id'] = this.id;
-    json[r'managers'] = this.managers;
-    json[r'name'] = this.name;
-    json[r'occupiedRoomCount'] = this.occupiedRoomCount;
-    json[r'roomCount'] = this.roomCount;
+      json[r'address'] = this.address;
+      json[r'editable'] = this.editable;
+      json[r'id'] = this.id;
+      json[r'managers'] = this.managers;
+      json[r'name'] = this.name;
+      json[r'occupiedRoomCount'] = this.occupiedRoomCount;
+      json[r'roomCount'] = this.roomCount;
+      json[r'version'] = this.version;
     return json;
   }
 
@@ -88,10 +92,8 @@ class PropertySummary {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key),
-              'Required key "PropertySummary[$key]" is missing from JSON.');
-          assert(json[key] != null,
-              'Required key "PropertySummary[$key]" has a null value in JSON.');
+          assert(json.containsKey(key), 'Required key "PropertySummary[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "PropertySummary[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -104,15 +106,13 @@ class PropertySummary {
         name: mapValueOfType<String>(json, r'name')!,
         occupiedRoomCount: mapValueOfType<int>(json, r'occupiedRoomCount')!,
         roomCount: mapValueOfType<int>(json, r'roomCount')!,
+        version: mapValueOfType<int>(json, r'version')!,
       );
     }
     return null;
   }
 
-  static List<PropertySummary> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<PropertySummary> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <PropertySummary>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -140,19 +140,13 @@ class PropertySummary {
   }
 
   // maps a json object with a list of PropertySummary-objects as value to a dart map
-  static Map<String, List<PropertySummary>> mapListFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static Map<String, List<PropertySummary>> mapListFromJson(dynamic json, {bool growable = false,}) {
     final map = <String, List<PropertySummary>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PropertySummary.listFromJson(
-          entry.value,
-          growable: growable,
-        );
+        map[entry.key] = PropertySummary.listFromJson(entry.value, growable: growable,);
       }
     }
     return map;
@@ -167,5 +161,7 @@ class PropertySummary {
     'name',
     'occupiedRoomCount',
     'roomCount',
+    'version',
   };
 }
+

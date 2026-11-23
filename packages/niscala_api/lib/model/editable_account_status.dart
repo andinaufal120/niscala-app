@@ -32,13 +32,9 @@ class EditableAccountStatus {
     inactive,
   ];
 
-  static EditableAccountStatus? fromJson(dynamic value) =>
-      EditableAccountStatusTypeTransformer().decode(value);
+  static EditableAccountStatus? fromJson(dynamic value) => EditableAccountStatusTypeTransformer().decode(value);
 
-  static List<EditableAccountStatus> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<EditableAccountStatus> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <EditableAccountStatus>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -55,8 +51,7 @@ class EditableAccountStatus {
 /// Transformation class that can [encode] an instance of [EditableAccountStatus] to String,
 /// and [decode] dynamic data back to [EditableAccountStatus].
 class EditableAccountStatusTypeTransformer {
-  factory EditableAccountStatusTypeTransformer() =>
-      _instance ??= const EditableAccountStatusTypeTransformer._();
+  factory EditableAccountStatusTypeTransformer() => _instance ??= const EditableAccountStatusTypeTransformer._();
 
   const EditableAccountStatusTypeTransformer._();
 
@@ -73,10 +68,8 @@ class EditableAccountStatusTypeTransformer {
   EditableAccountStatus? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'active':
-          return EditableAccountStatus.active;
-        case r'inactive':
-          return EditableAccountStatus.inactive;
+        case r'active': return EditableAccountStatus.active;
+        case r'inactive': return EditableAccountStatus.inactive;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -89,3 +82,4 @@ class EditableAccountStatusTypeTransformer {
   /// Singleton [EditableAccountStatusTypeTransformer] instance.
   static EditableAccountStatusTypeTransformer? _instance;
 }
+

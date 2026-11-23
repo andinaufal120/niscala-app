@@ -32,13 +32,9 @@ class SubscriptionStatus {
     active,
   ];
 
-  static SubscriptionStatus? fromJson(dynamic value) =>
-      SubscriptionStatusTypeTransformer().decode(value);
+  static SubscriptionStatus? fromJson(dynamic value) => SubscriptionStatusTypeTransformer().decode(value);
 
-  static List<SubscriptionStatus> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<SubscriptionStatus> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <SubscriptionStatus>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -55,8 +51,7 @@ class SubscriptionStatus {
 /// Transformation class that can [encode] an instance of [SubscriptionStatus] to String,
 /// and [decode] dynamic data back to [SubscriptionStatus].
 class SubscriptionStatusTypeTransformer {
-  factory SubscriptionStatusTypeTransformer() =>
-      _instance ??= const SubscriptionStatusTypeTransformer._();
+  factory SubscriptionStatusTypeTransformer() => _instance ??= const SubscriptionStatusTypeTransformer._();
 
   const SubscriptionStatusTypeTransformer._();
 
@@ -73,10 +68,8 @@ class SubscriptionStatusTypeTransformer {
   SubscriptionStatus? decode(dynamic data, {bool allowNull = true}) {
     if (data != null) {
       switch (data) {
-        case r'free':
-          return SubscriptionStatus.free;
-        case r'active':
-          return SubscriptionStatus.active;
+        case r'free': return SubscriptionStatus.free;
+        case r'active': return SubscriptionStatus.active;
         default:
           if (!allowNull) {
             throw ArgumentError('Unknown enum value to decode: $data');
@@ -89,3 +82,4 @@ class SubscriptionStatusTypeTransformer {
   /// Singleton [SubscriptionStatusTypeTransformer] instance.
   static SubscriptionStatusTypeTransformer? _instance;
 }
+

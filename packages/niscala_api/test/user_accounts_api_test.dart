@@ -11,6 +11,7 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
+
 /// tests for UserAccountsApi
 void main() {
   // final instance = UserAccountsApi();
@@ -47,9 +48,10 @@ void main() {
     //
     // Change name, email and status; a new email stays pending until verified.
     //
-    //Future<UserAccount> updateUserAccount(String userAccountId, UserAccountInput userAccountInput) async
+    //Future<UserAccount> updateUserAccount(String userAccountId, UserAccountInput userAccountInput, { String ifMatch }) async
     test('test updateUserAccount', () async {
       // TODO
     });
+
   });
 }

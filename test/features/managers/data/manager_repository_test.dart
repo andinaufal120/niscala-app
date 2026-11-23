@@ -68,6 +68,7 @@ Map<String, dynamic> _managerJson({
   bool withInvitation = true,
   bool withNickname = true,
 }) => {
+  'version': 1,
   'id': id,
   'name': 'Rina Putri',
   'nickname': withNickname ? 'Bu Rina' : null,
@@ -90,6 +91,7 @@ Map<String, dynamic> _summaryJson({
   bool activated = false,
   bool withNickname = true,
 }) => {
+  'version': 1,
   'id': id,
   'name': 'Rina Putri',
   'nickname': withNickname ? 'Bu Rina' : null,

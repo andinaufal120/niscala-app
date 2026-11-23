@@ -110,7 +110,7 @@ void (empty response body)
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -262,7 +262,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **updateManager**
-> Manager updateManager(managerId, managerInput)
+> Manager updateManager(managerId, managerInput, ifMatch)
 
 Update Manager
 
@@ -281,9 +281,10 @@ import 'package:niscala_api/api.dart';
 final api_instance = ManagersApi();
 final managerId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 final managerInput = ManagerInput(); // ManagerInput | 
+final ifMatch = ifMatch_example; // String | The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.
 
 try {
-    final result = api_instance.updateManager(managerId, managerInput);
+    final result = api_instance.updateManager(managerId, managerInput, ifMatch);
     print(result);
 } catch (e) {
     print('Exception when calling ManagersApi->updateManager: $e\n');
@@ -296,6 +297,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **managerId** | **String**|  | 
  **managerInput** | [**ManagerInput**](ManagerInput.md)|  | 
+ **ifMatch** | **String**| The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version. | [optional] 
 
 ### Return type
 

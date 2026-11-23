@@ -20,21 +20,20 @@ class CurrentLeaseList {
   List<CurrentLease> items;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is CurrentLeaseList && _deepEquality.equals(other.items, items);
+  bool operator ==(Object other) => identical(this, other) || other is CurrentLeaseList &&
+    _deepEquality.equals(other.items, items);
 
   @override
   int get hashCode =>
-      // ignore: unnecessary_parenthesis
-      (items.hashCode);
+    // ignore: unnecessary_parenthesis
+    (items.hashCode);
 
   @override
   String toString() => 'CurrentLeaseList[items=$items]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    json[r'items'] = this.items;
+      json[r'items'] = this.items;
     return json;
   }
 
@@ -50,10 +49,8 @@ class CurrentLeaseList {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key),
-              'Required key "CurrentLeaseList[$key]" is missing from JSON.');
-          assert(json[key] != null,
-              'Required key "CurrentLeaseList[$key]" has a null value in JSON.');
+          assert(json.containsKey(key), 'Required key "CurrentLeaseList[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "CurrentLeaseList[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -65,10 +62,7 @@ class CurrentLeaseList {
     return null;
   }
 
-  static List<CurrentLeaseList> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<CurrentLeaseList> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <CurrentLeaseList>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -96,19 +90,13 @@ class CurrentLeaseList {
   }
 
   // maps a json object with a list of CurrentLeaseList-objects as value to a dart map
-  static Map<String, List<CurrentLeaseList>> mapListFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static Map<String, List<CurrentLeaseList>> mapListFromJson(dynamic json, {bool growable = false,}) {
     final map = <String, List<CurrentLeaseList>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = CurrentLeaseList.listFromJson(
-          entry.value,
-          growable: growable,
-        );
+        map[entry.key] = CurrentLeaseList.listFromJson(entry.value, growable: growable,);
       }
     }
     return map;
@@ -119,3 +107,4 @@ class CurrentLeaseList {
     'items',
   };
 }
+

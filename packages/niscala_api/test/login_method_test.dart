@@ -13,5 +13,9 @@ import 'package:test/test.dart';
 
 // tests for LoginMethod
 void main() {
-  group('test LoginMethod', () {});
+
+  group('test LoginMethod', () {
+
+  });
+
 }

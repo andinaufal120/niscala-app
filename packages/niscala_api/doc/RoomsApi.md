@@ -112,7 +112,7 @@ void (empty response body)
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -264,7 +264,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **updateRoom**
-> Room updateRoom(roomId, roomInput)
+> Room updateRoom(roomId, roomInput, ifMatch)
 
 Update Room
 
@@ -283,9 +283,10 @@ import 'package:niscala_api/api.dart';
 final api_instance = RoomsApi();
 final roomId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 final roomInput = RoomInput(); // RoomInput | 
+final ifMatch = ifMatch_example; // String | The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version.
 
 try {
-    final result = api_instance.updateRoom(roomId, roomInput);
+    final result = api_instance.updateRoom(roomId, roomInput, ifMatch);
     print(result);
 } catch (e) {
     print('Exception when calling RoomsApi->updateRoom: $e\n');
@@ -298,6 +299,7 @@ Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
  **roomId** | **String**|  | 
  **roomInput** | [**RoomInput**](RoomInput.md)|  | 
+ **ifMatch** | **String**| The version the caller last read, as a quoted whole number such as \"3\". When it is not the current version, the edit is refused with RESOURCE_VERSION_CONFLICT. Without the header, the edit is applied whatever the version. | [optional] 
 
 ### Return type
 

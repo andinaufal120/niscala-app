@@ -20,23 +20,20 @@ class PurchaseVerificationInput {
   String purchaseToken;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PurchaseVerificationInput &&
-          other.purchaseToken == purchaseToken;
+  bool operator ==(Object other) => identical(this, other) || other is PurchaseVerificationInput &&
+    other.purchaseToken == purchaseToken;
 
   @override
   int get hashCode =>
-      // ignore: unnecessary_parenthesis
-      (purchaseToken.hashCode);
+    // ignore: unnecessary_parenthesis
+    (purchaseToken.hashCode);
 
   @override
-  String toString() =>
-      'PurchaseVerificationInput[purchaseToken=$purchaseToken]';
+  String toString() => 'PurchaseVerificationInput[purchaseToken=$purchaseToken]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    json[r'purchaseToken'] = this.purchaseToken;
+      json[r'purchaseToken'] = this.purchaseToken;
     return json;
   }
 
@@ -52,10 +49,8 @@ class PurchaseVerificationInput {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key),
-              'Required key "PurchaseVerificationInput[$key]" is missing from JSON.');
-          assert(json[key] != null,
-              'Required key "PurchaseVerificationInput[$key]" has a null value in JSON.');
+          assert(json.containsKey(key), 'Required key "PurchaseVerificationInput[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "PurchaseVerificationInput[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -67,10 +62,7 @@ class PurchaseVerificationInput {
     return null;
   }
 
-  static List<PurchaseVerificationInput> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<PurchaseVerificationInput> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <PurchaseVerificationInput>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -98,19 +90,13 @@ class PurchaseVerificationInput {
   }
 
   // maps a json object with a list of PurchaseVerificationInput-objects as value to a dart map
-  static Map<String, List<PurchaseVerificationInput>> mapListFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static Map<String, List<PurchaseVerificationInput>> mapListFromJson(dynamic json, {bool growable = false,}) {
     final map = <String, List<PurchaseVerificationInput>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = PurchaseVerificationInput.listFromJson(
-          entry.value,
-          growable: growable,
-        );
+        map[entry.key] = PurchaseVerificationInput.listFromJson(entry.value, growable: growable,);
       }
     }
     return map;
@@ -121,3 +107,4 @@ class PurchaseVerificationInput {
     'purchaseToken',
   };
 }
+

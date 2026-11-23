@@ -972,6 +972,7 @@ void main() {
 
 extension on Room {
   Room withSize(num length, num width) => Room(
+    version: version,
     id: id,
     propertyId: propertyId,
     number: number,

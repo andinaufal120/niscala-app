@@ -36,5 +36,8 @@ void main() {
     test('to test the property `googlePlayProductId`', () async {
       // TODO
     });
+
+
   });
+
 }

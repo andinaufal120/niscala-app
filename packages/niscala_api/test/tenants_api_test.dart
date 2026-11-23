@@ -11,6 +11,7 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
+
 /// tests for TenantsApi
 void main() {
   // final instance = TenantsApi();
@@ -22,6 +23,15 @@ void main() {
     //
     //Future<Tenant> createTenant(String propertyId, NewTenantInput newTenantInput) async
     test('test createTenant', () async {
+      // TODO
+    });
+
+    // Delete My Account
+    //
+    // Delete the caller's own account and erase its personal data.
+    //
+    //Future deleteMyAccount() async
+    test('test deleteMyAccount', () async {
       // TODO
     });
 
@@ -74,9 +84,10 @@ void main() {
     //
     // Replace a tenant's fields. The room cannot be changed.
     //
-    //Future<Tenant> updateTenant(String tenantId, TenantInput tenantInput) async
+    //Future<Tenant> updateTenant(String tenantId, TenantInput tenantInput, { String ifMatch }) async
     test('test updateTenant', () async {
       // TODO
     });
+
   });
 }

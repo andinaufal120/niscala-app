@@ -22,24 +22,23 @@ class OccupancyDashboard {
   OccupancySummary summary;
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is OccupancyDashboard &&
-          _deepEquality.equals(other.items, items) &&
-          other.summary == summary;
+  bool operator ==(Object other) => identical(this, other) || other is OccupancyDashboard &&
+    _deepEquality.equals(other.items, items) &&
+    other.summary == summary;
 
   @override
   int get hashCode =>
-      // ignore: unnecessary_parenthesis
-      (items.hashCode) + (summary.hashCode);
+    // ignore: unnecessary_parenthesis
+    (items.hashCode) +
+    (summary.hashCode);
 
   @override
   String toString() => 'OccupancyDashboard[items=$items, summary=$summary]';
 
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{};
-    json[r'items'] = this.items;
-    json[r'summary'] = this.summary;
+      json[r'items'] = this.items;
+      json[r'summary'] = this.summary;
     return json;
   }
 
@@ -55,10 +54,8 @@ class OccupancyDashboard {
       // Note 2: this code is stripped in release mode!
       assert(() {
         requiredKeys.forEach((key) {
-          assert(json.containsKey(key),
-              'Required key "OccupancyDashboard[$key]" is missing from JSON.');
-          assert(json[key] != null,
-              'Required key "OccupancyDashboard[$key]" has a null value in JSON.');
+          assert(json.containsKey(key), 'Required key "OccupancyDashboard[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "OccupancyDashboard[$key]" has a null value in JSON.');
         });
         return true;
       }());
@@ -71,10 +68,7 @@ class OccupancyDashboard {
     return null;
   }
 
-  static List<OccupancyDashboard> listFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static List<OccupancyDashboard> listFromJson(dynamic json, {bool growable = false,}) {
     final result = <OccupancyDashboard>[];
     if (json is List && json.isNotEmpty) {
       for (final row in json) {
@@ -102,19 +96,13 @@ class OccupancyDashboard {
   }
 
   // maps a json object with a list of OccupancyDashboard-objects as value to a dart map
-  static Map<String, List<OccupancyDashboard>> mapListFromJson(
-    dynamic json, {
-    bool growable = false,
-  }) {
+  static Map<String, List<OccupancyDashboard>> mapListFromJson(dynamic json, {bool growable = false,}) {
     final map = <String, List<OccupancyDashboard>>{};
     if (json is Map && json.isNotEmpty) {
       // ignore: parameter_assignments
       json = json.cast<String, dynamic>();
       for (final entry in json.entries) {
-        map[entry.key] = OccupancyDashboard.listFromJson(
-          entry.value,
-          growable: growable,
-        );
+        map[entry.key] = OccupancyDashboard.listFromJson(entry.value, growable: growable,);
       }
     }
     return map;
@@ -126,3 +114,4 @@ class OccupancyDashboard {
     'summary',
   };
 }
+

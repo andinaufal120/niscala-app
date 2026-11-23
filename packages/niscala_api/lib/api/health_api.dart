@@ -10,6 +10,7 @@
 
 part of niscala_api;
 
+
 class HealthApi {
   HealthApi([ApiClient? apiClient]) : apiClient = apiClient ?? defaultApiClient;
 
@@ -33,6 +34,7 @@ class HealthApi {
 
     const contentTypes = <String>[];
 
+
     return apiClient.invokeAPI(
       path,
       'GET',
@@ -55,12 +57,9 @@ class HealthApi {
     // When a remote server returns no body with a status of 204, we shall not decode it.
     // At the time of writing this, `dart:convert` will throw an "Unexpected end of input"
     // FormatException when trying to decode an empty string.
-    if (response.body.isNotEmpty &&
-        response.statusCode != HttpStatus.noContent) {
-      return await apiClient.deserializeAsync(
-        await _decodeBodyBytes(response),
-        'Health',
-      ) as Health;
+    if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
+      return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'Health',) as Health;
+    
     }
     return null;
   }

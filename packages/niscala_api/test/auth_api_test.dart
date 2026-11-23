@@ -11,6 +11,7 @@
 import 'package:niscala_api/api.dart';
 import 'package:test/test.dart';
 
+
 /// tests for AuthApi
 void main() {
   // final instance = AuthApi();
@@ -123,5 +124,6 @@ void main() {
     test('test sendEmailVerification', () async {
       // TODO
     });
+
   });
 }

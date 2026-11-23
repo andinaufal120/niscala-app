@@ -13,5 +13,9 @@ import 'package:test/test.dart';
 
 // tests for InvitationRole
 void main() {
-  group('test InvitationRole', () {});
+
+  group('test InvitationRole', () {
+
+  });
+
 }

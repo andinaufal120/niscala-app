@@ -62,6 +62,7 @@ Map<String, dynamic> _tenantJson({
   bool withUrl = true,
   bool withInvitation = true,
 }) => {
+  'version': 1,
   'id': id,
   'name': 'Budi Santoso',
   'phone': '081255204471',
@@ -96,6 +97,7 @@ Map<String, dynamic> _summaryJson({
   bool activated = false,
   bool withEnd = true,
 }) => {
+  'version': 1,
   'id': id,
   'name': 'Budi Santoso',
   'room': {'id': 'r1', 'number': '08'},
