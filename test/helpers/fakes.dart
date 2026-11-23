@@ -12,6 +12,7 @@ import 'package:niscala/core/api/health_repository.dart';
 import 'package:niscala/core/billing/play_billing.dart';
 import 'package:niscala/core/google/google_identity.dart';
 import 'package:niscala/core/push/push_messaging.dart';
+import 'package:niscala/core/screen_brightness.dart';
 import 'package:niscala/core/shell/account_screen.dart';
 import 'package:niscala/features/account/data/account_repository.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
@@ -3916,6 +3917,32 @@ class FakePlayBilling implements PlayBilling {
   void emit(PlayPurchase purchase) => _purchases.add(purchase);
 }
 
+/// A [ScreenBrightnessControl] that never touches the platform. It records
+/// every call in [events], in order, as `raise` or `restore`, before it fails.
+///
+/// Set [raiseFailure] or [restoreFailure] to make that method throw the value
+/// (asynchronously, as a failed future).
+class FakeScreenBrightness implements ScreenBrightnessControl {
+  final events = <String>[];
+  Object? raiseFailure;
+  Object? restoreFailure;
+
+  int get raiseCalls => events.where((e) => e == 'raise').length;
+  int get restoreCalls => events.where((e) => e == 'restore').length;
+
+  @override
+  Future<void> raise() async {
+    events.add('raise');
+    if (raiseFailure != null) throw raiseFailure!;
+  }
+
+  @override
+  Future<void> restore() async {
+    events.add('restore');
+    if (restoreFailure != null) throw restoreFailure!;
+  }
+}
+
 /// The whole app with a fake session store and no network.
 ///
 /// Without [health] every server check succeeds.
@@ -3926,6 +3953,9 @@ class FakePlayBilling implements PlayBilling {
 /// and has no token, so nothing is registered.
 ///
 /// Without [invitationSharer] sharing does nothing.
+///
+/// Without [screenBrightness] the app gets a [FakeScreenBrightness], so the
+/// screen brightness of the platform is never touched.
 Widget buildTestApp({
   SessionStore? store,
   Future<AuthTokens> Function(String refreshToken)? refresh,
@@ -3951,6 +3981,7 @@ Widget buildTestApp({
   GoogleIdentity? google,
   ImageChooser? receiptPicker,
   Future<void> Function(String text)? invitationSharer,
+  ScreenBrightnessControl? screenBrightness,
 }) {
   return ProviderScope(
     overrides: [
@@ -4008,6 +4039,9 @@ Widget buildTestApp({
       ),
       invitationSharerProvider.overrideWithValue(
         invitationSharer ?? (text) async {},
+      ),
+      screenBrightnessProvider.overrideWithValue(
+        screenBrightness ?? FakeScreenBrightness(),
       ),
       if (logout != null) logoutProvider.overrideWithValue(logout),
     ],

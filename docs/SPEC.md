@@ -287,7 +287,7 @@ List with number, base rate and occupancy; default filter *Semua (All)*. Detail 
 **UC-18 Add tenant** (FR-13) · *[property] → Penyewa → Tambah Penyewa (Tenants → Add)*
 Required fields: room (vacant rooms only), name, phone number. Optional fields: occupation, emergency contacts (2 to 4, or none for the tenant to complete during activation), lease dates, billing cycle (§3, default monthly), grace period (default 0), rent (per billing cycle; pre-filled with the room's base rate for a monthly lease, editable; required for other cycles).
 Phone number: an Indonesian mobile number (`08` or `628` followed by 8 to 11 digits, spaces and dashes ignored). Exactly 1 emergency contact is a field error. Email is not entered here.
-On save, the room becomes *Terisi* and an **invitation link** is shown. The link can be shared via WhatsApp or shown as a QR code. If link creation fails, the tenant is still saved, and the link can be regenerated in UC-20.
+On save, the room becomes *Terisi* and an **invitation link** is shown. The link can be shared via WhatsApp or shown as a QR code. While the QR screen is open the screen is at full brightness, and it returns to its previous brightness when the screen closes or the app goes to the background. If link creation fails, the tenant is still saved, and the link can be regenerated in UC-20.
 
 **UC-19 View tenants** (FR-13) · *[property] → Penyewa (Tenants)*
 List with room, lease and account status. Detail shows personal data, room, lease and activation status.
@@ -461,3 +461,4 @@ When work touches one of these items, stop and raise it in Plan mode. Items that
 | 23-11-2026 | Links open in the app: an invitation, reset or email-change link is routed by the session to the existing screens with its token (§7); the paste flows remain for links opened elsewhere. | NKMA-118 |
 | 23-11-2026 | UC-31 rewritten for the built screens: current subscription, plans with a period filter, upgrade through an order summary, and a scheduled downgrade with the properties and rooms to keep. UC-32 (payment) follows separately. | NKMA-77 |
 | 23-11-2026 | UC-32 rewritten for Google Play Billing: the purchase sheet, verification of the purchase token by the API and the order outcomes; TBD-3 removed because the backend decided it. | NKMA-78 |
+| 23-11-2026 | The invitation QR screen raises the screen brightness while it is open (UC-18, also used by UC-27). | — |

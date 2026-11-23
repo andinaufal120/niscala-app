@@ -6,6 +6,7 @@ import 'package:niscala/core/navigation.dart';
 import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
+import 'package:niscala/core/widgets/full_brightness.dart';
 import 'package:niscala/features/managers/data/manager_repository.dart';
 import 'package:niscala/features/managers/ui/manager_widgets.dart';
 import 'package:niscala/features/tenants/data/invitation_sharing.dart';
@@ -29,18 +30,20 @@ class ManagerInvitationQrScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final manager = ref.watch(managerDetailProvider(managerId));
-    return Scaffold(
-      appBar: const DetailAppBar(title: 'Kode QR undangan'),
-      body: manager.when(
-        skipLoadingOnReload: true,
-        loading: () => const Center(
-          child: CircularProgressIndicator(semanticsLabel: 'Memuat'),
+    return FullBrightness(
+      child: Scaffold(
+        appBar: const DetailAppBar(title: 'Kode QR undangan'),
+        body: manager.when(
+          skipLoadingOnReload: true,
+          loading: () => const Center(
+            child: CircularProgressIndicator(semanticsLabel: 'Memuat'),
+          ),
+          error: (error, _) => ErrorView(
+            message: errorMessageFor(error),
+            onRetry: () => ref.invalidate(managerDetailProvider(managerId)),
+          ),
+          data: (m) => _body(context, ref, m),
         ),
-        error: (error, _) => ErrorView(
-          message: errorMessageFor(error),
-          onRetry: () => ref.invalidate(managerDetailProvider(managerId)),
-        ),
-        data: (m) => _body(context, ref, m),
       ),
     );
   }
