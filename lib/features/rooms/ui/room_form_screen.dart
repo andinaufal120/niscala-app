@@ -11,6 +11,7 @@ import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
 import 'package:niscala/core/widgets/section_card.dart';
+import 'package:niscala/core/widgets/version_conflict.dart';
 import 'package:niscala/features/rooms/data/room_repository.dart';
 import 'package:niscala/features/rooms/ui/room_widgets.dart';
 import 'package:niscala_api/api.dart';
@@ -233,20 +234,26 @@ class _RoomFormState extends ConsumerState<_RoomForm> {
     if (!mounted) return;
     if (failure == null) {
       _finish();
+    } else if (isVersionConflict(failure)) {
+      _refresh();
+      final messenger = ScaffoldMessenger.of(context);
+      context.pop();
+      showVersionConflict(messenger, failure);
     } else {
       _showFailure(failure);
     }
   }
 
-  /// Sends the add or the edit. Returns the failure, or null on success.
+  /// Sends the add or the edit. Returns the failure, or null on success. An
+  /// edit sends the version of the room it was loaded with.
   Future<ApiFailure?> _attempt(RoomInput input) async {
     final repo = ref.read(roomRepositoryProvider);
-    final id = widget.roomId;
+    final room = widget.room;
     try {
-      if (id == null) {
+      if (room == null) {
         await repo.create(widget.propertyId, input);
       } else {
-        await repo.update(id, input);
+        await repo.update(room.id, input, version: room.version);
       }
       return null;
     } on ApiFailure catch (failure) {
@@ -254,10 +261,15 @@ class _RoomFormState extends ConsumerState<_RoomForm> {
     }
   }
 
-  void _finish() {
+  void _refresh() {
     final id = widget.roomId;
     ref.invalidate(roomListProvider(widget.propertyId));
     if (id != null) ref.invalidate(roomDetailProvider(id));
+  }
+
+  void _finish() {
+    final id = widget.roomId;
+    _refresh();
     final messenger = ScaffoldMessenger.of(context);
     context.pop();
     messenger.showSnackBar(

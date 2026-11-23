@@ -9,6 +9,7 @@ import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
+import 'package:niscala/core/widgets/version_conflict.dart';
 import 'package:niscala/features/auth/ui/auth_widgets.dart';
 import 'package:niscala/features/user_accounts/data/user_account_repository.dart';
 import 'package:niscala_api/api.dart';
@@ -104,15 +105,28 @@ class _EditFormState extends ConsumerState<_EditForm> {
           .update(
             widget.accountId,
             UserAccountInput(name: name, email: email, status: _status),
+            version: widget.account.version,
           );
     } on ApiFailure catch (failure) {
-      if (mounted) _showFailure(failure);
+      if (!mounted) return;
+      if (!isVersionConflict(failure)) {
+        _showFailure(failure);
+        return;
+      }
+      _refresh();
+      final messenger = ScaffoldMessenger.of(context);
+      context.go('/admin/${widget.accountId}');
+      showVersionConflict(messenger, failure);
       return;
     }
     if (!mounted) return;
+    _refresh();
+    context.go('/admin/${widget.accountId}');
+  }
+
+  void _refresh() {
     ref.invalidate(userAccountDetailProvider(widget.accountId));
     ref.invalidate(userAccountListProvider);
-    context.go('/admin/${widget.accountId}');
   }
 
   /// Shows a failure next to the field it belongs to, or as a banner that keeps

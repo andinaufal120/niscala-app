@@ -12,7 +12,13 @@ abstract interface class PropertyRepository {
 
   Future<Property> create(PropertyInput input);
 
-  Future<Property> update(String id, PropertyInput input);
+  /// Replaces the property. [version] is the version the caller read; a stale
+  /// one fails with `RESOURCE_VERSION_CONFLICT`.
+  Future<Property> update(
+    String id,
+    PropertyInput input, {
+    required int version,
+  });
 
   Future<void> delete(String id);
 
@@ -70,8 +76,12 @@ class ApiPropertyRepository implements PropertyRepository {
   });
 
   @override
-  Future<Property> update(String id, PropertyInput input) => _guard(() async {
-    return (await properties.updateProperty(id, input))!;
+  Future<Property> update(
+    String id,
+    PropertyInput input, {
+    required int version,
+  }) => _guard(() async {
+    return (await properties.updateProperty(id, input, ifMatch: '"$version"'))!;
   });
 
   @override

@@ -11,7 +11,9 @@ abstract interface class RoomRepository {
 
   Future<Room> create(String propertyId, RoomInput input);
 
-  Future<Room> update(String roomId, RoomInput input);
+  /// [version] is the version the caller read; a stale one fails with
+  /// `RESOURCE_VERSION_CONFLICT`.
+  Future<Room> update(String roomId, RoomInput input, {required int version});
 
   Future<void> delete(String roomId);
 
@@ -67,9 +69,10 @@ class ApiRoomRepository implements RoomRepository {
   });
 
   @override
-  Future<Room> update(String roomId, RoomInput input) => _guard(() async {
-    return (await rooms.updateRoom(roomId, input))!;
-  });
+  Future<Room> update(String roomId, RoomInput input, {required int version}) =>
+      _guard(() async {
+        return (await rooms.updateRoom(roomId, input, ifMatch: '"$version"'))!;
+      });
 
   @override
   Future<void> delete(String roomId) => _guard(() => rooms.deleteRoom(roomId));

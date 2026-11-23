@@ -336,7 +336,7 @@ void main() {
     test('puts the full input to the room', () async {
       final h = _Harness((_) => _ok(_roomJson(number: '08')));
 
-      final result = await h.repository.update('r1', _input());
+      final result = await h.repository.update('r1', _input(), version: 1);
 
       expect(h.request.method, 'PUT');
       expect(h.request.url.path, '/rooms/r1');
@@ -351,10 +351,50 @@ void main() {
     test('sends no dimensions when there are none', () async {
       final h = _Harness((_) => _ok(_roomJson()));
 
-      await h.repository.update('r1', _input(lengthM: null, widthM: null));
+      await h.repository.update(
+        'r1',
+        _input(lengthM: null, widthM: null),
+        version: 1,
+      );
 
       expect(h.body['lengthM'], isNull);
       expect(h.body['widthM'], isNull);
+    });
+
+    test('sends version 1 as a quoted If-Match', () async {
+      final h = _Harness((_) => _ok(_roomJson()));
+
+      await h.repository.update('r1', _input(), version: 1);
+
+      expect(h.request.headers['If-Match'], '"1"');
+    });
+
+    test('sends a larger version as a quoted If-Match', () async {
+      final h = _Harness((_) => _ok(_roomJson()));
+
+      await h.repository.update('r1', _input(), version: 7);
+
+      expect(h.request.headers['If-Match'], '"7"');
+    });
+
+    test('create sends no If-Match', () async {
+      final h = _Harness((_) => _ok(_roomJson(), 201));
+
+      await h.repository.create('p1', _input());
+
+      expect(
+        h.request.headers.keys.map((k) => k.toLowerCase()),
+        isNot(contains('if-match')),
+      );
+    });
+
+    test('keeps the code and status of a version conflict', () async {
+      final h = _Harness((_) => _error(409, 'RESOURCE_VERSION_CONFLICT'));
+
+      await expectLater(
+        h.repository.update('r1', _input(), version: 1),
+        throwsA(_failure('RESOURCE_VERSION_CONFLICT', status: 409)),
+      );
     });
 
     test('keeps the code and field of a number conflict', () async {
@@ -363,7 +403,7 @@ void main() {
       );
 
       await expectLater(
-        h.repository.update('r1', _input()),
+        h.repository.update('r1', _input(), version: 1),
         throwsA(_failure('ROOM_NUMBER_TAKEN', field: 'number', status: 409)),
       );
     });
@@ -372,7 +412,7 @@ void main() {
       final h = _Harness((_) => _error(403, 'ROOM_READ_ONLY'));
 
       await expectLater(
-        h.repository.update('r1', _input()),
+        h.repository.update('r1', _input(), version: 1),
         throwsA(_failure('ROOM_READ_ONLY', status: 403)),
       );
     });
@@ -383,7 +423,7 @@ void main() {
       );
 
       await expectLater(
-        h.repository.update('r1', _input()),
+        h.repository.update('r1', _input(), version: 1),
         throwsA(_failure('VALIDATION_FAILED', field: 'lengthM', status: 400)),
       );
     });
@@ -392,7 +432,7 @@ void main() {
       final h = _Harness.failing(const SocketException('no route'));
 
       await expectLater(
-        h.repository.update('r1', _input()),
+        h.repository.update('r1', _input(), version: 1),
         throwsA(_failure('NETWORK_ERROR')),
       );
     });

@@ -315,6 +315,7 @@ void main() {
       final result = await h.repository.update(
         'u1',
         input(status: EditableAccountStatus.inactive),
+        version: 1,
       );
 
       expect(h.request.method, 'PUT');
@@ -335,7 +336,7 @@ void main() {
     test('sends an active status as its wire value', () async {
       final h = _Harness((_) => _ok(_accountJson()));
 
-      await h.repository.update('u7', input());
+      await h.repository.update('u7', input(), version: 1);
 
       expect(h.request.url.path, '/user-accounts/u7');
       expect(jsonDecode(h.request.body)['status'], 'active');
@@ -347,6 +348,7 @@ void main() {
       await h.repository.update(
         'u1',
         input(name: 'Budi  Baru', email: 'Budi.Baru@Example.com'),
+        version: 1,
       );
 
       final body = jsonDecode(h.request.body);
@@ -357,9 +359,34 @@ void main() {
     test('sends exactly one request', () async {
       final h = _Harness((_) => _ok(_accountJson()));
 
-      await h.repository.update('u1', input());
+      await h.repository.update('u1', input(), version: 1);
 
       expect(h.requests, hasLength(1));
+    });
+
+    test('sends version 1 as a quoted If-Match', () async {
+      final h = _Harness((_) => _ok(_accountJson()));
+
+      await h.repository.update('u1', input(), version: 1);
+
+      expect(h.request.headers['If-Match'], '"1"');
+    });
+
+    test('sends a larger version as a quoted If-Match', () async {
+      final h = _Harness((_) => _ok(_accountJson()));
+
+      await h.repository.update('u1', input(), version: 7);
+
+      expect(h.request.headers['If-Match'], '"7"');
+    });
+
+    test('keeps the code and status of a version conflict', () async {
+      final h = _Harness((_) => _error(409, 'RESOURCE_VERSION_CONFLICT'));
+
+      await expectLater(
+        h.repository.update('u1', input(), version: 1),
+        throwsA(_failure('RESOURCE_VERSION_CONFLICT', status: 409)),
+      );
     });
 
     test('keeps the code, field and status of a taken email', () async {
@@ -368,7 +395,7 @@ void main() {
       );
 
       await expectLater(
-        h.repository.update('u1', input()),
+        h.repository.update('u1', input(), version: 1),
         throwsA(
           _failure('EMAIL_ALREADY_REGISTERED', field: 'email', status: 409),
         ),
@@ -386,7 +413,7 @@ void main() {
         final h = _Harness((_) => _error(entry.value, entry.key));
 
         await expectLater(
-          h.repository.update('u1', input()),
+          h.repository.update('u1', input(), version: 1),
           throwsA(_failure(entry.key, status: entry.value)),
         );
       });
@@ -398,7 +425,7 @@ void main() {
       );
 
       await expectLater(
-        h.repository.update('u1', input(name: '')),
+        h.repository.update('u1', input(name: ''), version: 1),
         throwsA(_failure('VALIDATION_FAILED', field: 'name', status: 422)),
       );
     });
@@ -407,7 +434,7 @@ void main() {
       final h = _Harness((_) => http.Response('', 500));
 
       await expectLater(
-        h.repository.update('u1', input()),
+        h.repository.update('u1', input(), version: 1),
         throwsA(_failure('INTERNAL_ERROR', status: 500)),
       );
     });
@@ -416,7 +443,7 @@ void main() {
       final h = _Harness.failing(const SocketException('no route'));
 
       await expectLater(
-        h.repository.update('u1', input()),
+        h.repository.update('u1', input(), version: 1),
         throwsA(_failure('NETWORK_ERROR')),
       );
     });

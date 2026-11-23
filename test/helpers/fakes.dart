@@ -355,6 +355,11 @@ class FakePropertyRepository implements PropertyRepository {
   final calls = <String>[];
   final created = <PropertyInput>[];
   final updated = <({String id, PropertyInput input})>[];
+
+  /// The version of every [update] call, in order, parallel to [updated]. To
+  /// script a conflict, queue `ApiFailure(code: 'RESOURCE_VERSION_CONFLICT')`
+  /// in [updateScript].
+  final updatedVersions = <int>[];
   final deleted = <String>[];
   final reauthentications = <String>[];
 
@@ -417,9 +422,14 @@ class FakePropertyRepository implements PropertyRepository {
   }
 
   @override
-  Future<Property> update(String id, PropertyInput input) async {
+  Future<Property> update(
+    String id,
+    PropertyInput input, {
+    required int version,
+  }) async {
     calls.add('update:$id');
     updated.add((id: id, input: input));
+    updatedVersions.add(version);
     final failure = await updateScript.next();
     if (failure != null) throw failure;
     final index = properties.indexWhere((p) => p.id == id);
@@ -560,6 +570,9 @@ class FakeRoomRepository implements RoomRepository {
   final calls = <String>[];
   final created = <({String propertyId, RoomInput input})>[];
   final updated = <({String id, RoomInput input})>[];
+
+  /// The version of every [update] call, in order, parallel to [updated].
+  final updatedVersions = <int>[];
   final deleted = <String>[];
 
   final listScript = CallScript();
@@ -633,9 +646,14 @@ class FakeRoomRepository implements RoomRepository {
   }
 
   @override
-  Future<Room> update(String roomId, RoomInput input) async {
+  Future<Room> update(
+    String roomId,
+    RoomInput input, {
+    required int version,
+  }) async {
     calls.add('update:$roomId');
     updated.add((id: roomId, input: input));
+    updatedVersions.add(version);
     final failure = await updateScript.next();
     if (failure != null) throw failure;
     final index = rooms.indexWhere((r) => r.id == roomId);
@@ -803,6 +821,9 @@ class FakeTenantRepository implements TenantRepository {
   final created = <({String propertyId, NewTenantInput input})>[];
   final updated = <({String id, TenantInput input})>[];
 
+  /// The version of every [update] call, in order, parallel to [updated].
+  final updatedVersions = <int>[];
+
   final listScript = CallScript();
   final getScript = CallScript();
   final createScript = CallScript();
@@ -851,9 +872,14 @@ class FakeTenantRepository implements TenantRepository {
   }
 
   @override
-  Future<Tenant> update(String tenantId, TenantInput input) async {
+  Future<Tenant> update(
+    String tenantId,
+    TenantInput input, {
+    required int version,
+  }) async {
     calls.add('update:$tenantId');
     updated.add((id: tenantId, input: input));
+    updatedVersions.add(version);
     final failure = await updateScript.next();
     if (failure != null) throw failure;
     return _change(tenantId, (old) {
@@ -1093,6 +1119,9 @@ class FakeManagerRepository implements ManagerRepository {
   final calls = <String>[];
   final created = <ManagerInput>[];
   final updated = <({String id, ManagerInput input})>[];
+
+  /// The version of every [update] call, in order, parallel to [updated].
+  final updatedVersions = <int>[];
   final deleted = <String>[];
 
   final listScript = CallScript();
@@ -1168,9 +1197,14 @@ class FakeManagerRepository implements ManagerRepository {
   }
 
   @override
-  Future<Manager> update(String managerId, ManagerInput input) async {
+  Future<Manager> update(
+    String managerId,
+    ManagerInput input, {
+    required int version,
+  }) async {
     calls.add('update:$managerId');
     updated.add((id: managerId, input: input));
+    updatedVersions.add(version);
     final failure = await updateScript.next();
     if (failure != null) throw failure;
     final index = _indexOf(managerId);
@@ -2913,6 +2947,9 @@ class FakeUserAccountRepository implements UserAccountRepository {
   final calls = <String>[];
   final listed = <({String? email, UserRole? role, bool includeDeleted})>[];
   final updated = <({String id, UserAccountInput input})>[];
+
+  /// The version of every [update] call, in order, parallel to [updated].
+  final updatedVersions = <int>[];
   final deleted = <String>[];
 
   final listScript = CallScript();
@@ -2959,9 +2996,14 @@ class FakeUserAccountRepository implements UserAccountRepository {
   }
 
   @override
-  Future<UserAccount> update(String id, UserAccountInput input) async {
+  Future<UserAccount> update(
+    String id,
+    UserAccountInput input, {
+    required int version,
+  }) async {
     calls.add('update:$id');
     updated.add((id: id, input: input));
+    updatedVersions.add(version);
     final failure = await updateScript.next();
     if (failure != null) throw failure;
     final index = accounts.indexWhere((a) => a.id == id);

@@ -441,7 +441,11 @@ void main() {
     test('puts the full input to the tenant without a room', () async {
       final h = _Harness((_) => _ok(_tenantJson()));
 
-      final result = await h.repository.update('t1', _updateInput());
+      final result = await h.repository.update(
+        't1',
+        _updateInput(),
+        version: 1,
+      );
 
       expect(h.request.method, 'PUT');
       expect(h.request.url.path, '/tenants/t1');
@@ -466,7 +470,11 @@ void main() {
     test('returns the updated tenant with lease and contacts', () async {
       final h = _Harness((_) => _ok(_tenantJson()));
 
-      final result = await h.repository.update('t1', _updateInput());
+      final result = await h.repository.update(
+        't1',
+        _updateInput(),
+        version: 1,
+      );
 
       expect(result.name, 'Budi Santoso');
       expect(result.room.number, '08');
@@ -490,6 +498,7 @@ void main() {
             gracePeriodDays: 0,
           ),
         ),
+        version: 1,
       );
 
       expect(h.body['emergencyContacts'], isEmpty);
@@ -500,11 +509,47 @@ void main() {
       expect(lease['billingCycle'], 'monthly');
     });
 
+    test('sends version 1 as a quoted If-Match', () async {
+      final h = _Harness((_) => _ok(_tenantJson()));
+
+      await h.repository.update('t1', _updateInput(), version: 1);
+
+      expect(h.request.headers['If-Match'], '"1"');
+    });
+
+    test('sends a larger version as a quoted If-Match', () async {
+      final h = _Harness((_) => _ok(_tenantJson()));
+
+      await h.repository.update('t1', _updateInput(), version: 7);
+
+      expect(h.request.headers['If-Match'], '"7"');
+    });
+
+    test('create sends no If-Match', () async {
+      final h = _Harness((_) => _ok(_tenantJson(), 201));
+
+      await h.repository.create('p1', _input());
+
+      expect(
+        h.request.headers.keys.map((k) => k.toLowerCase()),
+        isNot(contains('if-match')),
+      );
+    });
+
+    test('keeps the code and status of a version conflict', () async {
+      final h = _Harness((_) => _error(409, 'RESOURCE_VERSION_CONFLICT'));
+
+      await expectLater(
+        h.repository.update('t1', _updateInput(), version: 1),
+        throwsA(_failure('RESOURCE_VERSION_CONFLICT', status: 409)),
+      );
+    });
+
     test('keeps the code and status of a tenant that is gone', () async {
       final h = _Harness((_) => _error(404, 'TENANT_NOT_FOUND'));
 
       await expectLater(
-        h.repository.update('t1', _updateInput()),
+        h.repository.update('t1', _updateInput(), version: 1),
         throwsA(_failure('TENANT_NOT_FOUND', status: 404)),
       );
     });
@@ -515,7 +560,7 @@ void main() {
       );
 
       await expectLater(
-        h.repository.update('t1', _updateInput()),
+        h.repository.update('t1', _updateInput(), version: 1),
         throwsA(_failure('VALIDATION_FAILED', field: 'phone', status: 400)),
       );
     });
@@ -526,7 +571,7 @@ void main() {
       );
 
       await expectLater(
-        h.repository.update('t1', _updateInput()),
+        h.repository.update('t1', _updateInput(), version: 1),
         throwsA(
           _failure('VALIDATION_FAILED', field: 'lease.endDate', status: 400),
         ),
@@ -539,7 +584,7 @@ void main() {
       );
 
       await expectLater(
-        h.repository.update('t1', _updateInput()),
+        h.repository.update('t1', _updateInput(), version: 1),
         throwsA(
           _failure(
             'VALIDATION_FAILED',
@@ -554,7 +599,7 @@ void main() {
       final h = _Harness((_) => _error(403, 'PROPERTY_READ_ONLY'));
 
       await expectLater(
-        h.repository.update('t1', _updateInput()),
+        h.repository.update('t1', _updateInput(), version: 1),
         throwsA(_failure('PROPERTY_READ_ONLY', status: 403)),
       );
     });
@@ -563,7 +608,7 @@ void main() {
       final h = _Harness((_) => _error(403, 'FORBIDDEN'));
 
       await expectLater(
-        h.repository.update('t1', _updateInput()),
+        h.repository.update('t1', _updateInput(), version: 1),
         throwsA(_failure('FORBIDDEN', status: 403)),
       );
     });
@@ -572,7 +617,7 @@ void main() {
       final h = _Harness((_) => _error(500, 'INTERNAL_ERROR'));
 
       await expectLater(
-        h.repository.update('t1', _updateInput()),
+        h.repository.update('t1', _updateInput(), version: 1),
         throwsA(_failure('INTERNAL_ERROR', status: 500)),
       );
     });
@@ -581,7 +626,7 @@ void main() {
       final h = _Harness.failing(const SocketException('no route'));
 
       await expectLater(
-        h.repository.update('t1', _updateInput()),
+        h.repository.update('t1', _updateInput(), version: 1),
         throwsA(_failure('NETWORK_ERROR')),
       );
     });

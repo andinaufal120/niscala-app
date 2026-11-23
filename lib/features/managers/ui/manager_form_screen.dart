@@ -10,6 +10,7 @@ import 'package:niscala/core/widgets/detail_app_bar.dart';
 import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
+import 'package:niscala/core/widgets/version_conflict.dart';
 import 'package:niscala/features/managers/data/manager_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala/features/tenants/tenant_format.dart';
@@ -209,29 +210,43 @@ class _ManagerFormState extends ConsumerState<_ManagerForm> {
     await _send(input);
   }
 
-  /// Saves the manager. A new manager opens its invitation; an edited one goes
-  /// back to its detail.
+  /// Saves the manager. A new manager opens its invitation; an edited one, which
+  /// is sent with the version it was loaded with, goes back to its detail. A
+  /// version conflict does the same and shows its message on the detail.
   Future<void> _send(ManagerInput input) async {
     final manager = widget.manager;
     final repository = ref.read(managerRepositoryProvider);
     try {
-      final saved = manager == null
-          ? await repository.create(input)
-          : await repository.update(manager.id, input);
-      if (!mounted) return;
-      ref.invalidate(managerListProvider);
       if (manager == null) {
+        final saved = await repository.create(input);
+        if (!mounted) return;
+        ref.invalidate(managerListProvider);
         context.go(
           '/properti/${widget.propertyId}/pengelola/${saved.id}/undangan'
           '?baru=1',
         );
-      } else {
-        ref.invalidate(managerDetailProvider(manager.id));
-        context.go('/properti/${widget.propertyId}/pengelola/${manager.id}');
+        return;
       }
+      await repository.update(manager.id, input, version: manager.version);
+      if (!mounted) return;
+      _refresh(manager.id);
+      context.go('/properti/${widget.propertyId}/pengelola/${manager.id}');
     } on ApiFailure catch (failure) {
-      if (mounted) _showFailure(failure);
+      if (!mounted) return;
+      if (manager == null || !isVersionConflict(failure)) {
+        _showFailure(failure);
+        return;
+      }
+      _refresh(manager.id);
+      final messenger = ScaffoldMessenger.of(context);
+      context.go('/properti/${widget.propertyId}/pengelola/${manager.id}');
+      showVersionConflict(messenger, failure);
     }
+  }
+
+  void _refresh(String managerId) {
+    ref.invalidate(managerListProvider);
+    ref.invalidate(managerDetailProvider(managerId));
   }
 
   /// Shows a failure next to the field it belongs to, or as a banner.

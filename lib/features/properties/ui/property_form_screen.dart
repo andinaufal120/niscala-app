@@ -11,6 +11,7 @@ import 'package:niscala/core/widgets/error_view.dart';
 import 'package:niscala/core/widgets/form_widgets.dart';
 import 'package:niscala/core/widgets/google_button.dart';
 import 'package:niscala/core/widgets/labeled_field.dart';
+import 'package:niscala/core/widgets/version_conflict.dart';
 import 'package:niscala/features/auth/data/auth_repository.dart';
 import 'package:niscala/features/properties/data/property_repository.dart';
 import 'package:niscala_api/api.dart';
@@ -158,20 +159,26 @@ class _PropertyFormState extends ConsumerState<_PropertyForm> {
     if (!mounted) return;
     if (failure == null) {
       _finish();
+    } else if (isVersionConflict(failure)) {
+      _refresh();
+      final messenger = ScaffoldMessenger.of(context);
+      context.pop();
+      showVersionConflict(messenger, failure);
     } else {
       _showFailure(failure);
     }
   }
 
-  /// Sends the add or the edit. Returns the failure, or null on success.
+  /// Sends the add or the edit. Returns the failure, or null on success. An
+  /// edit sends the version of the property it was loaded with.
   Future<ApiFailure?> _attempt(PropertyInput input) async {
     final repo = ref.read(propertyRepositoryProvider);
-    final id = widget.propertyId;
+    final property = widget.property;
     try {
-      if (id == null) {
+      if (property == null) {
         await repo.create(input);
       } else {
-        await repo.update(id, input);
+        await repo.update(property.id, input, version: property.version);
       }
       return null;
     } on ApiFailure catch (failure) {
@@ -179,10 +186,15 @@ class _PropertyFormState extends ConsumerState<_PropertyForm> {
     }
   }
 
-  void _finish() {
+  void _refresh() {
     final id = widget.propertyId;
     ref.invalidate(propertyListProvider);
     if (id != null) ref.invalidate(propertyDetailProvider(id));
+  }
+
+  void _finish() {
+    final id = widget.propertyId;
+    _refresh();
     final messenger = ScaffoldMessenger.of(context);
     context.pop();
     messenger.showSnackBar(

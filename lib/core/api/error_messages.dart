@@ -94,6 +94,7 @@ const _messages = {
   'PROPERTY_HAS_ACTIVE_LEASE': 'Masih ada masa sewa aktif di properti ini. Akhiri semua masa sewa terlebih dahulu.',
   'ROOM_NOT_FOUND': 'Kamar tidak ditemukan.',
   'ROOM_NOT_VACANT': 'Kamar sudah terisi.',
+  'RESOURCE_VERSION_CONFLICT': 'Data ini sudah diubah oleh pengguna lain. Data terbaru sudah dimuat ulang.',
   'TENANT_NOT_FOUND': 'Penyewa tidak ditemukan.',
   'SESSION_NOT_FOUND': 'Perangkat ini sudah keluar atau tidak ditemukan.',
   'SESSION_IS_CURRENT':
