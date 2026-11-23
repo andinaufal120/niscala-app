@@ -36,6 +36,14 @@ abstract interface class AccountRepository {
   /// Links the Google account of [idToken] to an account that has a password.
   /// Returns the updated account.
   Future<Account> linkGoogle(String idToken);
+
+  /// Confirms the caller's password, which the API asks for before a change
+  /// that needs a recent re-authentication.
+  Future<void> reauthenticateWithPassword(String password);
+
+  /// Confirms the caller's identity with the Google account of [idToken], for
+  /// an account that has no password.
+  Future<void> reauthenticateWithGoogle(String idToken);
 }
 
 final accountRepositoryProvider = Provider<AccountRepository>((ref) {
@@ -116,6 +124,20 @@ class ApiAccountRepository implements AccountRepository {
   @override
   Future<Account> linkGoogle(String idToken) => _guard(() async {
     return (await accountApi.linkGoogle(LinkGoogleInput(idToken: idToken)))!;
+  });
+
+  @override
+  Future<void> reauthenticateWithPassword(String password) => _guard(() async {
+    await accountApi.reauthenticateWithPassword(
+      ReauthenticationPasswordInput(password: password),
+    );
+  });
+
+  @override
+  Future<void> reauthenticateWithGoogle(String idToken) => _guard(() async {
+    await accountApi.reauthenticateWithGoogle(
+      ReauthenticationGoogleInput(idToken: idToken),
+    );
   });
 
   Future<T> _guard<T>(Future<T> Function() call) async {
